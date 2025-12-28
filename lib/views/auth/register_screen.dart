@@ -17,6 +17,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -24,6 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -53,6 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       email: _emailController.text.trim(),
       password: _passwordController.text,
       confirmPassword: _confirmPasswordController.text,
+      fullName: _fullNameController.text.trim(),
     );
 
     if (!mounted) return;
@@ -140,6 +143,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
 
                   const SizedBox(height: 40),
+
+                  // Full Name field
+                  AuthTextField(
+                    label: 'Họ và tên',
+                    hint: 'Nhập họ và tên của bạn',
+                    prefixIcon: Icons.person_outline,
+                    keyboardType: TextInputType.name,
+                    controller: _fullNameController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Vui lòng nhập họ và tên';
+                      }
+                      if (value.trim().length < 2) {
+                        return 'Họ và tên phải có ít nhất 2 ký tự';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
 
                   // Email field
                   AuthTextField(

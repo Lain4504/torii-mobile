@@ -31,6 +31,7 @@ class AuthService {
   Future<AuthResponse> register({
     required String email,
     required String password,
+    required String fullName,
   }) async {
     try {
       final response = await _apiClient.post(
@@ -38,20 +39,14 @@ class AuthService {
         body: {
           'email': email,
           'password': password,
+          'fullName': fullName,
         },
       );
 
       final authResponse = AuthResponse.fromJson(response);
       
-      // Save token if available
-      if (authResponse.accessToken != null) {
-        await saveToken(authResponse.accessToken!);
-      }
-      
-      // Save user data if available
-      if (authResponse.user != null) {
-        await saveUser(authResponse.user!);
-      }
+      // Register response: { success: true, data: userId }
+      // No token or user in register response, user needs to login after registration
 
       return authResponse;
     } on ApiException {
@@ -78,17 +73,33 @@ class AuthService {
         },
       );
 
+      // Login response: { success: true, data: "token_string" }
       final authResponse = AuthResponse.fromJson(response);
       
       // Save token if available
       if (authResponse.accessToken != null) {
         await saveToken(authResponse.accessToken!);
         _apiClient.setToken(authResponse.accessToken);
-      }
-      
-      // Save user data if available
-      if (authResponse.user != null) {
-        await saveUser(authResponse.user!);
+        
+        // Fetch user profile after login
+        try {
+          final profileResponse = await _apiClient.get(AppConfig.authProfileEndpoint);
+          if (profileResponse['success'] == true && profileResponse['data'] != null) {
+            final user = User.fromJson(profileResponse['data'] as Map<String, dynamic>);
+            await saveUser(user);
+            // Update authResponse with user
+            return AuthResponse(
+              user: user,
+              accessToken: authResponse.accessToken,
+              refreshToken: authResponse.refreshToken,
+              sessionId: authResponse.sessionId,
+              data: authResponse.data,
+            );
+          }
+        } catch (e) {
+          // If profile fetch fails, still return authResponse with token
+          debugPrint('Failed to fetch user profile: $e');
+        }
       }
 
       return authResponse;

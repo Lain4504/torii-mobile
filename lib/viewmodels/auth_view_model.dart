@@ -116,8 +116,20 @@ class AuthViewModel extends ChangeNotifier {
     required String email,
     required String password,
     required String confirmPassword,
+    required String fullName,
   }) async {
     // Validation
+    if (fullName.trim().isEmpty) {
+      _error = 'Vui lòng nhập họ và tên';
+      notifyListeners();
+      return false;
+    }
+    if (fullName.trim().length < 2) {
+      _error = 'Họ và tên phải có ít nhất 2 ký tự';
+      notifyListeners();
+      return false;
+    }
+
     final emailError = Validators.email(email);
     if (emailError != null) {
       _error = emailError;
@@ -148,14 +160,17 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _authService.register(
+      // Register response: { success: true, data: userId }
+      // No token or user returned, user needs to login after registration
+      await _authService.register(
         email: email.trim(),
         password: password,
+        fullName: fullName.trim(),
       );
 
-      _user = response.user;
-      _isAuthenticated = true;
-      _successMessage = 'Đăng ký thành công!';
+      _user = null;
+      _isAuthenticated = false;
+      _successMessage = 'Đăng ký thành công! Vui lòng đăng nhập.';
       _error = null;
 
       notifyListeners();

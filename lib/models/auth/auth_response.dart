@@ -17,14 +17,36 @@ class AuthResponse {
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    // Handle different response formats from Supabase/backend
+    // New backend format: { success: true, data: ... }
     User? user;
     String? accessToken;
     String? refreshToken;
     String? sessionId;
 
-    // Check if response has nested 'data' or 'user' structure
-    if (json['data'] != null) {
+    // Handle new backend response format
+    if (json['success'] == true && json['data'] != null) {
+      final data = json['data'];
+      
+      // Login response: { success: true, data: "token_string" }
+      if (data is String) {
+        accessToken = data;
+      }
+      // Register response: { success: true, data: "user_id_string" }
+      // (No token or user in register response)
+      else if (data is Map<String, dynamic>) {
+        // If data is an object, try to parse as user
+        if (data['id'] != null || data['email'] != null) {
+          user = User.fromJson(data);
+        }
+        // Or check for token
+        accessToken = data['access_token'] as String? ?? 
+                     data['token'] as String?;
+        refreshToken = data['refresh_token'] as String?;
+        sessionId = data['session_id'] as String?;
+      }
+    }
+    // Legacy format support (for backward compatibility)
+    else if (json['data'] != null) {
       final data = json['data'] as Map<String, dynamic>;
       
       if (data['user'] != null) {
@@ -70,4 +92,5 @@ class AuthResponse {
     };
   }
 }
+
 

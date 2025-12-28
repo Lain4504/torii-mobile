@@ -12,6 +12,7 @@ class AppConfig {
   static const String authRegisterEndpoint = '/auth/register';
   static const String authLoginEndpoint = '/auth/login';
   static const String authLogoutEndpoint = '/auth/logout';
+  static const String authProfileEndpoint = '/auth/profile';
   
   // Timeout settings
   static const Duration connectTimeout = Duration(seconds: 30);
