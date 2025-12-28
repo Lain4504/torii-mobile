@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../graphql/schema.graphql.dart';
+import '../../data/models/course.dart';
 import '../../viewmodels/course_view_model.dart';
+import '../../viewmodels/auth_view_model.dart';
+import '../../views/auth/login_screen.dart';
 import 'widgets/course_form.dart';
 
 class CourseView extends StatefulWidget {
@@ -62,13 +64,65 @@ class _CourseViewState extends State<CourseView> {
     return true;
   }
 
+  Future<void> _handleLogout() async {
+    final authViewModel = context.read<AuthViewModel>();
+    
+    // Show confirmation dialog
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Đăng xuất'),
+        content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Đăng xuất'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    // Perform logout
+    await authViewModel.logout();
+
+    if (!mounted) return;
+
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Đăng xuất thành công!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    // Navigate to LoginScreen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => const LoginScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<CourseViewModel>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Courses (MVVM + GraphQL)'),
+        title: const Text('Courses'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Đăng xuất',
+            onPressed: _handleLogout,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -152,18 +206,18 @@ class _CourseViewState extends State<CourseView> {
                     : () async {
                         if (!_validateForm(context)) return;
 
-                        final inputCreate = Input$CreateCourseInput(
+                        final inputCreate = CreateCourseInput(
                           title: titleCtrl.text.trim(),
                           description:
                               descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
                           price: double.tryParse(priceCtrl.text) ?? 0,
                           published: published,
                         );
-                        final inputUpdate = Input$UpdateCourseInput(
+                        final inputUpdate = UpdateCourseInput(
                           title: titleCtrl.text.trim(),
                           description:
                               descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(),
-                          price: double.tryParse(priceCtrl.text),
+                          price: double.tryParse(priceCtrl.text) ?? 0,
                           published: published,
                         );
 

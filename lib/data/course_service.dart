@@ -1,55 +1,29 @@
-import 'package:graphql_flutter/graphql_flutter.dart';
+import 'models/course.dart';
 
-import '../graphql/operations.graphql.dart';
-import '../graphql/schema.graphql.dart';
-
-/// Data layer for course-related GraphQL operations.
+/// Data layer for course-related operations.
 class CourseService {
-  CourseService(this._client);
+  CourseService();
 
-  final GraphQLClient _client;
-
-  Future<List<Query$GetCourses$courses>> fetchCourses() async {
-    final result = await _client.query(
-      QueryOptions(
-        document: documentNodeQueryGetCourses,
-        fetchPolicy: FetchPolicy.networkOnly,
-      ),
-    );
-    if (result.hasException) throw result.exception!;
-    final data = result.data;
-    if (data == null) return [];
-    return Query$GetCourses.fromJson(data).courses;
+  // TODO: Implement API calls to replace GraphQL
+  Future<List<Course>> fetchCourses() async {
+    // Placeholder implementation
+    await Future.delayed(const Duration(milliseconds: 500));
+    return [];
   }
 
-  Future<void> createCourse(Input$CreateCourseInput input) async {
-    final result = await _client.mutate(
-      MutationOptions(
-        document: documentNodeMutationCreateCourse,
-        variables: {'input': input.toJson()},
-      ),
-    );
-    if (result.hasException) throw result.exception!;
+  Future<void> createCourse(CreateCourseInput input) async {
+    // Placeholder implementation
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 
-  Future<void> updateCourse(int id, Input$UpdateCourseInput input) async {
-    final result = await _client.mutate(
-      MutationOptions(
-        document: documentNodeMutationUpdateCourse,
-        variables: {'id': id, 'input': input.toJson()},
-      ),
-    );
-    if (result.hasException) throw result.exception!;
+  Future<void> updateCourse(int id, UpdateCourseInput input) async {
+    // Placeholder implementation
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 
   Future<void> deleteCourse(int id) async {
-    final result = await _client.mutate(
-      MutationOptions(
-        document: documentNodeMutationDeleteCourse,
-        variables: {'id': id},
-      ),
-    );
-    if (result.hasException) throw result.exception!;
+    // Placeholder implementation
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 }
 

@@ -1,9 +1,0 @@
-schema: lib/graphql/schema.graphql
-documents:
-  - lib/graphql/**/*.graphql
-output:
-  # Generates strongly typed Dart classes + helpers
-  lib/graphql/__generated__/:
-    style: dart
-    addTypename: true
-

@@ -2,8 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../core/base/view_model.dart';
 import '../data/course_service.dart';
-import '../graphql/operations.graphql.dart';
-import '../graphql/schema.graphql.dart';
+import '../data/models/course.dart';
 
 /// ViewModel cho CRUD Course với state chi tiết cho từng hành động.
 class CourseViewModel extends BaseViewModel {
@@ -11,8 +10,8 @@ class CourseViewModel extends BaseViewModel {
 
   final CourseService _service;
 
-  List<Query$GetCourses$courses> _courses = [];
-  List<Query$GetCourses$courses> get courses => _courses;
+  List<Course> _courses = [];
+  List<Course> get courses => _courses;
 
   bool _isLoadingList = false;
   bool get isLoadingList => _isLoadingList;
@@ -46,7 +45,7 @@ class CourseViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> create(Input$CreateCourseInput input) async {
+  Future<void> create(CreateCourseInput input) async {
     _isSubmitting = true;
     _actionError = null;
     notifyListeners();
@@ -63,7 +62,7 @@ class CourseViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> update(int id, Input$UpdateCourseInput input) async {
+  Future<void> update(int id, UpdateCourseInput input) async {
     _isSubmitting = true;
     _actionError = null;
     notifyListeners();
