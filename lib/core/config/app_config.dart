@@ -1,7 +1,7 @@
 class AppConfig {
   AppConfig._();
 
-  // TODO: replace with env-specific base URL
-  static const String apiBaseUrl = 'https://api.example.com';
+  // Backend Gateway API base URL
+  static const String apiBaseUrl = 'http://localhost:8080';
 }
 

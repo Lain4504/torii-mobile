@@ -1,42 +1,57 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
 
-/// Login Form với UI phong cách Nhật Bản và logic đầy đủ
-class LoginForm extends ConsumerStatefulWidget {
-  const LoginForm({super.key});
+/// Register Form với UI phong cách Nhật Bản và logic đầy đủ
+class RegisterForm extends ConsumerStatefulWidget {
+  const RegisterForm({super.key});
 
   @override
-  ConsumerState<LoginForm> createState() => _LoginFormState();
+  ConsumerState<RegisterForm> createState() => _RegisterFormState();
 }
 
-class _LoginFormState extends ConsumerState<LoginForm> {
+class _RegisterFormState extends ConsumerState<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
+  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
+    _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       final authState = ref.read(authStateProvider.notifier);
-      await authState.login(
+      await authState.register(
         _emailController.text.trim(),
+        _fullNameController.text.trim(),
         _passwordController.text,
       );
 
       // Kiểm tra kết quả và navigate
       final currentState = ref.read(authStateProvider);
-      if (currentState.isAuthenticated) {
+      if (!currentState.isLoading && currentState.error == null) {
+        // Register thành công, navigate về login
         if (mounted) {
-          context.go('/');
+          context.go('/login');
+          // Hiển thị thông báo thành công
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đăng ký thành công! Vui lòng đăng nhập.'),
+              backgroundColor: Color(0xFF4CAF50),
+            ),
+          );
         }
       }
     }
@@ -51,12 +66,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header với Torii Gate decoration
+          // Header với Sakura decoration
           Container(
             margin: const EdgeInsets.only(bottom: 40),
             child: Column(
               children: [
-                // Torii Gate decoration
+                // Sakura decoration
                 Container(
                   height: 140,
                   decoration: BoxDecoration(
@@ -64,8 +79,8 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFFFF6B6B).withValues(alpha: 0.1),
-                        const Color(0xFFFFE0E0).withValues(alpha: 0.3),
+                        const Color(0xFFFFB6C1).withValues(alpha: 0.2),
+                        const Color(0xFFFFE4E1).withValues(alpha: 0.4),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
@@ -84,10 +99,10 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Torii gate shape đơn giản
+                      // Họa tiết hoa anh đào (sakura)
                       CustomPaint(
-                        size: const Size(120, 100),
-                        painter: _ToriiGatePainter(),
+                        size: const Size(140, 140),
+                        painter: _SakuraPainter(),
                       ),
                       // Text tiếng Nhật
                       Positioned(
@@ -95,12 +110,12 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                         child: Column(
                           children: [
                             const Text(
-                              '鳥居',
+                              '桜',
                               style: TextStyle(
-                                fontSize: 36,
+                                fontSize: 48,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFFF6B6B),
-                                letterSpacing: 3,
+                                letterSpacing: 2,
                                 shadows: [
                                   Shadow(
                                     color: Colors.white,
@@ -111,7 +126,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Torii - Cổng vào đền thờ',
+                              'Sakura - Hoa anh đào',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],
@@ -129,16 +144,17 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 Column(
                   children: [
                     Text(
-                      'Chào mừng trở lại!',
+                      'Bắt đầu hành trình học tập!',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.grey[800],
                       ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'ようこそ！',
+                      '新しい旅を始めましょう！',
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.grey[600],
@@ -150,6 +166,47 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               ],
             ),
           ),
+
+          // Full Name Field
+          TextFormField(
+            controller: _fullNameController,
+            keyboardType: TextInputType.name,
+            style: const TextStyle(color: Colors.black),
+            decoration: InputDecoration(
+              labelText: 'Họ và tên',
+              hintText: 'nhập họ và tên của bạn',
+              prefixIcon: const Icon(Icons.person_outlined),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFFF6B6B), width: 2),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập họ và tên';
+              }
+              if (value.trim().length < 2) {
+                return 'Họ và tên phải có ít nhất 2 ký tự';
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 20),
 
           // Email Field
           TextFormField(
@@ -183,7 +240,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               if (value == null || value.isEmpty) {
                 return 'Vui lòng nhập email';
               }
-              if (!value.contains('@')) {
+              if (!value.contains('@') || !value.contains('.')) {
                 return 'Email không hợp lệ';
               }
               return null;
@@ -234,6 +291,60 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               if (value == null || value.isEmpty) {
                 return 'Vui lòng nhập mật khẩu';
               }
+              if (value.length < 6) {
+                return 'Mật khẩu phải có ít nhất 6 ký tự';
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 20),
+
+          // Confirm Password Field
+          TextFormField(
+            controller: _confirmPasswordController,
+            obscureText: _obscureConfirmPassword,
+            style: const TextStyle(color: Colors.black),
+            decoration: InputDecoration(
+              labelText: 'Xác nhận mật khẩu',
+              hintText: 'nhập lại mật khẩu',
+              prefixIcon: const Icon(Icons.lock_outlined),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureConfirmPassword = !_obscureConfirmPassword;
+                  });
+                },
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFFF6B6B), width: 2),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng xác nhận mật khẩu';
+              }
+              if (value != _passwordController.text) {
+                return 'Mật khẩu xác nhận không khớp';
+              }
               return null;
             },
           ),
@@ -271,11 +382,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               ),
             ),
 
-          // Login Button
+          // Register Button
           SizedBox(
             height: 52,
             child: ElevatedButton(
-              onPressed: authState.isLoading ? null : _handleLogin,
+              onPressed: authState.isLoading ? null : _handleRegister,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
@@ -296,7 +407,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                       ),
                     )
                   : const Text(
-                      'Đăng nhập',
+                      'Đăng ký',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -309,11 +420,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
           const SizedBox(height: 24),
 
-          // Register Link
+          // Login Link
           Center(
             child: TextButton(
               onPressed: () {
-                context.go('/register');
+                context.go('/login');
               },
               child: RichText(
                 text: const TextSpan(
@@ -322,9 +433,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                     color: Color(0xFF666666),
                   ),
                   children: [
-                    TextSpan(text: 'Chưa có tài khoản? '),
+                    TextSpan(text: 'Đã có tài khoản? '),
                     TextSpan(
-                      text: 'Đăng ký',
+                      text: 'Đăng nhập',
                       style: TextStyle(
                         color: Color(0xFFFF6B6B),
                         fontWeight: FontWeight.w600,
@@ -341,65 +452,67 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   }
 }
 
-/// Custom Painter cho Torii Gate
-class _ToriiGatePainter extends CustomPainter {
+/// Custom Painter cho họa tiết hoa anh đào (sakura) đẹp hơn
+class _SakuraPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFFF6B6B)
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width * 0.35;
+
+    // Màu hồng sakura
+    final sakuraColor = const Color(0xFFFF6B6B);
+    
+    // Vẽ 5 cánh hoa anh đào
+    final petalPaint = Paint()
+      ..color = sakuraColor.withValues(alpha: 0.4)
       ..style = PaintingStyle.fill;
 
-    // Vẽ 2 cột trụ của Torii Gate
-    final pillarWidth = size.width * 0.08;
-    final pillarHeight = size.height * 0.7;
-    final leftPillarX = size.width * 0.25;
-    final rightPillarX = size.width * 0.75;
+    final petalStroke = Paint()
+      ..color = sakuraColor.withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
 
-    // Trụ trái
-    canvas.drawRect(
-      Rect.fromLTWH(
-        leftPillarX - pillarWidth / 2,
-        size.height * 0.3,
-        pillarWidth,
-        pillarHeight,
-      ),
-      paint,
-    );
+    // Vẽ từng cánh hoa (hình oval)
+    for (int i = 0; i < 5; i++) {
+      final angle = (i * 2 * math.pi) / 5 - math.pi / 2; // Bắt đầu từ trên
+      
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.rotate(angle);
+      
+      // Tạo path cho cánh hoa (hình oval có đầu nhọn)
+      final path = Path()
+        ..moveTo(0, -radius * 0.3 - radius * 0.4) // Điểm trên
+        ..quadraticBezierTo(
+          radius * 0.25, -radius * 0.3,
+          radius * 0.25, 0,
+        )
+        ..quadraticBezierTo(
+          radius * 0.25, radius * 0.15,
+          0, radius * 0.3,
+        )
+        ..quadraticBezierTo(
+          -radius * 0.25, radius * 0.15,
+          -radius * 0.25, 0,
+        )
+        ..quadraticBezierTo(
+          -radius * 0.25, -radius * 0.3,
+          0, -radius * 0.3 - radius * 0.4,
+        )
+        ..close();
+      
+      canvas.drawPath(path, petalPaint);
+      canvas.drawPath(path, petalStroke);
+      
+      canvas.restore();
+    }
 
-    // Trụ phải
-    canvas.drawRect(
-      Rect.fromLTWH(
-        rightPillarX - pillarWidth / 2,
-        size.height * 0.3,
-        pillarWidth,
-        pillarHeight,
-      ),
-      paint,
-    );
-
-    // Vẽ thanh ngang trên (kasagi)
-    final kasagiHeight = size.height * 0.2;
-    canvas.drawRect(
-      Rect.fromLTWH(
-        leftPillarX - pillarWidth / 2,
-        size.height * 0.2,
-        rightPillarX - leftPillarX + pillarWidth,
-        kasagiHeight,
-      ),
-      paint,
-    );
-
-    // Vẽ thanh ngang dưới (nuki)
-    final nukiHeight = size.height * 0.15;
-    canvas.drawRect(
-      Rect.fromLTWH(
-        leftPillarX + pillarWidth / 2,
-        size.height * 0.35,
-        rightPillarX - leftPillarX - pillarWidth,
-        nukiHeight,
-      ),
-      paint,
-    );
+    // Vẽ nhụy hoa ở giữa
+    final centerPaint = Paint()
+      ..color = const Color(0xFFFFD700).withValues(alpha: 0.8)
+      ..style = PaintingStyle.fill;
+    
+    canvas.drawCircle(center, radius * 0.15, centerPaint);
   }
 
   @override
