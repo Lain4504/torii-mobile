@@ -33,14 +33,6 @@ migrate_working_dir/
 /build/
 /coverage/
 
-# Generated files
-linux/flutter/ephemeral/
-linux/flutter/generated_plugin_registrant.*
-linux/flutter/generated_plugins.cmake
-macos/Flutter/ephemeral/
-macos/Flutter/GeneratedPluginRegistrant.swift
-web/
-
 # Symbolication related
 app.*.symbols
 
