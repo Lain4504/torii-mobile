@@ -1,19 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../features/auth/views/pages/login_page.dart';
 import '../../features/course/views/pages/course_list_page.dart';
 import '../../features/dashboard/views/dashboard_page.dart';
 import '../../features/exam/views/pages/exam_page.dart';
 import '../../features/flashcard/views/pages/flashcard_page.dart';
 import '../../features/live_class/views/pages/live_class_page.dart';
+import '../../features/onboarding/views/pages/onboarding_page.dart';
 import '../../features/payment/views/pages/payment_page.dart';
 
 class AppRouter {
   AppRouter._();
 
   static final _router = GoRouter(
+    redirect: (context, state) async {
+      final prefs = await SharedPreferences.getInstance();
+      final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+      final isOnboarding = state.matchedLocation == '/onboarding';
+      
+      if (!onboardingCompleted && !isOnboarding) {
+        return '/onboarding';
+      }
+      
+      if (onboardingCompleted && isOnboarding) {
+        return '/';
+      }
+      
+      return null;
+    },
     routes: [
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingPage(),
+      ),
       GoRoute(
         path: '/',
         builder: (context, state) => const DashboardPage(),
