@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../widgets/onboarding_page.dart';
+import '../../../../core/constants/assets.dart';
+import '../widgets/onboarding_slide.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -17,19 +18,19 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   final List<OnboardingPageData> _pages = [
     OnboardingPageData(
-      imagePath: 'assets/images/bg1.png',
+      imagePath: Assets.onboarding1,
       title: 'Học tiếng Nhật dễ dàng',
       description: 'Học tiếng Nhật từ căn bản đến nâng cao một cách hiệu quả và thú vị với phương pháp học hiện đại',
       buttonText: 'Tiếp tục',
     ),
     OnboardingPageData(
-      imagePath: 'assets/images/bg2.png',
+      imagePath: Assets.onboarding2,
       title: 'Lộ trình rõ ràng, hiệu quả',
       description: 'Tiếp cận hàng trăm bài học video, làm bài tập phù hợp với mọi trình độ từ N5 đến N1',
       buttonText: 'Tiếp tục',
     ),
     OnboardingPageData(
-      imagePath: 'assets/images/bg3.png',
+      imagePath: Assets.onboarding3,
       title: 'Học mọi lúc, mọi nơi',
       description: 'Thực hành, làm bài tập và ôn luyện từ vựng mọi lúc, mọi nơi với công nghệ AI thông minh',
       buttonText: 'Bắt đầu ngay',

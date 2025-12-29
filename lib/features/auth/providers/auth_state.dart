@@ -1,7 +1,8 @@
-import 'package:riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/auth_model.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../services/storage/secure_storage_service.dart';
+import 'auth_providers.dart';
 
 /// State model cho authentication
 class AuthState {
@@ -32,18 +33,18 @@ class AuthState {
   }
 }
 
-/// StateNotifier để quản lý authentication state
-class AuthStateNotifier extends StateNotifier<AuthState> {
-  AuthStateNotifier(
-    this._authRepository,
-    this._secureStorage,
-  ) : super(AuthState()) {
-    // Check auth status khi khởi tạo
-    checkAuthStatus();
+/// Notifier để quản lý authentication state
+class AuthStateNotifier extends Notifier<AuthState> {
+  @override
+  AuthState build() {
+    // Start with unauthenticated state
+    // Check auth status manually when needed
+    return AuthState();
   }
 
-  final AuthRepository _authRepository;
-  final SecureStorageService _secureStorage;
+  // Dependencies accessed via ref
+  AuthRepository get _authRepository => ref.read(authRepositoryProvider);
+  SecureStorageService get _secureStorage => ref.read(secureStorageProvider);
 
   /// Login với email và password
   Future<void> login(String email, String password) async {
@@ -148,3 +149,4 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     }
   }
 }
+

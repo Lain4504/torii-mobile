@@ -1,131 +1,140 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/login_form.dart';
+import '../../providers/auth_providers.dart';
 
-/// Login Page với UI phong cách Nhật Bản
-class LoginPage extends StatelessWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends ConsumerState<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      return;
+    }
+
+    await ref.read(authStateProvider.notifier).login(email, password);
+
+    final authState = ref.read(authStateProvider);
+    if (authState.isAuthenticated) {
+      if (mounted) context.go('/');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authStateProvider);
+
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color(0xFFFFF5F5), // Màu hồng nhạt trên cùng
-              Colors.white,
-              const Color(0xFFF0F8FF), // Màu xanh nhạt dưới cùng
-            ],
-            stops: const [0.0, 0.5, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Custom AppBar với decoration Nhật Bản
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.home, color: Color(0xFF333333)),
-                        tooltip: 'Về trang chủ',
-                        onPressed: () => context.go('/'),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Đăng nhập',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                                color: Color(0xFF333333),
-                              ),
-                            ),
-                            Text(
-                              'ログイン',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Icon Nhật Bản
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF6B6B).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.pets,
-                          color: Color(0xFFFF6B6B),
-                          size: 24,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Back button - minimal padding
+            Padding(
+              padding: const EdgeInsets.only(left: 8, top: 8),
+              child: TextButton.icon(
+                icon: const Icon(Icons.arrow_back),
+                label: const Text('Back'),
+                onPressed: () => context.go('/'),
               ),
-              // Body với decoration
-              Expanded(
-                child: Stack(
+            ),
+            
+            // Main content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Background decoration - Sakura petals
-                    Positioned(
-                      top: 20,
-                      right: 20,
-                      child: Opacity(
-                        opacity: 0.1,
-                        child: Icon(
-                          Icons.eco,
-                          size: 100,
-                          color: const Color(0xFFFF6B6B),
-                        ),
+                    const Spacer(),
+                    
+                    // Title
+                    const Text(
+                      'Login',
+                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                    ),
+                    
+                    const SizedBox(height: 40),
+                    
+                    // Email
+                    TextField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Password
+                    TextField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                      ),
+                      obscureText: true,
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    // Error message
+                    if (authState.error != null)
+                      Text(
+                        authState.error!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Login button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: authState.isLoading ? null : _login,
+                        child: authState.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text('Login'),
                       ),
                     ),
-                    Positioned(
-                      top: 150,
-                      left: 20,
-                      child: Opacity(
-                        opacity: 0.08,
-                        child: Icon(
-                          Icons.eco,
-                          size: 80,
-                          color: const Color(0xFFFF6B6B),
-                        ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // Register link
+                    Center(
+                      child: TextButton(
+                        onPressed: () => context.go('/register'),
+                        child: const Text('Create account'),
                       ),
                     ),
-                    // Form content
-                    SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: const LoginForm(),
-                    ),
+                    
+                    const Spacer(),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
