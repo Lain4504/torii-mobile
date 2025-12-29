@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/views/pages/login_page.dart';
+import '../../features/auth/views/pages/register_page.dart';
 import '../../features/course/views/pages/course_list_page.dart';
 import '../../features/dashboard/views/dashboard_page.dart';
 import '../../features/exam/views/pages/exam_page.dart';
@@ -21,6 +22,10 @@ class AppRouter {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterPage(),
       ),
       GoRoute(
         path: '/courses',

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/login_form.dart';
+import '../widgets/register_form.dart';
 
-/// Login Page với UI phong cách Nhật Bản
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+/// Register Page với UI phong cách Nhật Bản
+class RegisterPage extends StatelessWidget {
+  const RegisterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +15,9 @@ class LoginPage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFFFFF5F5), // Màu hồng nhạt trên cùng
+              const Color(0xFFFFF0F5), // Màu hồng sakura nhạt
               Colors.white,
-              const Color(0xFFF0F8FF), // Màu xanh nhạt dưới cùng
+              const Color(0xFFF0F8FF), // Màu xanh nhạt
             ],
             stops: const [0.0, 0.5, 1.0],
           ),
@@ -51,7 +51,7 @@ class LoginPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Đăng nhập',
+                              'Đăng ký',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
@@ -60,7 +60,7 @@ class LoginPage extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              'ログイン',
+                              '新規登録',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],
@@ -78,7 +78,7 @@ class LoginPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
-                          Icons.pets,
+                          Icons.local_florist,
                           color: Color(0xFFFF6B6B),
                           size: 24,
                         ),
@@ -91,27 +91,27 @@ class LoginPage extends StatelessWidget {
               Expanded(
                 child: Stack(
                   children: [
-                    // Background decoration - Sakura petals
+                    // Background decoration - Sakura
                     Positioned(
-                      top: 20,
-                      right: 20,
+                      top: 30,
+                      right: 30,
                       child: Opacity(
-                        opacity: 0.1,
+                        opacity: 0.12,
                         child: Icon(
-                          Icons.eco,
-                          size: 100,
+                          Icons.local_florist,
+                          size: 120,
                           color: const Color(0xFFFF6B6B),
                         ),
                       ),
                     ),
                     Positioned(
-                      top: 150,
-                      left: 20,
+                      top: 180,
+                      left: 30,
                       child: Opacity(
-                        opacity: 0.08,
+                        opacity: 0.1,
                         child: Icon(
                           Icons.eco,
-                          size: 80,
+                          size: 90,
                           color: const Color(0xFFFF6B6B),
                         ),
                       ),
@@ -119,7 +119,7 @@ class LoginPage extends StatelessWidget {
                     // Form content
                     SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
-                      child: const LoginForm(),
+                      child: const RegisterForm(),
                     ),
                   ],
                 ),
@@ -131,3 +131,4 @@ class LoginPage extends StatelessWidget {
     );
   }
 }
+

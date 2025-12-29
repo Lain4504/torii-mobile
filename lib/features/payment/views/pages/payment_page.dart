@@ -19,4 +19,3 @@ class PaymentPage extends StatelessWidget {
     );
   }
 }
-
