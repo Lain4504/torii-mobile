@@ -39,6 +39,7 @@ linux/flutter/generated_plugin_registrant.*
 linux/flutter/generated_plugins.cmake
 macos/Flutter/ephemeral/
 macos/Flutter/GeneratedPluginRegistrant.swift
+web/
 
 # Symbolication related
 app.*.symbols
