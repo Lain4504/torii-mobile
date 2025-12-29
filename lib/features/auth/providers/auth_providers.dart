@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod/legacy.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../services/storage/secure_storage_service.dart';
-import 'auth_state_notifier.dart';
+import 'auth_state.dart';
 
 /// Provider cho SecureStorageService (singleton)
 final secureStorageProvider = Provider<SecureStorageService>((ref) {
@@ -15,10 +14,8 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 /// Provider cho AuthStateNotifier
-final authStateProvider = StateNotifierProvider<AuthStateNotifier, AuthState>(
-  (ref) {
-    final authRepository = ref.watch(authRepositoryProvider);
-    final secureStorage = ref.watch(secureStorageProvider);
-    return AuthStateNotifier(authRepository, secureStorage);
-  },
+final authStateProvider = NotifierProvider<AuthStateNotifier, AuthState>(
+  AuthStateNotifier.new,
 );
+
+

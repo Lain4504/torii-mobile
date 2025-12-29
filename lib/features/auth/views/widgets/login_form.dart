@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
 
-/// Login Form với UI phong cách Nhật Bản và logic đầy đủ
 class LoginForm extends ConsumerStatefulWidget {
   const LoginForm({super.key});
 
@@ -12,10 +11,8 @@ class LoginForm extends ConsumerStatefulWidget {
 }
 
 class _LoginFormState extends ConsumerState<LoginForm> {
-  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -24,21 +21,17 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      final authState = ref.read(authStateProvider.notifier);
-      await authState.login(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+  void _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-      // Kiểm tra kết quả và navigate
-      final currentState = ref.read(authStateProvider);
-      if (currentState.isAuthenticated) {
-        if (mounted) {
-          context.go('/');
-        }
-      }
+    if (email.isEmpty || password.isEmpty) return;
+
+    await ref.read(authStateProvider.notifier).login(email, password);
+
+    final authState = ref.read(authStateProvider);
+    if (authState.isAuthenticated && mounted) {
+      context.go('/');
     }
   }
 
@@ -46,362 +39,53 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
 
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header với Torii Gate decoration
-          Container(
-            margin: const EdgeInsets.only(bottom: 40),
-            child: Column(
-              children: [
-                // Torii Gate decoration
-                Container(
-                  height: 140,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFFFF6B6B).withValues(alpha: 0.1),
-                        const Color(0xFFFFE0E0).withValues(alpha: 0.3),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xFFFF6B6B).withValues(alpha: 0.3),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6B6B).withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Torii gate shape đơn giản
-                      CustomPaint(
-                        size: const Size(120, 100),
-                        painter: _ToriiGatePainter(),
-                      ),
-                      // Text tiếng Nhật
-                      Positioned(
-                        bottom: 20,
-                        child: Column(
-                          children: [
-                            const Text(
-                              '鳥居',
-                              style: TextStyle(
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFFF6B6B),
-                                letterSpacing: 3,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.white,
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Torii - Cổng vào đền thờ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Welcome text
-                Column(
-                  children: [
-                    Text(
-                      'Chào mừng trở lại!',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'ようこそ！',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[600],
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          controller: _emailController,
+          decoration: const InputDecoration(labelText: 'Email'),
+          keyboardType: TextInputType.emailAddress,
+        ),
+        
+        const SizedBox(height: 16),
+        
+        TextField(
+          controller: _passwordController,
+          decoration: const InputDecoration(labelText: 'Password'),
+          obscureText: true,
+        ),
+        
+        const SizedBox(height: 8),
+        
+        if (authState.error != null)
+          Text(
+            authState.error!,
+            style: const TextStyle(color: Colors.red),
           ),
-
-          // Email Field
-          TextFormField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            style: const TextStyle(color: Colors.black),
-            decoration: InputDecoration(
-              labelText: 'Email',
-              hintText: 'nhập email của bạn',
-              prefixIcon: const Icon(Icons.email_outlined),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFFF6B6B), width: 2),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Vui lòng nhập email';
-              }
-              if (!value.contains('@')) {
-                return 'Email không hợp lệ';
-              }
-              return null;
-            },
+        
+        const SizedBox(height: 24),
+        
+        ElevatedButton(
+          onPressed: authState.isLoading ? null : _login,
+          child: authState.isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Login'),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        Center(
+          child: TextButton(
+            onPressed: () => context.go('/register'),
+            child: const Text('Create account'),
           ),
-
-          const SizedBox(height: 20),
-
-          // Password Field
-          TextFormField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            style: const TextStyle(color: Colors.black),
-            decoration: InputDecoration(
-              labelText: 'Mật khẩu',
-              hintText: 'nhập mật khẩu của bạn',
-              prefixIcon: const Icon(Icons.lock_outlined),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFFF6B6B), width: 2),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Vui lòng nhập mật khẩu';
-              }
-              return null;
-            },
-          ),
-
-          const SizedBox(height: 32),
-
-          // Error Message
-          if (authState.error != null)
-            Container(
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFE0E0),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFF6B6B).withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    color: Color(0xFFFF6B6B),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      authState.error!,
-                      style: const TextStyle(
-                        color: Color(0xFFFF6B6B),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Login Button
-          SizedBox(
-            height: 52,
-            child: ElevatedButton(
-              onPressed: authState.isLoading ? null : _handleLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: Color(0xFFFF6B6B), width: 1.5),
-                ),
-                elevation: 2,
-                shadowColor: Colors.black.withValues(alpha: 0.1),
-              ),
-              child: authState.isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                      ),
-                    )
-                  : const Text(
-                      'Đăng nhập',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                        color: Colors.black,
-                      ),
-                    ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Register Link
-          Center(
-            child: TextButton(
-              onPressed: () {
-                context.go('/register');
-              },
-              child: RichText(
-                text: const TextSpan(
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF666666),
-                  ),
-                  children: [
-                    TextSpan(text: 'Chưa có tài khoản? '),
-                    TextSpan(
-                      text: 'Đăng ký',
-                      style: TextStyle(
-                        color: Color(0xFFFF6B6B),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-}
-
-/// Custom Painter cho Torii Gate
-class _ToriiGatePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFFF6B6B)
-      ..style = PaintingStyle.fill;
-
-    // Vẽ 2 cột trụ của Torii Gate
-    final pillarWidth = size.width * 0.08;
-    final pillarHeight = size.height * 0.7;
-    final leftPillarX = size.width * 0.25;
-    final rightPillarX = size.width * 0.75;
-
-    // Trụ trái
-    canvas.drawRect(
-      Rect.fromLTWH(
-        leftPillarX - pillarWidth / 2,
-        size.height * 0.3,
-        pillarWidth,
-        pillarHeight,
-      ),
-      paint,
-    );
-
-    // Trụ phải
-    canvas.drawRect(
-      Rect.fromLTWH(
-        rightPillarX - pillarWidth / 2,
-        size.height * 0.3,
-        pillarWidth,
-        pillarHeight,
-      ),
-      paint,
-    );
-
-    // Vẽ thanh ngang trên (kasagi)
-    final kasagiHeight = size.height * 0.2;
-    canvas.drawRect(
-      Rect.fromLTWH(
-        leftPillarX - pillarWidth / 2,
-        size.height * 0.2,
-        rightPillarX - leftPillarX + pillarWidth,
-        kasagiHeight,
-      ),
-      paint,
-    );
-
-    // Vẽ thanh ngang dưới (nuki)
-    final nukiHeight = size.height * 0.15;
-    canvas.drawRect(
-      Rect.fromLTWH(
-        leftPillarX + pillarWidth / 2,
-        size.height * 0.35,
-        rightPillarX - leftPillarX - pillarWidth,
-        nukiHeight,
-      ),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

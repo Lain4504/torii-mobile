@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/auth/views/pages/login_page.dart';
 import '../../features/auth/views/pages/register_page.dart';
 import '../../features/course/views/pages/course_list_page.dart';
-import '../../features/dashboard/views/dashboard_page.dart';
+import '../../features/dashboard/views/pages/dashboard_page.dart';
 import '../../features/exam/views/pages/exam_page.dart';
 import '../../features/flashcard/views/pages/flashcard_page.dart';
 import '../../features/live_class/views/pages/live_class_page.dart';
