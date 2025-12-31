@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
+import '../../models/auth_state_sealed.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
   const LoginForm({super.key});
@@ -30,7 +31,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     await ref.read(authStateProvider.notifier).login(email, password);
 
     final authState = ref.read(authStateProvider);
-    if (authState.isAuthenticated && mounted) {
+    if (authState is AuthAuthenticated && mounted) {
       context.go('/');
     }
   }
@@ -38,6 +39,14 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final isLoading = authState is AuthLoading;
+    String? errorMessage;
+
+    if (authState is AuthError) {
+      errorMessage = authState.message;
+    } else if (authState is AuthExpired) {
+      errorMessage = authState.message;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -58,17 +67,17 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         
         const SizedBox(height: 8),
         
-        if (authState.error != null)
+        if (errorMessage != null)
           Text(
-            authState.error!,
+            errorMessage,
             style: const TextStyle(color: Colors.red),
           ),
         
         const SizedBox(height: 24),
         
         ElevatedButton(
-          onPressed: authState.isLoading ? null : _login,
-          child: authState.isLoading
+          onPressed: isLoading ? null : _login,
+          child: isLoading
               ? const SizedBox(
                   height: 20,
                   width: 20,

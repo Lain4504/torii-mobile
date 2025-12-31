@@ -12,9 +12,10 @@ class ToriiApp extends ConsumerWidget {
       title: 'Torii',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      routerConfig: AppRouter.config,
+      routerConfig: AppRouter.config(ref),
       debugShowCheckedModeBanner: false,
     );
   }
 }
+
 

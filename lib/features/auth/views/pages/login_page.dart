@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
+import '../../models/auth_state_sealed.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+  final String? redirectTo;
+
+  const LoginPage({super.key, this.redirectTo});
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
@@ -32,14 +35,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     await ref.read(authStateProvider.notifier).login(email, password);
 
     final authState = ref.read(authStateProvider);
-    if (authState.isAuthenticated) {
-      if (mounted) context.go('/');
+    if (authState is AuthAuthenticated) {
+      if (mounted) {
+        // Redirect về trang đích hoặc home
+        final destination = widget.redirectTo ?? '/';
+        context.go(destination);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final isLoading = authState is AuthLoading;
+    String? errorMessage;
+
+    if (authState is AuthError) {
+      errorMessage = authState.message;
+    } else if (authState is AuthExpired) {
+      errorMessage = authState.message;
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -96,9 +111,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     const SizedBox(height: 8),
                     
                     // Error message
-                    if (authState.error != null)
+                    if (errorMessage != null)
                       Text(
-                        authState.error!,
+                        errorMessage,
                         style: const TextStyle(color: Colors.red),
                       ),
                     
@@ -108,8 +123,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: authState.isLoading ? null : _login,
-                        child: authState.isLoading
+                        onPressed: isLoading ? null : _login,
+                        child: isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
@@ -140,3 +155,4 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 }
+

@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'app/app.dart';
 import 'features/auth/providers/auth_providers.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
   runApp(
     const ProviderScope(
-      child: ToriiApp(),
+      child: AuthInitializer(
+        child: ToriiApp(),
+      ),
     ),
   );
 }
@@ -22,17 +33,39 @@ class AuthInitializer extends ConsumerStatefulWidget {
 }
 
 class _AuthInitializerState extends ConsumerState<AuthInitializer> {
+  bool _initialized = false;
+
   @override
   void initState() {
     super.initState();
-    // Check auth status khi widget được khởi tạo
+    // Delay initialization until after widget tree is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(authStateProvider.notifier).checkAuthStatus();
+      _initializeAuth();
     });
+  }
+
+  Future<void> _initializeAuth() async {
+    await ref.read(authStateProvider.notifier).initializeAuth();
+    if (mounted) {
+      setState(() {
+        _initialized = true;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_initialized) {
+      // Show loading screen khi đang khởi tạo
+      return const MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+
     return widget.child;
   }
 }
@@ -46,3 +79,4 @@ class MyApp extends StatelessWidget {
     return const ToriiApp();
   }
 }
+

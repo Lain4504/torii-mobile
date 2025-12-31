@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
+import '../../models/auth_state_sealed.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -32,10 +33,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       return;
     }
 
-    await ref.read(authStateProvider.notifier).register(email, fullName, password);
+    final success = await ref.read(authStateProvider.notifier).register(email, fullName, password);
 
-    final authState = ref.read(authStateProvider);
-    if (authState.error == null && mounted) {
+    if (success && mounted) {
       // Registration success, go to login
       context.go('/login');
     }
@@ -44,6 +44,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final isLoading = authState is AuthLoading;
+    String? errorMessage;
+
+    if (authState is AuthError) {
+      errorMessage = authState.message;
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -110,9 +116,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     const SizedBox(height: 8),
                     
                     // Error message
-                    if (authState.error != null)
+                    if (errorMessage != null)
                       Text(
-                        authState.error!,
+                        errorMessage,
                         style: const TextStyle(color: Colors.red),
                       ),
                     
@@ -122,8 +128,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: authState.isLoading ? null : _register,
-                        child: authState.isLoading
+                        onPressed: isLoading ? null : _register,
+                        child: isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "885312839706",
+    "project_id": "wajlc-e1fee",
+    "storage_bucket": "wajlc-e1fee.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885312839706:android:468e20d77961f3ed1ef1a3",
+        "android_client_info": {
+          "package_name": "com.miraimagiclab.torii_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "885312839706-bufj8p9n1kbbjonqugkn2it0fqfpojia.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDr7lgafYhf6JDd7Z_NytKajx7HjcQlRa0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "885312839706-bufj8p9n1kbbjonqugkn2it0fqfpojia.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
