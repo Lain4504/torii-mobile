@@ -1,13 +1,37 @@
-import '../../data/database/app_database.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Service để quản lý token (access token, refresh token) với Drift database
+/// Define data structure for session to maintain compatibility
+class AuthSessionData {
+  final String accessToken;
+  final String refreshToken;
+  final DateTime expiresAt;
+
+  AuthSessionData({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.expiresAt,
+  });
+}
+
+/// Service để quản lý token sử dụng FlutterSecureStorage (Keychain/Keystore)
+/// Thay thế hoàn toàn cho AppDatabase để đảm bảo bảo mật.
 class TokenService {
-  TokenService(this._database);
+  // Config secure storage
+  final _storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock,
+    ),
+  );
 
-  final AppDatabase _database;
+  static const _keyAccessToken = 'access_token';
+  static const _keyRefreshToken = 'refresh_token';
+  static const _keyExpiresAt = 'expires_at';
 
-  /// Lưu tokens vào database
-  /// [expiresIn] là số giây cho đến khi token hết hạn (ví dụ: 900 = 15 phút)
+  /// Lưu tokens vào Secure Storage
+  /// [expiresIn] là số giây cho đến khi token hết hạn
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
@@ -15,49 +39,43 @@ class TokenService {
   }) async {
     final expiresAt = DateTime.now().add(Duration(seconds: expiresIn));
 
-    await _database.saveAuthSession(
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      expiresAt: expiresAt,
-    );
+    await _storage.write(key: _keyAccessToken, value: accessToken);
+    await _storage.write(key: _keyRefreshToken, value: refreshToken);
+    await _storage.write(key: _keyExpiresAt, value: expiresAt.toIso8601String());
   }
 
-  /// Lấy Firebase ID token (access token)
-  /// Trả về null nếu không có user hoặc token
-  /// Firebase tự động refresh token nếu cần
+  /// Get Access Token
+  /// Returns null if not found or expired
   Future<String?> getAccessToken() async {
-    // Firebase ID token will be retrieved from FirebaseAuth in auth_providers
-    // This method now just retrieves the cached token
-    final session = await _database.getAuthSession();
-    
-    if (session == null) {
+    final token = await _storage.read(key: _keyAccessToken);
+    final expiresAtStr = await _storage.read(key: _keyExpiresAt);
+
+    if (token == null || expiresAtStr == null) {
       return null;
     }
 
-    // Note: Firebase tokens có validity 1 hour, nhưng SDK tự refresh
-    // Kiểm tra expiry để biết khi nào cần force refresh từ Firebase
-    if (isTokenExpired(session.expiresAt)) {
+    // Check expiry
+    final expiresAt = DateTime.parse(expiresAtStr);
+    if (isTokenExpired(expiresAt)) {
       return null;
     }
 
-    return session.accessToken;
+    return token;
   }
 
-  /// Lấy refresh token từ database
+  /// Lấy refresh token (raw string)
   Future<String?> getRefreshToken() async {
-    final session = await _database.getAuthSession();
-    return session?.refreshToken;
+    return await _storage.read(key: _keyRefreshToken);
   }
 
-  /// Kiểm tra token có hết hạn chưa
-  /// Thêm buffer 30 giây để tránh token hết hạn ngay khi đang gửi request
+  /// Kiểm tra token có hết hạn chưa (với buffer 30s)
   bool isTokenExpired(DateTime expiresAt) {
     final now = DateTime.now();
     final buffer = const Duration(seconds: 30);
     return now.isAfter(expiresAt.subtract(buffer));
   }
 
-  /// Kiểm tra có session không
+  /// Kiểm tra có session không (dựa trên Access Token valid)
   Future<bool> hasValidSession() async {
     final token = await getAccessToken();
     return token != null;
@@ -70,20 +88,36 @@ class TokenService {
   }) async {
     final expiresAt = DateTime.now().add(Duration(seconds: expiresIn));
 
-    await _database.updateAccessToken(
+    await _storage.write(key: _keyAccessToken, value: accessToken);
+    await _storage.write(key: _keyExpiresAt, value: expiresAt.toIso8601String());
+  }
+
+  /// Xóa toàn bộ tokens (Logout)
+  Future<void> clearTokens() async {
+    await _storage.deleteAll();
+  }
+
+  /// Lấy session thô (không check expiry) - Dùng cho Optimistic Auth
+  Future<AuthSessionData?> getRawSession() async {
+    final accessToken = await _storage.read(key: _keyAccessToken);
+    final refreshToken = await _storage.read(key: _keyRefreshToken);
+    final expiresAtStr = await _storage.read(key: _keyExpiresAt);
+
+    if (accessToken == null || refreshToken == null || expiresAtStr == null) {
+      return null;
+    }
+
+    return AuthSessionData(
       accessToken: accessToken,
-      expiresAt: expiresAt,
+      refreshToken: refreshToken,
+      expiresAt: DateTime.parse(expiresAtStr),
     );
   }
 
-  /// Xóa toàn bộ tokens (logout)
-  Future<void> clearTokens() async {
-    await _database.clearAuthSession();
-  }
-
-  /// Lấy thời gian hết hạn của token
+  /// Lấy thời gian hết hạn
   Future<DateTime?> getTokenExpiry() async {
-    final session = await _database.getAuthSession();
-    return session?.expiresAt;
+    final expiresAtStr = await _storage.read(key: _keyExpiresAt);
+    if (expiresAtStr == null) return null;
+    return DateTime.parse(expiresAtStr);
   }
 }

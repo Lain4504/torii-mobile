@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+
 import '../../core/config/app_config.dart';
 import '../../services/auth/token_service.dart';
-import '../models/auth_model.dart';
 
 /// API Client với interceptor để tự động thêm token vào header và refresh token
 class ApiClient {
@@ -29,10 +28,13 @@ class ApiClient {
 
   Dio get client => _dio;
 
-  /// Setup interceptors để tự động thêm token vào header
+  bool _isRefreshing = false;
+  final List<Map<String, dynamic>> _failedRequestQueue = [];
+
+  /// Setup interceptors để tự động thêm token vào header và xử lý refresh token
   void _setupInterceptors() {
     // ==========================================
-    // 1. LOGGING INTERCEPTOR (giống OkHttp LoggingInterceptor)
+    // 1. LOGGING INTERCEPTOR
     // ==========================================
     if (kDebugMode) {
       _dio.interceptors.add(
@@ -44,13 +46,7 @@ class ApiClient {
           error: true,
           compact: true,
           maxWidth: 90,
-          // NOTE: Filter callback chỉ support skip routes, không support modify data
-          // Để security, có thể skip sensitive routes:
-          filter: (options, args) {
-            // Skip logging cho một số routes nhạy cảm nếu cần
-            // return !options.path.contains('/sensitive-route');
-            return true; // Log tất cả
-          },
+          filter: (options, args) => true,
         ),
       );
     }
@@ -61,33 +57,142 @@ class ApiClient {
     _dio.interceptors.add(
       QueuedInterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Get Firebase ID token and add to Authorization header
-          // We'll import firebase_auth here for direct token retrieval
+          // Get Access Token from TokenService
           try {
-            final firebaseAuth = firebase_auth.FirebaseAuth.instance;
-            final user = firebaseAuth.currentUser;
-            
-            if (user != null) {
-              // Get ID token (Firebase auto-refreshes if needed)
-              final token = await user.getIdToken();
+            if (_tokenService != null) {
+              final token = await _tokenService!.getAccessToken();
               if (token != null) {
                 options.headers['Authorization'] = 'Bearer $token';
               }
+              // Add platform header for mobile-specific logic
+              options.headers['x-platform'] = 'mobile';
             }
           } catch (e) {
-            // If Firebase token retrieval fails, continue without token
-            // The server will return 401 if auth is required
+            // If token retrieval fails, continue without token
           }
           
           handler.next(options);
         },
-        onError: (error, handler) async {
-          // For 401 errors, just pass through - Firebase will handle re-auth
-          // The auth state listener will trigger sign out if needed
-          handler.next(error);
+        onError: (DioException error, ErrorInterceptorHandler handler) async {
+          // Handle 401 Unauthorized
+          if (error.response?.statusCode == 401 && _tokenService != null) {
+             // Avoid infinite loop if refresh endpoint itself fails
+            if (error.requestOptions.path.contains('/auth/refresh')) {
+              await _tokenService!.clearTokens();
+              handler.next(error);
+              return;
+            }
+
+            // If already refreshing, queue this request
+            if (_isRefreshing) {
+              _failedRequestQueue.add({
+                'handler': handler,
+                'error': error,
+              });
+              return;
+            }
+
+            _isRefreshing = true;
+
+            try {
+              final refreshToken = await _tokenService!.getRefreshToken();
+              
+              if (refreshToken == null) {
+                // No refresh token, logout
+                await _performLogout(handler, error);
+                return;
+              }
+
+              // Call refresh endpoint
+              // Create a separate Dio instance to avoid interceptor loops
+              final tokenDio = Dio(BaseOptions(
+                baseUrl: _dio.options.baseUrl,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-platform': 'mobile',
+                },
+              ));
+
+              final response = await tokenDio.post('/api/auth/refresh', data: {
+                'refresh_token': refreshToken,
+              });
+
+              if (response.statusCode == 200 && response.data['success'] == true) {
+                final data = response.data['data'];
+                final newAccessToken = data['access_token'];
+                final newRefreshToken = data['refresh_token'];
+
+                // Update tokens in storage
+                await _tokenService!.saveTokens(
+                  accessToken: newAccessToken,
+                  refreshToken: newRefreshToken,
+                  expiresIn: 15 * 60, // Default 15m
+                );
+
+                // Retry original request
+                await _retryRequest(error.requestOptions, handler, newAccessToken);
+
+                // Process queued requests
+                for (var request in _failedRequestQueue) {
+                  final queuedError = request['error'] as DioException;
+                  final queuedHandler = request['handler'] as ErrorInterceptorHandler;
+                  await _retryRequest(queuedError.requestOptions, queuedHandler, newAccessToken);
+                }
+                _failedRequestQueue.clear();
+              } else {
+                await _performLogout(handler, error);
+              }
+            } catch (e) {
+              await _performLogout(handler, error);
+            } finally {
+              _isRefreshing = false;
+            }
+          } else {
+            handler.next(error);
+          }
         },
       ),
     );
+  }
+
+  Future<void> _performLogout(ErrorInterceptorHandler handler, DioException error) async {
+    await _tokenService?.clearTokens();
+    
+    // Reject all queued requests
+    for (var request in _failedRequestQueue) {
+      final queuedHandler = request['handler'] as ErrorInterceptorHandler;
+      final queuedError = request['error'] as DioException;
+      queuedHandler.next(queuedError);
+    }
+    _failedRequestQueue.clear();
+    
+    handler.next(error);
+  }
+
+  Future<void> _retryRequest(RequestOptions requestOptions, ErrorInterceptorHandler handler, String newToken) async {
+    final opts = Options(
+      method: requestOptions.method,
+      headers: {
+        ...requestOptions.headers,
+        'Authorization': 'Bearer $newToken',
+      },
+    );
+
+    try {
+      final response = await _dio.request(
+        requestOptions.path,
+        options: opts,
+        data: requestOptions.data,
+        queryParameters: requestOptions.queryParameters,
+      );
+      handler.resolve(response);
+    } catch (e) {
+      if (e is DioException) {
+        handler.next(e);
+      } else {
+        handler.next(DioException(requestOptions: requestOptions, error: e));
+      }
+    }
   }
 
 }

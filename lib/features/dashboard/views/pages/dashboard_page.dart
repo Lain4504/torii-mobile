@@ -113,13 +113,20 @@ class DashboardPage extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Welcome back!',
+                                isAuthenticated 
+                                  ? 'Welcome back, ${authState.user.fullName.isNotEmpty ? authState.user.fullName : authState.user.email}!'
+                                  : 'Welcome back!',
                                 style: Theme.of(context).textTheme.headlineSmall,
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Continue your Japanese learning journey',
-                                style: Theme.of(context).textTheme.bodyMedium,
+                                isAuthenticated 
+                                  ? 'Logged in as ${authState.user.email}'
+                                  : 'Please login to track your progress',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: isAuthenticated ? Colors.green[700] : Colors.grey[600],
+                                  fontWeight: isAuthenticated ? FontWeight.bold : FontWeight.normal,
+                                ),
                               ),
                             ],
                           ),

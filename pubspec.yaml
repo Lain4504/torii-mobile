@@ -46,8 +46,7 @@ dependencies:
   pretty_dio_logger: ^1.4.0  # HTTP logging interceptor (như OkHttp LoggingInterceptor)
   
   # Firebase packages
-  firebase_core: ^3.8.1
-  firebase_auth: ^5.3.3
+
 
 dev_dependencies:
   flutter_test:
