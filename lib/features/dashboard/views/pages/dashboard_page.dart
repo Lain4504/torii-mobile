@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/dashboard_providers.dart';
 import '../../../auth/providers/auth_providers.dart';
+import '../../../auth/models/auth_state_sealed.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -11,6 +12,7 @@ class DashboardPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(dashboardProvider);
     final authState = ref.watch(authStateProvider);
+    final isAuthenticated = authState is AuthAuthenticated;
 
     return Scaffold(
       appBar: AppBar(
@@ -23,7 +25,7 @@ class DashboardPage extends ConsumerWidget {
             onPressed: () => ref.read(dashboardProvider.notifier).loadDashboardData(),
           ),
           // Login/Logout button
-          if (authState.isAuthenticated)
+          if (isAuthenticated)
             IconButton(
               icon: const Icon(Icons.logout),
               tooltip: 'Logout',
@@ -111,13 +113,20 @@ class DashboardPage extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Welcome back!',
+                                isAuthenticated 
+                                  ? 'Welcome back, ${authState.user.fullName.isNotEmpty ? authState.user.fullName : authState.user.email}!'
+                                  : 'Welcome back!',
                                 style: Theme.of(context).textTheme.headlineSmall,
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Continue your Japanese learning journey',
-                                style: Theme.of(context).textTheme.bodyMedium,
+                                isAuthenticated 
+                                  ? 'Logged in as ${authState.user.email}'
+                                  : 'Please login to track your progress',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: isAuthenticated ? Colors.green[700] : Colors.grey[600],
+                                  fontWeight: isAuthenticated ? FontWeight.bold : FontWeight.normal,
+                                ),
                               ),
                             ],
                           ),

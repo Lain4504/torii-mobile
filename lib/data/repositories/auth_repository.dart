@@ -86,4 +86,30 @@ class AuthRepository {
       );
     }
   }
+
+  /// Refresh Token API call
+  /// POST /auth/refresh
+  Future<AuthResponse> refreshToken(RefreshTokenRequest request) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/auth/refresh',
+        data: request.toJson(),
+      );
+
+      return AuthResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return AuthResponse.fromJson(e.response!.data);
+      }
+      return AuthResponse(
+        success: false,
+        message: e.message ?? 'Đã xảy ra lỗi khi làm mới token',
+      );
+    } catch (e) {
+      return AuthResponse(
+        success: false,
+        message: 'Đã xảy ra lỗi không xác định',
+      );
+    }
+  }
 }

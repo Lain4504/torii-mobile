@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
+import '../../models/auth_state_sealed.dart';
 
 class RegisterForm extends ConsumerStatefulWidget {
   const RegisterForm({super.key});
@@ -30,10 +31,9 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
 
     if (email.isEmpty || fullName.isEmpty || password.isEmpty) return;
 
-    await ref.read(authStateProvider.notifier).register(email, fullName, password);
+    final success = await ref.read(authStateProvider.notifier).register(email, fullName, password);
 
-    final authState = ref.read(authStateProvider);
-    if (authState.error == null && mounted) {
+    if (success && mounted) {
       context.go('/login');
     }
   }
@@ -41,6 +41,12 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
+    final isLoading = authState is AuthLoading;
+    String? errorMessage;
+
+    if (authState is AuthError) {
+      errorMessage = authState.message;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -68,17 +74,17 @@ class _RegisterFormState extends ConsumerState<RegisterForm> {
         
         const SizedBox(height: 8),
         
-        if (authState.error != null)
+        if (errorMessage != null)
           Text(
-            authState.error!,
+            errorMessage,
             style: const TextStyle(color: Colors.red),
           ),
         
         const SizedBox(height: 24),
         
         ElevatedButton(
-          onPressed: authState.isLoading ? null : _register,
-          child: authState.isLoading
+          onPressed: isLoading ? null : _register,
+          child: isLoading
               ? const SizedBox(
                   height: 20,
                   width: 20,
