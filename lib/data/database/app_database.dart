@@ -9,59 +9,23 @@ import 'database_tables.dart';
 part 'app_database.g.dart';
 
 /// Main database class cho Torii app
-@DriftDatabase(tables: [AuthSessions, UserProfiles])
+@DriftDatabase(tables: [UserProfiles])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
-  /// Auth Session DAO methods
-  
-  // Lưu hoặc update auth session
-  Future<void> saveAuthSession({
-    required String accessToken,
-    required String refreshToken,
-    required DateTime expiresAt,
-  }) async {
-    // Xóa session cũ (chỉ có 1 session active)
-    await delete(authSessions).go();
-
-    // Insert session mới
-    await into(authSessions).insert(
-      AuthSessionsCompanion.insert(
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-        expiresAt: expiresAt,
-      ),
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          // Drop auth_sessions table as we moved to Secure Storage
+          await customStatement('DROP TABLE IF EXISTS auth_sessions;');
+        }
+      },
     );
-  }
-
-  // Lấy auth session hiện tại
-  Future<AuthSessionData?> getAuthSession() async {
-    return await (select(authSessions)..limit(1)).getSingleOrNull();
-  }
-
-  // Xóa auth session (logout)
-  Future<void> clearAuthSession() async {
-    await delete(authSessions).go();
-  }
-
-  // Update access token (sau khi refresh)
-  Future<void> updateAccessToken({
-    required String accessToken,
-    required DateTime expiresAt,
-  }) async {
-    final session = await getAuthSession();
-    if (session != null) {
-      await (update(authSessions)..where((t) => t.id.equals(session.id))).write(
-        AuthSessionsCompanion(
-          accessToken: Value(accessToken),
-          expiresAt: Value(expiresAt),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
-    }
   }
 
   /// User Profile DAO methods
@@ -97,7 +61,6 @@ class AppDatabase extends _$AppDatabase {
 
   // Clear toàn bộ data (logout)
   Future<void> clearAllAuthData() async {
-    await clearAuthSession();
     await clearUserProfile();
   }
 }
