@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
 import '../../models/auth_state_sealed.dart';
+import '../../../../core/constants/app_design_system.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   final String? redirectTo;
@@ -57,25 +58,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       errorMessage = authState.message;
     }
 
-    // Design Tokens
-    const primaryColor = Color(0xFF3B82F6);
-    const primaryDark = Color(0xFF1E40AF);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Header / Branding
-                const Icon(
+                Icon(
                   Icons.auto_stories, 
-                  size: 64, 
-                  color: primaryColor,
+                  size: AppSpacing.xxxl, 
+                  color: AppColors.primary,
                 ),
                 const SizedBox(height: 24),
                 const Text(

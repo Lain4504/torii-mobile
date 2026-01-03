@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/assets.dart';
+import '../../../../core/constants/app_design_system.dart';
 import '../widgets/onboarding_slide.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -40,7 +41,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: AppDuration.normal,
         curve: Curves.easeInOut,
       );
     } else {
@@ -89,19 +90,22 @@ class _OnboardingPageState extends State<OnboardingPage> {
             ),
             // Nút Bỏ qua ở góc trên bên phải
             Positioned(
-              top: 24,
-              right: 24,
+              top: AppSpacing.lg,
+              right: AppSpacing.lg,
               child: TextButton(
                 onPressed: _skipOnboarding,
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
                 ),
                 child: Text(
                   'Bỏ qua',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade600,
+                    fontSize: AppTypography.fontSizeMd,
+                    fontWeight: AppTypography.medium,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -127,16 +131,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   Widget _buildPageIndicator(bool isActive) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: AppDuration.normal,
       curve: Curves.easeInOut,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 24 : 8,
-      height: 8,
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      width: isActive ? AppSpacing.lg : AppSpacing.sm,
+      height: AppSpacing.sm,
       decoration: BoxDecoration(
-        color: isActive
-            ? const Color(0xFF4CAF50) // Màu xanh lá
-            : Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(4),
+        color: isActive ? AppColors.accent : AppColors.grey300,
+        borderRadius: BorderRadius.circular(AppRadius.sm / 2),
       ),
     );
   }
