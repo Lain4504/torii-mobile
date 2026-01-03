@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_design_system.dart';
 
 /// Data model for onboarding slides
 class OnboardingPageData {
@@ -38,8 +39,8 @@ class OnboardingSlide extends StatelessWidget {
               flex: 5,
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: AppColors.background,
                 ),
                 child: Image.asset(
                   data.imagePath,
@@ -54,14 +55,14 @@ class OnboardingSlide extends StatelessWidget {
                           Icon(
                             Icons.image_not_supported_outlined,
                             size: 80,
-                            color: Colors.grey.shade400,
+                            color: AppColors.grey400,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: AppSpacing.md),
                           Text(
                             'Không thể tải hình ảnh',
                             style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              fontSize: AppTypography.fontSizeSm,
                             ),
                           ),
                         ],
@@ -75,34 +76,37 @@ class OnboardingSlide extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
+                color: AppColors.background,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xl,
+                  vertical: AppSpacing.xl,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Tiêu đề với màu xanh lá
                     Text(
                       data.title,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4CAF50), // Màu xanh lá
+                      style: TextStyle(
+                        fontSize: AppTypography.fontSize3xl,
+                        fontWeight: AppTypography.bold,
+                        color: AppColors.accent,
                         height: 1.3,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.lg),
                     // Mô tả với màu xám đậm
                     Text(
                       data.description,
                       style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade700,
+                        fontSize: AppTypography.fontSizeMd,
+                        color: AppColors.grey700,
                         height: 1.6,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: AppSpacing.xl + AppSpacing.sm),
                     // Nút hành động màu xanh lá
                     SizedBox(
                       width: double.infinity,
@@ -110,18 +114,18 @@ class OnboardingSlide extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: onButtonPressed,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4CAF50), // Màu xanh lá
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: AppColors.textOnPrimary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
-                          elevation: 0,
+                          elevation: AppElevation.none,
                         ),
                         child: Text(
                           data.buttonText.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          style: TextStyle(
+                            fontSize: AppTypography.fontSizeMd,
+                            fontWeight: AppTypography.semiBold,
                             letterSpacing: 1.0,
                           ),
                         ),
