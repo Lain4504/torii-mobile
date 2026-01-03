@@ -50,14 +50,16 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final success = await ref.read(authStateProvider.notifier).register(email, '', password);
 
     if (success && mounted) {
-      // Registration success, show message and go to login
+      // Registration success, show message and go to home
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Registration successful! Please login.'),
+          content: const Text('Account created! Please check your email to verify.'),
           backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 5),
         ),
       );
-      context.go('/login');
+      // Redirect to home page after successful registration
+      context.go('/');
     }
   }
 
