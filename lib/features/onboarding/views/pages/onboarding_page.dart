@@ -138,7 +138,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       height: AppSpacing.sm,
       decoration: BoxDecoration(
         color: isActive ? AppColors.accent : AppColors.grey300,
-        borderRadius: BorderRadius.circular(AppRadius.sm / 2),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
       ),
     );
   }
