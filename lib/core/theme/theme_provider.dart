@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,20 +13,17 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   final SharedPreferences _prefs;
   static const _themeKey = 'theme_mode';
 
-  ThemeModeNotifier(this._prefs) : super(ThemeMode.system) {
-    _loadTheme();
-  }
+  ThemeModeNotifier(this._prefs) : super(_getInitialTheme(_prefs));
 
-  void _loadTheme() {
-    final savedTheme = _prefs.getString(_themeKey);
+  static ThemeMode _getInitialTheme(SharedPreferences prefs) {
+    final savedTheme = prefs.getString(_themeKey);
     if (savedTheme == null) {
-      state = ThemeMode.system;
-    } else {
-      state = ThemeMode.values.firstWhere(
-        (e) => e.toString() == savedTheme,
-        orElse: () => ThemeMode.system,
-      );
+      return ThemeMode.system;
     }
+    return ThemeMode.values.firstWhere(
+      (e) => e.toString() == savedTheme,
+      orElse: () => ThemeMode.system,
+    );
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
@@ -34,7 +32,15 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   }
 
   Future<void> toggleTheme() async {
-    if (state == ThemeMode.dark) {
+    ThemeMode currentMode = state;
+    
+    // If system, resolve actual mode from platform
+    if (currentMode == ThemeMode.system) {
+       final brightness = PlatformDispatcher.instance.platformBrightness;
+       currentMode = brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
+    }
+
+    if (currentMode == ThemeMode.dark) {
       await setThemeMode(ThemeMode.light);
     } else {
       await setThemeMode(ThemeMode.dark);

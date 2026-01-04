@@ -132,13 +132,26 @@ class _HomePageState extends ConsumerState<HomePage>
       ),
       actions: [
         // Theme Toggle
+        // Theme Toggle
         IconButton(
-          icon: Icon(
-            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-            size: AppIconSize.md,
-          ),
           onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
           tooltip: 'Toggle Theme',
+          icon: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return RotationTransition(
+                turns: child.key == const ValueKey('dark') 
+                    ? Tween<double>(begin: 0.75, end: 1).animate(animation)
+                    : Tween<double>(begin: 0.75, end: 1).animate(animation),
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+            child: Icon(
+              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              key: ValueKey(isDark ? 'light' : 'dark'),
+              size: AppIconSize.md,
+            ),
+          ),
         ),
         // Notifications
         IconButton(

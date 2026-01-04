@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,14 +23,149 @@ import '../../features/live_class/views/pages/live_class_schedule_page.dart';
 import '../../features/onboarding/views/pages/onboarding_page.dart';
 import '../widgets/app_shell.dart';
 
+final routerProvider = Provider<GoRouter>((ref) {
+  final authNotifier = ValueNotifier<AuthState>(ref.read(authStateProvider));
+  
+  ref.listen(authStateProvider, (_, next) {
+    authNotifier.value = next;
+  });
+
+  return GoRouter(
+    navigatorKey: AppRouter.rootNavigatorKey,
+    refreshListenable: authNotifier,
+    debugLogDiagnostics: kDebugMode,
+    redirect: (context, state) async {
+      final prefs = await SharedPreferences.getInstance();
+      final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+      final isOnboarding = state.matchedLocation == '/onboarding';
+
+      // Onboarding check
+      if (!onboardingCompleted && !isOnboarding) {
+        return '/onboarding';
+      }
+
+      if (onboardingCompleted && isOnboarding) {
+        return '/';
+      }
+
+      // Auth check
+      final authState = ref.read(authStateProvider);
+      final isAuthenticated = authState is AuthAuthenticated;
+      final requestedLocation = state.matchedLocation;
+
+      // Kiểm tra route có protected không
+      final isProtectedRoute = AppRouter.protectedRoutes.contains(requestedLocation);
+      final isLoginPage = requestedLocation == '/login';
+      final isRegisterPage = requestedLocation == '/register';
+
+      // Nếu user chưa login và cố vào protected route -> redirect login
+      if (!isAuthenticated && isProtectedRoute) {
+        return '/login?redirect=${Uri.encodeComponent(requestedLocation)}';
+      }
+
+      // GIỚI HẠN TÍNH NĂNG: Nếu user PENDING và cố vào protected route -> redirect home
+      if (isAuthenticated && authState.user.status == 'pending' && isProtectedRoute) {
+        return '/'; 
+      }
+
+      // Nếu user đã login và cố vào login/register page -> redirect home
+      if (isAuthenticated && (isLoginPage || isRegisterPage)) {
+        return '/';
+      }
+
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingPage(),
+      ),
+      ShellRoute(
+        navigatorKey: AppRouter.shellNavigatorKey,
+        builder: (context, state, child) {
+          return AppShell(state: state, child: child);
+        },
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: '/courses',
+            builder: (context, state) => const CourseCatalogPage(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                parentNavigatorKey: AppRouter.rootNavigatorKey,
+                builder: (context, state) {
+                  final course = state.extra as Course;
+                  return CourseDetailPage(course: course);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/exams',
+            builder: (context, state) => const ExamListPage(),
+          ),
+          GoRoute(
+            path: '/flashcards',
+            builder: (context, state) => const FlashcardListPage(),
+          ),
+          GoRoute(
+            path: '/live-schedule',
+            builder: (context, state) => const LiveClassSchedulePage(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) {
+          final redirect = state.uri.queryParameters['redirect'];
+          return LoginPage(redirectTo: redirect);
+        },
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: '/exams/take',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+           final exam = state.extra as Exam?;
+           return ExamTakingPage(exam: exam);
+        },
+      ),
+      GoRoute(
+        path: '/flashcards/practice',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+           final deck = state.extra as FlashcardDeck?;
+           return FlashcardPracticePage(deck: deck);
+        },
+      ),
+      GoRoute(
+        path: '/payment',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const PaymentPage(),
+      ),
+    ],
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(child: Text('Route error: ${state.error ?? 'unknown'}')),
+    ),
+  );
+});
+
 class AppRouter {
   AppRouter._();
 
-  /// Protected routes - yêu cầu authentication
+  static final rootNavigatorKey = GlobalKey<NavigatorState>();
+  static final shellNavigatorKey = GlobalKey<NavigatorState>();
+
   static const protectedRoutes = [
   ];
 
-  /// Public routes - không yêu cầu authentication
   static const publicRoutes = [
     '/',
     '/login',
@@ -37,135 +173,6 @@ class AppRouter {
     '/courses',
     '/onboarding',
   ];
-
-  static final _rootNavigatorKey = GlobalKey<NavigatorState>();
-  static final _shellNavigatorKey = GlobalKey<NavigatorState>();
-
-  static GoRouter config(WidgetRef ref) {
-    return GoRouter(
-      navigatorKey: _rootNavigatorKey,
-      redirect: (context, state) async {
-        final prefs = await SharedPreferences.getInstance();
-        final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
-        final isOnboarding = state.matchedLocation == '/onboarding';
-
-        // Onboarding check
-        if (!onboardingCompleted && !isOnboarding) {
-          return '/onboarding';
-        }
-
-        if (onboardingCompleted && isOnboarding) {
-          return '/';
-        }
-
-        // Auth check
-        final authState = ref.read(authStateProvider);
-        final isAuthenticated = authState is AuthAuthenticated;
-        final requestedLocation = state.matchedLocation;
-
-        // Kiểm tra route có protected không
-        final isProtectedRoute = protectedRoutes.contains(requestedLocation);
-        final isLoginPage = requestedLocation == '/login';
-        final isRegisterPage = requestedLocation == '/register';
-
-        // Nếu user chưa login và cố vào protected route -> redirect login
-        if (!isAuthenticated && isProtectedRoute) {
-          return '/login?redirect=${Uri.encodeComponent(requestedLocation)}';
-        }
-
-        // GIỚI HẠN TÍNH NĂNG: Nếu user PENDING và cố vào protected route -> redirect home
-        if (isAuthenticated && authState.user.status == 'pending' && isProtectedRoute) {
-          return '/'; 
-        }
-
-        // Nếu user đã login và cố vào login/register page -> redirect home
-        if (isAuthenticated && (isLoginPage || isRegisterPage)) {
-          return '/';
-        }
-
-        return null; // Cho phép navigation
-      },
-      routes: [
-        GoRoute(
-          path: '/onboarding',
-          builder: (context, state) => const OnboardingPage(),
-        ),
-        ShellRoute(
-          navigatorKey: _shellNavigatorKey,
-          builder: (context, state, child) {
-            return AppShell(state: state, child: child);
-          },
-          routes: [
-            GoRoute(
-              path: '/',
-              builder: (context, state) => const HomePage(),
-            ),
-            GoRoute(
-              path: '/courses',
-              builder: (context, state) => const CourseCatalogPage(),
-              routes: [
-                GoRoute(
-                  path: ':id',
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    final course = state.extra as Course;
-                    return CourseDetailPage(course: course);
-                  },
-                ),
-              ],
-            ),
-            GoRoute(
-              path: '/exams',
-              builder: (context, state) => const ExamListPage(),
-            ),
-            GoRoute(
-              path: '/flashcards',
-              builder: (context, state) => const FlashcardListPage(),
-            ),
-            GoRoute(
-              path: '/live-schedule',
-              builder: (context, state) => const LiveClassSchedulePage(),
-            ),
-          ],
-        ),
-        GoRoute(
-          path: '/login',
-          builder: (context, state) {
-            final redirect = state.uri.queryParameters['redirect'];
-            return LoginPage(redirectTo: redirect);
-          },
-        ),
-        GoRoute(
-          path: '/register',
-          builder: (context, state) => const RegisterPage(),
-        ),
-        GoRoute(
-          path: '/exams/take',
-          parentNavigatorKey: _rootNavigatorKey,
-          builder: (context, state) {
-             final exam = state.extra as Exam?;
-             return ExamTakingPage(exam: exam);
-          },
-        ),
-        GoRoute(
-          path: '/flashcards/practice',
-          parentNavigatorKey: _rootNavigatorKey,
-          builder: (context, state) {
-             final deck = state.extra as FlashcardDeck?;
-             return FlashcardPracticePage(deck: deck);
-          },
-        ),
-        GoRoute(
-          path: '/payment',
-          parentNavigatorKey: _rootNavigatorKey,
-          builder: (context, state) => const PaymentPage(),
-        ),
-      ],
-      errorBuilder: (context, state) => Scaffold(
-        body: Center(child: Text('Route error: ${state.error ?? 'unknown'}')),
-      ),
-    );
-  }
 }
 
 
