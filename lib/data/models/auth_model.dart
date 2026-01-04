@@ -2,25 +2,28 @@
 class User {
   final String id;
   final String email;
-  final String fullName;
+  final String displayName;
   final String? avatar;
   final String role;
+  final String status;
 
   User({
     required this.id,
     required this.email,
-    required this.fullName,
+    required this.displayName,
     this.avatar,
     this.role = 'learner',
+    this.status = 'active',
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] ?? '',
       email: json['email'] ?? '',
-      fullName: json['fullName'] ?? json['full_name'] ?? '',
+      displayName: json['displayName'] ?? json['display_name'] ?? '',
       avatar: json['avatar'],
       role: json['role'] ?? 'learner',
+      status: json['status'] ?? 'active',
     );
   }
 
@@ -28,9 +31,10 @@ class User {
     return {
       'id': id,
       'email': email,
-      'fullName': fullName,
+      'displayName': displayName,
       'avatar': avatar,
       'role': role,
+      'status': status,
     };
   }
 }
@@ -56,19 +60,19 @@ class LoginRequest {
 /// Model cho Register Request
 class RegisterRequest {
   final String email;
-  final String fullName;
+  final String displayName;
   final String password;
 
   RegisterRequest({
     required this.email,
-    required this.fullName,
+    required this.displayName,
     required this.password,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'email': email,
-      'fullName': fullName,
+      'displayName': displayName,
       'password': password,
     };
   }

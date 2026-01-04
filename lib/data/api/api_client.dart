@@ -59,8 +59,9 @@ class ApiClient {
         onRequest: (options, handler) async {
           // Get Access Token from TokenService
           try {
-            if (_tokenService != null) {
-              final token = await _tokenService!.getAccessToken();
+            final tokenService = _tokenService;
+            if (tokenService != null) {
+              final token = await tokenService.getAccessToken();
               if (token != null) {
                 options.headers['Authorization'] = 'Bearer $token';
               }
@@ -75,10 +76,11 @@ class ApiClient {
         },
         onError: (DioException error, ErrorInterceptorHandler handler) async {
           // Handle 401 Unauthorized
-          if (error.response?.statusCode == 401 && _tokenService != null) {
+          final tokenService = _tokenService;
+          if (error.response?.statusCode == 401 && tokenService != null) {
              // Avoid infinite loop if refresh endpoint itself fails
             if (error.requestOptions.path.contains('/auth/refresh')) {
-              await _tokenService!.clearTokens();
+              await tokenService.clearTokens();
               handler.next(error);
               return;
             }
@@ -95,7 +97,7 @@ class ApiClient {
             _isRefreshing = true;
 
             try {
-              final refreshToken = await _tokenService!.getRefreshToken();
+              final refreshToken = await tokenService.getRefreshToken();
               
               if (refreshToken == null) {
                 // No refresh token, logout
@@ -123,7 +125,7 @@ class ApiClient {
                 final newRefreshToken = data['refresh_token'];
 
                 // Update tokens in storage
-                await _tokenService!.saveTokens(
+                await tokenService.saveTokens(
                   accessToken: newAccessToken,
                   refreshToken: newRefreshToken,
                   expiresIn: 15 * 60, // Default 15m

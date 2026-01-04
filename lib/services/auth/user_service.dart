@@ -12,9 +12,10 @@ class UserService {
     await _database.saveUserProfile(
       id: user.id,
       email: user.email,
-      fullName: user.fullName,
+      displayName: user.displayName,
       avatar: user.avatar,
       role: user.role,
+      status: user.status,
     );
   }
 
@@ -29,9 +30,10 @@ class UserService {
     return User(
       id: profile.id,
       email: profile.email,
-      fullName: profile.fullName,
+      displayName: profile.displayName,
       avatar: profile.avatar,
       role: profile.role,
+      status: profile.status,
     );
   }
 
