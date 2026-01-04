@@ -39,6 +39,7 @@ class AuthRepository {
 
   /// Register API call
   /// POST /auth/register
+  /// Returns tokens directly (auto-login)
   Future<AuthResponse> register(RegisterRequest request) async {
     try {
       final response = await _apiClient.client.post(
@@ -48,14 +49,67 @@ class AuthRepository {
 
       return AuthResponse.fromJson(response.data);
     } on DioException catch (e) {
-      // Xử lý lỗi từ Dio
       if (e.response != null) {
         return AuthResponse.fromJson(e.response!.data);
       }
-      // Network error hoặc lỗi khác
       return AuthResponse(
         success: false,
         message: e.message ?? 'Đã xảy ra lỗi khi đăng ký',
+      );
+    } catch (e) {
+      return AuthResponse(
+        success: false,
+        message: 'Đã xảy ra lỗi không xác định',
+      );
+    }
+  }
+
+  /// Verify Email API call
+  /// POST /auth/verify-email
+  Future<AuthResponse> verifyEmail(String email, String otp) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/auth/verify-email',
+        data: {
+          'email': email,
+          'otp': otp,
+        },
+      );
+
+      return AuthResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return AuthResponse.fromJson(e.response!.data);
+      }
+      return AuthResponse(
+        success: false,
+        message: e.message ?? 'Đã xảy ra lỗi khi xác thực email',
+      );
+    } catch (e) {
+      return AuthResponse(
+        success: false,
+        message: 'Đã xảy ra lỗi không xác định',
+      );
+    }
+  }
+
+  /// Resend Verification API call
+  /// POST /auth/resend-verification
+  Future<AuthResponse> resendVerification(String email) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/auth/resend-verification',
+        data: {'email': email},
+      );
+
+      return AuthResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        return AuthResponse.fromJson(e.response!.data);
+      }
+      return AuthResponse(
+        success: false,
+        message: e.message ?? 'Đã xảy ra lỗi khi gửi lại mã',
       );
     } catch (e) {
       return AuthResponse(

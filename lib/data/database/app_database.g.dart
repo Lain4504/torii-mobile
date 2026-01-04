@@ -27,12 +27,12 @@ class $UserProfilesTable extends UserProfiles
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _fullNameMeta = const VerificationMeta(
-    'fullName',
+  static const VerificationMeta _displayNameMeta = const VerificationMeta(
+    'displayName',
   );
   @override
-  late final GeneratedColumn<String> fullName = GeneratedColumn<String>(
-    'full_name',
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
     aliasedName,
     false,
     type: DriftSqlType.string,
@@ -56,6 +56,16 @@ class $UserProfilesTable extends UserProfiles
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     defaultValue: const Constant('learner'),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('active'),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -85,9 +95,10 @@ class $UserProfilesTable extends UserProfiles
   List<GeneratedColumn> get $columns => [
     id,
     email,
-    fullName,
+    displayName,
     avatar,
     role,
+    status,
     createdAt,
     updatedAt,
   ];
@@ -116,13 +127,16 @@ class $UserProfilesTable extends UserProfiles
     } else if (isInserting) {
       context.missing(_emailMeta);
     }
-    if (data.containsKey('full_name')) {
+    if (data.containsKey('display_name')) {
       context.handle(
-        _fullNameMeta,
-        fullName.isAcceptableOrUnknown(data['full_name']!, _fullNameMeta),
+        _displayNameMeta,
+        displayName.isAcceptableOrUnknown(
+          data['display_name']!,
+          _displayNameMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_fullNameMeta);
+      context.missing(_displayNameMeta);
     }
     if (data.containsKey('avatar')) {
       context.handle(
@@ -134,6 +148,12 @@ class $UserProfilesTable extends UserProfiles
       context.handle(
         _roleMeta,
         role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -165,9 +185,9 @@ class $UserProfilesTable extends UserProfiles
         DriftSqlType.string,
         data['${effectivePrefix}email'],
       )!,
-      fullName: attachedDatabase.typeMapping.read(
+      displayName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}full_name'],
+        data['${effectivePrefix}display_name'],
       )!,
       avatar: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -176,6 +196,10 @@ class $UserProfilesTable extends UserProfiles
       role: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}role'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -197,17 +221,19 @@ class $UserProfilesTable extends UserProfiles
 class UserProfileData extends DataClass implements Insertable<UserProfileData> {
   final String id;
   final String email;
-  final String fullName;
+  final String displayName;
   final String? avatar;
   final String role;
+  final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
   const UserProfileData({
     required this.id,
     required this.email,
-    required this.fullName,
+    required this.displayName,
     this.avatar,
     required this.role,
+    required this.status,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -216,11 +242,12 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['email'] = Variable<String>(email);
-    map['full_name'] = Variable<String>(fullName);
+    map['display_name'] = Variable<String>(displayName);
     if (!nullToAbsent || avatar != null) {
       map['avatar'] = Variable<String>(avatar);
     }
     map['role'] = Variable<String>(role);
+    map['status'] = Variable<String>(status);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -230,11 +257,12 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     return UserProfilesCompanion(
       id: Value(id),
       email: Value(email),
-      fullName: Value(fullName),
+      displayName: Value(displayName),
       avatar: avatar == null && nullToAbsent
           ? const Value.absent()
           : Value(avatar),
       role: Value(role),
+      status: Value(status),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -248,9 +276,10 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     return UserProfileData(
       id: serializer.fromJson<String>(json['id']),
       email: serializer.fromJson<String>(json['email']),
-      fullName: serializer.fromJson<String>(json['fullName']),
+      displayName: serializer.fromJson<String>(json['displayName']),
       avatar: serializer.fromJson<String?>(json['avatar']),
       role: serializer.fromJson<String>(json['role']),
+      status: serializer.fromJson<String>(json['status']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -261,9 +290,10 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'email': serializer.toJson<String>(email),
-      'fullName': serializer.toJson<String>(fullName),
+      'displayName': serializer.toJson<String>(displayName),
       'avatar': serializer.toJson<String?>(avatar),
       'role': serializer.toJson<String>(role),
+      'status': serializer.toJson<String>(status),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -272,17 +302,19 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
   UserProfileData copyWith({
     String? id,
     String? email,
-    String? fullName,
+    String? displayName,
     Value<String?> avatar = const Value.absent(),
     String? role,
+    String? status,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => UserProfileData(
     id: id ?? this.id,
     email: email ?? this.email,
-    fullName: fullName ?? this.fullName,
+    displayName: displayName ?? this.displayName,
     avatar: avatar.present ? avatar.value : this.avatar,
     role: role ?? this.role,
+    status: status ?? this.status,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -290,9 +322,12 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     return UserProfileData(
       id: data.id.present ? data.id.value : this.id,
       email: data.email.present ? data.email.value : this.email,
-      fullName: data.fullName.present ? data.fullName.value : this.fullName,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
       avatar: data.avatar.present ? data.avatar.value : this.avatar,
       role: data.role.present ? data.role.value : this.role,
+      status: data.status.present ? data.status.value : this.status,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -303,9 +338,10 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     return (StringBuffer('UserProfileData(')
           ..write('id: $id, ')
           ..write('email: $email, ')
-          ..write('fullName: $fullName, ')
+          ..write('displayName: $displayName, ')
           ..write('avatar: $avatar, ')
           ..write('role: $role, ')
+          ..write('status: $status, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -313,17 +349,26 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, email, fullName, avatar, role, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    email,
+    displayName,
+    avatar,
+    role,
+    status,
+    createdAt,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is UserProfileData &&
           other.id == this.id &&
           other.email == this.email &&
-          other.fullName == this.fullName &&
+          other.displayName == this.displayName &&
           other.avatar == this.avatar &&
           other.role == this.role &&
+          other.status == this.status &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -331,18 +376,20 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
 class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
   final Value<String> id;
   final Value<String> email;
-  final Value<String> fullName;
+  final Value<String> displayName;
   final Value<String?> avatar;
   final Value<String> role;
+  final Value<String> status;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const UserProfilesCompanion({
     this.id = const Value.absent(),
     this.email = const Value.absent(),
-    this.fullName = const Value.absent(),
+    this.displayName = const Value.absent(),
     this.avatar = const Value.absent(),
     this.role = const Value.absent(),
+    this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -350,21 +397,23 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
   UserProfilesCompanion.insert({
     required String id,
     required String email,
-    required String fullName,
+    required String displayName,
     this.avatar = const Value.absent(),
     this.role = const Value.absent(),
+    this.status = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        email = Value(email),
-       fullName = Value(fullName);
+       displayName = Value(displayName);
   static Insertable<UserProfileData> custom({
     Expression<String>? id,
     Expression<String>? email,
-    Expression<String>? fullName,
+    Expression<String>? displayName,
     Expression<String>? avatar,
     Expression<String>? role,
+    Expression<String>? status,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -372,9 +421,10 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (email != null) 'email': email,
-      if (fullName != null) 'full_name': fullName,
+      if (displayName != null) 'display_name': displayName,
       if (avatar != null) 'avatar': avatar,
       if (role != null) 'role': role,
+      if (status != null) 'status': status,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -384,9 +434,10 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
   UserProfilesCompanion copyWith({
     Value<String>? id,
     Value<String>? email,
-    Value<String>? fullName,
+    Value<String>? displayName,
     Value<String?>? avatar,
     Value<String>? role,
+    Value<String>? status,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -394,9 +445,10 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
     return UserProfilesCompanion(
       id: id ?? this.id,
       email: email ?? this.email,
-      fullName: fullName ?? this.fullName,
+      displayName: displayName ?? this.displayName,
       avatar: avatar ?? this.avatar,
       role: role ?? this.role,
+      status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -412,14 +464,17 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
     if (email.present) {
       map['email'] = Variable<String>(email.value);
     }
-    if (fullName.present) {
-      map['full_name'] = Variable<String>(fullName.value);
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
     }
     if (avatar.present) {
       map['avatar'] = Variable<String>(avatar.value);
     }
     if (role.present) {
       map['role'] = Variable<String>(role.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -438,9 +493,10 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
     return (StringBuffer('UserProfilesCompanion(')
           ..write('id: $id, ')
           ..write('email: $email, ')
-          ..write('fullName: $fullName, ')
+          ..write('displayName: $displayName, ')
           ..write('avatar: $avatar, ')
           ..write('role: $role, ')
+          ..write('status: $status, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -464,9 +520,10 @@ typedef $$UserProfilesTableCreateCompanionBuilder =
     UserProfilesCompanion Function({
       required String id,
       required String email,
-      required String fullName,
+      required String displayName,
       Value<String?> avatar,
       Value<String> role,
+      Value<String> status,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -475,9 +532,10 @@ typedef $$UserProfilesTableUpdateCompanionBuilder =
     UserProfilesCompanion Function({
       Value<String> id,
       Value<String> email,
-      Value<String> fullName,
+      Value<String> displayName,
       Value<String?> avatar,
       Value<String> role,
+      Value<String> status,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -502,8 +560,8 @@ class $$UserProfilesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get fullName => $composableBuilder(
-    column: $table.fullName,
+  ColumnFilters<String> get displayName => $composableBuilder(
+    column: $table.displayName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -514,6 +572,11 @@ class $$UserProfilesTableFilterComposer
 
   ColumnFilters<String> get role => $composableBuilder(
     column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -547,8 +610,8 @@ class $$UserProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get fullName => $composableBuilder(
-    column: $table.fullName,
+  ColumnOrderings<String> get displayName => $composableBuilder(
+    column: $table.displayName,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -559,6 +622,11 @@ class $$UserProfilesTableOrderingComposer
 
   ColumnOrderings<String> get role => $composableBuilder(
     column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -588,14 +656,19 @@ class $$UserProfilesTableAnnotationComposer
   GeneratedColumn<String> get email =>
       $composableBuilder(column: $table.email, builder: (column) => column);
 
-  GeneratedColumn<String> get fullName =>
-      $composableBuilder(column: $table.fullName, builder: (column) => column);
+  GeneratedColumn<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get avatar =>
       $composableBuilder(column: $table.avatar, builder: (column) => column);
 
   GeneratedColumn<String> get role =>
       $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -637,18 +710,20 @@ class $$UserProfilesTableTableManager
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> email = const Value.absent(),
-                Value<String> fullName = const Value.absent(),
+                Value<String> displayName = const Value.absent(),
                 Value<String?> avatar = const Value.absent(),
                 Value<String> role = const Value.absent(),
+                Value<String> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UserProfilesCompanion(
                 id: id,
                 email: email,
-                fullName: fullName,
+                displayName: displayName,
                 avatar: avatar,
                 role: role,
+                status: status,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -657,18 +732,20 @@ class $$UserProfilesTableTableManager
               ({
                 required String id,
                 required String email,
-                required String fullName,
+                required String displayName,
                 Value<String?> avatar = const Value.absent(),
                 Value<String> role = const Value.absent(),
+                Value<String> status = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UserProfilesCompanion.insert(
                 id: id,
                 email: email,
-                fullName: fullName,
+                displayName: displayName,
                 avatar: avatar,
                 role: role,
+                status: status,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

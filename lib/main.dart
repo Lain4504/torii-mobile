@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'firebase_options.dart'; // Removed
 import 'app/app.dart';
 import 'features/auth/providers/auth_providers.dart';
+import 'core/lifecycle/app_lifecycle_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,9 @@ Future<void> main() async {
   runApp(
     const ProviderScope(
       child: AuthInitializer(
-        child: ToriiApp(),
+        child: AppLifecycleObserver(
+          child: ToriiApp(),
+        ),
       ),
     ),
   );

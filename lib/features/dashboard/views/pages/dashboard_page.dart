@@ -114,7 +114,7 @@ class DashboardPage extends ConsumerWidget {
                             children: [
                               Text(
                                 isAuthenticated 
-                                  ? 'Welcome back, ${authState.user.fullName.isNotEmpty ? authState.user.fullName : authState.user.email}!'
+                                  ? 'Welcome back, ${authState.user.displayName.isNotEmpty ? authState.user.displayName : authState.user.email}!'
                                   : 'Welcome back!',
                                 style: Theme.of(context).textTheme.headlineSmall,
                               ),

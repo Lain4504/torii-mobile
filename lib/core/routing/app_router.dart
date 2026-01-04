@@ -14,6 +14,7 @@ import '../../features/flashcard/views/pages/flashcard_page.dart';
 import '../../features/live_class/views/pages/live_class_page.dart';
 import '../../features/onboarding/views/pages/onboarding_page.dart';
 import '../../features/payment/views/pages/payment_page.dart';
+import '../../features/auth/views/widgets/verification_banner.dart';
 
 class AppRouter {
   AppRouter._();
@@ -63,8 +64,13 @@ class AppRouter {
 
         // Nếu user chưa login và cố vào protected route -> redirect login
         if (!isAuthenticated && isProtectedRoute) {
-          // Lưu intended destination để redirect sau khi login
           return '/login?redirect=${Uri.encodeComponent(requestedLocation)}';
+        }
+
+        // GIỚI HẠN TÍNH NĂNG: Nếu user PENDING và cố vào protected route -> redirect home
+        if (isAuthenticated && authState.user.status == 'pending' && isProtectedRoute) {
+          // Có thể show thông báo qua một thunk hoặc đơn giản là chặn redirect
+          return '/'; 
         }
 
         // Nếu user đã login và cố vào login/register page -> redirect home
@@ -79,9 +85,43 @@ class AppRouter {
           path: '/onboarding',
           builder: (context, state) => const OnboardingPage(),
         ),
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const DashboardPage(),
+        ShellRoute(
+          builder: (context, state, child) {
+            return Scaffold(
+              body: Column(
+                children: [
+                  const VerificationBanner(),
+                  Expanded(child: child),
+                ],
+              ),
+            );
+          },
+          routes: [
+            GoRoute(
+              path: '/',
+              builder: (context, state) => const DashboardPage(),
+            ),
+            GoRoute(
+              path: '/courses',
+              builder: (context, state) => const CourseListPage(),
+            ),
+            GoRoute(
+              path: '/live-classes',
+              builder: (context, state) => const LiveClassPage(),
+            ),
+            GoRoute(
+              path: '/exams',
+              builder: (context, state) => const ExamPage(),
+            ),
+            GoRoute(
+              path: '/flashcards',
+              builder: (context, state) => const FlashcardPage(),
+            ),
+            GoRoute(
+              path: '/payments',
+              builder: (context, state) => const PaymentPage(),
+            ),
+          ],
         ),
         GoRoute(
           path: '/login',
@@ -93,26 +133,6 @@ class AppRouter {
         GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterPage(),
-        ),
-        GoRoute(
-          path: '/courses',
-          builder: (context, state) => const CourseListPage(),
-        ),
-        GoRoute(
-          path: '/live-classes',
-          builder: (context, state) => const LiveClassPage(),
-        ),
-        GoRoute(
-          path: '/exams',
-          builder: (context, state) => const ExamPage(),
-        ),
-        GoRoute(
-          path: '/flashcards',
-          builder: (context, state) => const FlashcardPage(),
-        ),
-        GoRoute(
-          path: '/payments',
-          builder: (context, state) => const PaymentPage(),
         ),
       ],
       errorBuilder: (context, state) => Scaffold(

@@ -139,7 +139,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: primaryColor, width: 2),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -178,7 +178,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: primaryColor, width: 2),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -199,7 +199,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     child: const Text(
                       'Forgot Password?',
                       style: TextStyle(
-                        color: primaryColor,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -214,7 +214,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   child: ElevatedButton(
                     onPressed: isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -253,7 +253,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       child: const Text(
                         'Sign Up',
                         style: TextStyle(
-                          color: primaryColor,
+                          color: AppColors.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

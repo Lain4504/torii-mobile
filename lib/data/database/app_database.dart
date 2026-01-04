@@ -13,16 +13,40 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
-          // Drop auth_sessions table as we moved to Secure Storage
           await customStatement('DROP TABLE IF EXISTS auth_sessions;');
+        }
+        if (from < 3) {
+          await m.addColumn(userProfiles, userProfiles.status);
+        }
+        if (from < 4) {
+          // Migrate from fullName to displayName, remove emailVerified
+          await customStatement(
+            'CREATE TABLE IF NOT EXISTS user_profiles_new ('
+            'id TEXT NOT NULL PRIMARY KEY, '
+            'email TEXT NOT NULL, '
+            'display_name TEXT NOT NULL, '
+            'avatar TEXT, '
+            'role TEXT NOT NULL DEFAULT \'learner\', '
+            'status TEXT NOT NULL DEFAULT \'active\', '
+            'created_at INTEGER NOT NULL, '
+            'updated_at INTEGER NOT NULL'
+            ');'
+          );
+          await customStatement(
+            'INSERT INTO user_profiles_new (id, email, display_name, avatar, role, status, created_at, updated_at) '
+            'SELECT id, email, full_name, avatar, role, status, created_at, updated_at FROM user_profiles;'
+          );
+          await customStatement('DROP TABLE user_profiles;');
+          await customStatement('ALTER TABLE user_profiles_new RENAME TO user_profiles;');
         }
       },
     );
@@ -34,17 +58,19 @@ class AppDatabase extends _$AppDatabase {
   Future<void> saveUserProfile({
     required String id,
     required String email,
-    required String fullName,
+    required String displayName,
     String? avatar,
     String? role,
+    String? status,
   }) async {
     await into(userProfiles).insertOnConflictUpdate(
       UserProfilesCompanion.insert(
         id: id,
         email: email,
-        fullName: fullName,
+        displayName: displayName,
         avatar: Value(avatar),
         role: Value(role ?? 'learner'),
+        status: Value(status ?? 'active'),
       ),
     );
   }
