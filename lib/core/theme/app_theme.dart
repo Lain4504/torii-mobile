@@ -124,7 +124,7 @@ class AppTheme {
       error: AppColors.error,
       surface: AppColors.surfaceDark,
       onSurface: AppColors.textPrimaryDark,
-      surfaceContainerHighest: AppColors.surfaceVariantDark, // For search bars/chips
+      surfaceContainerHighest: AppColors.surfaceVariantDark,
     ),
     scaffoldBackgroundColor: AppColors.backgroundDark,
     
@@ -237,7 +237,7 @@ class AppTheme {
         );
       }),
       iconTheme: WidgetStateProperty.resolveWith((states) {
-         if (states.contains(WidgetState.selected)) {
+        if (states.contains(WidgetState.selected)) {
           return const IconThemeData(color: AppColors.primary);
         }
         return const IconThemeData(color: AppColors.textSecondaryDark);
@@ -249,6 +249,7 @@ class AppTheme {
       color: AppColors.surfaceDark,
       elevation: 4,
       shadowColor: Colors.black.withValues(alpha: 0.5),
+
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),

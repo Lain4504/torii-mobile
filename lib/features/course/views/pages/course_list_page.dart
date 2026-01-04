@@ -47,7 +47,6 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
     }).toList();
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -245,7 +244,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                   style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                 ),
               );
-            }).toList(),
+            }),
           ],
           onChanged: onChanged,
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -254,5 +253,3 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
     );
   }
 }
-
-

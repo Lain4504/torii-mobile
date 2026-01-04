@@ -7,6 +7,8 @@ import '../../../auth/models/auth_state_sealed.dart';
 import '../../../course/providers/course_providers.dart';
 import '../../../course/views/widgets/course_card.dart';
 
+import '../../../../core/theme/theme_provider.dart';
+
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -80,6 +82,14 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
             actions: [
               IconButton(
+                icon: Icon(
+                  isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                  color: Colors.white,
+                ),
+                onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
+                tooltip: 'Toggle Theme',
+              ),
+              IconButton(
                 icon: const Icon(Icons.notifications_none_rounded),
                 onPressed: () {}, 
               ),
@@ -103,9 +113,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                 color: Theme.of(context).cardColor,
                 child: Row(
                   children: [
-                    _buildStatBadge(Icons.local_fire_department, '3 Day Streak', isDark: true),
+                    _buildStatBadge(Icons.local_fire_department, '3 Day Streak', isDark: isDark),
                     const SizedBox(width: AppSpacing.md),
-                    _buildStatBadge(Icons.star, '120 XP', isDark: true),
+                    _buildStatBadge(Icons.star, '120 XP', isDark: isDark),
                   ],
                 ),
               ),
@@ -224,16 +234,20 @@ class _HomePageState extends ConsumerState<HomePage> {
     return 'Konbanwa 🌙';
   }
 
-  Widget _buildStatBadge(IconData icon, String label, {bool isDark = false}) {
+  Widget _buildStatBadge(IconData icon, String label, {required bool isDark}) {
+    final backgroundColor = isDark
+        ? AppColors.surfaceVariantDark
+        : Colors.white.withValues(alpha: 0.2);
+    final borderColor = isDark
+        ? AppColors.borderDark
+        : Colors.white.withValues(alpha: 0.3);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grey50 : Colors.white.withValues(alpha: 0.2),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(
-          color: isDark ? AppColors.grey200 : Colors.white.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: borderColor, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -275,7 +289,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             border: Border.all(color: theme.dividerColor),
             boxShadow: [
               BoxShadow(
-                color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.03),
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : Colors.black.withValues(alpha: 0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),

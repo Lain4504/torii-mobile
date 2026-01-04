@@ -6,17 +6,25 @@ import 'app/app.dart';
 import 'features/auth/providers/auth_providers.dart';
 import 'core/lifecycle/app_lifecycle_observer.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/providers/shared_prefs_provider.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Firebase (Removed)
   // await Firebase.initializeApp(
   //   options: DefaultFirebaseOptions.currentPlatform,
-  // );<bos>
+  // );
+  
+  final sharedPrefs = await SharedPreferences.getInstance();
   
   runApp(
-    const ProviderScope(
-      child: AuthInitializer(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPrefs),
+      ],
+      child: const AuthInitializer(
         child: AppLifecycleObserver(
           child: ToriiApp(),
         ),

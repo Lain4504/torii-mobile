@@ -45,7 +45,7 @@ class OnboardingSlide extends StatelessWidget {
                   decoration: BoxDecoration(
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -129,7 +129,7 @@ class OnboardingSlide extends StatelessWidget {
                           backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.textOnPrimary,
                           elevation: 4,
-                          shadowColor: AppColors.primary.withOpacity(0.4),
+                          shadowColor: AppColors.primary.withValues(alpha: 0.4),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(AppRadius.lg),
                           ),

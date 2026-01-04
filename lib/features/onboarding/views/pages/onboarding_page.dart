@@ -77,8 +77,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
             end: Alignment.bottomCenter,
             colors: [
               AppColors.background,
-              AppColors.primary.withOpacity(0.02),
-              AppColors.primary.withOpacity(0.05),
+              AppColors.primary.withValues(alpha: 0.02),
+              AppColors.primary.withValues(alpha: 0.05),
             ],
             stops: const [0.0, 0.6, 1.0],
           ),
@@ -157,5 +157,3 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 }
-
-
