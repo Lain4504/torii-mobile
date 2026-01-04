@@ -224,6 +224,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void _showLevelPicker() {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
@@ -248,6 +249,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void _showTypePicker() {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),

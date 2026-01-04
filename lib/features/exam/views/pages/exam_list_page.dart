@@ -312,6 +312,7 @@ class _ExamCard extends StatelessWidget {
   void _showStartDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _StartExamSheet(exam: exam),
