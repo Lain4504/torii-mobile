@@ -35,6 +35,11 @@ final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(apiClient);
 });
 
+/// Provider để inject initial state từ main (Pre-fetching)
+final initialAuthStateProvider = Provider<AuthState>((ref) {
+  throw UnimplementedError('initialAuthStateProvider must be overridden in main.dart');
+});
+
 /// Provider cho AuthStateNotifier
 final authStateProvider = NotifierProvider<AuthStateNotifier, AuthState>(
   AuthStateNotifier.new,
@@ -44,7 +49,8 @@ final authStateProvider = NotifierProvider<AuthStateNotifier, AuthState>(
 class AuthStateNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
-    return AuthUnauthenticated();
+    // Hydrate state immediately from the injected provider
+    return ref.read(initialAuthStateProvider);
   }
 
   // Dependencies
@@ -55,10 +61,16 @@ class AuthStateNotifier extends Notifier<AuthState> {
   /// Initialize auth state khi app khởi động
   /// Fetches latest profile from server to sync verification status
   Future<void> initializeAuth() async {
-    state = AuthLoading();
+    // If we are already authenticated (via hydration), we DON'T show loading.
+    // We just sync in the background.
+    final isHydrated = state is AuthAuthenticated;
+    
+    if (!isHydrated) {
+      state = AuthLoading();
+    }
 
     try {
-        debugPrint('Initializing Auth State...');
+        debugPrint('Initializing Auth State (Hydrated: $isHydrated)...');
         // Check if we have a session
         final session = await _tokenService.getRawSession();
         
@@ -67,6 +79,7 @@ class AuthStateNotifier extends Notifier<AuthState> {
             if (await _tokenService.hasValidSession()) {
                  try {
                     debugPrint('Found session, fetching latest profile from server...');
+
                     // Always try to fetch latest profile from server to sync status
                     final data = await _authService.getProfile();
                     final user = User.fromJson(data['user']);
@@ -79,30 +92,32 @@ class AuthStateNotifier extends Notifier<AuthState> {
                  } catch (e) {
                     // Fallback to local DB if server fetch fails (offline)
                     debugPrint('Failed to fetch profile from server: $e');
-                    debugPrint('Falling back to local profile...');
                     
-                    final user = await _userService.getUserProfile();
-                    if (user != null) {
-                        // Ensure we have the latest token from session
-                        // (Though if getProfile failed due to 401, we might be logged out already)
-                        debugPrint('Restored user from local DB: ${user.email}');
-                        state = AuthAuthenticated(user: user, accessToken: session.accessToken);
+                    if (isHydrated) {
+                       // We already have the user from local DB used in hydration.
+                       // Just keep the current state, don't do anything.
+                       debugPrint('Keeping hydrated state.');
                     } else {
-                        // Edge case: Token exists but no profile?
-                        debugPrint('User profile missing in local DB');
-                        state = AuthUnauthenticated();
+                        debugPrint('Falling back to local profile...');
+                        final user = await _userService.getUserProfile();
+                        if (user != null) {
+                            debugPrint('Restored user from local DB: ${user.email}');
+                            state = AuthAuthenticated(user: user, accessToken: session.accessToken);
+                        } else {
+                            state = AuthUnauthenticated();
+                        }
                     }
                  }
             } else {
-                debugPrint('No session found in database');
+                debugPrint('Session expired or invalid');
                 state = AuthUnauthenticated();
             }
         } else {
-            state = AuthUnauthenticated();
+             if (!isHydrated) state = AuthUnauthenticated();
         }
     } catch (e) {
       debugPrint('Auth initialization error: $e');
-      state = AuthError(message: 'Failed to initialize auth: $e');
+      if (!isHydrated) state = AuthError(message: 'Failed to initialize auth: $e');
     }
   }
 

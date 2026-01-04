@@ -44,6 +44,8 @@ dependencies:
   path_provider: ^2.1.0
   path: ^1.9.0
   pretty_dio_logger: ^1.4.0  # HTTP logging interceptor (như OkHttp LoggingInterceptor)
+  intl: ^0.20.2
+  flutter_native_splash: ^2.4.7
   
   # Firebase packages
 
@@ -60,6 +62,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   drift_dev: ^2.30.0
   build_runner: ^2.4.0
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -101,3 +104,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  color: "#D32F2F"
+  # image: assets/images/splash.png # Uncomment when image is available
+  android_12:
+    color: "#D32F2F"
+    # image: assets/images/splash.png

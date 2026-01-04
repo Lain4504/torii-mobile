@@ -6,17 +6,57 @@ import 'app/app.dart';
 import 'features/auth/providers/auth_providers.dart';
 import 'core/lifecycle/app_lifecycle_observer.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/providers/shared_prefs_provider.dart';
+
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'data/database/app_database.dart';
+import 'services/auth/user_service.dart';
+import 'services/auth/token_service.dart';
+import 'data/models/auth_model.dart';
+import 'features/auth/models/auth_state_sealed.dart';
+
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  // Pre-fetch critical data for instant app launch
+  final sharedPrefs = await SharedPreferences.getInstance();
   
-  // Initialize Firebase (Removed)
-  // await Firebase.initializeApp(
-  //   options: DefaultFirebaseOptions.currentPlatform,
-  // );<bos>
+  // Independent Services for Pre-fetching
+  final database = AppDatabase();
+  final userService = UserService(database);
+  final tokenService = TokenService();
   
+  // Parallel Fetching
+  final results = await Future.wait([
+    userService.getUserProfile(),
+    tokenService.getRawSession(),
+  ]);
+  
+  final userProfile = results[0] as User?;
+  final session = results[1] as AuthSessionData?;
+  
+  // Determine Initial Auth State
+  AuthState initialAuthState = AuthUnauthenticated();
+  if (userProfile != null && session != null) {
+    debugPrint('Hydrated User: ${userProfile.email}');
+    initialAuthState = AuthAuthenticated(user: userProfile, accessToken: session.accessToken);
+  }
+
+  // Remove splash screen now that data is ready
+  FlutterNativeSplash.remove();
+
   runApp(
-    const ProviderScope(
-      child: AuthInitializer(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sharedPrefs),
+        databaseProvider.overrideWithValue(database),
+        tokenServiceProvider.overrideWithValue(tokenService),
+        userServiceProvider.overrideWithValue(userService),
+        initialAuthStateProvider.overrideWithValue(initialAuthState),
+      ],
+      child: const AuthInitializer(
         child: AppLifecycleObserver(
           child: ToriiApp(),
         ),
@@ -36,8 +76,6 @@ class AuthInitializer extends ConsumerStatefulWidget {
 }
 
 class _AuthInitializerState extends ConsumerState<AuthInitializer> {
-  bool _initialized = false;
-
   @override
   void initState() {
     super.initState();
@@ -48,27 +86,13 @@ class _AuthInitializerState extends ConsumerState<AuthInitializer> {
   }
 
   Future<void> _initializeAuth() async {
+    // Fire and forget, auth state update will be handled by Riverpod
     await ref.read(authStateProvider.notifier).initializeAuth();
-    if (mounted) {
-      setState(() {
-        _initialized = true;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_initialized) {
-      // Show loading screen khi đang khởi tạo
-      return const MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      );
-    }
-
+    // No blocking "initialized" check anymore
     return widget.child;
   }
 }
