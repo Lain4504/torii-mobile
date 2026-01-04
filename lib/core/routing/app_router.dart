@@ -12,10 +12,10 @@ import '../../features/course/views/pages/course_detail_page.dart';
 import '../../features/course/models/course_model.dart';
 import '../../features/dashboard/views/pages/home_page.dart';
 import '../../features/exam/views/pages/exam_page.dart';
-import '../../features/flashcard/views/pages/flashcard_page.dart';
-import '../../features/live_class/views/pages/live_class_page.dart';
+import '../../features/flashcard/views/pages/flashcard_list_page.dart';
+import '../../features/flashcard/views/pages/flashcard_practice_page.dart';
+import '../../features/flashcard/models/flashcard_model.dart';
 import '../../features/onboarding/views/pages/onboarding_page.dart';
-import '../../features/payment/views/pages/payment_page.dart';
 import '../widgets/app_shell.dart';
 
 class AppRouter {
@@ -23,10 +23,6 @@ class AppRouter {
 
   /// Protected routes - yêu cầu authentication
   static const protectedRoutes = [
-    '/live-classes',
-    '/exams',
-    '/flashcards',
-    '/payments',
   ];
 
   /// Public routes - không yêu cầu authentication
@@ -109,20 +105,12 @@ class AppRouter {
               ],
             ),
             GoRoute(
-              path: '/live-classes',
-              builder: (context, state) => const LiveClassPage(),
-            ),
-            GoRoute(
               path: '/exams',
               builder: (context, state) => const ExamPage(),
             ),
             GoRoute(
               path: '/flashcards',
-              builder: (context, state) => const FlashcardPage(),
-            ),
-            GoRoute(
-              path: '/payments',
-              builder: (context, state) => const PaymentPage(),
+              builder: (context, state) => const FlashcardListPage(),
             ),
           ],
         ),
@@ -136,6 +124,13 @@ class AppRouter {
         GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterPage(),
+        ),
+        GoRoute(
+          path: '/flashcards/practice',
+          builder: (context, state) {
+             final deck = state.extra as FlashcardDeck?;
+             return FlashcardPracticePage(deck: deck);
+          },
         ),
       ],
       errorBuilder: (context, state) => Scaffold(

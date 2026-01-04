@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_providers.dart';
 import '../../models/auth_state_sealed.dart';
+import '../../../../core/constants/app_design_system.dart';
 
+/// Verification Banner - Minimalist Alert
 class VerificationBanner extends ConsumerStatefulWidget {
   const VerificationBanner({super.key});
 
@@ -65,36 +67,44 @@ class _VerificationBannerState extends ConsumerState<VerificationBanner> {
 
     if (!isPending) return const SizedBox.shrink();
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
-      color: Colors.amber[100],
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: isDark ? AppColors.warning.withValues(alpha: 0.15) : AppColors.warningLight,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.pageHorizontal,
+        vertical: AppSpacing.md,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
-              Icon(Icons.mail_outline, color: Colors.amber[900], size: 24),
-              const SizedBox(width: 12),
+              Icon(
+                Icons.mark_email_unread_outlined, 
+                color: AppColors.warningDark, 
+                size: AppIconSize.md,
+              ),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Verify your email',
-                      style: TextStyle(
-                        color: Colors.amber[900],
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        color: AppColors.warningDark,
+                        fontWeight: AppTypography.bold,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'We sent a magic link to your email. Click it to activate your account.',
-                      style: TextStyle(
-                        color: Colors.amber[900],
-                        fontSize: 13,
-                        height: 1.3,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.warningDark,
+                        height: 1.4,
                       ),
                     ),
                   ],
@@ -102,19 +112,30 @@ class _VerificationBannerState extends ConsumerState<VerificationBanner> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
               onPressed: _cooldown > 0 ? null : _resendMagicLink,
               style: TextButton.styleFrom(
-                foregroundColor: Colors.amber[900],
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                backgroundColor: Colors.amber[200]!.withValues(alpha: 0.5),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                foregroundColor: AppColors.warningDark,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                backgroundColor: isDark 
+                    ? AppColors.warning.withValues(alpha: 0.2) 
+                    : AppColors.white.withValues(alpha: 0.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                ),
               ),
               icon: _cooldown > 0 
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Colors.amber))) 
+                  ? SizedBox(
+                      width: 14, 
+                      height: 14, 
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2, 
+                        valueColor: AlwaysStoppedAnimation(AppColors.warningDark),
+                      ),
+                    ) 
                   : const Icon(Icons.refresh, size: 16),
               label: Text(
                 _cooldown > 0 ? 'Resend in ${_cooldown}s' : 'Resend Email',

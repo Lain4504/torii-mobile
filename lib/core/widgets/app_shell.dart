@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/views/widgets/verification_banner.dart';
+import '../constants/app_design_system.dart';
 
+/// App Shell - Main Layout Wrapper
+/// 
+/// Contains the bottom navigation and handles global layout concerns.
 class AppShell extends StatelessWidget {
   final Widget child;
   final GoRouterState state;
@@ -22,7 +26,7 @@ class AppShell extends StatelessWidget {
   }
 
   Widget _buildBottomNavBar(BuildContext context) {
-    // Determine the current index based on the route
+    // Determine current index based on route
     int currentIndex = 0;
     final location = state.matchedLocation;
     
@@ -43,64 +47,66 @@ class AppShell extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.3)
-                : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            width: 1,
           ),
-        ],
+        ),
       ),
-      child: NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: (index) {
-          switch (index) {
-            case 0:
-              context.go('/');
-              break;
-            case 1:
-              context.go('/courses');
-              break;
-            case 2:
-              context.go('/exams');
-              break;
-            case 3:
-              context.go('/flashcards');
-              break;
-            case 4:
-              context.go('/live-classes');
-              break;
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school),
-            label: 'Courses',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.quiz_outlined),
-            selectedIcon: Icon(Icons.quiz),
-            label: 'Exams',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.style_outlined),
-            selectedIcon: Icon(Icons.style),
-            label: 'Cards',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.live_tv_outlined),
-            selectedIcon: Icon(Icons.live_tv),
-            label: 'Live',
-          ),
-        ],
+      child: SafeArea(
+        child: NavigationBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          selectedIndex: currentIndex,
+          onDestinationSelected: (index) {
+            switch (index) {
+              case 0:
+                context.go('/');
+                break;
+              case 1:
+                context.go('/courses');
+                break;
+              case 2:
+                context.go('/exams');
+                break;
+              case 3:
+                context.go('/flashcards');
+                break;
+              case 4:
+                context.go('/live-classes');
+                break;
+            }
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded),
+              label: 'Home',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.school_outlined),
+              selectedIcon: Icon(Icons.school_rounded),
+              label: 'Courses',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.quiz_outlined),
+              selectedIcon: Icon(Icons.quiz_rounded),
+              label: 'Exams',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.style_outlined),
+              selectedIcon: Icon(Icons.style_rounded),
+              label: 'Cards',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.video_call_outlined),
+              selectedIcon: Icon(Icons.video_call_rounded),
+              label: 'Live',
+            ),
+          ],
+        ),
       ),
     );
   }
