@@ -9,6 +9,7 @@ import '../../features/auth/views/pages/login_page.dart';
 import '../../features/auth/views/pages/register_page.dart';
 import '../../features/course/views/pages/course_list_page.dart';
 import '../../features/course/views/pages/course_detail_page.dart';
+import '../../features/course/views/pages/payment_page.dart';
 import '../../features/course/models/course_model.dart';
 import '../../features/dashboard/views/pages/home_page.dart';
 import '../../features/exam/views/pages/exam_list_page.dart';
@@ -37,8 +38,12 @@ class AppRouter {
     '/onboarding',
   ];
 
+  static final _rootNavigatorKey = GlobalKey<NavigatorState>();
+  static final _shellNavigatorKey = GlobalKey<NavigatorState>();
+
   static GoRouter config(WidgetRef ref) {
     return GoRouter(
+      navigatorKey: _rootNavigatorKey,
       redirect: (context, state) async {
         final prefs = await SharedPreferences.getInstance();
         final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
@@ -86,6 +91,7 @@ class AppRouter {
           builder: (context, state) => const OnboardingPage(),
         ),
         ShellRoute(
+          navigatorKey: _shellNavigatorKey,
           builder: (context, state, child) {
             return AppShell(state: state, child: child);
           },
@@ -100,6 +106,7 @@ class AppRouter {
               routes: [
                 GoRoute(
                   path: ':id',
+                  parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
                     final course = state.extra as Course;
                     return CourseDetailPage(course: course);
@@ -134,6 +141,7 @@ class AppRouter {
         ),
         GoRoute(
           path: '/exams/take',
+          parentNavigatorKey: _rootNavigatorKey,
           builder: (context, state) {
              final exam = state.extra as Exam?;
              return ExamTakingPage(exam: exam);
@@ -141,10 +149,16 @@ class AppRouter {
         ),
         GoRoute(
           path: '/flashcards/practice',
+          parentNavigatorKey: _rootNavigatorKey,
           builder: (context, state) {
              final deck = state.extra as FlashcardDeck?;
              return FlashcardPracticePage(deck: deck);
           },
+        ),
+        GoRoute(
+          path: '/payment',
+          parentNavigatorKey: _rootNavigatorKey,
+          builder: (context, state) => const PaymentPage(),
         ),
       ],
       errorBuilder: (context, state) => Scaffold(
