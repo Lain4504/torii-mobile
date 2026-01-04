@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/auth/views/widgets/verification_banner.dart';
+
 import '../constants/app_design_system.dart';
 
 /// App Shell - Main Layout Wrapper
@@ -21,12 +21,7 @@ class AppShell extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       extendBody: true, // Important for the notch transparency/blur to work if needed
-      body: Column(
-        children: [
-          const VerificationBanner(),
-          Expanded(child: child),
-        ],
-      ),
+      body: child,
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.go('/'),
         shape: const CircleBorder(),
