@@ -44,6 +44,7 @@ dependencies:
   path_provider: ^2.1.0
   path: ^1.9.0
   pretty_dio_logger: ^1.4.0  # HTTP logging interceptor (như OkHttp LoggingInterceptor)
+  intl: ^0.20.2
   
   # Firebase packages
 

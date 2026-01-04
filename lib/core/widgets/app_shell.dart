@@ -36,7 +36,7 @@ class AppShell extends StatelessWidget {
       currentIndex = 2;
     } else if (location.startsWith('/flashcards')) {
       currentIndex = 3;
-    } else if (location.startsWith('/live-classes')) {
+    } else if (location.startsWith('/live-schedule')) {
       currentIndex = 4;
     } else if (location == '/') {
       currentIndex = 0;
@@ -75,7 +75,7 @@ class AppShell extends StatelessWidget {
                 context.go('/flashcards');
                 break;
               case 4:
-                context.go('/live-classes');
+                context.go('/live-schedule');
                 break;
             }
           },

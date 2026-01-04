@@ -11,10 +11,13 @@ import '../../features/course/views/pages/course_list_page.dart';
 import '../../features/course/views/pages/course_detail_page.dart';
 import '../../features/course/models/course_model.dart';
 import '../../features/dashboard/views/pages/home_page.dart';
-import '../../features/exam/views/pages/exam_page.dart';
+import '../../features/exam/views/pages/exam_list_page.dart';
+import '../../features/exam/views/pages/exam_taking_page.dart';
+import '../../features/exam/models/exam_model.dart';
 import '../../features/flashcard/views/pages/flashcard_list_page.dart';
 import '../../features/flashcard/views/pages/flashcard_practice_page.dart';
 import '../../features/flashcard/models/flashcard_model.dart';
+import '../../features/live_class/views/pages/live_class_schedule_page.dart';
 import '../../features/onboarding/views/pages/onboarding_page.dart';
 import '../widgets/app_shell.dart';
 
@@ -106,11 +109,15 @@ class AppRouter {
             ),
             GoRoute(
               path: '/exams',
-              builder: (context, state) => const ExamPage(),
+              builder: (context, state) => const ExamListPage(),
             ),
             GoRoute(
               path: '/flashcards',
               builder: (context, state) => const FlashcardListPage(),
+            ),
+            GoRoute(
+              path: '/live-schedule',
+              builder: (context, state) => const LiveClassSchedulePage(),
             ),
           ],
         ),
@@ -124,6 +131,13 @@ class AppRouter {
         GoRoute(
           path: '/register',
           builder: (context, state) => const RegisterPage(),
+        ),
+        GoRoute(
+          path: '/exams/take',
+          builder: (context, state) {
+             final exam = state.extra as Exam?;
+             return ExamTakingPage(exam: exam);
+          },
         ),
         GoRoute(
           path: '/flashcards/practice',
