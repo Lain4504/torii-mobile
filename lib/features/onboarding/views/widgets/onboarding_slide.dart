@@ -30,107 +30,121 @@ class OnboardingSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Colors.transparent,
       child: SafeArea(
         child: Column(
           children: [
-            // Phần illustration ở trên (chiếm phần lớn màn hình)
+            // Image Section
             Expanded(
-              flex: 5,
+              flex: 4,
               child: Container(
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                ),
-                child: Image.asset(
-                  data.imagePath,
-                  fit: BoxFit.contain,
-                  width: double.infinity,
-                  // Error handler - hiển thị placeholder nếu ảnh không load được
-                  errorBuilder: (context, error, stackTrace) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.image_not_supported_outlined,
-                            size: 80,
-                            color: AppColors.grey400,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            'Không thể tải hình ảnh',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: AppTypography.fontSizeSm,
-                            ),
-                          ),
-                        ],
+                alignment: Alignment.bottomCenter,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
-                    );
-                  },
+                    ],
+                  ),
+                  child: Image.asset(
+                    data.imagePath,
+                    fit: BoxFit.contain,
+                    // Error handler
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.image_not_supported_outlined,
+                              size: 64,
+                              color: AppColors.grey300,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              'Image not found',
+                              style: TextStyle(
+                                color: AppColors.textTertiary,
+                                fontSize: AppTypography.fontSizeXs,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-            // Phần nội dung ở dưới
+            
+            // Content Section
             Expanded(
               flex: 3,
               child: Container(
-                color: AppColors.background,
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.xl,
-                  vertical: AppSpacing.xl,
+                  vertical: AppSpacing.lg,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Tiêu đề với màu xanh lá
+                    // Title
                     Text(
                       data.title,
-                      style: TextStyle(
-                        fontSize: AppTypography.fontSize3xl,
+                      style: const TextStyle(
+                        fontSize: AppTypography.fontSize2xl,
                         fontWeight: AppTypography.bold,
-                        color: AppColors.accent,
+                        color: AppColors.primary, // Torii Red
                         height: 1.3,
+                        letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    // Mô tả với màu xám đậm
+                    const SizedBox(height: AppSpacing.md),
+                    
+                    // Description
                     Text(
                       data.description,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: AppTypography.fontSizeMd,
-                        color: AppColors.grey700,
+                        color: AppColors.textSecondary,
                         height: 1.6,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: AppSpacing.xl + AppSpacing.sm),
-                    // Nút hành động màu xanh lá
+                    const Spacer(),
+                    
+                    // Action Button
                     SizedBox(
                       width: double.infinity,
-                      height: 56,
+                      height: 52,
                       child: ElevatedButton(
                         onPressed: onButtonPressed,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accent,
+                          backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.textOnPrimary,
+                          elevation: 4,
+                          shadowColor: AppColors.primary.withOpacity(0.4),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
                           ),
-                          elevation: AppElevation.none,
                         ),
                         child: Text(
-                          data.buttonText.toUpperCase(),
-                          style: TextStyle(
+                          data.buttonText, // Removed .toUpperCase() for a cleaner look
+                          style: const TextStyle(
                             fontSize: AppTypography.fontSizeMd,
                             fontWeight: AppTypography.semiBold,
-                            letterSpacing: 1.0,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.xl),
                   ],
                 ),
               ),

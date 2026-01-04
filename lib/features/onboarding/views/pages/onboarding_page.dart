@@ -70,60 +70,74 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-              },
-              itemCount: _pages.length,
-              itemBuilder: (context, index) {
-                return OnboardingSlide(
-                  data: _pages[index],
-                  onButtonPressed: _nextPage,
-                );
-              },
-            ),
-            // Nút Bỏ qua ở góc trên bên phải
-            Positioned(
-              top: AppSpacing.lg,
-              right: AppSpacing.lg,
-              child: TextButton(
-                onPressed: _skipOnboarding,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.background,
+              AppColors.primary.withOpacity(0.02),
+              AppColors.primary.withOpacity(0.05),
+            ],
+            stops: const [0.0, 0.6, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemCount: _pages.length,
+                itemBuilder: (context, index) {
+                  return OnboardingSlide(
+                    data: _pages[index],
+                    onButtonPressed: _nextPage,
+                  );
+                },
+              ),
+              // Skip Button
+              Positioned(
+                top: AppSpacing.md,
+                right: AppSpacing.md,
+                child: TextButton(
+                  onPressed: _skipOnboarding,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textSecondary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.xs,
+                    ),
                   ),
-                ),
-                child: Text(
-                  'Bỏ qua',
-                  style: TextStyle(
-                    fontSize: AppTypography.fontSizeMd,
-                    fontWeight: AppTypography.medium,
-                    color: AppColors.textSecondary,
+                  child: const Text(
+                    'Bỏ qua',
+                    style: TextStyle(
+                      fontSize: AppTypography.fontSizeSm,
+                      fontWeight: AppTypography.medium,
+                    ),
                   ),
                 ),
               ),
-            ),
-            // Page indicator ở dưới cùng (ngay trên nút)
-            Positioned(
-              bottom: 120,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _pages.length,
-                  (index) => _buildPageIndicator(index == _currentPage),
+              // Page Indicators
+              Positioned(
+                bottom: 140, // Aligned above the button area in slide
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    _pages.length,
+                    (index) => _buildPageIndicator(index == _currentPage),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -133,12 +147,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
     return AnimatedContainer(
       duration: AppDuration.normal,
       curve: Curves.easeInOut,
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-      width: isActive ? AppSpacing.lg : AppSpacing.sm,
-      height: AppSpacing.sm,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      width: isActive ? 24.0 : 8.0,
+      height: 8.0,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.accent : AppColors.grey300,
-        borderRadius: BorderRadius.circular(AppRadius.xs),
+        color: isActive ? AppColors.primary : AppColors.grey300,
+        borderRadius: BorderRadius.circular(4),
       ),
     );
   }

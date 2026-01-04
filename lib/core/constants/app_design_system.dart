@@ -5,21 +5,22 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary Colors (Blue theme matching web)
-  static const Color primary = Color(0xFF3B82F6); // blue-500
-  static const Color primaryDark = Color(0xFF1E40AF); // blue-800
-  static const Color primaryLight = Color(0xFF60A5FA); // blue-400
+  // Primary Colors (Torii Red - Vermilion)
+  static const Color primary = Color(0xFFE53935); // Vermilion Red
+  static const Color primaryDark = Color(0xFFB71C1C); // Deep Red
+  static const Color primaryLight = Color(0xFFFFCDD2); // Light Red/Pink
 
-  // Accent Colors
-  static const Color accent = Color(0xFF4CAF50); // green-500 (for onboarding)
-  static const Color accentLight = Color(0xFF81C784); // green-300
+  // Secondary/Accent Colors (Ink & Gold)
+  static const Color accent = Color(0xFF212121); // Ink Black
+  static const Color accentLight = Color(0xFF484848); // Charcoal
+  static const Color highlight = Color(0xFFFFC107); // Gold/Amber
 
   // Neutral Colors
   static const Color white = Color(0xFFFFFFFF);
   static const Color black = Color(0xFF000000);
   static const Color black87 = Color(0xDE000000); // 87% opacity
   
-  // Grey Scale
+  // Grey Scale (Cool Greys)
   static const Color grey50 = Color(0xFFF9FAFB);
   static const Color grey100 = Color(0xFFF3F4F6);
   static const Color grey200 = Color(0xFFE5E7EB);
@@ -32,24 +33,24 @@ class AppColors {
   static const Color grey900 = Color(0xFF111827);
 
   // Semantic Colors
-  static const Color success = Color(0xFF10B981); // green-500
-  static const Color successLight = Color(0xFFD1FAE5); // green-100
-  static const Color error = Color(0xFFEF4444); // red-500
-  static const Color errorLight = Color(0xFFFEE2E2); // red-100
-  static const Color warning = Color(0xFFF59E0B); // amber-500
-  static const Color warningLight = Color(0xFFFEF3C7); // amber-100
-  static const Color info = Color(0xFF3B82F6); // blue-500
-  static const Color infoLight = Color(0xFFDBEAFE); // blue-100
+  static const Color success = Color(0xFF10B981); // Green
+  static const Color successLight = Color(0xFFD1FAE5);
+  static const Color error = Color(0xFFEF4444); // Red
+  static const Color errorLight = Color(0xFFFEE2E2);
+  static const Color warning = Color(0xFFF59E0B); // Amber
+  static const Color warningLight = Color(0xFFFEF3C7);
+  static const Color info = Color(0xFF3B82F6); // Blue
+  static const Color infoLight = Color(0xFFDBEAFE);
 
   // Background Colors
-  static const Color background = white;
+  static const Color background = Color(0xFFFAFAFA); // Almost White
   static const Color surface = white;
   static const Color surfaceVariant = grey50;
 
   // Text Colors
-  static const Color textPrimary = black87;
+  static const Color textPrimary = Color(0xFF1A1A1A); // Almost Black
   static const Color textSecondary = grey600;
-  static const Color textDisabled = grey400;
+  static const Color textTertiary = grey400;
   static const Color textOnPrimary = white;
 }
 

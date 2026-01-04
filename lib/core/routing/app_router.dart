@@ -8,13 +8,15 @@ import '../../features/auth/models/auth_state_sealed.dart';
 import '../../features/auth/views/pages/login_page.dart';
 import '../../features/auth/views/pages/register_page.dart';
 import '../../features/course/views/pages/course_list_page.dart';
-import '../../features/dashboard/views/pages/dashboard_page.dart';
+import '../../features/course/views/pages/course_detail_page.dart';
+import '../../features/course/models/course_model.dart';
+import '../../features/dashboard/views/pages/home_page.dart';
 import '../../features/exam/views/pages/exam_page.dart';
 import '../../features/flashcard/views/pages/flashcard_page.dart';
 import '../../features/live_class/views/pages/live_class_page.dart';
 import '../../features/onboarding/views/pages/onboarding_page.dart';
 import '../../features/payment/views/pages/payment_page.dart';
-import '../../features/auth/views/widgets/verification_banner.dart';
+import '../widgets/app_shell.dart';
 
 class AppRouter {
   AppRouter._();
@@ -69,7 +71,6 @@ class AppRouter {
 
         // GIỚI HẠN TÍNH NĂNG: Nếu user PENDING và cố vào protected route -> redirect home
         if (isAuthenticated && authState.user.status == 'pending' && isProtectedRoute) {
-          // Có thể show thông báo qua một thunk hoặc đơn giản là chặn redirect
           return '/'; 
         }
 
@@ -87,23 +88,25 @@ class AppRouter {
         ),
         ShellRoute(
           builder: (context, state, child) {
-            return Scaffold(
-              body: Column(
-                children: [
-                  const VerificationBanner(),
-                  Expanded(child: child),
-                ],
-              ),
-            );
+            return AppShell(state: state, child: child);
           },
           routes: [
             GoRoute(
               path: '/',
-              builder: (context, state) => const DashboardPage(),
+              builder: (context, state) => const HomePage(),
             ),
             GoRoute(
               path: '/courses',
-              builder: (context, state) => const CourseListPage(),
+              builder: (context, state) => const CourseCatalogPage(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  builder: (context, state) {
+                    final course = state.extra as Course;
+                    return CourseDetailPage(course: course);
+                  },
+                ),
+              ],
             ),
             GoRoute(
               path: '/live-classes',
@@ -141,4 +144,6 @@ class AppRouter {
     );
   }
 }
+
+
 
