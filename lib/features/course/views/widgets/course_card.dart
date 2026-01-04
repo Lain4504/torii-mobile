@@ -10,14 +10,14 @@ class CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Card(
-      elevation: AppElevation.sm,
-      shadowColor: AppColors.black.withOpacity(0.05),
-      color: AppColors.surface,
-      surfaceTintColor: Colors.transparent,
+      elevation: 0, // Using helper method or handled by theme, but explicit here as before
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(color: AppColors.grey200, width: 1),
+        side: BorderSide(color: theme.dividerColor, width: 1),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -36,8 +36,8 @@ class CourseCard extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        color: AppColors.grey200,
-                        child: Icon(Icons.broken_image, color: AppColors.grey400),
+                        color: theme.dividerColor,
+                        child: Icon(Icons.broken_image, color: theme.iconTheme.color),
                       );
                     },
                   ),
@@ -70,7 +70,7 @@ class CourseCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.black.withOpacity(0.7),
+                        color: Colors.black.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Text(
@@ -97,10 +97,8 @@ class CourseCard extends StatelessWidget {
                     course.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: AppTypography.fontSizeMd,
+                    style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                       height: 1.2,
                     ),
                   ),
@@ -112,15 +110,14 @@ class CourseCard extends StatelessWidget {
                       CircleAvatar(
                         radius: 10,
                         backgroundImage: NetworkImage(course.instructorAvatarUrl),
-                        backgroundColor: AppColors.grey200,
+                        backgroundColor: theme.dividerColor,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           course.instructorName,
-                          style: const TextStyle(
-                            fontSize: AppTypography.fontSizeXs,
-                            color: AppColors.textSecondary,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.textTheme.bodyMedium?.color,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -131,17 +128,15 @@ class CourseCard extends StatelessWidget {
                       const SizedBox(width: 2),
                       Text(
                         course.rating.toString(),
-                        style: const TextStyle(
-                          fontSize: AppTypography.fontSizeXs,
+                        style: theme.textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: theme.textTheme.bodyLarge?.color,
                         ),
                       ),
                       Text(
                         ' (${course.reviewCount})',
-                        style: const TextStyle(
-                          fontSize: AppTypography.fontSizeXs,
-                          color: AppColors.textSecondary,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                             color: theme.textTheme.bodyMedium?.color,
                         ),
                       ),
                     ],
@@ -155,14 +150,13 @@ class CourseCard extends StatelessWidget {
                     children: [
                       Text(
                         course.priceLabel,
-                        style: const TextStyle(
-                          fontSize: AppTypography.fontSizeLg,
-                          fontWeight: FontWeight.bold,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       if(course.isEnrolled)
-                         const Text(
+                          const Text(
                           'Enrolled',
                            style: TextStyle(
                             color: AppColors.success,

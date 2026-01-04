@@ -46,8 +46,11 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
       return matchesSearch && matchesLevel && matchesType;
     }).toList();
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           // 1. App Bar with Search
@@ -55,14 +58,13 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             floating: true,
             pinned: true,
             snap: true,
-            backgroundColor: AppColors.surface,
+            backgroundColor: theme.scaffoldBackgroundColor,
             surfaceTintColor: Colors.transparent,
-            elevation: AppElevation.sm,
-            shadowColor: AppColors.black.withOpacity(0.05),
-            title: const Text(
+            elevation: 0,
+            shadowColor: Colors.black.withValues(alpha: 0.05),
+            title: Text(
               'Course Catalog',
-              style: TextStyle(
-                color: AppColors.textPrimary,
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -73,11 +75,13 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                 child: TextField(
                   controller: _searchController,
                   onChanged: (_) => setState(() {}),
+                  style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
                     hintText: 'Search courses, instructors...',
-                    prefixIcon: const Icon(Icons.search, color: AppColors.grey500),
+                    hintStyle: TextStyle(color: theme.hintColor),
+                    prefixIcon: Icon(Icons.search, color: theme.iconTheme.color),
                     filled: true,
-                    fillColor: AppColors.grey50,
+                    fillColor: theme.inputDecorationTheme.fillColor,
                     contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.full),
@@ -154,11 +158,11 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
               child: Center(child: Text('Error: ${state.error}')),
             )
           else if (filteredCourses.isEmpty)
-            const SliverFillRemaining(
+             SliverFillRemaining(
               child: Center(
                 child: Text(
                   'No courses found matching your criteria',
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: theme.textTheme.bodyMedium?.color),
                 ),
               ),
             )
@@ -193,12 +197,15 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
     required String Function(T) itemLabel,
     required Function(T?) onChanged,
   }) {
+    final theme = Theme.of(context);
+    final isSelected = value != null;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
       decoration: BoxDecoration(
-        color: value != null ? AppColors.primary.withOpacity(0.1) : AppColors.surface,
+        color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : theme.cardColor,
         border: Border.all(
-          color: value != null ? AppColors.primary : AppColors.grey300,
+          color: isSelected ? AppColors.primary : theme.dividerColor,
         ),
         borderRadius: BorderRadius.circular(AppRadius.full),
       ),
@@ -208,28 +215,35 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
           hint: Text(
             label,
             style: TextStyle(
-              color: value != null ? AppColors.primary : AppColors.textSecondary,
+              color: isSelected ? AppColors.primary : theme.textTheme.bodyMedium?.color,
               fontSize: AppTypography.fontSizeSm,
-              fontWeight: value != null ? FontWeight.bold : FontWeight.normal,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
           icon: Icon(
             Icons.arrow_drop_down,
-            color: value != null ? AppColors.primary : AppColors.grey400,
+            color: isSelected ? AppColors.primary : theme.iconTheme.color,
           ),
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: theme.textTheme.bodyLarge?.color,
             fontSize: AppTypography.fontSizeSm,
           ),
+          dropdownColor: theme.cardColor,
           items: [
             DropdownMenuItem<T>(
               value: null,
-              child: Text('All $label'),
+              child: Text(
+                'All $label',
+                style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+              ),
             ),
             ...items.map((item) {
               return DropdownMenuItem<T>(
                 value: item,
-                child: Text(itemLabel(item)),
+                child: Text(
+                  itemLabel(item),
+                  style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                ),
               );
             }).toList(),
           ],

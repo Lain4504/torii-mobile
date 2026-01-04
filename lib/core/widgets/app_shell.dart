@@ -37,20 +37,16 @@ class AppShell extends StatelessWidget {
       currentIndex = 4;
     } else if (location == '/') {
       currentIndex = 0;
-    } else {
-      // If we are on a route not covered (e.g. login), usually shell is not used or we default to 0
-      // But ShellRoute is typically used for main tabs. 
-      // Login/Register are OUTSIDE ShellRoute in AppRouter currently? No.
-      // Wait, AppRouter has ShellRoute covering /, /courses, etc.
-      // Login/Register are separate routes in existing AppRouter.
-      // So this is fine.
     }
+
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -77,32 +73,30 @@ class AppShell extends StatelessWidget {
               break;
           }
         },
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.1),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: AppColors.primary),
+            selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
           NavigationDestination(
             icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school, color: AppColors.primary),
+            selectedIcon: Icon(Icons.school),
             label: 'Courses',
           ),
           NavigationDestination(
             icon: Icon(Icons.quiz_outlined),
-            selectedIcon: Icon(Icons.quiz, color: AppColors.primary),
+            selectedIcon: Icon(Icons.quiz),
             label: 'Exams',
           ),
           NavigationDestination(
             icon: Icon(Icons.style_outlined),
-            selectedIcon: Icon(Icons.style, color: AppColors.primary),
+            selectedIcon: Icon(Icons.style),
             label: 'Cards',
           ),
           NavigationDestination(
             icon: Icon(Icons.live_tv_outlined),
-            selectedIcon: Icon(Icons.live_tv, color: AppColors.primary),
+            selectedIcon: Icon(Icons.live_tv),
             label: 'Live',
           ),
         ],

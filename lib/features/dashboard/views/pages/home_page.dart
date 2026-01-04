@@ -29,79 +29,54 @@ class _HomePageState extends ConsumerState<HomePage> {
     final user = authState is AuthAuthenticated ? authState.user : null;
     final courseState = ref.watch(courseListProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           // 1. App Bar / Header
           SliverAppBar(
             pinned: true,
-            expandedHeight: 120, // Reduced height
-            backgroundColor: AppColors.primary,
+            expandedHeight: 70.0,
+            toolbarHeight: 70.0,
+            backgroundColor: Colors.transparent, 
             foregroundColor: AppColors.textOnPrimary,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.primary,
-                          AppColors.primaryDark,
-                        ],
-                      ),
-                    ),
-                  ),
-                  // Background pattern or subtle decoration could go here
-                   Positioned(
-                    bottom: 16,
-                    left: 20,
-                    right: 20,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                _getGreeting(),
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: AppTypography.fontSizeSm,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                user != null 
-                                  ? (user.displayName.isNotEmpty ? user.displayName : 'Learner') 
-                                  : 'Guest',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22, // Smaller font size
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (user != null) ...[
-                          _buildStatBadge(Icons.local_fire_department, '3'),
-                          const SizedBox(width: 8),
-                          _buildStatBadge(Icons.star, '120 XP'),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
+            flexibleSpace: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.primary,
+                    AppColors.primaryDark,
+                  ],
+                ),
               ),
+            ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _getGreeting(),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  user != null 
+                    ? (user.displayName.isNotEmpty ? user.displayName : 'Learner') 
+                    : 'Guest',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             actions: [
               IconButton(
@@ -120,6 +95,22 @@ class _HomePageState extends ConsumerState<HomePage> {
             ],
           ),
 
+          // 1.5 Stats Bar
+          if (user != null)
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                color: Theme.of(context).cardColor,
+                child: Row(
+                  children: [
+                    _buildStatBadge(Icons.local_fire_department, '3 Day Streak', isDark: true),
+                    const SizedBox(width: AppSpacing.md),
+                    _buildStatBadge(Icons.star, '120 XP', isDark: true),
+                  ],
+                ),
+              ),
+            ),
+
           // 2. Quick Actions Grid
           SliverToBoxAdapter(
             child: Padding(
@@ -127,7 +118,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GridView.count(
+                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 2,
@@ -182,7 +173,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     style: TextStyle(
                       fontSize: AppTypography.fontSizeLg,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).textTheme.titleLarge?.color,
                     ),
                   ),
                   TextButton(
@@ -214,6 +205,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       child: CourseCard(course: courseState.courses[index]),
                     );
                   },
+                  childCount: courseState.courses.length > 3 ? 3 : courseState.courses.length,
                 ),
               ),
             ),
@@ -232,23 +224,26 @@ class _HomePageState extends ConsumerState<HomePage> {
     return 'Konbanwa 🌙';
   }
 
-  Widget _buildStatBadge(IconData icon, String label) {
+  Widget _buildStatBadge(IconData icon, String label, {bool isDark = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
+        color: isDark ? AppColors.grey50 : Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+        border: Border.all(
+          color: isDark ? AppColors.grey200 : Colors.white.withValues(alpha: 0.3),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.amberAccent, size: 16),
+          Icon(icon, color: isDark ? Colors.orange : Colors.amberAccent, size: 16),
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: isDark ? AppColors.textPrimary : Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -265,6 +260,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -272,12 +270,12 @@ class _HomePageState extends ConsumerState<HomePage> {
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: AppColors.grey200),
+            border: Border.all(color: theme.dividerColor),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -299,10 +297,10 @@ class _HomePageState extends ConsumerState<HomePage> {
               const Spacer(),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: AppTypography.fontSizeMd,
-                  color: AppColors.textPrimary,
+                  color: theme.textTheme.bodyLarge?.color,
                 ),
               ),
             ],

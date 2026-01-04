@@ -52,6 +52,17 @@ class AppColors {
   static const Color textSecondary = grey600;
   static const Color textTertiary = grey400;
   static const Color textOnPrimary = white;
+
+  // Dark Mode Semantic Colors
+  static const Color backgroundDark = Color(0xFF121212); // True Dark
+  static const Color surfaceDark = Color(0xFF1E1E1E); // Elevated Dark
+  static const Color surfaceVariantDark = Color(0xFF2C2C2C); // Cards/Dialogs
+  
+  static const Color textPrimaryDark = Color(0xFFEEEEEE); // High Emphasis
+  static const Color textSecondaryDark = Color(0xFFB0B0B0); // Medium Emphasis
+  static const Color textTertiaryDark = Color(0xFF757575); // Low Emphasis
+  
+  static const Color borderDark = Color(0xFF424242); // Dividers/Borders
 }
 
 /// App Design System - Spacing
