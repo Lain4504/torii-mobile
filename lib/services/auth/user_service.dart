@@ -15,7 +15,7 @@ class UserService {
       displayName: user.displayName,
       avatar: user.avatar,
       role: user.role,
-      status: user.status,
+
     );
   }
 
@@ -33,7 +33,7 @@ class UserService {
       displayName: profile.displayName,
       avatar: profile.avatar,
       role: profile.role,
-      status: profile.status,
+
     );
   }
 
