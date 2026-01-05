@@ -63,10 +63,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login?redirect=${Uri.encodeComponent(requestedLocation)}';
       }
 
-      // GIỚI HẠN TÍNH NĂNG: Nếu user PENDING và cố vào protected route -> redirect home
-      if (isAuthenticated && authState.user.status == 'pending' && isProtectedRoute) {
-        return '/'; 
-      }
+
+
 
       // Nếu user đã login và cố vào login/register page -> redirect home
       if (isAuthenticated && (isLoginPage || isRegisterPage)) {

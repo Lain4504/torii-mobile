@@ -87,7 +87,7 @@ class AuthStateNotifier extends Notifier<AuthState> {
                     // Update local DB
                     await _userService.saveUserProfile(user);
                     
-                    debugPrint('Fetched latest user from server: ${user.email}, status: ${user.status}');
+                    debugPrint('Fetched latest user from server: ${user.email}');
                     state = AuthAuthenticated(user: user, accessToken: session.accessToken);
                  } catch (e) {
                     // Fallback to local DB if server fetch fails (offline)
@@ -139,13 +139,9 @@ class AuthStateNotifier extends Notifier<AuthState> {
       return;
     }
 
-    final user = currentState.user;
 
-    // OPTIMIZATION 1: Skip if user is already ACTIVE
-    if (user.status == 'active') {
-      debugPrint('User already active, skipping profile refresh');
-      return;
-    }
+
+    // OPTIMIZATION 1: REMOVED (Status field removed)
 
     // OPTIMIZATION 2: Debounce - skip if refreshed recently
     final now = DateTime.now();
@@ -165,7 +161,7 @@ class AuthStateNotifier extends Notifier<AuthState> {
       
       if (data['user'] != null) {
         final updatedUser = User.fromJson(data['user']);
-        debugPrint('Profile refreshed: ${updatedUser.email}, status: ${updatedUser.status}');
+        debugPrint('Profile refreshed: ${updatedUser.email}');
         
         // Update local database
         await _userService.saveUserProfile(updatedUser);
@@ -265,7 +261,7 @@ class AuthStateNotifier extends Notifier<AuthState> {
               displayName: user.displayName,
               avatar: user.avatar,
               role: user.role,
-              status: 'active',
+
           );
           
           await _userService.saveUserProfile(updatedUser);
