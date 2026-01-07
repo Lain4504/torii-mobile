@@ -11,7 +11,6 @@ import '../../features/auth/views/pages/register_page.dart';
 import '../../features/course/views/pages/course_list_page.dart';
 import '../../features/course/views/pages/course_detail_page.dart';
 import '../../features/course/views/pages/payment_page.dart';
-import '../../features/course/models/course_model.dart';
 import '../../features/dashboard/views/pages/home_page.dart';
 import '../../features/exam/views/pages/exam_list_page.dart';
 import '../../features/exam/views/pages/exam_taking_page.dart';
@@ -96,8 +95,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: ':id',
                 parentNavigatorKey: AppRouter.rootNavigatorKey,
                 builder: (context, state) {
-                  final course = state.extra as Course;
-                  return CourseDetailPage(course: course);
+                  final courseId = state.pathParameters['id'] ?? '';
+                  return CourseDetailPage(courseId: courseId);
                 },
               ),
             ],

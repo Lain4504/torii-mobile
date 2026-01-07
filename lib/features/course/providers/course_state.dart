@@ -40,7 +40,7 @@ class CourseListNotifier extends Notifier<CourseListState> {
       // Mock Data
       final mockCourses = <Course>[
         const Course(
-          id: '1',
+          id: '00000000-0000-0000-0000-000000000001',
           title: 'Mastering JLPT N5: Absolute Beginner',
           description: 'A comprehensive guide to passing N5 with flying colors.',
           thumbnailUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=2071',

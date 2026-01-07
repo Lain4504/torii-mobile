@@ -18,7 +18,7 @@ class CourseCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return MinimalCard(
-      onTap: () => context.push('/courses/${course.id}', extra: course),
+      onTap: () => context.push('/courses/${course.id}'),
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,8 +52,13 @@ class CourseCard extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 12,
-                      backgroundImage: NetworkImage(course.instructorAvatarUrl),
+                      backgroundImage: course.instructorAvatarUrl.isNotEmpty
+                          ? NetworkImage(course.instructorAvatarUrl)
+                          : null,
                       backgroundColor: AppColors.grey200,
+                      child: course.instructorAvatarUrl.isEmpty
+                          ? const Icon(Icons.person, size: 16)
+                          : null,
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
@@ -126,22 +131,33 @@ class CourseCard extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppRadius.card - 1),
             ),
-            child: Image.network(
-              course.thumbnailUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
-                  child: Center(
-                    child: Icon(
-                      Icons.school_outlined,
-                      size: AppIconSize.xxl,
-                      color: isDark ? AppColors.grey600 : AppColors.grey400,
+            child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
+                ? Image.network(
+                    course.thumbnailUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
+                        child: Center(
+                          child: Icon(
+                            Icons.school_outlined,
+                            size: AppIconSize.xxl,
+                            color: isDark ? AppColors.grey600 : AppColors.grey400,
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                : Container(
+                    color: isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
+                    child: Center(
+                      child: Icon(
+                        Icons.school_outlined,
+                        size: AppIconSize.xxl,
+                        color: isDark ? AppColors.grey600 : AppColors.grey400,
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
           ),
           
           // Enrolled Badge
