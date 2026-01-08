@@ -63,17 +63,17 @@ class Course {
     // Parse JLPT Level
     JLPTLevel parseLevel(String? level) {
       if (level == null) return JLPTLevel.n5;
-      final normalized = level.toLowerCase().replaceAll('n', '');
+      final normalized = level.toUpperCase();
       switch (normalized) {
-        case '1':
+        case 'N1':
           return JLPTLevel.n1;
-        case '2':
+        case 'N2':
           return JLPTLevel.n2;
-        case '3':
+        case 'N3':
           return JLPTLevel.n3;
-        case '4':
+        case 'N4':
           return JLPTLevel.n4;
-        case '5':
+        case 'N5':
         default:
           return JLPTLevel.n5;
       }
@@ -109,15 +109,28 @@ class Course {
       return [];
     }
 
+    // Handle both instructorName and createdBy fields for backward compatibility
+    final instructorName = json['instructorName'] as String? ?? 
+                          json['createdBy'] as String? ?? 
+                          'Unknown Instructor';
+    
+    // Handle both instructorAvatarUrl and generate from instructorName/createdBy
+    final instructorAvatarUrl = json['instructorAvatarUrl'] as String? ?? 
+                               'https://i.pravatar.cc/150?u=$instructorName';
+
+    // Handle description - try description first, then shortDescription
+    final description = json['description'] as String? ?? 
+                       json['shortDescription'] as String? ?? '';
+
     return Course(
-      id: json['id'] as String,
-      title: json['title'] as String,
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
       slug: json['slug'] as String?,
-      thumbnailUrl: json['thumbnailUrl'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String? ?? 
+                    'https://via.placeholder.com/400x225',
       previewVideoUrl: json['previewVideoUrl'] as String?,
-      instructorName: json['instructorName'] as String? ?? 'Instructor',
-      instructorAvatarUrl: json['instructorAvatarUrl'] as String? ?? 
-          'https://i.pravatar.cc/150?u=instructor',
+      instructorName: instructorName,
+      instructorAvatarUrl: instructorAvatarUrl,
       level: parseLevel(json['jlptLevel'] as String?),
       type: parseType(json['type'] as String?),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
@@ -131,7 +144,7 @@ class Course {
       isEnrolled: json['isEnrolled'] as bool? ?? false,
       isFree: json['isFree'] as bool? ?? false,
       featured: json['featured'] as bool? ?? false,
-      description: json['description'] as String?,
+      description: description.isNotEmpty ? description : null,
       shortDescription: json['shortDescription'] as String?,
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       learningOutcomes: parseJsonArray(json['learningOutcomes']),
