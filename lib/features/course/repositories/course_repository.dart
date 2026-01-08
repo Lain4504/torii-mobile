@@ -5,13 +5,10 @@ import '../models/curriculum_model.dart';
 /// Course Repository - Handles API calls for courses
 class CourseRepository {
   final Dio _dio;
-  final String _baseUrl;
 
   CourseRepository({
     required Dio dio,
-    String? baseUrl,
-  })  : _dio = dio,
-        _baseUrl = baseUrl ?? 'http://localhost:8080/api';
+  })  : _dio = dio;
 
   /// Fetch all courses with pagination and filters
   Future<CourseListResponse> findAll({
@@ -36,7 +33,7 @@ class CourseRepository {
       }
 
       final response = await _dio.get(
-        '$_baseUrl/courses',
+        '/courses',
         queryParameters: queryParams,
       );
 
@@ -49,7 +46,7 @@ class CourseRepository {
   /// Fetch single course by ID
   Future<Course?> findOne(String id) async {
     try {
-      final response = await _dio.get('$_baseUrl/courses/$id');
+      final response = await _dio.get('/courses/$id');
       if (response.data == null) return null;
       
       final data = response.data;
@@ -67,7 +64,7 @@ class CourseRepository {
   /// Fetch course by slug
   Future<Course?> findBySlug(String slug) async {
     try {
-      final response = await _dio.get('$_baseUrl/courses/slug/$slug');
+      final response = await _dio.get('/courses/slug/$slug');
       if (response.data == null) return null;
       
       final data = response.data;
@@ -85,7 +82,7 @@ class CourseRepository {
   /// Get course by ID (alias for findOne with better error handling)
   Future<Course> getCourseById(String courseId) async {
     try {
-      final response = await _dio.get('$_baseUrl/courses/$courseId');
+      final response = await _dio.get('/courses/$courseId');
       
       if (response.statusCode == 200) {
         final data = response.data;
@@ -112,7 +109,7 @@ class CourseRepository {
   /// Get course curriculum (modules and lessons)
   Future<Curriculum> getCourseCurriculum(String courseId) async {
     try {
-      final response = await _dio.get('$_baseUrl/courses/$courseId/curriculum');
+      final response = await _dio.get('/courses/$courseId/curriculum');
       
       if (response.statusCode == 200) {
         final data = response.data;

@@ -13,7 +13,7 @@ final courseListProvider = NotifierProvider<CourseListNotifier, CourseListState>
 /// Provider for CourseRepository
 final courseRepositoryProvider = Provider<CourseRepository>((ref) {
   final apiClient = ref.watch(apiClientProvider);
-  return CourseRepository(apiClient);
+  return CourseRepository(dio: apiClient.client);
 });
 
 /// Provider for WishlistRepository
