@@ -51,7 +51,7 @@ class AuthService {
       if (response.data['success'] == true) {
         return response.data['data'];
       } else {
-        throw Exception(response. data['message'] ?? 'Registration failed');
+        throw Exception(response.data['message'] ?? 'Registration failed');
       }
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? e.message ?? 'Registration failed');
@@ -117,7 +117,113 @@ class AuthService {
     try {
       await _apiClient.client.post('/api/auth/logout');
     } on DioException {
-        // Safe to ignore
+      // Safe to ignore
+    }
+  }
+
+  /// Request password reset - sends OTP to email
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/forgot-password',
+        data: {
+          'email': email,
+          'platform': 'mobile',
+        },
+        options: Options(
+          headers: {
+            'x-platform': 'mobile',
+          },
+        ),
+      );
+
+      if (response.data['success'] == true) {
+        return response.data;
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to send reset code');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? e.message ?? 'Failed to send reset code');
+    }
+  }
+
+  /// Verify OTP code for password reset
+  /// Returns email and tempToken if successful
+  Future<Map<String, dynamic>> verifyOTP(String email, String otp, {String type = 'reset-password'}) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/verify-otp',
+        data: {
+          'email': email,
+          'otp': otp,
+          'type': type,
+        },
+        options: Options(
+          headers: {
+            'x-platform': 'mobile',
+          },
+        ),
+      );
+
+      if (response.data['success'] == true) {
+        return response.data['data'] ?? {};
+      } else {
+        throw Exception(response.data['message'] ?? 'Invalid or expired verification code');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? e.message ?? 'Verification failed');
+    }
+  }
+
+  /// Resend OTP code
+  Future<Map<String, dynamic>> resendOTP(String email, {String type = 'reset-password'}) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/resend-otp',
+        data: {
+          'email': email,
+          'type': type,
+        },
+        options: Options(
+          headers: {
+            'x-platform': 'mobile',
+          },
+        ),
+      );
+
+      if (response.data['success'] == true) {
+        return response.data;
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to resend code');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? e.message ?? 'Failed to resend code');
+    }
+  }
+
+  /// Reset password using token from OTP verification
+  Future<Map<String, dynamic>> resetPassword(String token, String newPassword) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/reset-password',
+        data: {
+          'token': token,
+          'password': newPassword,
+        },
+        options: Options(
+          headers: {
+            'x-platform': 'mobile',
+          },
+        ),
+      );
+
+      if (response.data['success'] == true) {
+        return response.data;
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to reset password');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? e.message ?? 'Failed to reset password');
     }
   }
 }
