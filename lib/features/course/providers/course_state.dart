@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/course_model.dart';
-import '../repositories/course_repository.dart';
-import 'package:dio/dio.dart';
-import '../../../core/config/app_config.dart';
+
+// Import provider - Riverpod handles this even with potential circular dependency
+import 'course_providers.dart' show courseRepositoryProvider;
 
 /// State for course list
 class CourseListState {
@@ -41,23 +41,8 @@ class CourseListState {
   }
 }
 
-/// Provider for Dio instance
-final dioProvider = Provider<Dio>((ref) {
-  final dio = Dio(BaseOptions(
-    baseUrl: AppConfig.apiBaseUrl,
-    connectTimeout: const Duration(seconds: 5),
-    receiveTimeout: const Duration(seconds: 3),
-  ));
-  return dio;
-});
-
-/// Provider for CourseRepository
-final courseRepositoryProvider = Provider<CourseRepository>((ref) {
-  final dio = ref.watch(dioProvider);
-  return CourseRepository(dio: dio);
-});
-
 /// StateNotifier for managing course list
+/// Note: Uses courseRepositoryProvider from course_providers.dart
 class CourseListNotifier extends Notifier<CourseListState> {
   @override
   CourseListState build() => const CourseListState();

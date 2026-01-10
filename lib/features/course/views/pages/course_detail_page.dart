@@ -1,28 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/course_model.dart';
+import '../../models/curriculum_model.dart';
+import '../../models/module_model.dart';
+import '../../providers/course_providers.dart';
 import '../../../../core/constants/app_design_system.dart';
 
 
 /// Course Detail Page - Minimalist Course Information
 /// 
 /// A clean, focused course detail view with clear hierarchy.
-class CourseDetailPage extends StatelessWidget {
-  final Course course;
+class CourseDetailPage extends ConsumerWidget {
+  final String courseId;
 
-  const CourseDetailPage({super.key, required this.course});
+  const CourseDetailPage({super.key, required this.courseId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final state = ref.watch(courseDetailProvider(courseId));
+
+    // Show loading state
+    if (state.isLoading && state.course == null) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Show error state
+    if (state.error != null && state.course == null) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: const Text('Error'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                state.error!,
+                style: theme.textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ElevatedButton(
+                onPressed: () {
+                  ref.read(courseDetailProvider(courseId).notifier).loadCourseDetail(courseId);
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final course = state.course;
+    if (course == null) {
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: const Center(
+          child: Text('Course not found'),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           // Header with thumbnail
-          _buildHeader(context, isDark),
+          _buildHeader(context, isDark, course, state.isWishlisted, state.isTogglingWishlist, ref),
 
           // Content
           SliverToBoxAdapter(
@@ -32,7 +86,7 @@ class CourseDetailPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Meta badges
-                  _buildMetaBadges(),
+                  _buildMetaBadges(course),
                   const SizedBox(height: AppSpacing.md),
 
                   // Title
@@ -45,43 +99,74 @@ class CourseDetailPage extends StatelessWidget {
                   const SizedBox(height: AppSpacing.md),
 
                   // Instructor & Rating
-                  _buildInstructorRow(theme),
+                  _buildInstructorRow(theme, course),
                   
                   const SizedBox(height: AppSpacing.lg),
                   
                   // Stats Row
-                  _buildStatsRow(theme, isDark),
+                  _buildStatsRow(theme, isDark, course, state.curriculum),
 
                   const SizedBox(height: AppSpacing.xl),
 
                   // About Section
-                  _buildSectionTitle(theme, 'About This Course'),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    course.description,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.7,
+                  if (course.description != null && course.description!.isNotEmpty) ...[
+                    _buildSectionTitle(theme, 'About This Course'),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      course.description!,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: AppColors.textSecondary,
+                        height: 1.7,
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
 
                   // What You'll Learn
-                  _buildSectionTitle(theme, 'What You\'ll Learn'),
-                  const SizedBox(height: AppSpacing.md),
-                  _buildLearningPoints(theme),
-
-                  const SizedBox(height: AppSpacing.xl),
+                  if (course.learningOutcomes.isNotEmpty) ...[
+                    _buildSectionTitle(theme, 'What You\'ll Learn'),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildLearningPoints(theme, course),
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
 
                   // Curriculum Section
                   _buildSectionTitle(theme, 'Curriculum'),
                   const SizedBox(height: AppSpacing.md),
-                  _buildCurriculumItem(context, '1', 'Introduction to ${course.levelLabel}', '5 min', isFree: true),
-                  _buildCurriculumItem(context, '2', 'Essential Grammar Patterns', '12 min'),
-                  _buildCurriculumItem(context, '3', 'Vocabulary Building', '15 min'),
-                  _buildCurriculumItem(context, '4', 'Listening Comprehension', '20 min'),
-                  _buildCurriculumItem(context, '5', 'Practice Exercises', '18 min'),
+                  if (state.isLoadingCurriculum)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(AppSpacing.xl),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else if (state.curriculum != null && state.curriculum!.modules.isNotEmpty)
+                    ...state.curriculum!.modules.expand((module) {
+                      final moduleIndex = state.curriculum!.modules.indexOf(module) + 1;
+                      return [
+                        _buildModuleHeader(context, theme, isDark, module, moduleIndex),
+                        ...module.lessons.map((lesson) {
+                          final lessonIndex = module.lessons.indexOf(lesson) + 1;
+                          return _buildCurriculumItem(
+                            context,
+                            '$moduleIndex.$lessonIndex',
+                            lesson.title,
+                            lesson.durationLabel,
+                            isFree: lesson.isPreview,
+                          );
+                        }),
+                      ];
+                    })
+                  else
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Text(
+                        'No curriculum available',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
                   
                   // Bottom spacing for action bar
                   const SizedBox(height: 120),
@@ -93,11 +178,18 @@ class CourseDetailPage extends StatelessWidget {
       ),
       
       // Bottom Action Bar
-      bottomNavigationBar: _buildBottomBar(context, theme, isDark),
+      bottomNavigationBar: _buildBottomBar(context, theme, isDark, course),
     );
   }
 
-  Widget _buildHeader(BuildContext context, bool isDark) {
+  Widget _buildHeader(
+    BuildContext context,
+    bool isDark,
+    Course course,
+    bool isWishlisted,
+    bool isTogglingWishlist,
+    WidgetRef ref,
+  ) {
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
@@ -126,8 +218,21 @@ class CourseDetailPage extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: IconButton(
-            icon: const Icon(Icons.favorite_border_outlined),
-            onPressed: () {},
+            icon: isTogglingWishlist
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    isWishlisted ? Icons.favorite : Icons.favorite_border_outlined,
+                    color: isWishlisted ? Colors.red : null,
+                  ),
+            onPressed: isTogglingWishlist
+                ? null
+                : () {
+                    ref.read(courseDetailProvider(course.id).notifier).toggleWishlist();
+                  },
           ),
         ),
         Container(
@@ -140,7 +245,9 @@ class CourseDetailPage extends StatelessWidget {
           ),
           child: IconButton(
             icon: const Icon(Icons.share_outlined),
-            onPressed: () {},
+            onPressed: () {
+              // TODO: Implement share functionality
+            },
           ),
         ),
       ],
@@ -148,44 +255,56 @@ class CourseDetailPage extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(
-              course.thumbnailUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                color: isDark ? AppColors.surfaceVariantDark : AppColors.grey200,
-                child: const Center(
-                  child: Icon(
-                    Icons.school_outlined,
-                    size: 48,
-                    color: AppColors.textTertiary,
+            course.thumbnailUrl != null
+                ? Image.network(
+                    course.thumbnailUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: isDark ? AppColors.surfaceVariantDark : AppColors.grey200,
+                      child: const Center(
+                        child: Icon(
+                          Icons.school_outlined,
+                          size: 48,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ),
+                  )
+                : Container(
+                    color: isDark ? AppColors.surfaceVariantDark : AppColors.grey200,
+                    child: const Center(
+                      child: Icon(
+                        Icons.school_outlined,
+                        size: 48,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                  ),
+            // Play button overlay (only if preview video exists)
+            if (course.previewVideoUrl != null)
+              Center(
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                    boxShadow: AppElevation.softShadow,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    size: 36,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
-            ),
-            // Play button overlay
-            Center(
-              child: Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  shape: BoxShape.circle,
-                  boxShadow: AppElevation.softShadow,
-                ),
-                child: const Icon(
-                  Icons.play_arrow_rounded,
-                  size: 36,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMetaBadges() {
+  Widget _buildMetaBadges(Course course) {
     return Row(
       children: [
         Container(
@@ -229,6 +348,27 @@ class CourseDetailPage extends StatelessWidget {
             ),
           ),
         ),
+        if (course.isFree) ...[
+          const SizedBox(width: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.successLight,
+              borderRadius: BorderRadius.circular(AppRadius.xs),
+            ),
+            child: const Text(
+              'Free',
+              style: TextStyle(
+                color: AppColors.successDark,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
         if (course.isEnrolled) ...[
           const SizedBox(width: AppSpacing.sm),
           Container(
@@ -254,13 +394,18 @@ class CourseDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInstructorRow(ThemeData theme) {
+  Widget _buildInstructorRow(ThemeData theme, Course course) {
     return Row(
       children: [
         CircleAvatar(
           radius: 18,
-          backgroundImage: NetworkImage(course.instructorAvatarUrl),
+          backgroundImage: course.instructorAvatarUrl.isNotEmpty
+              ? NetworkImage(course.instructorAvatarUrl)
+              : null,
           backgroundColor: AppColors.grey200,
+          child: course.instructorAvatarUrl.isEmpty
+              ? const Icon(Icons.person, size: 18)
+              : null,
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
@@ -285,7 +430,7 @@ class CourseDetailPage extends StatelessWidget {
             const Icon(Icons.star_rounded, size: 18, color: AppColors.accent),
             const SizedBox(width: 4),
             Text(
-              '${course.rating}',
+              course.rating.toStringAsFixed(1),
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: AppTypography.bold,
               ),
@@ -300,7 +445,21 @@ class CourseDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow(ThemeData theme, bool isDark) {
+  Widget _buildStatsRow(ThemeData theme, bool isDark, Course course, Curriculum? curriculum) {
+    // Calculate duration from curriculum
+    String durationLabel = 'N/A';
+    if (curriculum != null && curriculum.totalDurationMinutes > 0) {
+      durationLabel = curriculum.totalDurationLabel;
+    } else if (course.durationWeeks != null) {
+      durationLabel = '${course.durationWeeks} weeks';
+    }
+
+    // Format student count
+    String studentCount = course.enrolledCount.toString();
+    if (course.enrolledCount >= 1000) {
+      studentCount = '${(course.enrolledCount / 1000).toStringAsFixed(1)}k';
+    }
+
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -312,11 +471,11 @@ class CourseDetailPage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _buildStat(theme, Icons.schedule_outlined, '4.5 hours', 'Duration'),
+          _buildStat(theme, Icons.schedule_outlined, durationLabel, 'Duration'),
           _buildStatDivider(isDark),
-          _buildStat(theme, Icons.library_books_outlined, '24', 'Lessons'),
+          _buildStat(theme, Icons.library_books_outlined, course.totalLessons.toString(), 'Lessons'),
           _buildStatDivider(isDark),
-          _buildStat(theme, Icons.people_outline, '1.2k', 'Students'),
+          _buildStat(theme, Icons.people_outline, studentCount, 'Students'),
         ],
       ),
     );
@@ -360,13 +519,12 @@ class CourseDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildLearningPoints(ThemeData theme) {
-    final points = [
-      'Understand essential grammar patterns',
-      'Build vocabulary for everyday conversations',
-      'Practice listening and reading comprehension',
-      'Prepare for JLPT ${course.levelLabel} exam',
-    ];
+  Widget _buildLearningPoints(ThemeData theme, Course course) {
+    final points = course.learningOutcomes;
+    
+    if (points.isEmpty) {
+      return const SizedBox.shrink();
+    }
     
     return Column(
       children: points.map((point) => Padding(
@@ -392,6 +550,66 @@ class CourseDetailPage extends StatelessWidget {
           ],
         ),
       )).toList(),
+    );
+  }
+
+  Widget _buildModuleHeader(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+    Module module,
+    int moduleIndex,
+  ) {
+    return Container(
+      margin: EdgeInsets.only(
+        top: moduleIndex > 1 ? AppSpacing.lg : 0,
+        bottom: AppSpacing.sm,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primarySurface,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Center(
+              child: Text(
+                'M$moduleIndex',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: AppTypography.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  module.title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: AppTypography.semiBold,
+                  ),
+                ),
+                if (module.durationLabel.isNotEmpty)
+                  Text(
+                    module.durationLabel,
+                    style: theme.textTheme.bodySmall,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -483,7 +701,7 @@ class CourseDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context, ThemeData theme, bool isDark) {
+  Widget _buildBottomBar(BuildContext context, ThemeData theme, bool isDark, Course course) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -505,12 +723,26 @@ class CourseDetailPage extends StatelessWidget {
                   'Price',
                   style: theme.textTheme.bodySmall,
                 ),
-                Text(
-                  course.priceLabel,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: AppTypography.bold,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (course.hasDiscount)
+                      Text(
+                        course.originalPriceLabel,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          decoration: TextDecoration.lineThrough,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    if (course.hasDiscount) const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      course.priceLabel,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: AppTypography.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
