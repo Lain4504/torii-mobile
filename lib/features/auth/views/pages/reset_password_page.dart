@@ -1,28 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth_providers.dart';
-import '../../models/auth_state_sealed.dart';
 import '../../../../core/constants/app_design_system.dart';
+import '../../../../services/auth/auth_service.dart';
+import '../../../../data/api/api_client.dart';
 
-/// Login Page - Minimalist Authentication
-/// 
-/// A clean, focused login experience with emphasis on simplicity.
-class LoginPage extends ConsumerStatefulWidget {
-  final String? redirectTo;
+/// Reset Password Page
+/// User sets new password after OTP verification
+class ResetPasswordPage extends ConsumerStatefulWidget {
+  final String email;
+  final String token;
 
-  const LoginPage({super.key, this.redirectTo});
+  const ResetPasswordPage({
+    super.key,
+    required this.email,
+    required this.token,
+  });
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  ConsumerState<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> 
+class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     with SingleTickerProviderStateMixin {
-  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _obscureText = true;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -42,41 +49,57 @@ class _LoginPageState extends ConsumerState<LoginPage>
 
   @override
   void dispose() {
-    _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _animationController.dispose();
     super.dispose();
   }
 
-  void _login() async {
+  Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-    await ref.read(authStateProvider.notifier).login(email, password);
-
-    final authState = ref.read(authStateProvider);
-    if (authState is AuthAuthenticated) {
+    try {
+      final authService = AuthService(ApiClient());
+      await authService.resetPassword(
+        widget.token,
+        _passwordController.text.trim(),
+      );
+      
       if (mounted) {
-        final destination = widget.redirectTo ?? '/';
-        context.go(destination);
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password reset successfully! You can now login.'),
+            backgroundColor: AppColors.success,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        
+        // Navigate to login page
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            context.go('/login');
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
+        });
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final isLoading = authState is AuthLoading;
     final theme = Theme.of(context);
-    String? errorMessage;
-
-    if (authState is AuthError) {
-      errorMessage = authState.message;
-    } else if (authState is AuthExpired) {
-      errorMessage = authState.message;
-    }
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -85,7 +108,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
@@ -108,60 +131,23 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   const SizedBox(height: AppSpacing.xxl),
                   
                   // Error Message
-                  if (errorMessage != null) ...[
-                    _buildErrorMessage(errorMessage),
+                  if (_errorMessage != null) ...[
+                    _buildErrorMessage(_errorMessage!),
                     const SizedBox(height: AppSpacing.lg),
                   ],
-                  
-                  // Email Field
-                  _buildEmailField(theme),
-                  
-                  const SizedBox(height: AppSpacing.md),
                   
                   // Password Field
                   _buildPasswordField(theme),
                   
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.md),
                   
-                  // Forgot Password
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => context.push('/auth/forgot-password'),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'Forgot password?',
-                        style: TextStyle(
-                          fontSize: AppTypography.fontSizeSm,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Confirm Password Field
+                  _buildConfirmPasswordField(theme),
                   
                   const SizedBox(height: AppSpacing.xl),
                   
-                  // Login Button
-                  _buildLoginButton(isLoading),
-                  
-                  const SizedBox(height: AppSpacing.xxl),
-                  
-                  // Divider
-                  _buildDivider(theme),
-                  
-                  const SizedBox(height: AppSpacing.lg),
-                  
-                  // Social Login
-                  _buildSocialLogin(theme),
-                  
-                  const SizedBox(height: AppSpacing.xxl),
-                  
-                  // Footer
-                  _buildFooter(theme),
+                  // Reset Button
+                  _buildResetButton(_isLoading),
                   
                   const SizedBox(height: AppSpacing.xl),
                 ],
@@ -200,14 +186,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(
-          'Welcome back',
+          'Set New Password',
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: AppTypography.bold,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Sign in to continue your learning journey',
+          'Enter your new password below',
           style: theme.textTheme.bodyLarge?.copyWith(
             color: AppColors.textSecondary,
           ),
@@ -246,72 +232,39 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
-  Widget _buildEmailField(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Email',
-          style: theme.textTheme.labelLarge,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        TextFormField(
-          controller: _emailController,
-          keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
-          style: theme.textTheme.bodyLarge,
-          decoration: const InputDecoration(
-            hintText: 'your.email@example.com',
-            prefixIcon: Icon(Icons.email_outlined, size: AppIconSize.sm),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your email';
-            }
-            if (!value.contains('@')) {
-              return 'Please enter a valid email';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildPasswordField(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Password',
+          'New Password',
           style: theme.textTheme.labelLarge,
         ),
         const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: _passwordController,
-          obscureText: _obscureText,
-          textInputAction: TextInputAction.done,
-          onFieldSubmitted: (_) => _login(),
+          obscureText: _obscurePassword,
+          textInputAction: TextInputAction.next,
           style: theme.textTheme.bodyLarge,
           decoration: InputDecoration(
-            hintText: 'Enter your password',
+            hintText: 'Enter new password',
             prefixIcon: const Icon(Icons.lock_outline_rounded, size: AppIconSize.sm),
             suffixIcon: IconButton(
               icon: Icon(
-                _obscureText 
+                _obscurePassword 
                     ? Icons.visibility_off_outlined 
                     : Icons.visibility_outlined,
                 size: AppIconSize.sm,
               ),
-              onPressed: () => setState(() => _obscureText = !_obscureText),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter your password';
+              return 'Please enter a new password';
             }
-            if (value.length < 6) {
-              return 'Password must be at least 6 characters';
+            if (value.length < 8) {
+              return 'Password must be at least 8 characters long';
             }
             return null;
           },
@@ -320,11 +273,53 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
-  Widget _buildLoginButton(bool isLoading) {
+  Widget _buildConfirmPasswordField(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Confirm Password',
+          style: theme.textTheme.labelLarge,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        TextFormField(
+          controller: _confirmPasswordController,
+          obscureText: _obscureConfirmPassword,
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (_) => _resetPassword(),
+          style: theme.textTheme.bodyLarge,
+          decoration: InputDecoration(
+            hintText: 'Confirm new password',
+            prefixIcon: const Icon(Icons.lock_outline_rounded, size: AppIconSize.sm),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureConfirmPassword 
+                    ? Icons.visibility_off_outlined 
+                    : Icons.visibility_outlined,
+                size: AppIconSize.sm,
+              ),
+              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+            ),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please confirm your password';
+            }
+            if (value != _passwordController.text) {
+              return 'Passwords do not match';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResetButton(bool isLoading) {
     return SizedBox(
       height: 52,
       child: ElevatedButton(
-        onPressed: isLoading ? null : _login,
+        onPressed: isLoading ? null : _resetPassword,
         child: isLoading
             ? const SizedBox(
                 height: 20,
@@ -334,68 +329,9 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   strokeWidth: 2,
                 ),
               )
-            : const Text('Sign In'),
+            : const Text('Reset Password'),
       ),
     );
   }
-
-  Widget _buildDivider(ThemeData theme) {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: theme.dividerColor)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Text(
-            'or continue with',
-            style: theme.textTheme.bodySmall,
-          ),
-        ),
-        Expanded(child: Divider(color: theme.dividerColor)),
-      ],
-    );
-  }
-
-  Widget _buildSocialLogin(ThemeData theme) {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.apple, size: AppIconSize.md),
-            label: const Text('Apple'),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.g_mobiledata_rounded, size: AppIconSize.lg),
-            label: const Text('Google'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFooter(ThemeData theme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          "Don't have an account?",
-          style: theme.textTheme.bodyMedium,
-        ),
-        TextButton(
-          onPressed: () => context.push('/register'),
-          child: Text(
-            'Sign Up',
-            style: TextStyle(
-              fontWeight: AppTypography.semiBold,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
+

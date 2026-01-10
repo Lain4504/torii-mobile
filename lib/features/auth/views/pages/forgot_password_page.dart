@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth_providers.dart';
-import '../../models/auth_state_sealed.dart';
 import '../../../../core/constants/app_design_system.dart';
+import '../../../../services/auth/auth_service.dart';
+import '../../../../data/api/api_client.dart';
+import '../../providers/auth_providers.dart';
 
-/// Login Page - Minimalist Authentication
-/// 
-/// A clean, focused login experience with emphasis on simplicity.
-class LoginPage extends ConsumerStatefulWidget {
-  final String? redirectTo;
-
-  const LoginPage({super.key, this.redirectTo});
+/// Forgot Password Page
+/// User enters email to receive OTP code
+class ForgotPasswordPage extends ConsumerStatefulWidget {
+  const ForgotPasswordPage({super.key});
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  ConsumerState<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> 
+class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage>
     with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _obscureText = true;
+  bool _isLoading = false;
+  String? _errorMessage;
+  String? _successMessage;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -43,40 +42,57 @@ class _LoginPageState extends ConsumerState<LoginPage>
   @override
   void dispose() {
     _emailController.dispose();
-    _passwordController.dispose();
     _animationController.dispose();
     super.dispose();
   }
 
-  void _login() async {
+  Future<void> _sendOTP() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
 
-    await ref.read(authStateProvider.notifier).login(email, password);
-
-    final authState = ref.read(authStateProvider);
-    if (authState is AuthAuthenticated) {
+    try {
+      final authService = AuthService(ApiClient());
+      final email = _emailController.text.trim();
+      
+      final result = await authService.forgotPassword(email);
+      
       if (mounted) {
-        final destination = widget.redirectTo ?? '/';
-        context.go(destination);
+        setState(() {
+          _isLoading = false;
+          _successMessage = result['message'] ?? 'OTP code has been sent to your email';
+        });
+
+        // Navigate to verify OTP page after a short delay
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            context.push(
+              '/auth/verify-otp',
+              extra: {
+                'email': email,
+                'type': 'reset-password',
+              },
+            );
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString().replaceAll('Exception: ', '');
+        });
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final isLoading = authState is AuthLoading;
     final theme = Theme.of(context);
-    String? errorMessage;
-
-    if (authState is AuthError) {
-      errorMessage = authState.message;
-    } else if (authState is AuthExpired) {
-      errorMessage = authState.message;
-    }
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -85,7 +101,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/'),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SafeArea(
@@ -107,61 +123,30 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   
                   const SizedBox(height: AppSpacing.xxl),
                   
+                  // Success Message
+                  if (_successMessage != null) ...[
+                    _buildSuccessMessage(_successMessage!),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                  
                   // Error Message
-                  if (errorMessage != null) ...[
-                    _buildErrorMessage(errorMessage),
+                  if (_errorMessage != null) ...[
+                    _buildErrorMessage(_errorMessage!),
                     const SizedBox(height: AppSpacing.lg),
                   ],
                   
                   // Email Field
                   _buildEmailField(theme),
                   
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // Password Field
-                  _buildPasswordField(theme),
-                  
-                  const SizedBox(height: AppSpacing.sm),
-                  
-                  // Forgot Password
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => context.push('/auth/forgot-password'),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'Forgot password?',
-                        style: TextStyle(
-                          fontSize: AppTypography.fontSizeSm,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  
                   const SizedBox(height: AppSpacing.xl),
                   
-                  // Login Button
-                  _buildLoginButton(isLoading),
-                  
-                  const SizedBox(height: AppSpacing.xxl),
-                  
-                  // Divider
-                  _buildDivider(theme),
+                  // Send OTP Button
+                  _buildSendButton(_isLoading),
                   
                   const SizedBox(height: AppSpacing.lg),
                   
-                  // Social Login
-                  _buildSocialLogin(theme),
-                  
-                  const SizedBox(height: AppSpacing.xxl),
-                  
-                  // Footer
-                  _buildFooter(theme),
+                  // Back to Login
+                  _buildBackToLogin(theme),
                   
                   const SizedBox(height: AppSpacing.xl),
                 ],
@@ -200,19 +185,49 @@ class _LoginPageState extends ConsumerState<LoginPage>
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(
-          'Welcome back',
+          'Forgot Password?',
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: AppTypography.bold,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Sign in to continue your learning journey',
+          'Enter your email address and we\'ll send you a 6-digit OTP code to reset your password.',
           style: theme.textTheme.bodyLarge?.copyWith(
             color: AppColors.textSecondary,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSuccessMessage(String message) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.successLight,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.check_circle_outline_rounded,
+            color: AppColors.success,
+            size: AppIconSize.sm,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: AppColors.successDark,
+                fontSize: AppTypography.fontSizeSm,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -258,7 +273,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
         TextFormField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (_) => _sendOTP(),
           style: theme.textTheme.bodyLarge,
           decoration: const InputDecoration(
             hintText: 'your.email@example.com',
@@ -278,53 +294,11 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
-  Widget _buildPasswordField(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Password',
-          style: theme.textTheme.labelLarge,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        TextFormField(
-          controller: _passwordController,
-          obscureText: _obscureText,
-          textInputAction: TextInputAction.done,
-          onFieldSubmitted: (_) => _login(),
-          style: theme.textTheme.bodyLarge,
-          decoration: InputDecoration(
-            hintText: 'Enter your password',
-            prefixIcon: const Icon(Icons.lock_outline_rounded, size: AppIconSize.sm),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscureText 
-                    ? Icons.visibility_off_outlined 
-                    : Icons.visibility_outlined,
-                size: AppIconSize.sm,
-              ),
-              onPressed: () => setState(() => _obscureText = !_obscureText),
-            ),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your password';
-            }
-            if (value.length < 6) {
-              return 'Password must be at least 6 characters';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoginButton(bool isLoading) {
+  Widget _buildSendButton(bool isLoading) {
     return SizedBox(
       height: 52,
       child: ElevatedButton(
-        onPressed: isLoading ? null : _login,
+        onPressed: isLoading ? null : _sendOTP,
         child: isLoading
             ? const SizedBox(
                 height: 20,
@@ -334,61 +308,23 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   strokeWidth: 2,
                 ),
               )
-            : const Text('Sign In'),
+            : const Text('Send OTP Code'),
       ),
     );
   }
 
-  Widget _buildDivider(ThemeData theme) {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: theme.dividerColor)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Text(
-            'or continue with',
-            style: theme.textTheme.bodySmall,
-          ),
-        ),
-        Expanded(child: Divider(color: theme.dividerColor)),
-      ],
-    );
-  }
-
-  Widget _buildSocialLogin(ThemeData theme) {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.apple, size: AppIconSize.md),
-            label: const Text('Apple'),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.g_mobiledata_rounded, size: AppIconSize.lg),
-            label: const Text('Google'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFooter(ThemeData theme) {
+  Widget _buildBackToLogin(ThemeData theme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Don't have an account?",
+          'Remember your password?',
           style: theme.textTheme.bodyMedium,
         ),
         TextButton(
-          onPressed: () => context.push('/register'),
+          onPressed: () => context.pop(),
           child: Text(
-            'Sign Up',
+            'Sign In',
             style: TextStyle(
               fontWeight: AppTypography.semiBold,
               color: theme.colorScheme.primary,
@@ -399,3 +335,4 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 }
+

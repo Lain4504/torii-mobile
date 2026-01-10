@@ -8,6 +8,9 @@ import '../../features/auth/providers/auth_providers.dart';
 import '../../features/auth/models/auth_state_sealed.dart';
 import '../../features/auth/views/pages/login_page.dart';
 import '../../features/auth/views/pages/register_page.dart';
+import '../../features/auth/views/pages/forgot_password_page.dart';
+import '../../features/auth/views/pages/verify_otp_page.dart';
+import '../../features/auth/views/pages/reset_password_page.dart';
 import '../../features/course/views/pages/course_list_page.dart';
 import '../../features/course/views/pages/course_detail_page.dart';
 import '../../features/course/views/pages/payment_page.dart';
@@ -127,6 +130,33 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const RegisterPage(),
       ),
       GoRoute(
+        path: '/auth/forgot-password',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/auth/verify-otp',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return VerifyOTPPage(
+            email: extra['email'] as String? ?? '',
+            type: extra['type'] as String? ?? 'reset-password',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/auth/reset-password',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return ResetPasswordPage(
+            email: extra['email'] as String? ?? '',
+            token: extra['token'] as String? ?? '',
+          );
+        },
+      ),
+      GoRoute(
         path: '/exams/take',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) {
@@ -169,6 +199,9 @@ class AppRouter {
     '/register',
     '/courses',
     '/onboarding',
+    '/auth/forgot-password',
+    '/auth/verify-otp',
+    '/auth/reset-password',
   ];
 }
 
