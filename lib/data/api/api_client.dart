@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/models/api_response.dart';
 import '../../services/auth/token_service.dart';
 
 /// API Client với interceptor để tự động thêm token vào header và refresh token
@@ -119,28 +120,33 @@ class ApiClient {
                 'refresh_token': refreshToken,
               });
 
-              if (response.statusCode == 200 && response.data['success'] == true) {
-                final data = response.data['data'];
-                final newAccessToken = data['access_token'];
-                final newRefreshToken = data['refresh_token'];
+              if (response.statusCode == 200) {
+                final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+                if (apiResponse.success && apiResponse.data != null) {
+                  final data = apiResponse.data!;
+                  final newAccessToken = data['access_token'];
+                  final newRefreshToken = data['refresh_token'];
 
-                // Update tokens in storage
-                await tokenService.saveTokens(
-                  accessToken: newAccessToken,
-                  refreshToken: newRefreshToken,
-                  expiresIn: 15 * 60, // Default 15m
-                );
+                  // Update tokens in storage
+                  await tokenService.saveTokens(
+                    accessToken: newAccessToken,
+                    refreshToken: newRefreshToken,
+                    expiresIn: 15 * 60, // Default 15m
+                  );
 
-                // Retry original request
-                await _retryRequest(error.requestOptions, handler, newAccessToken);
+                  // Retry original request
+                  await _retryRequest(error.requestOptions, handler, newAccessToken);
 
-                // Process queued requests
-                for (var request in _failedRequestQueue) {
-                  final queuedError = request['error'] as DioException;
-                  final queuedHandler = request['handler'] as ErrorInterceptorHandler;
-                  await _retryRequest(queuedError.requestOptions, queuedHandler, newAccessToken);
+                  // Process queued requests
+                  for (var request in _failedRequestQueue) {
+                    final queuedError = request['error'] as DioException;
+                    final queuedHandler = request['handler'] as ErrorInterceptorHandler;
+                    await _retryRequest(queuedError.requestOptions, queuedHandler, newAccessToken);
+                  }
+                  _failedRequestQueue.clear();
+                } else {
+                  await _performLogout(handler, error);
                 }
-                _failedRequestQueue.clear();
               } else {
                 await _performLogout(handler, error);
               }

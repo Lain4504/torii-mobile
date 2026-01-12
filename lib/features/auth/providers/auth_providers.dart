@@ -251,28 +251,25 @@ class AuthStateNotifier extends Notifier<AuthState> {
     if (user == null) return false;
 
     try {
-      final response = await _authService.verifyEmail(user.email, otp);
+      await _authService.verifyEmail(user.email, otp);
       
-      if (response['success'] == true) {
-          // Update local user state to ACTIVE
-          final updatedUser = User(
-              id: user.id,
-              email: user.email,
-              displayName: user.displayName,
-              avatar: user.avatar,
-              role: user.role,
+      // Update local user state to ACTIVE
+      final updatedUser = User(
+          id: user.id,
+          email: user.email,
+          displayName: user.displayName,
+          avatar: user.avatar,
+          role: user.role,
 
-          );
-          
-          await _userService.saveUserProfile(updatedUser);
-          
-          final currentState = state;
-          if (currentState is AuthAuthenticated) {
-            state = AuthAuthenticated(user: updatedUser, accessToken: currentState.accessToken);
-          }
-          return true;
+      );
+      
+      await _userService.saveUserProfile(updatedUser);
+      
+      final currentState = state;
+      if (currentState is AuthAuthenticated) {
+        state = AuthAuthenticated(user: updatedUser, accessToken: currentState.accessToken);
       }
-      return false;
+      return true;
     } catch (e) {
       // Don't change global state to error, just return false
       return false;
@@ -285,8 +282,8 @@ class AuthStateNotifier extends Notifier<AuthState> {
     if (user == null) return false;
 
     try {
-      final response = await _authService.resendVerification(user.email);
-      return response['success'] == true;
+      await _authService.resendVerification(user.email);
+      return true;
     } catch (e) {
       return false;
     }
