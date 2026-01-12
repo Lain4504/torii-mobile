@@ -23,6 +23,7 @@ import '../../features/flashcard/views/pages/flashcard_practice_page.dart';
 import '../../features/flashcard/models/flashcard_model.dart';
 import '../../features/live_class/views/pages/live_class_schedule_page.dart';
 import '../../features/onboarding/views/pages/onboarding_page.dart';
+import '../../features/settings/views/pages/settings_page.dart';
 import '../widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -176,6 +177,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/payment',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const PaymentPage(),
+      ),
+      GoRoute(
+        path: '/settings',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const SettingsPage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

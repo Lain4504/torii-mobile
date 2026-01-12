@@ -8,6 +8,7 @@ import '../../../auth/models/auth_state_sealed.dart';
 import '../../../course/providers/course_providers.dart';
 import '../../../course/views/widgets/course_card.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/localization/l10n/app_localizations.dart';
 
 /// Home Page - Minimalist Dashboard
 /// 
@@ -131,7 +132,15 @@ class _HomePageState extends ConsumerState<HomePage>
         ],
       ),
       actions: [
-        // Theme Toggle
+        // Settings
+        IconButton(
+          onPressed: () => context.push('/settings'),
+          tooltip: AppLocalizations.of(context)!.settings,
+          icon: const Icon(
+            Icons.settings_outlined,
+            size: AppIconSize.md,
+          ),
+        ),
         // Theme Toggle
         IconButton(
           onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
@@ -168,7 +177,7 @@ class _HomePageState extends ConsumerState<HomePage>
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: TextButton(
               onPressed: () => context.push('/login'),
-              child: const Text('Sign In'),
+              child: Text(AppLocalizations.of(context)!.signIn),
             ),
           )
         else
@@ -208,14 +217,14 @@ class _HomePageState extends ConsumerState<HomePage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _getGreeting(),
+              _getGreeting(context),
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: AppSpacing.xxs),
             Text(
               user != null
-                  ? (user.displayName.isNotEmpty ? user.displayName : 'Learner')
-                  : 'Welcome to Torii',
+                  ? (user.displayName.isNotEmpty ? user.displayName : AppLocalizations.of(context)!.learner)
+                  : AppLocalizations.of(context)!.welcomeToTorii,
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: AppTypography.bold,
               ),
@@ -223,7 +232,7 @@ class _HomePageState extends ConsumerState<HomePage>
             if (user != null) ...[
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Continue your Japanese journey',
+                AppLocalizations.of(context)!.continueYourJourney,
                 style: theme.textTheme.bodyMedium,
               ),
             ],
@@ -251,7 +260,7 @@ class _HomePageState extends ConsumerState<HomePage>
                     context,
                     icon: Icons.local_fire_department_outlined,
                     value: '7',
-                    label: 'Day Streak',
+                    label: AppLocalizations.of(context)!.dayStreak,
                     color: AppColors.accent,
                   ),
                   _buildDivider(),
@@ -259,7 +268,7 @@ class _HomePageState extends ConsumerState<HomePage>
                     context,
                     icon: Icons.star_outline_rounded,
                     value: '1,240',
-                    label: 'Total XP',
+                    label: AppLocalizations.of(context)!.totalXP,
                     color: AppColors.primary,
                   ),
                   _buildDivider(),
@@ -267,7 +276,7 @@ class _HomePageState extends ConsumerState<HomePage>
                     context,
                     icon: Icons.workspace_premium_outlined,
                     value: 'N4',
-                    label: 'Level',
+                    label: AppLocalizations.of(context)!.level,
                     color: AppColors.success,
                   ),
                 ],
@@ -281,7 +290,7 @@ class _HomePageState extends ConsumerState<HomePage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Daily Goal',
+                          AppLocalizations.of(context)!.dailyGoal,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         const SizedBox(height: AppSpacing.xs),
@@ -364,7 +373,7 @@ class _HomePageState extends ConsumerState<HomePage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Quick Start',
+              AppLocalizations.of(context)!.quickStart,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: AppTypography.semiBold,
               ),
@@ -442,7 +451,7 @@ class _HomePageState extends ConsumerState<HomePage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Continue Learning',
+              AppLocalizations.of(context)!.continueLearning,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: AppTypography.semiBold,
               ),
@@ -521,15 +530,15 @@ class _HomePageState extends ConsumerState<HomePage>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Recommended',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: AppTypography.semiBold,
-                  ),
-                ),
+            Text(
+              AppLocalizations.of(context)!.recommended,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: AppTypography.semiBold,
+              ),
+            ),
                 TextButton(
                   onPressed: () => context.go('/courses'),
-                  child: const Text('See All'),
+                  child: Text(AppLocalizations.of(context)!.seeAll),
                 ),
               ],
             ),
@@ -544,11 +553,11 @@ class _HomePageState extends ConsumerState<HomePage>
             else if (courseState.courses.isEmpty)
               EmptyState(
                 icon: Icons.school_outlined,
-                title: 'No Courses Yet',
-                subtitle: 'Check back later for new courses',
+                title: AppLocalizations.of(context)!.noCoursesYet,
+                subtitle: AppLocalizations.of(context)!.checkBackLater,
                 action: ElevatedButton(
                   onPressed: () => ref.read(courseListProvider.notifier).loadCourses(),
-                  child: const Text('Refresh'),
+                  child: Text(AppLocalizations.of(context)!.refresh),
                 ),
               )
             else
@@ -562,11 +571,12 @@ class _HomePageState extends ConsumerState<HomePage>
     );
   }
 
-  String _getGreeting() {
+  String _getGreeting(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return l10n.goodMorning;
+    if (hour < 18) return l10n.goodAfternoon;
+    return l10n.goodEvening;
   }
 
   void _showLoginPrompt(BuildContext context) {
@@ -596,14 +606,14 @@ class _HomePageState extends ConsumerState<HomePage>
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Sign in Required',
+              AppLocalizations.of(context)!.signInRequired,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: AppTypography.semiBold,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Sign in to access this feature and track your progress.',
+              AppLocalizations.of(context)!.signInToAccess,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -615,13 +625,13 @@ class _HomePageState extends ConsumerState<HomePage>
                   Navigator.of(context).pop();
                   context.push('/login');
                 },
-                child: const Text('Sign In'),
+                child: Text(AppLocalizations.of(context)!.signIn),
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             const SizedBox(height: AppSpacing.md),
           ],
