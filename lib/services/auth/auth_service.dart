@@ -1,5 +1,6 @@
 
 import 'package:dio/dio.dart';
+import '../../core/models/api_response.dart';
 import '../../data/api/api_client.dart';
 
 class AuthService {
@@ -22,13 +23,22 @@ class AuthService {
         ),
       );
 
-      if (response.data['success'] == true) {
-        return response.data['data'];
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data!;
       } else {
-        throw Exception(response.data['message'] ?? 'Login failed');
+        throw Exception(apiResponse.message ?? 'Login failed');
       }
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'Login failed');
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? 'Login failed');
+        } catch (_) {
+          throw Exception(e.message ?? 'Login failed');
+        }
+      }
+      throw Exception(e.message ?? 'Login failed');
     }
   }
 
@@ -48,13 +58,22 @@ class AuthService {
         ),
       );
 
-      if (response.data['success'] == true) {
-        return response.data['data'];
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data!;
       } else {
-        throw Exception(response.data['message'] ?? 'Registration failed');
+        throw Exception(apiResponse.message ?? 'Registration failed');
       }
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'Registration failed');
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? 'Registration failed');
+        } catch (_) {
+          throw Exception(e.message ?? 'Registration failed');
+        }
+      }
+      throw Exception(e.message ?? 'Registration failed');
     }
   }
 
@@ -68,13 +87,22 @@ class AuthService {
         },
       );
 
-      if (response.data['success'] == true) {
-        return response.data;
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data ?? {};
       } else {
-        throw Exception(response.data['message'] ?? 'Verification failed');
+        throw Exception(apiResponse.message ?? 'Verification failed');
       }
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'Verification failed');
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? 'Verification failed');
+        } catch (_) {
+          throw Exception(e.message ?? 'Verification failed');
+        }
+      }
+      throw Exception(e.message ?? 'Verification failed');
     }
   }
 
@@ -87,13 +115,22 @@ class AuthService {
         },
       );
 
-      if (response.data['success'] == true) {
-        return response.data;
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data ?? {};
       } else {
-        throw Exception(response.data['message'] ?? 'Resend failed');
+        throw Exception(apiResponse.message ?? 'Resend failed');
       }
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'Resend failed');
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? 'Resend failed');
+        } catch (_) {
+          throw Exception(e.message ?? 'Resend failed');
+        }
+      }
+      throw Exception(e.message ?? 'Resend failed');
     }
   }
 
@@ -103,13 +140,22 @@ class AuthService {
     try {
       final response = await _apiClient.client.get('/api/auth/profile');
 
-      if (response.data['success'] == true) {
-        return response.data['data'];
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data!;
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to get profile');
+        throw Exception(apiResponse.message ?? 'Failed to get profile');
       }
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'Failed to get profile');
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? 'Failed to get profile');
+        } catch (_) {
+          throw Exception(e.message ?? 'Failed to get profile');
+        }
+      }
+      throw Exception(e.message ?? 'Failed to get profile');
     }
   }
 
@@ -137,13 +183,22 @@ class AuthService {
         ),
       );
 
-      if (response.data['success'] == true) {
-        return response.data;
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data ?? {};
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to send reset code');
+        throw Exception(apiResponse.message ?? 'Failed to send reset code');
       }
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'Failed to send reset code');
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? 'Failed to send reset code');
+        } catch (_) {
+          throw Exception(e.message ?? 'Failed to send reset code');
+        }
+      }
+      throw Exception(e.message ?? 'Failed to send reset code');
     }
   }
 
@@ -165,13 +220,22 @@ class AuthService {
         ),
       );
 
-      if (response.data['success'] == true) {
-        return response.data['data'] ?? {};
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data ?? {};
       } else {
-        throw Exception(response.data['message'] ?? 'Invalid or expired verification code');
+        throw Exception(apiResponse.message ?? 'Invalid or expired verification code');
       }
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'Verification failed');
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? 'Verification failed');
+        } catch (_) {
+          throw Exception(e.message ?? 'Verification failed');
+        }
+      }
+      throw Exception(e.message ?? 'Verification failed');
     }
   }
 
@@ -191,13 +255,22 @@ class AuthService {
         ),
       );
 
-      if (response.data['success'] == true) {
-        return response.data;
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data ?? {};
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to resend code');
+        throw Exception(apiResponse.message ?? 'Failed to resend code');
       }
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'Failed to resend code');
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? 'Failed to resend code');
+        } catch (_) {
+          throw Exception(e.message ?? 'Failed to resend code');
+        }
+      }
+      throw Exception(e.message ?? 'Failed to resend code');
     }
   }
 
@@ -217,13 +290,22 @@ class AuthService {
         ),
       );
 
-      if (response.data['success'] == true) {
-        return response.data;
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data ?? {};
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to reset password');
+        throw Exception(apiResponse.message ?? 'Failed to reset password');
       }
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'Failed to reset password');
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? 'Failed to reset password');
+        } catch (_) {
+          throw Exception(e.message ?? 'Failed to reset password');
+        }
+      }
+      throw Exception(e.message ?? 'Failed to reset password');
     }
   }
 }

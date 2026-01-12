@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../services/auth/auth_service.dart';
 import '../../../../data/api/api_client.dart';
-import '../../providers/auth_providers.dart';
 
 /// Forgot Password Page
 /// User enters email to receive OTP code
