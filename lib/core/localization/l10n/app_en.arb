@@ -1,175 +1,46 @@
 {
   "@@locale": "en",
   "appTitle": "Torii",
-  "@appTitle": {
-    "description": "The application title"
-  },
   "welcomeBack": "Welcome back",
-  "@welcomeBack": {
-    "description": "Welcome message on login page"
-  },
   "signInToContinue": "Sign in to continue your learning journey",
-  "@signInToContinue": {
-    "description": "Subtitle on login page"
-  },
   "email": "Email",
-  "@email": {
-    "description": "Email field label"
-  },
   "password": "Password",
-  "@password": {
-    "description": "Password field label"
-  },
   "forgotPassword": "Forgot password?",
-  "@forgotPassword": {
-    "description": "Forgot password link text"
-  },
   "signIn": "Sign In",
-  "@signIn": {
-    "description": "Sign in button text"
-  },
   "signUp": "Sign Up",
-  "@signUp": {
-    "description": "Sign up button text"
-  },
   "dontHaveAccount": "Don't have an account?",
-  "@dontHaveAccount": {
-    "description": "Text before sign up link"
-  },
   "welcomeToTorii": "Welcome to Torii",
-  "@welcomeToTorii": {
-    "description": "Welcome message on home page"
-  },
   "goodMorning": "Good morning",
-  "@goodMorning": {
-    "description": "Morning greeting"
-  },
   "goodAfternoon": "Good afternoon",
-  "@goodAfternoon": {
-    "description": "Afternoon greeting"
-  },
   "goodEvening": "Good evening",
-  "@goodEvening": {
-    "description": "Evening greeting"
-  },
   "continueYourJourney": "Continue your Japanese journey",
-  "@continueYourJourney": {
-    "description": "Subtitle on home page for authenticated users"
-  },
   "quickStart": "Quick Start",
-  "@quickStart": {
-    "description": "Quick start section title"
-  },
   "recommended": "Recommended",
-  "@recommended": {
-    "description": "Recommended courses section title"
-  },
   "seeAll": "See All",
-  "@seeAll": {
-    "description": "See all link text"
-  },
   "courses": "Courses",
-  "@courses": {
-    "description": "Courses navigation label"
-  },
   "exams": "Exams",
-  "@exams": {
-    "description": "Exams navigation label"
-  },
   "cards": "Cards",
-  "@cards": {
-    "description": "Flashcards navigation label"
-  },
   "live": "Live",
-  "@live": {
-    "description": "Live classes navigation label"
-  },
   "settings": "Settings",
-  "@settings": {
-    "description": "Settings page title"
-  },
   "language": "Language",
-  "@language": {
-    "description": "Language setting label"
-  },
   "english": "English",
-  "@english": {
-    "description": "English language name"
-  },
   "vietnamese": "Vietnamese",
-  "@vietnamese": {
-    "description": "Vietnamese language name"
-  },
   "selectLanguage": "Select Language",
-  "@selectLanguage": {
-    "description": "Language selection prompt"
-  },
   "pleaseEnterEmail": "Please enter your email",
-  "@pleaseEnterEmail": {
-    "description": "Email validation error"
-  },
   "pleaseEnterValidEmail": "Please enter a valid email",
-  "@pleaseEnterValidEmail": {
-    "description": "Email format validation error"
-  },
   "pleaseEnterPassword": "Please enter your password",
-  "@pleaseEnterPassword": {
-    "description": "Password validation error"
-  },
   "passwordMinLength": "Password must be at least 6 characters",
-  "@passwordMinLength": {
-    "description": "Password length validation error"
-  },
   "orContinueWith": "or continue with",
-  "@orContinueWith": {
-    "description": "Divider text for social login"
-  },
   "learner": "Learner",
-  "@learner": {
-    "description": "Default user name when display name is empty"
-  },
   "dayStreak": "Day Streak",
-  "@dayStreak": {
-    "description": "Learning streak label"
-  },
   "totalXP": "Total XP",
-  "@totalXP": {
-    "description": "Total experience points label"
-  },
   "level": "Level",
-  "@level": {
-    "description": "User level label"
-  },
   "dailyGoal": "Daily Goal",
-  "@dailyGoal": {
-    "description": "Daily learning goal label"
-  },
   "continueLearning": "Continue Learning",
-  "@continueLearning": {
-    "description": "Continue learning section title"
-  },
   "noCoursesYet": "No Courses Yet",
-  "@noCoursesYet": {
-    "description": "Empty state title when no courses"
-  },
   "checkBackLater": "Check back later for new courses",
-  "@checkBackLater": {
-    "description": "Empty state subtitle when no courses"
-  },
   "refresh": "Refresh",
-  "@refresh": {
-    "description": "Refresh button text"
-  },
   "signInRequired": "Sign in Required",
-  "@signInRequired": {
-    "description": "Modal title when login required"
-  },
   "signInToAccess": "Sign in to access this feature and track your progress.",
-  "@signInToAccess": {
-    "description": "Modal message when login required"
-  },
-  "cancel": "Cancel",
-  "@cancel": {
-    "description": "Cancel button text"
-  }
+  "cancel": "Cancel"
 }

@@ -98,259 +98,259 @@ abstract class AppLocalizations {
     Locale('vi'),
   ];
 
-  /// The application title
+  /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
   /// **'Torii'**
   String get appTitle;
 
-  /// Welcome message on login page
+  /// No description provided for @welcomeBack.
   ///
   /// In en, this message translates to:
   /// **'Welcome back'**
   String get welcomeBack;
 
-  /// Subtitle on login page
+  /// No description provided for @signInToContinue.
   ///
   /// In en, this message translates to:
   /// **'Sign in to continue your learning journey'**
   String get signInToContinue;
 
-  /// Email field label
+  /// No description provided for @email.
   ///
   /// In en, this message translates to:
   /// **'Email'**
   String get email;
 
-  /// Password field label
+  /// No description provided for @password.
   ///
   /// In en, this message translates to:
   /// **'Password'**
   String get password;
 
-  /// Forgot password link text
+  /// No description provided for @forgotPassword.
   ///
   /// In en, this message translates to:
   /// **'Forgot password?'**
   String get forgotPassword;
 
-  /// Sign in button text
+  /// No description provided for @signIn.
   ///
   /// In en, this message translates to:
   /// **'Sign In'**
   String get signIn;
 
-  /// Sign up button text
+  /// No description provided for @signUp.
   ///
   /// In en, this message translates to:
   /// **'Sign Up'**
   String get signUp;
 
-  /// Text before sign up link
+  /// No description provided for @dontHaveAccount.
   ///
   /// In en, this message translates to:
   /// **'Don\'t have an account?'**
   String get dontHaveAccount;
 
-  /// Welcome message on home page
+  /// No description provided for @welcomeToTorii.
   ///
   /// In en, this message translates to:
   /// **'Welcome to Torii'**
   String get welcomeToTorii;
 
-  /// Morning greeting
+  /// No description provided for @goodMorning.
   ///
   /// In en, this message translates to:
   /// **'Good morning'**
   String get goodMorning;
 
-  /// Afternoon greeting
+  /// No description provided for @goodAfternoon.
   ///
   /// In en, this message translates to:
   /// **'Good afternoon'**
   String get goodAfternoon;
 
-  /// Evening greeting
+  /// No description provided for @goodEvening.
   ///
   /// In en, this message translates to:
   /// **'Good evening'**
   String get goodEvening;
 
-  /// Subtitle on home page for authenticated users
+  /// No description provided for @continueYourJourney.
   ///
   /// In en, this message translates to:
   /// **'Continue your Japanese journey'**
   String get continueYourJourney;
 
-  /// Quick start section title
+  /// No description provided for @quickStart.
   ///
   /// In en, this message translates to:
   /// **'Quick Start'**
   String get quickStart;
 
-  /// Recommended courses section title
+  /// No description provided for @recommended.
   ///
   /// In en, this message translates to:
   /// **'Recommended'**
   String get recommended;
 
-  /// See all link text
+  /// No description provided for @seeAll.
   ///
   /// In en, this message translates to:
   /// **'See All'**
   String get seeAll;
 
-  /// Courses navigation label
+  /// No description provided for @courses.
   ///
   /// In en, this message translates to:
   /// **'Courses'**
   String get courses;
 
-  /// Exams navigation label
+  /// No description provided for @exams.
   ///
   /// In en, this message translates to:
   /// **'Exams'**
   String get exams;
 
-  /// Flashcards navigation label
+  /// No description provided for @cards.
   ///
   /// In en, this message translates to:
   /// **'Cards'**
   String get cards;
 
-  /// Live classes navigation label
+  /// No description provided for @live.
   ///
   /// In en, this message translates to:
   /// **'Live'**
   String get live;
 
-  /// Settings page title
+  /// No description provided for @settings.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
 
-  /// Language setting label
+  /// No description provided for @language.
   ///
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
 
-  /// English language name
+  /// No description provided for @english.
   ///
   /// In en, this message translates to:
   /// **'English'**
   String get english;
 
-  /// Vietnamese language name
+  /// No description provided for @vietnamese.
   ///
   /// In en, this message translates to:
   /// **'Vietnamese'**
   String get vietnamese;
 
-  /// Language selection prompt
+  /// No description provided for @selectLanguage.
   ///
   /// In en, this message translates to:
   /// **'Select Language'**
   String get selectLanguage;
 
-  /// Email validation error
+  /// No description provided for @pleaseEnterEmail.
   ///
   /// In en, this message translates to:
   /// **'Please enter your email'**
   String get pleaseEnterEmail;
 
-  /// Email format validation error
+  /// No description provided for @pleaseEnterValidEmail.
   ///
   /// In en, this message translates to:
   /// **'Please enter a valid email'**
   String get pleaseEnterValidEmail;
 
-  /// Password validation error
+  /// No description provided for @pleaseEnterPassword.
   ///
   /// In en, this message translates to:
   /// **'Please enter your password'**
   String get pleaseEnterPassword;
 
-  /// Password length validation error
+  /// No description provided for @passwordMinLength.
   ///
   /// In en, this message translates to:
   /// **'Password must be at least 6 characters'**
   String get passwordMinLength;
 
-  /// Divider text for social login
+  /// No description provided for @orContinueWith.
   ///
   /// In en, this message translates to:
   /// **'or continue with'**
   String get orContinueWith;
 
-  /// Default user name when display name is empty
+  /// No description provided for @learner.
   ///
   /// In en, this message translates to:
   /// **'Learner'**
   String get learner;
 
-  /// Learning streak label
+  /// No description provided for @dayStreak.
   ///
   /// In en, this message translates to:
   /// **'Day Streak'**
   String get dayStreak;
 
-  /// Total experience points label
+  /// No description provided for @totalXP.
   ///
   /// In en, this message translates to:
   /// **'Total XP'**
   String get totalXP;
 
-  /// User level label
+  /// No description provided for @level.
   ///
   /// In en, this message translates to:
   /// **'Level'**
   String get level;
 
-  /// Daily learning goal label
+  /// No description provided for @dailyGoal.
   ///
   /// In en, this message translates to:
   /// **'Daily Goal'**
   String get dailyGoal;
 
-  /// Continue learning section title
+  /// No description provided for @continueLearning.
   ///
   /// In en, this message translates to:
   /// **'Continue Learning'**
   String get continueLearning;
 
-  /// Empty state title when no courses
+  /// No description provided for @noCoursesYet.
   ///
   /// In en, this message translates to:
   /// **'No Courses Yet'**
   String get noCoursesYet;
 
-  /// Empty state subtitle when no courses
+  /// No description provided for @checkBackLater.
   ///
   /// In en, this message translates to:
   /// **'Check back later for new courses'**
   String get checkBackLater;
 
-  /// Refresh button text
+  /// No description provided for @refresh.
   ///
   /// In en, this message translates to:
   /// **'Refresh'**
   String get refresh;
 
-  /// Modal title when login required
+  /// No description provided for @signInRequired.
   ///
   /// In en, this message translates to:
   /// **'Sign in Required'**
   String get signInRequired;
 
-  /// Modal message when login required
+  /// No description provided for @signInToAccess.
   ///
   /// In en, this message translates to:
   /// **'Sign in to access this feature and track your progress.'**
   String get signInToAccess;
 
-  /// Cancel button text
+  /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
