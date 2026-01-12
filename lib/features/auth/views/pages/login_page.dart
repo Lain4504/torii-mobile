@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/auth_providers.dart';
 import '../../models/auth_state_sealed.dart';
 import '../../../../core/constants/app_design_system.dart';
+import '../../../../core/localization/l10n/app_localizations.dart';
 
 /// Login Page - Minimalist Authentication
 /// 
@@ -134,7 +135,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
-                        'Forgot password?',
+                        AppLocalizations.of(context)!.forgotPassword,
                         style: TextStyle(
                           fontSize: AppTypography.fontSizeSm,
                           color: theme.colorScheme.primary,
@@ -200,14 +201,14 @@ class _LoginPageState extends ConsumerState<LoginPage>
         ),
         const SizedBox(height: AppSpacing.lg),
         Text(
-          'Welcome back',
+          AppLocalizations.of(context)!.welcomeBack,
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: AppTypography.bold,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Sign in to continue your learning journey',
+          AppLocalizations.of(context)!.signInToContinue,
           style: theme.textTheme.bodyLarge?.copyWith(
             color: AppColors.textSecondary,
           ),
@@ -251,7 +252,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Email',
+          AppLocalizations.of(context)!.email,
           style: theme.textTheme.labelLarge,
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -266,10 +267,10 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter your email';
+              return AppLocalizations.of(context)!.pleaseEnterEmail;
             }
             if (!value.contains('@')) {
-              return 'Please enter a valid email';
+              return AppLocalizations.of(context)!.pleaseEnterValidEmail;
             }
             return null;
           },
@@ -283,7 +284,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Password',
+          AppLocalizations.of(context)!.password,
           style: theme.textTheme.labelLarge,
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -308,10 +309,10 @@ class _LoginPageState extends ConsumerState<LoginPage>
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter your password';
+              return AppLocalizations.of(context)!.pleaseEnterPassword;
             }
             if (value.length < 6) {
-              return 'Password must be at least 6 characters';
+              return AppLocalizations.of(context)!.passwordMinLength;
             }
             return null;
           },
@@ -334,7 +335,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
                   strokeWidth: 2,
                 ),
               )
-            : const Text('Sign In'),
+            : Text(AppLocalizations.of(context)!.signIn),
       ),
     );
   }
@@ -346,7 +347,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: Text(
-            'or continue with',
+            AppLocalizations.of(context)!.orContinueWith,
             style: theme.textTheme.bodySmall,
           ),
         ),
@@ -382,13 +383,13 @@ class _LoginPageState extends ConsumerState<LoginPage>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Don't have an account?",
+          AppLocalizations.of(context)!.dontHaveAccount,
           style: theme.textTheme.bodyMedium,
         ),
         TextButton(
           onPressed: () => context.push('/register'),
           child: Text(
-            'Sign Up',
+            AppLocalizations.of(context)!.signUp,
             style: TextStyle(
               fontWeight: AppTypography.semiBold,
               color: theme.colorScheme.primary,

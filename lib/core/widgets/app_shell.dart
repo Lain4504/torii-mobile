@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../constants/app_design_system.dart';
+import '../localization/l10n/app_localizations.dart';
 
 /// App Shell - Main Layout Wrapper
 /// 
@@ -42,6 +43,7 @@ class AppShell extends StatelessWidget {
         activeIndex: activeIndex,
         onTap: (path) => context.go(path),
         isDark: isDark,
+        context: context,
       ),
     );
   }
@@ -60,11 +62,13 @@ class _BottomNavBar extends StatelessWidget {
   final int activeIndex;
   final Function(String) onTap;
   final bool isDark;
+  final BuildContext context;
 
   const _BottomNavBar({
     required this.activeIndex,
     required this.onTap,
     required this.isDark,
+    required this.context,
   });
 
   @override
@@ -89,7 +93,7 @@ class _BottomNavBar extends StatelessWidget {
                 _NavBarItem(
                   icon: Icons.school_outlined,
                   activeIcon: Icons.school_rounded,
-                  label: 'Courses',
+                  label: AppLocalizations.of(context)!.courses,
                   isSelected: activeIndex == 0,
                   onTap: () => onTap('/courses'),
                   isDark: isDark,
@@ -97,7 +101,7 @@ class _BottomNavBar extends StatelessWidget {
                 _NavBarItem(
                   icon: Icons.quiz_outlined,
                   activeIcon: Icons.quiz_rounded,
-                  label: 'Exams',
+                  label: AppLocalizations.of(context)!.exams,
                   isSelected: activeIndex == 1,
                   onTap: () => onTap('/exams'),
                   isDark: isDark,
@@ -117,7 +121,7 @@ class _BottomNavBar extends StatelessWidget {
                 _NavBarItem(
                   icon: Icons.style_outlined,
                   activeIcon: Icons.style_rounded,
-                  label: 'Cards',
+                  label: AppLocalizations.of(context)!.cards,
                   isSelected: activeIndex == 3,
                   onTap: () => onTap('/flashcards'),
                   isDark: isDark,
@@ -125,7 +129,7 @@ class _BottomNavBar extends StatelessWidget {
                 _NavBarItem(
                   icon: Icons.video_call_outlined,
                   activeIcon: Icons.video_call_rounded,
-                  label: 'Live',
+                  label: AppLocalizations.of(context)!.live,
                   isSelected: activeIndex == 4,
                   onTap: () => onTap('/live-schedule'),
                   isDark: isDark,
