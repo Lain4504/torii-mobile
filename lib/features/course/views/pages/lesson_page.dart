@@ -83,9 +83,12 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                   TabBar(
                     controller: _tabController,
                     indicatorColor: AppColors.primary,
+                    indicatorWeight: 3,
+                    indicatorSize: TabBarIndicatorSize.label,
                     labelColor: AppColors.textPrimary,
                     unselectedLabelColor: AppColors.textTertiary,
-                    labelStyle: const TextStyle(fontWeight: AppTypography.black, fontSize: 10, letterSpacing: 1.0),
+                    dividerColor: Colors.transparent,
+                    labelStyle: const TextStyle(fontWeight: AppTypography.black, fontSize: 10, letterSpacing: 2.0),
                     tabs: const [
                       Tab(text: 'OVERVIEW'),
                       Tab(text: 'CURRICULUM'),
@@ -214,7 +217,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
             style: TextStyle(fontSize: 15, height: 1.7, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 24),
-          const SectionDivider(label: 'ZEN_LEARNING_METADATA'),
+          const SectionDivider(title: 'ZEN_LEARNING_METADATA'),
           const SizedBox(height: 16),
           _buildMetaRow(Icons.timer_outlined, 'Duration', '12:45'),
           _buildMetaRow(Icons.trending_up_rounded, 'Difficulty', 'Medium'),
@@ -263,12 +266,20 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
       padding: EdgeInsets.only(
         left: AppSpacing.xl,
         right: AppSpacing.xl,
-        top: 16,
-        bottom: MediaQuery.of(context).padding.bottom + 16,
+        top: 20,
+        bottom: MediaQuery.of(context).padding.bottom + 20,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.grey200.withOpacity(0.5))),
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.04),
+            blurRadius: 40,
+            offset: const Offset(0, -10),
+          ),
+        ],
+        border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
       ),
       child: Row(
         children: [
@@ -310,12 +321,12 @@ class _CurriculumItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: isActive ? AppColors.primary.withOpacity(0.05) : Colors.transparent,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        color: isActive ? AppColors.primary.withOpacity(0.02) : Colors.white.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
         border: Border.all(
-          color: isActive ? AppColors.primary.withOpacity(0.3) : AppColors.grey200.withOpacity(0.5),
+          color: isActive ? AppColors.primary.withOpacity(0.2) : AppColors.borderLight.withOpacity(0.3),
         ),
       ),
       child: Row(

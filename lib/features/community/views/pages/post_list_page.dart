@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../providers/post_providers.dart';
-import '../models/post_model.dart';
-import '../../../../core/widgets/zen_background.dart';
-import '../../../../core/widgets/animations/entry_animation.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/features/community/providers/post_providers.dart';
+import 'package:torii_app/features/community/models/post_model.dart';
+import 'package:torii_app/core/widgets/zen_background.dart';
+import 'package:torii_app/core/widgets/animations/entry_animation.dart';
 
 class PostListPage extends ConsumerWidget {
   const PostListPage({super.key});
@@ -29,13 +29,14 @@ class PostListPage extends ConsumerWidget {
               elevation: 0,
               centerTitle: true,
               title: const Text(
-                'NEURAL_FORUM',
+                'COMMUNITY',
                 style: TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
                   fontWeight: AppTypography.black,
                   fontSize: 18,
                   fontStyle: FontStyle.italic,
-                  letterSpacing: 1.0,
+                  letterSpacing: 2.0,
+                  color: AppColors.textPrimary,
                 ),
               ),
               actions: [
@@ -62,8 +63,17 @@ class PostListPage extends ConsumerWidget {
                   ),
                 ),
               ),
-              loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-              error: (err, stack) => SliverFillRemaining(child: Center(child: Text('Error: $err'))),
+              loading: () => const SliverFillRemaining(
+                child: Center(child: ZenLoading(text: 'Loading posts...')),
+              ),
+              error: (err, stack) => SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    'Disconnected: $err',
+                    style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -82,13 +92,13 @@ class _PostCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.grey200.withOpacity(0.5)),
+        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.02),
-            blurRadius: 20,
+            color: AppColors.primary.withOpacity(0.03),
+            blurRadius: 30,
             offset: const Offset(0, 10),
           ),
         ],
@@ -105,7 +115,7 @@ class _PostCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundImage: NetworkImage(post.author.avatar ?? 'https://i.pravatar.cc/150'),
+                    backgroundImage: NetworkImage(post.author.avatarUrl ?? 'https://i.pravatar.cc/150'),
                     backgroundColor: AppColors.primarySurface,
                   ),
                   const SizedBox(width: 12),
@@ -141,10 +151,10 @@ class _PostCard extends StatelessWidget {
                 post.content,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
-                  height: 1.5,
+                  height: 1.6,
                 ),
               ),
               const SizedBox(height: 16),

@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:firebase_core/firebase_core.dart'; // Removed
-// import 'firebase_options.dart'; // Removed
-import 'app/app.dart';
-import 'features/auth/providers/auth_providers.dart';
-import 'core/lifecycle/app_lifecycle_observer.dart';
+import 'package:torii_app/app/app.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/core/lifecycle/app_lifecycle_observer.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'core/providers/shared_prefs_provider.dart';
+import 'package:torii_app/core/providers/shared_prefs_provider.dart';
 
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'data/database/app_database.dart';
-import 'services/auth/user_service.dart';
-import 'services/auth/token_service.dart';
-import 'data/models/auth_model.dart';
-import 'features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/data/database/app_database.dart';
+import 'package:torii_app/services/auth/user_service.dart';
+import 'package:torii_app/services/auth/token_service.dart';
+import 'package:torii_app/data/models/auth_model.dart';
+import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
 
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +27,7 @@ Future<void> main() async {
   final tokenService = TokenService();
   
   // Parallel Fetching
-  final results = await Future.wait([
+  final List<dynamic> results = await Future.wait([
     userService.getUserProfile(),
     tokenService.getRawSession(),
   ]);
@@ -65,7 +63,6 @@ Future<void> main() async {
   );
 }
 
-/// Widget để check auth status khi app khởi động
 class AuthInitializer extends ConsumerStatefulWidget {
   final Widget child;
 
@@ -79,31 +76,17 @@ class _AuthInitializerState extends ConsumerState<AuthInitializer> {
   @override
   void initState() {
     super.initState();
-    // Delay initialization until after widget tree is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeAuth();
     });
   }
 
   Future<void> _initializeAuth() async {
-    // Fire and forget, auth state update will be handled by Riverpod
     await ref.read(authStateProvider.notifier).initializeAuth();
   }
 
   @override
   Widget build(BuildContext context) {
-    // No blocking "initialized" check anymore
     return widget.child;
   }
 }
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    // This class is superseded by ToriiApp but kept to avoid breaking references.
-    return const ToriiApp();
-  }
-}
-

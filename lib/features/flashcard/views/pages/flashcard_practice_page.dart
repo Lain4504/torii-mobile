@@ -134,8 +134,9 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
               margin: const EdgeInsets.only(bottom: 40),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: _isFlipped ? AppColors.accentDark.withOpacity(0.1) : AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color: _isFlipped ? AppColors.accent.withOpacity(0.1) : AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.full),
+                border: Border.all(color: (_isFlipped ? AppColors.accent : AppColors.primary).withOpacity(0.2)),
               ),
               child: Text(
                 (_isFlipped ? 'SYNTHESIS' : 'STIMULUS').toUpperCase(),
@@ -253,18 +254,18 @@ class _ResponseButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadius.full),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.full),
           border: Border.all(color: color.withOpacity(0.2), width: 1.5),
         ),
         child: Center(
           child: Text(
             label.toUpperCase(),
-            style: TextStyle(color: color, fontWeight: AppTypography.black, fontSize: 11, letterSpacing: 1.5),
+            style: TextStyle(color: color, fontWeight: AppTypography.black, fontSize: 11, letterSpacing: 2.0),
           ),
         ),
       ),

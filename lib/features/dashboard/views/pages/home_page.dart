@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../../../auth/providers/auth_providers.dart';
-import '../../../auth/models/auth_state_sealed.dart';
-import '../../../course/providers/course_providers.dart';
-import '../../../course/views/widgets/course_card.dart';
-import '../../../../core/theme/theme_provider.dart';
-import '../../../../core/localization/l10n/app_localizations.dart';
-import '../../../../core/widgets/zen_background.dart';
-import '../../../../core/widgets/animations/entry_animation.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/features/course/providers/course_providers.dart';
+import 'package:torii_app/features/course/views/widgets/course_card.dart';
+import 'package:torii_app/core/theme/theme_provider.dart';
+import 'package:torii_app/core/localization/l10n/app_localizations.dart';
+import 'package:torii_app/core/widgets/zen_background.dart';
+import 'package:torii_app/core/widgets/animations/entry_animation.dart';
 
 /// Home Page - Premium Zen UI Rebuild
 class HomePage extends ConsumerStatefulWidget {
@@ -25,7 +25,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(courseListProvider.notifier).loadCourses();
+      if (mounted) {
+        ref.read(courseListProvider.notifier).loadCourses();
+      }
     });
   }
 
@@ -171,7 +173,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),
             child: TextButton(
-              onPressed: () => context.push('/login'),
+              onPressed: () => context.go('/login'),
               child: Text(
                 AppLocalizations.of(context)!.signIn.toUpperCase(),
                 style: const TextStyle(
@@ -217,29 +219,42 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Widget _buildGreetingSection(BuildContext context, dynamic user) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            _getGreeting(context).toUpperCase(),
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: AppTypography.black,
-              letterSpacing: 3.0,
-              color: AppColors.textTertiary,
-            ),
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _getGreeting(context).toUpperCase(),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 3.0,
+                  color: AppColors.textTertiary,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
             user != null
                 ? (user.displayName.isNotEmpty ? user.displayName : AppLocalizations.of(context)!.learner)
                 : AppLocalizations.of(context)!.welcomeToTorii,
             style: const TextStyle(
-              fontSize: AppTypography.fontSize4xl,
+              fontSize: 38,
               fontWeight: AppTypography.extraBold,
               color: AppColors.textPrimary,
-              letterSpacing: -1.0,
+              letterSpacing: -1.5,
               height: 1.1,
             ),
           ),
@@ -253,16 +268,16 @@ class _HomePageState extends ConsumerState<HomePage> {
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withOpacity(0.8),
           borderRadius: BorderRadius.circular(AppRadius.xxl),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(0.04),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
+              color: AppColors.primary.withOpacity(0.04),
+              blurRadius: 40,
+              offset: const Offset(0, 15),
             ),
           ],
-          border: Border.all(color: AppColors.white.withOpacity(0.1)),
+          border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppRadius.xxl),
@@ -272,8 +287,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.02),
-                  border: Border(bottom: BorderSide(color: AppColors.borderLight.withOpacity(0.5))),
+                  color: AppColors.primary.withOpacity(0.01),
+                  border: Border(bottom: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
                 ),
                 child: Row(
                   children: [
@@ -298,7 +313,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: AppTypography.black,
-                            letterSpacing: 2.0,
+                            letterSpacing: 2.5,
                             color: AppColors.textTertiary,
                           ),
                         ),
@@ -313,7 +328,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ],
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    const ProgressBar(progress: 0.7, height: 12),
+                    const ProgressBar(progress: 0.7, height: 10),
                   ],
                 ),
               ),
@@ -368,7 +383,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: AppTypography.black,
-              letterSpacing: 2.0,
+              letterSpacing: 2.5,
               color: AppColors.textTertiary,
             ),
           ),
@@ -403,7 +418,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: AppTypography.black,
-              letterSpacing: 2.0,
+              letterSpacing: 2.5,
               color: AppColors.textTertiary,
             ),
           ),
@@ -477,7 +492,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             children: [
               const Text(
                 'NEURAL MEMORY BANKS',
-                style: TextStyle(fontSize: 11, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+                style: TextStyle(fontSize: 11, fontWeight: AppTypography.black, letterSpacing: 2.5, color: AppColors.textTertiary),
               ),
               TextButton(
                 onPressed: () => context.go('/courses'),
@@ -487,7 +502,12 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
           const SizedBox(height: AppSpacing.md),
           if (courseState.isLoading)
-            const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+                child: ZenLoading(text: 'Accessing Matrix Logs...'),
+              ),
+            )
           else
             ...courseState.courses.take(3).map((course) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -528,19 +548,27 @@ class _HomePageState extends ConsumerState<HomePage> {
               style: TextStyle(fontSize: 14, height: 1.6, fontWeight: AppTypography.medium, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  context.push('/login');
-                },
-                child: const Text('INITIATE ACCESS', style: TextStyle(fontWeight: AppTypography.black, letterSpacing: 1.5)),
-              ),
+            ZenButton(
+              text: 'INITIATE ACCESS',
+              onPressed: () {
+                Navigator.pop(context);
+                context.go('/login');
+              },
+              isFullWidth: true,
             ),
             const SizedBox(height: 12),
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('REMAIN ANONYMOUS', style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0))),
+            TextButton(
+              onPressed: () => Navigator.pop(context), 
+              child: const Text(
+                'REMAIN ANONYMOUS', 
+                style: TextStyle(
+                  color: AppColors.textTertiary, 
+                  fontSize: 10, 
+                  fontWeight: AppTypography.black, 
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -575,15 +603,15 @@ class _QuickActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(AppRadius.xxl),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.xl),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,7 +620,12 @@ class _QuickActionTile extends StatelessWidget {
               const Spacer(),
               Text(
                 label.toUpperCase(),
-                style: const TextStyle(fontWeight: AppTypography.black, fontSize: 11, letterSpacing: 1.0, color: AppColors.textPrimary),
+                style: const TextStyle(
+                  fontWeight: AppTypography.black, 
+                  fontSize: 10, 
+                  letterSpacing: 1.0, 
+                  color: AppColors.textPrimary,
+                ),
               ),
             ],
           ),

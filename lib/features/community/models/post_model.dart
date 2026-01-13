@@ -1,4 +1,4 @@
-import '../../../data/models/auth_model.dart';
+import 'package:torii_app/data/models/auth_model.dart';
 
 class Post {
   final String id;

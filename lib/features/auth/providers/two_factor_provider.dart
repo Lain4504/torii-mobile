@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_mobile/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class TwoFactorStatus {
   final bool isEnabled;
@@ -61,20 +61,25 @@ class TwoFactorState {
   }
 }
 
-class TwoFactorNotifier extends StateNotifier<TwoFactorState> {
-  final Ref ref;
-
-  TwoFactorNotifier(this.ref) : super(TwoFactorState());
+class TwoFactorNotifier extends Notifier<TwoFactorState> {
+  @override
+  TwoFactorState build() {
+    return TwoFactorState();
+  }
 
   Future<void> fetchStatus() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final authService = ref.read(authServiceProvider);
-      final data = await authService.get2FAStatus();
-      state = state.copyWith(
-        isLoading: false,
-        status: TwoFactorStatus.fromJson(data),
-      );
+      final response = await authService.get2FAStatus();
+      if (response.success && response.data != null) {
+        state = state.copyWith(
+          isLoading: false,
+          status: TwoFactorStatus.fromJson(response.data!),
+        );
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -84,11 +89,15 @@ class TwoFactorNotifier extends StateNotifier<TwoFactorState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final authService = ref.read(authServiceProvider);
-      final data = await authService.generateTotpSecret();
-      state = state.copyWith(
-        isLoading: false,
-        setupData: TwoFactorSetupData.fromJson(data),
-      );
+      final response = await authService.generateTOTPSecret();
+      if (response.success && response.data != null) {
+        state = state.copyWith(
+          isLoading: false,
+          setupData: TwoFactorSetupData.fromJson(response.data!),
+        );
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -99,9 +108,14 @@ class TwoFactorNotifier extends StateNotifier<TwoFactorState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final authService = ref.read(authServiceProvider);
-      await authService.enableTotp(state.setupData!.secret, code);
-      await fetchStatus();
-      state = state.copyWith(setupData: null);
+      final response = await authService.enableTOTP(state.setupData!.secret, code);
+      if (response.success) {
+        state = state.copyWith(backupCodes: response.data);
+        await fetchStatus();
+        state = state.copyWith(setupData: null);
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -111,8 +125,12 @@ class TwoFactorNotifier extends StateNotifier<TwoFactorState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final authService = ref.read(authServiceProvider);
-      await authService.disable2FA(password);
-      await fetchStatus();
+      final response = await authService.disable2FA(password);
+      if (response.success) {
+        await fetchStatus();
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -122,14 +140,16 @@ class TwoFactorNotifier extends StateNotifier<TwoFactorState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final authService = ref.read(authServiceProvider);
-      final codes = await authService.regenerateBackupCodes();
-      state = state.copyWith(isLoading: false, backupCodes: codes);
+      final response = await authService.regenerateBackupCodes();
+      if (response.success) {
+        state = state.copyWith(isLoading: false, backupCodes: response.data);
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 }
 
-final twoFactorProvider = StateNotifierProvider<TwoFactorNotifier, TwoFactorState>((ref) {
-  return TwoFactorNotifier(ref);
-});
+final twoFactorProvider = NotifierProvider<TwoFactorNotifier, TwoFactorState>(TwoFactorNotifier.new);

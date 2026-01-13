@@ -37,20 +37,20 @@ class ExamListPage extends ConsumerWidget {
                     children: [
                       const SizedBox(height: 60),
                       Text(
-                        'PRACTICE ARCHIVE',
+                        'EXAM_CENTER',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: AppTypography.black,
-                          letterSpacing: 4.0,
-                          color: AppColors.primary.withOpacity(0.7),
+                          letterSpacing: 3.0,
+                          color: AppColors.primary.withOpacity(0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Competency Check',
+                        'Practice Exams',
                         style: TextStyle(
                           fontFamily: AppTypography.fontFamilySerif,
-                          fontWeight: AppTypography.extraBold,
+                          fontWeight: AppTypography.bold,
                           fontSize: 32,
                           letterSpacing: -1.0,
                           fontStyle: FontStyle.italic,
@@ -100,7 +100,7 @@ class ExamListPage extends ConsumerWidget {
                     Container(width: 4, height: 16, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
                     const SizedBox(width: 12),
                     const Text(
-                      'AVAILABLE PROTOCOLS',
+                      'AVAILABLE_EXAMS',
                       style: TextStyle(fontSize: 12, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textPrimary),
                     ),
                   ],
@@ -138,19 +138,26 @@ class ExamListPage extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+          color: Colors.white.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.04),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            _buildStatItem(Icons.check_circle_outline_rounded, '12', 'COMPLETED', AppColors.primary),
+            _buildStatItem(Icons.verified_rounded, '12', 'SYNCED', AppColors.primary),
             _buildVerticalDivider(),
-            _buildStatItem(Icons.insights_rounded, '78%', 'AVG BAND', AppColors.accentDark),
+            _buildStatItem(Icons.analytics_rounded, '78%', 'NEURAL BAND', AppColors.accentDark),
             _buildVerticalDivider(),
-            _buildStatItem(Icons.timer_rounded, '45h', 'FOCUS', AppColors.successDark),
+            _buildStatItem(Icons.bolt_rounded, '45h', 'RUNTIME', AppColors.successDark),
           ],
         ),
       ),
@@ -216,14 +223,14 @@ class _ExamCard extends StatelessWidget {
     
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
         border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.03),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: AppColors.primary.withOpacity(0.03),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -339,9 +346,10 @@ class _StartExamSheet extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+        border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.4))),
       ),
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
       child: Column(

@@ -18,11 +18,12 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   static ThemeMode _getInitialTheme(SharedPreferences prefs) {
     final savedTheme = prefs.getString(_themeKey);
     if (savedTheme == null) {
-      return ThemeMode.system;
+      // FORCE LIGHT MODE as default, ignoring system brightness
+      return ThemeMode.light;
     }
     return ThemeMode.values.firstWhere(
       (e) => e.toString() == savedTheme,
-      orElse: () => ThemeMode.system,
+      orElse: () => ThemeMode.light, // Default to light if invalid
     );
   }
 

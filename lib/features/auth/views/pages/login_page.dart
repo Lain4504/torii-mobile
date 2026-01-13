@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../providers/auth_providers.dart';
-import '../../models/auth_state_sealed.dart';
-import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/localization/l10n/app_localizations.dart';
-import '../../../../core/widgets/zen_background.dart';
-import '../../../../core/widgets/animations/entry_animation.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/localization/l10n/app_localizations.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
 
-/// Login Page - Premium Zen UI Rebuild
+/// Login Page - Zen UI Pro Max - Premium Rebuild
 class LoginPage extends ConsumerStatefulWidget {
   final String? redirectTo;
 
@@ -25,42 +24,46 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _obscureText = true;
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      if (mounted) {
+         ref.read(authStateProvider.notifier).reset();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _login() async {
+  Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    await ref.read(authStateProvider.notifier).login(email, password);
-
-    final authState = ref.read(authStateProvider);
-    if (authState is AuthAuthenticated) {
-      if (mounted) {
-        final destination = widget.redirectTo ?? '/';
-        context.go(destination);
-      }
-    } else if (authState is AuthTwoFactorRequired) {
-      if (mounted) {
-        context.push('/auth/verify-2fa');
-      }
-    }
+    await ref.read(authStateProvider.notifier).login(
+      _emailController.text.trim(), 
+      _passwordController.text.trim()
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authStateProvider, (previous, next) {
+      if (next is AuthAuthenticated) {
+        context.go(widget.redirectTo ?? '/');
+      } else if (next is AuthTwoFactorRequired) {
+        context.go('/auth/verify-2fa');
+      }
+    });
+
     final authState = ref.watch(authStateProvider);
     final isLoading = authState is AuthLoading;
     String? errorMessage;
 
     if (authState is AuthError) {
-      errorMessage = authState.message;
-    } else if (authState is AuthExpired) {
       errorMessage = authState.message;
     }
 
@@ -70,140 +73,102 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         child: SafeArea(
           child: Column(
             children: [
-              // Navigation Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                child: Row(
-                  children: [
-                    EntryAnimation(
-                      delay: const Duration(milliseconds: 100),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                        onPressed: () => context.go('/'),
-                        color: AppColors.textPrimary.withOpacity(0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildAppBar(context),
               
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                  ),
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   child: Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: AppSpacing.lg),
+                        const SizedBox(height: AppSpacing.xl),
+                        _buildHeader(context),
+                        const SizedBox(height: AppSpacing.xxxl),
                         
-                        // Zen Header
-                        _buildZenHeader(context),
-                        
-                        const SizedBox(height: AppSpacing.xxl),
-                        
-                        // Error Message
                         if (errorMessage != null) ...[
                           EntryAnimation(
                             index: 2,
-                            child: _buildErrorMessage(errorMessage),
+                            child: _buildErrorBanner(errorMessage),
                           ),
                           const SizedBox(height: AppSpacing.lg),
                         ],
                         
-                        // Form Section
                         EntryAnimation(
                           index: 3,
-                          verticalOffset: 40,
+                          verticalOffset: 20,
                           child: Column(
                             children: [
-                              _buildTextField(
+                              ZenTextField(
                                 label: AppLocalizations.of(context)!.email,
                                 controller: _emailController,
                                 hintText: 'your.email@example.com',
-                                icon: Icons.mail_outline_rounded,
+                                icon: Icons.alternate_email_rounded,
                                 keyboardType: TextInputType.emailAddress,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return AppLocalizations.of(context)!.pleaseEnterEmail;
-                                  }
-                                  if (!value.contains('@')) {
-                                    return AppLocalizations.of(context)!.pleaseEnterValidEmail;
-                                  }
-                                  return null;
-                                },
+                                validator: (val) => (val == null || !val.contains('@')) ? 'Please enter a valid email' : null,
                               ),
-                              const SizedBox(height: AppSpacing.lg),
-                              _buildTextField(
+                              const SizedBox(height: AppSpacing.md),
+                              ZenTextField(
                                 label: AppLocalizations.of(context)!.password,
                                 controller: _passwordController,
-                                hintText: 'Enter your password',
-                                icon: Icons.lock_outline_rounded,
+                                hintText: '••••••••',
+                                icon: Icons.fingerprint_rounded,
                                 obscureText: _obscureText,
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: (_) => _login(),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                    size: 20,
-                                    color: AppColors.textTertiary,
+                                    size: 18, color: AppColors.textTertiary,
                                   ),
                                   onPressed: () => setState(() => _obscureText = !_obscureText),
                                 ),
-                                onSubmitted: (_) => _login(),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return AppLocalizations.of(context)!.pleaseEnterPassword;
-                                  }
-                                  return null;
-                                },
-                              ),
-                              
-                              const SizedBox(height: AppSpacing.md),
-                              
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () => context.push('/auth/forgot-password'),
-                                  child: Text(
-                                    AppLocalizations.of(context)!.forgotPassword,
-                                    style: const TextStyle(
-                                      fontSize: AppTypography.fontSizeXs,
-                                      fontWeight: AppTypography.semiBold,
-                                      color: AppColors.primary,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
+                                validator: (val) => (val == null || val.length < 6) ? 'Password too short' : null,
                               ),
                             ],
                           ),
                         ),
                         
-                        const SizedBox(height: AppSpacing.xl),
+                        const SizedBox(height: AppSpacing.lg),
                         
-                        // Login Button
                         EntryAnimation(
                           index: 4,
-                          child: _buildPrimaryButton(
-                            text: AppLocalizations.of(context)!.signIn,
-                            onPressed: _login,
-                            isLoading: isLoading,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => context.push('/auth/forgot-password'),
+                              child: Text(
+                                AppLocalizations.of(context)!.forgotPassword,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: AppTypography.bold,
+                                  color: AppColors.primary.withOpacity(0.7),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                         
-                        const SizedBox(height: AppSpacing.xxl),
+                        const SizedBox(height: AppSpacing.xl),
                         
-                        // Footer
                         EntryAnimation(
                           index: 5,
-                          child: _buildFooter(context),
+                          child: ZenButton(
+                            text: AppLocalizations.of(context)!.signIn,
+                            onPressed: _login,
+                            isLoading: isLoading,
+                            isFullWidth: true,
+                            icon: Icons.login_rounded,
+                          ),
                         ),
                         
-                        const SizedBox(height: AppSpacing.xl),
+                        const SizedBox(height: AppSpacing.xxxl),
+                        
+                        EntryAnimation(
+                          index: 6,
+                          child: _buildFooter(context),
+                        ),
                       ],
                     ),
                   ),
@@ -216,36 +181,59 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildZenHeader(BuildContext context) {
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          EntryAnimation(
+            delay: const Duration(milliseconds: 200),
+            child: IconButton(
+              icon: const Icon(Icons.close_rounded, size: 20),
+              onPressed: () => context.pop(),
+              color: AppColors.textPrimary.withOpacity(0.4),
+            ),
+          ),
+          EntryAnimation(
+            delay: const Duration(milliseconds: 400),
+            child: TextButton(
+              onPressed: () => context.go('/register'),
+              child: Text(
+                'SIGN UP',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 1.0,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         EntryAnimation(
           index: 0,
           verticalOffset: -20,
           child: Container(
-            width: 80,
-            height: 80,
-            padding: const EdgeInsets.all(AppSpacing.md),
+            width: 72, height: 72,
             decoration: BoxDecoration(
               color: AppColors.primary,
-              borderRadius: BorderRadius.circular(AppRadius.xl),
+              shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: AppColors.primary.withOpacity(0.2),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
+                  blurRadius: 25, offset: const Offset(0, 8),
                 ),
               ],
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
-            child: const Center(
-              child: Icon(
-                Icons.auto_awesome_rounded,
-                color: Colors.white,
-                size: 36,
-              ),
-            ),
+            child: const Icon(Icons.waves_rounded, color: Colors.white, size: 36),
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -254,49 +242,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             children: [
               Text(
-                'TORII NIHONGO',
+                'TORII APP',
                 style: TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
-                  fontSize: AppTypography.fontSize3xl,
-                  letterSpacing: -1.5,
+                  fontSize: AppTypography.fontSize2xl,
+                  letterSpacing: -1.0,
                   fontWeight: AppTypography.bold,
                   fontStyle: FontStyle.italic,
                   color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: 4),
               Text(
-                'LEARNING SOLUTIONS CENTER',
+                'NEURAL LEARNING PROTOCOL',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: AppTypography.black,
-                  letterSpacing: 4.0,
-                  color: AppColors.primary.withOpacity(0.7),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xxl),
-        EntryAnimation(
-          index: 2,
-          child: Column(
-            children: [
-              Text(
-                AppLocalizations.of(context)!.welcomeBack,
-                style: const TextStyle(
-                  fontSize: AppTypography.fontSizeXl,
-                  fontWeight: AppTypography.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                AppLocalizations.of(context)!.signInToContinue,
-                style: TextStyle(
-                  fontSize: AppTypography.fontSizeSm,
-                  fontWeight: AppTypography.medium,
-                  color: AppColors.textSecondary.withOpacity(0.6),
+                  letterSpacing: 5.0,
+                  color: AppColors.primary.withOpacity(0.5),
                 ),
               ),
             ],
@@ -306,145 +269,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildTextField({
-    required String label,
-    required TextEditingController controller,
-    required String hintText,
-    required IconData icon,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-    void Function(String)? onSubmitted,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: AppTypography.black,
-              letterSpacing: 2.0,
-              color: AppColors.textTertiary,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
-          ),
-          child: TextFormField(
-            controller: controller,
-            obscureText: obscureText,
-            keyboardType: keyboardType,
-            onFieldSubmitted: onSubmitted,
-            style: const TextStyle(
-              fontSize: AppTypography.fontSizeMd,
-              fontWeight: AppTypography.semiBold,
-              color: AppColors.textPrimary,
-            ),
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(
-                color: AppColors.textTertiary.withOpacity(0.4),
-                fontWeight: AppTypography.medium,
-              ),
-              prefixIcon: Icon(icon, size: 20, color: AppColors.textTertiary.withOpacity(0.6)),
-              suffixIcon: suffixIcon,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-              ),
-            ),
-            validator: validator,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPrimaryButton({
-    required String text,
-    required VoidCallback onPressed,
-    bool isLoading = false,
-  }) {
+  Widget _buildErrorBanner(String message) {
     return Container(
-      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.25),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-          ),
-          elevation: 0,
-        ),
-        child: isLoading
-            ? const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    text.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: AppTypography.fontSizeSm,
-                      fontWeight: AppTypography.black,
-                      letterSpacing: 2.0,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  const Icon(Icons.arrow_forward_rounded, size: 18),
-                ],
-              ),
-      ),
-    );
-  }
-
-  Widget _buildErrorMessage(String message) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.errorLight.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.error.withOpacity(0.2)),
+        color: AppColors.errorLight.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: AppColors.error.withOpacity(0.1)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
-          const SizedBox(width: AppSpacing.md),
+          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
               style: const TextStyle(
                 color: AppColors.errorDark,
-                fontSize: AppTypography.fontSizeSm,
-                fontWeight: AppTypography.medium,
+                fontSize: 12,
+                fontWeight: AppTypography.bold,
               ),
             ),
           ),
@@ -459,41 +302,51 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              AppLocalizations.of(context)!.dontHaveAccount,
-              style: TextStyle(
-                fontSize: AppTypography.fontSizeSm,
-                color: AppColors.textSecondary.withOpacity(0.6),
-                fontWeight: AppTypography.medium,
+            Container(width: 40, height: 1, color: AppColors.borderLight.withOpacity(0.4)),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Text(
+                'GENETIC ACCESS',
+                style: TextStyle(fontSize: 8, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
               ),
             ),
-            const SizedBox(width: 4),
-            TextButton(
-              onPressed: () => context.push('/register'),
-              child: const Text(
-                'JOIN NOW',
-                style: TextStyle(
-                  fontSize: AppTypography.fontSizeSm,
-                  fontWeight: AppTypography.black,
-                  letterSpacing: 1.0,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
+            Container(width: 40, height: 1, color: AppColors.borderLight.withOpacity(0.4)),
           ],
         ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(
-          '© 2026 TORII NIHONGO CENTER',
-          style: TextStyle(
-            fontSize: 8,
-            fontWeight: AppTypography.black,
-            letterSpacing: 2.0,
-            color: AppColors.textTertiary.withOpacity(0.4),
-          ),
+        const SizedBox(height: AppSpacing.xl),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _SocialLoginButton(icon: Icons.g_mobiledata_rounded, onPressed: () {}),
+            const SizedBox(width: AppSpacing.lg),
+            _SocialLoginButton(icon: Icons.apple_rounded, onPressed: () {}),
+          ],
         ),
       ],
     );
   }
 }
 
+class _SocialLoginButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _SocialLoginButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(AppRadius.full),
+      child: Container(
+        width: 56, height: 56,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.6),
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        ),
+        child: Icon(icon, color: AppColors.textPrimary, size: 32),
+      ),
+    );
+  }
+}

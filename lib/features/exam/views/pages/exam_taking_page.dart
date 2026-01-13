@@ -109,22 +109,32 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
               Expanded(
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(AppRadius.full),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                        ),
                       ],
+                      border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.timer_rounded, size: 16, color: AppColors.primary),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Text(
                           _timerText,
-                          style: const TextStyle(fontWeight: AppTypography.black, fontSize: 14, letterSpacing: 0.5),
+                          style: const TextStyle(
+                            fontFamily: 'Courier',
+                            fontWeight: AppTypography.black,
+                            fontSize: 15,
+                            letterSpacing: 1.0,
+                          ),
                         ),
                       ],
                     ),
@@ -193,10 +203,23 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
               ),
               
               Container(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  bottom: MediaQuery.of(context).padding.bottom + 20,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -10))],
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.05),
+                      blurRadius: 30,
+                      offset: const Offset(0, -10),
+                    ),
+                  ],
+                  border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
                 ),
                 child: SafeArea(
                   top: false,
@@ -288,13 +311,19 @@ class _OptionCard extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primarySurface : Colors.white.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(16),
+            color: isSelected ? AppColors.primary.withOpacity(0.05) : Colors.white.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.borderLight.withOpacity(0.5),
+              color: isSelected ? AppColors.primary : AppColors.borderLight.withOpacity(0.3),
               width: 1.5,
             ),
-            boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))] : null,
+            boxShadow: [
+              BoxShadow(
+                color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.primary.withOpacity(0.02),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Row(
             children: [

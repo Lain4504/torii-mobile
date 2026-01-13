@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_design_system.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../../core/widgets/animations/entry_animation.dart';
 
 /// Onboarding Page - Minimalist First Impressions
@@ -60,7 +61,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     await prefs.setBool('onboarding_completed', true);
     
     if (!mounted) return;
-    context.go('/');
+    context.go('/login'); // Navigate to login after onboarding for first-time premium experience
   }
 
   @override
@@ -167,8 +168,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               'TORII',
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: AppTypography.extraBold,
-                                letterSpacing: 1.2,
+                                letterSpacing: 1.5,
                                 color: AppColors.primary,
+                                fontFamily: AppTypography.fontFamilySerif,
+                                fontStyle: FontStyle.italic,
                               ),
                             ),
                           ],
@@ -178,13 +181,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       if (_currentPage < _pages.length - 1)
                         EntryAnimation(
                           delay: const Duration(milliseconds: 300),
-                          child: TextButton(
-                            onPressed: _skipOnboarding,
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.textSecondary,
+                            child: const Text(
+                              'SKIP',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: AppTypography.black,
+                                letterSpacing: 2.0,
+                              ),
                             ),
-                            child: const Text('Skip'),
-                          ),
                         ),
                     ],
                   ),
@@ -228,25 +232,12 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       // Action Button
                       EntryAnimation(
                         delay: const Duration(milliseconds: 500),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _nextPage,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              elevation: 8,
-                              shadowColor: AppColors.primary.withOpacity(0.25),
-                            ),
-                            child: Text(
-                              _currentPage == _pages.length - 1 
-                                  ? 'Begin Your Journey' 
-                                  : 'Explore More',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
+                        child: ZenButton(
+                          text: _currentPage == _pages.length - 1 
+                              ? 'GET STARTED' 
+                              : 'CONTINUE',
+                          onPressed: _nextPage,
+                          isFullWidth: true,
                         ),
                       ),
                       const SizedBox(height: AppSpacing.md),
@@ -364,11 +355,11 @@ class _OnboardingSlide extends StatelessWidget {
               ),
               child: Text(
                 data.subtitle.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: AppTypography.bold,
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: AppTypography.black,
                   color: AppColors.primary,
-                  letterSpacing: 2,
+                  letterSpacing: 2.5,
                 ),
               ),
             ),
@@ -384,6 +375,7 @@ class _OnboardingSlide extends StatelessWidget {
               style: theme.textTheme.displaySmall?.copyWith(
                 fontWeight: AppTypography.extraBold,
                 color: AppColors.textPrimary,
+                letterSpacing: -1.5,
               ),
               textAlign: TextAlign.center,
             ),
@@ -398,7 +390,8 @@ class _OnboardingSlide extends StatelessWidget {
               data.description,
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: AppColors.textSecondary,
-                height: 1.7,
+                height: 1.8,
+                fontWeight: AppTypography.medium,
               ),
               textAlign: TextAlign.center,
             ),
@@ -424,15 +417,8 @@ class _PageIndicator extends StatelessWidget {
       width: isActive ? 32 : 8,
       height: 6,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.primary : AppColors.grey300.withOpacity(0.5),
+        color: isActive ? AppColors.primary : AppColors.grey200,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: isActive ? [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ] : null,
       ),
     );
   }

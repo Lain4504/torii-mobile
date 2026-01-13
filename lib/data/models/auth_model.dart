@@ -1,26 +1,38 @@
-/// Model cho User
+/// Model cho User matching Backend Entity
 class User {
   final String id;
   final String email;
   final String displayName;
-  final String? avatar;
   final String role;
+  final DateTime? verifiedAt;
+  final String? avatarUrl;
+  final String status;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   User({
     required this.id,
     required this.email,
     required this.displayName,
-    this.avatar,
-    this.role = 'learner',
+    this.role = 'LEARNER',
+    this.verifiedAt,
+    this.avatarUrl,
+    this.status = 'active',
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] ?? '',
       email: json['email'] ?? '',
-      displayName: json['displayName'] ?? json['display_name'] ?? '',
-      avatar: json['avatar'],
-      role: json['role'] ?? 'learner',
+      displayName: json['displayName'] ?? '',
+      role: json['role'] ?? 'LEARNER',
+      avatarUrl: json['avatarUrl'],
+      verifiedAt: json['verifiedAt'] != null ? DateTime.parse(json['verifiedAt'] as String) : null,
+      status: json['status'] ?? 'active',
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
+      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
     );
   }
 
@@ -29,119 +41,42 @@ class User {
       'id': id,
       'email': email,
       'displayName': displayName,
-      'avatar': avatar,
       'role': role,
+      'avatarUrl': avatarUrl,
+      'verifiedAt': verifiedAt?.toIso8601String(),
+      'status': status,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 }
 
-/// Model cho Login Request
-class LoginRequest {
-  final String email;
-  final String password;
+/// Model cho Login/2FA Success Data
+class AuthData {
+  final String? accessToken;
+  final String? refreshToken;
+  final User user;
+  final bool requiresTwoFactor;
+  final String? twoFactorMethod;
+  final String? tempToken;
 
-  LoginRequest({
-    required this.email,
-    required this.password,
+  AuthData({
+    this.accessToken,
+    this.refreshToken,
+    required this.user,
+    this.requiresTwoFactor = false,
+    this.twoFactorMethod,
+    this.tempToken,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'email': email,
-      'password': password,
-    };
-  }
-}
-
-/// Model cho Register Request
-class RegisterRequest {
-  final String email;
-  final String displayName;
-  final String password;
-
-  RegisterRequest({
-    required this.email,
-    required this.displayName,
-    required this.password,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'email': email,
-      'displayName': displayName,
-      'password': password,
-    };
-  }
-}
-
-/// Model cho Refresh Token Request
-class RefreshTokenRequest {
-  final String refreshToken;
-
-  RefreshTokenRequest({required this.refreshToken});
-
-  Map<String, dynamic> toJson() {
-    return {
-      'refreshToken': refreshToken,
-    };
-  }
-}
-
-/// Model cho Auth Response từ API
-class AuthResponse {
-  final bool success;
-  final dynamic data;
-  final String? message;
-
-  AuthResponse({
-    required this.success,
-    this.data,
-    this.message,
-  });
-
-  factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    return AuthResponse(
-      success: json['success'] ?? false,
-      data: json['data'],
-      message: json['message'],
+  factory AuthData.fromJson(Map<String, dynamic> json) {
+    return AuthData(
+      accessToken: json['accessToken'],
+      refreshToken: json['refreshToken'],
+      user: User.fromJson(json['user'] ?? {}),
+      requiresTwoFactor: json['requiresTwoFactor'] ?? false,
+      twoFactorMethod: json['twoFactorMethod'],
+      tempToken: json['tempToken'],
     );
   }
 }
-
-/// Model cho Token Response (Login/Refresh response data)
-class TokenResponse {
-  final String accessToken;
-  final String refreshToken;
-  final User? user; // User data (chỉ có trong login response)
-
-  TokenResponse({
-    required this.accessToken,
-    required this.refreshToken,
-    this.user,
-  });
-
-  factory TokenResponse.fromJson(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return TokenResponse(
-        accessToken: data['accessToken'] ?? data['access_token'] ?? '',
-        refreshToken: data['refreshToken'] ?? data['refresh_token'] ?? '',
-        user: data['user'] != null ? User.fromJson(data['user']) : null,
-      );
-    }
-    // Fallback cho format cũ (chỉ có token string)
-    return TokenResponse(
-      accessToken: data.toString(),
-      refreshToken: '',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'accessToken': accessToken,
-      'refreshToken': refreshToken,
-      if (user != null) 'user': user!.toJson(),
-    };
-  }
-}
-
-

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:torii_mobile/core/constants/app_design_system.dart';
-import 'package:torii_mobile/core/widgets/widgets.dart';
-import 'package:torii_mobile/core/widgets/zen_background.dart';
-import 'package:torii_mobile/core/widgets/animations/entry_animation.dart';
-import 'package:torii_mobile/features/auth/providers/auth_providers.dart';
-import 'package:torii_mobile/features/auth/providers/two_factor_provider.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/core/widgets/zen_background.dart';
+import 'package:torii_app/core/widgets/animations/entry_animation.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/providers/two_factor_provider.dart';
 
 class SecuritySettingsPage extends ConsumerStatefulWidget {
   const SecuritySettingsPage({super.key});
@@ -49,18 +49,20 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'SECURITY_CORE',
+          'SECURITY_SETTINGS',
           style: TextStyle(
             fontFamily: AppTypography.fontFamilySerif,
             fontWeight: AppTypography.black,
             fontSize: 18,
             fontStyle: FontStyle.italic,
+            letterSpacing: 2.0,
+            color: AppColors.textPrimary,
           ),
         ),
       ),
       body: ZenBackground(
         child: state.isLoading && state.status == null
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: ZenLoading(text: 'Loading...'))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
@@ -87,11 +89,18 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
     return EntryAnimation(
       index: 0,
       child: Container(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
-          color: isEnabled ? AppColors.primary.withOpacity(0.05) : AppColors.grey100,
+          color: isEnabled ? AppColors.primary.withOpacity(0.02) : Colors.white.withOpacity(0.5),
           borderRadius: BorderRadius.circular(AppRadius.xxl),
-          border: Border.all(color: isEnabled ? AppColors.primary.withOpacity(0.2) : AppColors.grey300),
+          border: Border.all(color: (isEnabled ? AppColors.primary : AppColors.borderLight).withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.03),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -138,13 +147,13 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'ENROLLMENT_PROTOCOL',
-            style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+            'TWO-FACTOR_AUTHENTICATION',
+            style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 3.0, color: AppColors.primary),
           ),
           const SizedBox(height: 16),
           if (state.setupData == null)
             ZenButton(
-              text: 'START_2FA_SETUP',
+              text: 'Enable Two-Factor Authentication',
               onPressed: () => ref.read(twoFactorProvider.notifier).startSetup(),
               isLoading: state.isLoading,
               isFullWidth: true,
@@ -170,7 +179,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           child: Column(
             children: [
               const Text(
-                '1. SCAN_QR_CODE',
+                'Scan QR Code',
                 style: TextStyle(fontWeight: AppTypography.bold, fontSize: 12),
               ),
               const SizedBox(height: 16),
@@ -183,7 +192,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'OR_ENTER_MANUALLY',
+                'Or enter manually',
                 style: TextStyle(fontSize: 10, fontWeight: AppTypography.extraBold, color: AppColors.textTertiary),
               ),
               const SizedBox(height: 8),
@@ -196,29 +205,25 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         ),
         const SizedBox(height: 24),
         const Text(
-          '2. VERIFY_AUTHENTICATOR_CODE',
-          style: TextStyle(fontWeight: AppTypography.bold, fontSize: 12),
+          'VERIFY_CODE',
+          style: TextStyle(fontWeight: AppTypography.black, fontSize: 10, letterSpacing: 2.0),
         ),
-        const SizedBox(height: 12),
-        TextField(
+        const SizedBox(height: 16),
+        ZenTextField(
+          label: 'Authenticator Code',
+          hintText: '000000',
           controller: _otpController,
+          icon: Icons.lock_outline_rounded,
           keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          decoration: InputDecoration(
-            hintText: '000000',
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
-          ),
-          onChanged: (val) {
+          onSubmitted: (val) {
              if (val.length == 6) {
-                ref.read(twoFactorProvider.notifier).enable(_otpController.text);
+                ref.read(twoFactorProvider.notifier).enable(val);
              }
           },
         ),
         const SizedBox(height: 24),
         ZenButton(
-          text: 'ACTIVATE_2FA',
+          text: 'ACTIVATE 2FA',
           onPressed: () => ref.read(twoFactorProvider.notifier).enable(_otpController.text),
           isLoading: state.isLoading,
           isFullWidth: true,
@@ -243,11 +248,11 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           ),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.xl),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.white.withOpacity(0.8),
               borderRadius: BorderRadius.circular(AppRadius.xxl),
-              border: Border.all(color: AppColors.grey200),
+              border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
             ),
             child: Column(
               children: [
@@ -337,9 +342,13 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
               spacing: 8,
               runSpacing: 8,
               children: (state.backupCodes ?? []).map((code) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(color: AppColors.grey100, borderRadius: BorderRadius.circular(8)),
-                child: Text(code, style: const TextStyle(fontFamily: 'Courier', fontWeight: AppTypography.bold)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                ),
+                child: Text(code, style: const TextStyle(fontFamily: 'Courier', fontWeight: AppTypography.black, letterSpacing: 1.0)),
               )).toList(),
             ),
           ],

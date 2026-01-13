@@ -9,6 +9,7 @@ class ZenButton extends StatelessWidget {
   final IconData? icon;
   final bool isLoading;
   final EdgeInsets? padding;
+  final double? height;
 
   const ZenButton({
     super.key,
@@ -19,64 +20,72 @@ class ZenButton extends StatelessWidget {
     this.icon,
     this.isLoading = false,
     this.padding,
+    this.height = 56,
   });
 
   @override
   Widget build(BuildContext context) {
-    final button = Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: (onPressed == null || isLoading) ? null : onPressed,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Container(
-          padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          decoration: BoxDecoration(
-            color: isPrimary 
-                ? ((onPressed == null || isLoading) ? AppColors.grey300 : AppColors.primary)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: isPrimary 
-                ? null 
-                : Border.all(color: AppColors.primary.withOpacity(0.5), width: 1.5),
-            boxShadow: isPrimary && onPressed != null && !isLoading
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (isLoading)
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              else ...[
-                if (icon != null) ...[
-                  Icon(icon, size: 18, color: isPrimary ? Colors.white : AppColors.primary),
-                  const SizedBox(width: 8),
-                ],
-                Text(
-                  text.toUpperCase(),
-                  style: TextStyle(
-                    color: isPrimary ? Colors.white : AppColors.primary,
-                    fontWeight: AppTypography.black,
-                    fontSize: 12,
-                    letterSpacing: 1.5,
-                  ),
+    final bool disabled = onPressed == null || isLoading;
+    
+    final button = AnimatedContainer(
+      duration: AppDuration.fast,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        gradient: isPrimary && !disabled ? AppColors.primaryGradient : null,
+        color: !isPrimary 
+            ? Colors.transparent 
+            : (disabled ? AppColors.grey300 : null),
+        border: !isPrimary 
+            ? Border.all(color: AppColors.primary.withOpacity(0.5), width: 1.5)
+            : null,
+        boxShadow: isPrimary && !disabled
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.35),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
+              ]
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: disabled ? null : onPressed,
+          borderRadius: BorderRadius.circular(AppRadius.full),
+          child: Padding(
+            padding: padding ?? const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isLoading)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                else ...[
+                  if (icon != null) ...[
+                    Icon(icon, size: 20, color: isPrimary ? Colors.white : AppColors.primary),
+                    const SizedBox(width: 12),
+                  ],
+                  Text(
+                    text.toUpperCase(),
+                    style: TextStyle(
+                      color: isPrimary ? Colors.white : AppColors.primary,
+                      fontWeight: AppTypography.black,
+                      fontSize: 13,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -89,3 +98,4 @@ class ZenButton extends StatelessWidget {
     return button;
   }
 }
+

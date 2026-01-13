@@ -38,59 +38,61 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: ZenBackground(
-        child: RefreshIndicator(
-          onRefresh: () => ref.read(myLearningProvider.notifier).loadData(),
-          color: AppColors.primary,
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _buildAppBar(context, user, isDark),
-              
-              // Welcome & Focus Tag
-              SliverToBoxAdapter(
-                child: EntryAnimation(
-                  index: 0,
-                  child: _buildGreeting(user),
+        child: myLearning.isLoading && myLearning.myCourses.isEmpty
+            ? const ZenLoadingScreen(text: 'Initializing Neural Matrix...')
+            : RefreshIndicator(
+                onRefresh: () => ref.read(myLearningProvider.notifier).loadData(),
+                color: AppColors.primary,
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    _buildAppBar(context, user, isDark),
+                    
+                    // Welcome & Focus Tag
+                    SliverToBoxAdapter(
+                      child: EntryAnimation(
+                        index: 0,
+                        child: _buildGreeting(user),
+                      ),
+                    ),
+      
+                    // Zen Stats Capsule
+                    SliverToBoxAdapter(
+                      child: EntryAnimation(
+                        index: 1,
+                        verticalOffset: 20,
+                        child: _buildStatsOverview(myLearning.stats),
+                      ),
+                    ),
+      
+                    // Active Protocol (Resume Last Lesson)
+                    SliverToBoxAdapter(
+                      child: EntryAnimation(
+                        index: 2,
+                        child: _buildActiveProtocol(context, myLearning.myCourses),
+                      ),
+                    ),
+      
+                    // Neural Banks (My Courses)
+                    SliverToBoxAdapter(
+                      child: EntryAnimation(
+                        index: 3,
+                        child: _buildNeuralBanks(context, myLearning),
+                      ),
+                    ),
+      
+                    // Terminal Shortcuts
+                    SliverToBoxAdapter(
+                      child: EntryAnimation(
+                        index: 4,
+                        child: _buildShortcuts(context),
+                      ),
+                    ),
+      
+                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                  ],
                 ),
               ),
-
-              // Zen Stats Capsule
-              SliverToBoxAdapter(
-                child: EntryAnimation(
-                  index: 1,
-                  verticalOffset: 20,
-                  child: _buildStatsOverview(myLearning.stats),
-                ),
-              ),
-
-              // Active Protocol (Resume Last Lesson)
-              SliverToBoxAdapter(
-                child: EntryAnimation(
-                  index: 2,
-                  child: _buildActiveProtocol(context, myLearning.myCourses),
-                ),
-              ),
-
-              // Neural Banks (My Courses)
-              SliverToBoxAdapter(
-                child: EntryAnimation(
-                  index: 3,
-                  child: _buildNeuralBanks(context, myLearning),
-                ),
-              ),
-
-              // Terminal Shortcuts
-              SliverToBoxAdapter(
-                child: EntryAnimation(
-                  index: 4,
-                  child: _buildShortcuts(context),
-                ),
-              ),
-
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -99,40 +101,44 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     return SliverAppBar(
       floating: true,
       backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
+      toolbarHeight: 80,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'LOGGED_IN: ${DateTime.now().hour}:${DateTime.now().minute}',
+            'LAST UPDATED: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
             style: TextStyle(
-              fontFamily: 'Courier',
-              fontSize: 10,
-              color: AppColors.primary.withOpacity(0.5),
-              fontWeight: AppTypography.bold,
+              fontSize: 9,
+              color: AppColors.primary.withOpacity(0.4),
+              fontWeight: AppTypography.black,
+              letterSpacing: 2.0,
             ),
           ),
+          const SizedBox(height: 2),
           Text(
-            'TORII_MATRIX',
+            'TORII_LEARNING',
             style: TextStyle(
               fontFamily: AppTypography.fontFamilySerif,
               fontWeight: AppTypography.black,
-              fontSize: 20,
+              fontSize: 22,
               fontStyle: FontStyle.italic,
               color: AppColors.textPrimary,
+              letterSpacing: -0.5,
             ),
           ),
         ],
       ),
       actions: [
         _HeaderAction(
-          icon: Icons.notifications_none_rounded,
-          onPressed: () {},
-        ),
-        _HeaderAction(
           icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
           onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
+        ),
+        _HeaderAction(
+          icon: Icons.notifications_none_rounded,
+          onPressed: () {},
         ),
         const SizedBox(width: AppSpacing.md),
       ],
@@ -141,33 +147,37 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
   Widget _buildGreeting(dynamic user) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: 20),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 20, AppSpacing.xl, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(AppRadius.chip),
+              borderRadius: BorderRadius.circular(AppRadius.full),
+              border: Border.all(color: AppColors.primary.withOpacity(0.1)),
             ),
             child: Text(
-              'ACTIVE LEARNING PROTOCOL',
+              'ACTIVE_LESSONS',
               style: TextStyle(
                 fontSize: 8,
                 fontWeight: AppTypography.black,
-                letterSpacing: 1.5,
-                color: AppColors.primary,
+                letterSpacing: 3.0,
+                color: AppColors.primary.withOpacity(0.6),
               ),
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            'Okaeri, ${user?.displayName ?? 'Learner'}',
+            'Welcome back, ${user?.displayName ?? 'Learner'}',
             style: const TextStyle(
-              fontSize: 32,
-              fontWeight: AppTypography.extraBold,
+              fontFamily: AppTypography.fontFamilySerif,
+              fontSize: 34,
+              fontWeight: AppTypography.bold,
               letterSpacing: -1.0,
+              fontStyle: FontStyle.italic,
+              height: 1.1,
             ),
           ),
         ],
@@ -181,21 +191,21 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.7),
+          color: Colors.white.withOpacity(0.8),
           borderRadius: BorderRadius.circular(AppRadius.xxl),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.05),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
+              color: AppColors.primary.withOpacity(0.04),
+              blurRadius: 40,
+              offset: const Offset(0, 15),
             ),
           ],
-          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _StatItem(label: 'STREAK', value: '${stats['streak'] ?? 0}', icon: Icons.local_fire_department_rounded, color: Colors.orange),
+            _StatItem(label: 'STREAK', value: '${stats['streak'] ?? 0}', icon: Icons.local_fire_department_rounded, color: const Color(0xFFE63946)),
             _buildDivider(),
             _StatItem(label: 'ZEN XP', value: '${stats['totalXp'] ?? 0}', icon: Icons.bolt_rounded, color: AppColors.primary),
             _buildDivider(),
@@ -214,13 +224,18 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final lastCourse = courses.first;
 
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xxl, AppSpacing.xl, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'NEURAL CONTINUITY',
-            style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+            'CONTINUE_LEARNING',
+            style: TextStyle(
+              fontSize: 10, 
+              fontWeight: AppTypography.black, 
+              letterSpacing: 3.0, 
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(height: 16),
           _GlassContainer(
@@ -228,13 +243,21 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             child: Row(
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 72,
+                  height: 72,
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.2),
+                        blurRadius: 15, offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
-                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 32),
+                  child: const Center(
+                    child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
@@ -245,22 +268,27 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                         lastCourse.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: AppTypography.extraBold, fontSize: 16),
+                        style: const TextStyle(fontWeight: AppTypography.extraBold, fontSize: 17),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'RESUME MODULE 3: PARTICLES',
-                        style: TextStyle(fontSize: 10, fontWeight: AppTypography.bold, color: AppColors.primary),
+                        'RESUME: MODULE 3',
+                        style: TextStyle(
+                          fontSize: 9, 
+                          fontWeight: AppTypography.black, 
+                          color: AppColors.primary.withOpacity(0.5),
+                          letterSpacing: 1.5,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       const ProgressBar(progress: 0.65, height: 6),
                     ],
                   ),
                 ),
-                const SizedBox(width: AppSpacing.md),
+                const SizedBox(width: AppSpacing.sm),
                 IconButton(
                   onPressed: () {},
-                  icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                  icon: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textTertiary),
                 ),
               ],
             ),
@@ -280,18 +308,23 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'NEURAL MEMORY BANKS',
-                style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+                'MY_COURSES',
+                style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 3.0, color: AppColors.primary),
               ),
               TextButton(
                 onPressed: () => context.push('/my-learning'),
-                child: const Text('ALL SYNCED', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, color: AppColors.primary)),
+                child: const Text('SEE ALL', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, color: AppColors.primary)),
               ),
             ],
           ),
         ),
         if (state.isLoading)
-           const Center(child: CircularProgressIndicator())
+           const Center(
+             child: Padding(
+               padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+               child: ZenLoading(text: 'Accessing Neural Record...'),
+             ),
+           )
         else if (state.myCourses.isEmpty)
            _buildEmptyLearning(context)
         else
@@ -325,12 +358,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             const Icon(Icons.auto_stories_rounded, size: 48, color: AppColors.textTertiary),
             const SizedBox(height: 16),
             const Text(
-              'NO NEURAL SYNC DETECTED',
+              'NO COURSES ENROLLED',
               style: TextStyle(fontWeight: AppTypography.black, letterSpacing: 1.0),
             ),
             const SizedBox(height: 8),
             const Text(
-              'Your learning matrix is currently void. Connect to a protocol to begin.',
+              'Start your journey by enrolling in a course.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
@@ -348,22 +381,27 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
   Widget _buildShortcuts(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xxl, AppSpacing.xl, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'QUICK PROTOCOLS',
-            style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+            'QUICK_PROTOCOLS',
+            style: TextStyle(
+              fontSize: 10, 
+              fontWeight: AppTypography.black, 
+              letterSpacing: 4.0, 
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _ShortcutTile(Icons.psychology_rounded, 'Review', () => context.push('/flashcards'))),
+              Expanded(child: _ShortcutTile(Icons.psychology_rounded, 'Recall', () => context.push('/flashcards'))),
               const SizedBox(width: AppSpacing.md),
-              Expanded(child: _ShortcutTile(Icons.assignment_turned_in_rounded, 'Exams', () => context.push('/exams'))),
+              Expanded(child: _ShortcutTile(Icons.assignment_turned_in_rounded, 'Tests', () => context.push('/exams'))),
               const SizedBox(width: AppSpacing.md),
-              Expanded(child: _ShortcutTile(Icons.groups_rounded, 'Community', () => context.push('/community'))),
+              Expanded(child: _ShortcutTile(Icons.groups_rounded, 'Social', () => context.push('/community'))),
             ],
           ),
         ],
@@ -404,9 +442,16 @@ class _GlassContainer extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.02),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: child,
     );
@@ -424,21 +469,36 @@ class _ShortcutTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(AppRadius.xl),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          padding: const EdgeInsets.symmetric(vertical: 24),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(color: AppColors.grey200.withOpacity(0.5)),
+            color: Colors.white.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.02),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
           child: Column(
             children: [
-              Icon(icon, color: AppColors.primary, size: 24),
+              Icon(icon, color: AppColors.primary, size: 26),
               const SizedBox(height: 8),
-              Text(label.toUpperCase(), style: const TextStyle(fontSize: 8, fontWeight: AppTypography.black, letterSpacing: 1.0)),
+              Text(
+                label.toUpperCase(), 
+                style: const TextStyle(
+                  fontSize: 9, 
+                  fontWeight: AppTypography.black, 
+                  letterSpacing: 1.5,
+                ),
+              ),
             ],
           ),
         ),

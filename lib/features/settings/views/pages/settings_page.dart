@@ -5,6 +5,7 @@ import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/localization/l10n/app_localizations.dart';
 import '../../../../core/widgets/cards/minimal_card.dart';
+import '../../../../core/widgets/zen_background.dart';
 import '../../../auth/providers/auth_providers.dart';
 import '../../../auth/models/auth_state_sealed.dart';
 
@@ -22,50 +23,61 @@ class SettingsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text(
-          'ZEN_PREFERENCES',
-          style: TextStyle(
-            fontFamily: AppTypography.fontFamilySerif,
-            fontWeight: AppTypography.black,
-            fontSize: 18,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.lg,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Profile Section
-              _buildProfileSection(context, ref),
-              const SizedBox(height: AppSpacing.xxxl),
-
-              // Security Section
-              _buildSecuritySection(context, ref),
-              const SizedBox(height: AppSpacing.xxxl),
-              
-              // Language Section
-              _buildLanguageSection(context, ref, currentLocale, l10n, theme),
-              const SizedBox(height: AppSpacing.xxxl),
-
-              // Danger Zone
-              _buildDangerZone(context, ref),
-              const SizedBox(height: 40),
-            ],
-          ),
+      body: ZenBackground(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              floating: true,
+              pinned: true,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                onPressed: () => context.pop(),
+              ),
+              title: const Text(
+                'APP_SETTINGS',
+                style: TextStyle(
+                  fontFamily: AppTypography.fontFamilySerif,
+                  fontWeight: AppTypography.black,
+                  fontSize: 18,
+                  fontStyle: FontStyle.italic,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xl,
+                  vertical: AppSpacing.lg,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Profile Section
+                    _buildProfileSection(context, ref),
+                    const SizedBox(height: AppSpacing.xxxl),
+      
+                    // Security Section
+                    _buildSecuritySection(context, ref),
+                    const SizedBox(height: AppSpacing.xxxl),
+                    
+                    // Language Section
+                    _buildLanguageSection(context, ref, currentLocale, l10n, theme),
+                    const SizedBox(height: AppSpacing.xxxl),
+      
+                    // Danger Zone
+                    _buildDangerZone(context, ref),
+                    const SizedBox(height: 60),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -76,16 +88,21 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'SECURITY_MATRIX',
-          style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+          'SECURITY_SETTINGS',
+          style: TextStyle(
+            fontSize: 10, 
+            fontWeight: AppTypography.black, 
+            letterSpacing: 3.0, 
+            color: AppColors.textTertiary,
+          ),
         ),
         const SizedBox(height: 16),
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.white.withOpacity(0.8),
             borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.grey200.withOpacity(0.5)),
+            border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
           ),
           child: Material(
             color: Colors.transparent,
@@ -134,16 +151,21 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'IDENTITY_CORE',
-          style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+          'PROFILE_CONFIG',
+          style: TextStyle(
+            fontSize: 10, 
+            fontWeight: AppTypography.black, 
+            letterSpacing: 3.0, 
+            color: AppColors.textTertiary,
+          ),
         ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.white.withOpacity(0.8),
             borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.grey200.withOpacity(0.5)),
+            border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
           ),
           child: Row(
             children: [
@@ -181,8 +203,13 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'TERMINATION_PROTOCOL',
-          style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: Color(0xFFE63946)),
+          'ACCOUNT_ACTIONS',
+          style: TextStyle(
+            fontSize: 10, 
+            fontWeight: AppTypography.black, 
+            letterSpacing: 3.0, 
+            color: Color(0xFFE63946),
+          ),
         ),
         const SizedBox(height: 16),
         Container(
@@ -190,17 +217,58 @@ class SettingsPage extends ConsumerWidget {
           decoration: BoxDecoration(
             color: const Color(0xFFE63946).withOpacity(0.05),
             borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: const Color(0xFFE63946).withOpacity(0.2)),
+            border: Border.all(color: const Color(0xFFE63946).withOpacity(0.1)),
           ),
           child: TextButton(
-            onPressed: () => ref.read(authStateProvider.notifier).logout(),
+            onPressed: () => _showLogoutConfirm(context, ref),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xxl)),
+            ),
             child: const Text(
-              'SIGNOUT_OF_MATRIX',
-              style: TextStyle(color: Color(0xFFE63946), fontWeight: AppTypography.black, fontSize: 11, letterSpacing: 1.0),
+              'LOG_OUT',
+              style: TextStyle(
+                color: Color(0xFFE63946), 
+                fontWeight: AppTypography.black, 
+                fontSize: 11, 
+                letterSpacing: 2.0,
+              ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  void _showLogoutConfirm(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xxl)),
+        title: const Text(
+          'LOG OUT',
+          style: TextStyle(fontSize: 16, fontWeight: AppTypography.black, letterSpacing: 1.0),
+        ),
+        content: const Text(
+          'Are you sure you want to log out from Torii?',
+          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCEL', style: TextStyle(color: AppColors.textTertiary, fontWeight: AppTypography.black, fontSize: 11)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ref.read(authStateProvider.notifier).logout();
+            },
+            child: const Text('LOG OUT', style: TextStyle(color: Color(0xFFE63946), fontWeight: AppTypography.black, fontSize: 11)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -215,35 +283,43 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.language,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: AppTypography.semiBold,
-            color: AppColors.textSecondary,
+          l10n.language.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 10, 
+            fontWeight: AppTypography.black, 
+            letterSpacing: 4.0, 
+            color: AppColors.textTertiary,
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
-        MinimalCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              _LanguageOption(
-                locale: const Locale('en'),
-                label: l10n.english,
-                currentLocale: currentLocale,
-                onTap: () {
-                  ref.read(localeProvider.notifier).setLocale(const Locale('en'));
-                },
-              ),
-              const Divider(height: 1),
-              _LanguageOption(
-                locale: const Locale('vi'),
-                label: l10n.vietnamese,
-                currentLocale: currentLocale,
-                onTap: () {
-                  ref.read(localeProvider.notifier).setLocale(const Locale('vi'));
-                },
-              ),
-            ],
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            child: Column(
+              children: [
+                _LanguageOption(
+                  locale: const Locale('en'),
+                  label: l10n.english,
+                  currentLocale: currentLocale,
+                  onTap: () {
+                    ref.read(localeProvider.notifier).setLocale(const Locale('en'));
+                  },
+                ),
+                _LanguageOption(
+                  locale: const Locale('vi'),
+                  label: l10n.vietnamese,
+                  currentLocale: currentLocale,
+                  onTap: () {
+                    ref.read(localeProvider.notifier).setLocale(const Locale('vi'));
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ],

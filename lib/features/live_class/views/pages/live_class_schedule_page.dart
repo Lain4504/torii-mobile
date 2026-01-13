@@ -100,12 +100,12 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
                     children: [
                       const SizedBox(height: 60),
                       Text(
-                        'TRANSMISSION LOG',
+                        'CLASS SCHEDULE',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: AppTypography.black,
-                          letterSpacing: 4.0,
-                          color: AppColors.primary.withOpacity(0.7),
+                          letterSpacing: 5.0,
+                          color: AppColors.primary.withOpacity(0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -113,7 +113,7 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
                         DateFormat('MMMM yyyy').format(_selectedDate),
                         style: TextStyle(
                           fontFamily: AppTypography.fontFamilySerif,
-                          fontWeight: AppTypography.extraBold,
+                          fontWeight: AppTypography.bold,
                           fontSize: 32,
                           letterSpacing: -1.0,
                           fontStyle: FontStyle.italic,
@@ -189,21 +189,21 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
               decoration: BoxDecoration(
                 color: isSelected 
                     ? AppColors.primary 
-                    : Colors.white.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(30),
+                    : Colors.white.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(AppRadius.xxl),
                 border: Border.all(
                   color: isSelected 
                       ? AppColors.primary 
-                      : (isToday ? AppColors.primary.withOpacity(0.3) : AppColors.borderLight.withOpacity(0.5)),
+                      : (isToday ? AppColors.primary.withOpacity(0.2) : AppColors.borderLight.withOpacity(0.3)),
                   width: 1.5,
                 ),
-                boxShadow: isSelected ? [
+                boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 15,
+                    color: isSelected ? AppColors.primary.withOpacity(0.2) : AppColors.primary.withOpacity(0.02),
+                    blurRadius: 20,
                     offset: const Offset(0, 8),
                   )
-                ] : null,
+                ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -296,16 +296,16 @@ class _LiveClassCard extends StatelessWidget {
     final isLive = classData.status == LiveClassStatus.live;
     
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
         border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.03),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: AppColors.primary.withOpacity(0.03),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -362,25 +362,25 @@ class _LiveClassCard extends StatelessWidget {
                   if (isLive) ...[
                     Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: AppColors.error,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(AppRadius.full),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.error.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: const Text(
-                        'REAL-TIME TRANSMISSION',
+                        'REAL-TIME_TRANS',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 9,
                           fontWeight: AppTypography.black,
-                          letterSpacing: 1.0,
+                          letterSpacing: 2.0,
                         ),
                       ),
                     ),

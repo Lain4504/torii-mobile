@@ -21,12 +21,7 @@ class CourseDetailPage extends ConsumerWidget {
     final state = ref.watch(courseDetailProvider(courseId));
 
     if (state.isLoading && state.course == null) {
-      return const Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.primary),
-        ),
-      );
+      return const ZenLoadingScreen(text: 'Loading course...');
     }
 
     if (state.error != null && state.course == null) {
@@ -46,7 +41,7 @@ class CourseDetailPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 ZenButton(
-                  text: 'RETRY PROTOCOL',
+                  text: 'TRY AGAIN',
                   onPressed: () {
                     ref.read(courseDetailProvider(courseId).notifier).loadCourseDetail(courseId);
                   },
@@ -116,7 +111,7 @@ class CourseDetailPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSectionTitle('Executive Summary'),
+                            _buildSectionTitle('Course Overview'),
                             const SizedBox(height: AppSpacing.md),
                             Text(
                               course.description!,
@@ -138,7 +133,7 @@ class CourseDetailPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSectionTitle('Cognitive Goals'),
+                            _buildSectionTitle('What you\'ll learn'),
                             const SizedBox(height: AppSpacing.lg),
                             _buildLearningPoints(theme, course),
                           ],
@@ -149,15 +144,15 @@ class CourseDetailPage extends ConsumerWidget {
 
                     EntryAnimation(
                       delay: const Duration(milliseconds: 500),
-                      child: _buildSectionTitle('Neural Path (Curriculum)'),
+                      child: _buildSectionTitle('Course Content'),
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     
                     if (state.isLoadingCurriculum)
                       const Center(
                         child: Padding(
-                          padding: EdgeInsets.all(AppSpacing.xxl),
-                          child: CircularProgressIndicator(color: AppColors.primary),
+                          padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+                          child: ZenLoading(text: 'Syncing curriculum blocks...'),
                         ),
                       )
                     else if (state.curriculum != null && state.curriculum!.modules.isNotEmpty)
@@ -336,11 +331,15 @@ class CourseDetailPage extends ConsumerWidget {
 
   Widget _buildBadge(String text, Color bg, Color textCol) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg.withOpacity(0.1), 
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: textCol.withOpacity(0.2)),
+      ),
       child: Text(
         text.toUpperCase(),
-        style: TextStyle(color: textCol, fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0),
+        style: TextStyle(color: textCol, fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 2.0),
       ),
     );
   }
@@ -385,19 +384,26 @@ class CourseDetailPage extends ConsumerWidget {
     String studentCount = course.enrolledCount >= 1000 ? '${(course.enrolledCount / 1000).toStringAsFixed(1)}k' : course.enrolledCount.toString();
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.04),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          _buildStatItem(Icons.timer_rounded, duration, 'UPTIME'),
+          _buildStatItem(Icons.timer_rounded, duration, 'HOURS'),
           _buildVerticalDivider(),
-          _buildStatItem(Icons.layers_rounded, course.totalLessons.toString(), 'BLOCKS'),
+          _buildStatItem(Icons.layers_rounded, course.totalLessons.toString(), 'LESSONS'),
           _buildVerticalDivider(),
-          _buildStatItem(Icons.group_rounded, studentCount, 'USERS'),
+          _buildStatItem(Icons.group_rounded, studentCount, 'STUDENTS'),
         ],
       ),
     );
@@ -475,9 +481,16 @@ class CourseDetailPage extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
         border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.02),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -501,10 +514,23 @@ class CourseDetailPage extends ConsumerWidget {
 
   Widget _buildBottomBar(BuildContext context, ThemeData theme, bool isDark, Course course) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).padding.bottom + 20,
+      ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -10))],
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.05),
+            blurRadius: 30,
+            offset: const Offset(0, -10),
+          ),
+        ],
+        border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
       ),
       child: SafeArea(
         top: false,

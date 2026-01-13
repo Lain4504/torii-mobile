@@ -49,6 +49,7 @@ dependencies:
   intl: ^0.20.2
   flutter_native_splash: ^2.4.7
   qr_flutter: ^4.1.0
+  flutter_launcher_icons: ^0.14.4
   
   # Firebase packages
 
@@ -81,7 +82,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
-    - asset/icons/
+    - assets/icons/
 
   # Generate localization files from ARB files
   generate: true

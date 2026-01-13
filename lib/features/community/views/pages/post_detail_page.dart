@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../providers/post_providers.dart';
-import '../models/post_model.dart';
-import '../../../../core/widgets/zen_background.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/features/community/providers/post_providers.dart';
+import 'package:torii_app/features/community/models/post_model.dart';
+import 'package:torii_app/core/widgets/zen_background.dart';
 
 class PostDetailPage extends ConsumerStatefulWidget {
   final String postId;
@@ -61,7 +61,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                               children: [
                                 CircleAvatar(
                                   radius: 20,
-                                  backgroundImage: NetworkImage(post.author.avatar ?? 'https://i.pravatar.cc/150'),
+                                  backgroundImage: NetworkImage(post.author.avatarUrl ?? 'https://i.pravatar.cc/150'),
                                 ),
                                 const SizedBox(width: 12),
                                 Column(
@@ -90,7 +90,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                               style: TextStyle(fontSize: 16, height: 1.6, color: AppColors.textPrimary),
                             ),
                             const SizedBox(height: 32),
-                            const SectionDivider(label: 'COMMUNICATIONS'),
+                            const SectionDivider(title: 'COMMUNICATIONS'),
                           ],
                         ),
                       ),
@@ -106,8 +106,17 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                         ),
                       ),
                     ),
-                    loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-                    error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
+                    loading: () => const SliverToBoxAdapter(
+                      child: Center(child: ZenLoading(text: 'Accessing Communications...')),
+                    ),
+                    error: (err, stack) => SliverToBoxAdapter(
+                      child: Center(
+                        child: Text(
+                          'CONNECTION LOST: $err',
+                          style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0),
+                        ),
+                      ),
+                    ),
                   ),
                   
                   const SliverToBoxAdapter(child: SizedBox(height: 40)),
@@ -128,34 +137,38 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       padding: EdgeInsets.only(
         left: AppSpacing.xl,
         right: AppSpacing.xl,
-        top: 16,
-        bottom: MediaQuery.of(context).padding.bottom + 16,
+        top: 20,
+        bottom: MediaQuery.of(context).padding.bottom + 20,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
-            blurRadius: 20,
+            color: AppColors.primary.withOpacity(0.05),
+            blurRadius: 30,
             offset: const Offset(0, -10),
           ),
         ],
+        border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
       ),
       child: Row(
         children: [
           Expanded(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(AppRadius.xl),
+                color: AppColors.primary.withOpacity(0.03),
+                borderRadius: BorderRadius.circular(AppRadius.full),
+                border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
               ),
               child: TextField(
                 controller: _commentController,
+                style: const TextStyle(fontSize: 14, fontWeight: AppTypography.medium),
                 decoration: const InputDecoration(
                   hintText: 'Add to neural forum...',
                   border: InputBorder.none,
-                  hintStyle: TextStyle(fontSize: 14),
+                  hintStyle: TextStyle(fontSize: 13, color: AppColors.textTertiary, letterSpacing: 0.5),
                 ),
               ),
             ),
@@ -194,7 +207,7 @@ class _CommentTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 16,
-            backgroundImage: NetworkImage(comment.author.avatar ?? 'https://i.pravatar.cc/150'),
+            backgroundImage: NetworkImage(comment.author.avatarUrl ?? 'https://i.pravatar.cc/150'),
           ),
           const SizedBox(width: 12),
           Expanded(
