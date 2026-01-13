@@ -40,32 +40,43 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 // --- STATE MANAGEMENT ---
-class AuthNotifier extends StateNotifier<AuthState> {
-  final AuthRepository repository;
-  final UserService userService;
+class AuthNotifier extends Notifier<AuthState> {
+  late AuthRepository _repository;
+  late UserService _userService;
 
-  AuthNotifier(this.repository, this.userService) : super(AuthState.initial()) {
-    _init();
+  @override
+  AuthState build() {
+    _repository = ref.watch(authRepositoryProvider);
+    _userService = ref.watch(userServiceProvider);
+    
+    // Asynchronous initialization
+    // We defer this to the next frame/microtask to avoid modifying state during build
+    Future.microtask(() => _init());
+    
+    return AuthState.loading();
   }
 
   Future<void> _init() async {
-    final token = await repository.tokenStorage.getAccessToken();
+    // If already initialized or state changed, be careful. 
+    // Here we just run the check.
+    
+    final token = await _repository.tokenStorage.getAccessToken();
     if (token != null) {
-      final user = await userService.getUserProfile();
+      final user = await _userService.getUserProfile();
       if (user != null) {
         state = AuthState.authenticated(user);
       } else {
         try {
-           final response = await repository.authService.getMe();
+           final response = await _repository.authService.getMe();
            if (response.success && response.data != null) {
-              await userService.saveUserProfile(response.data!);
+              await _userService.saveUserProfile(response.data!);
               state = AuthState.authenticated(response.data!);
            } else {
               // Token might be valid but profile fetch failed, stay valid optimistically or refresh
-              state = const AuthState(status: AuthStatus.authenticated);
+              state = const AuthState(status: AuthStatus.authenticated, error: 'Could not refresh profile');
            }
         } catch (_) {
-           state = const AuthState(status: AuthStatus.authenticated);
+           state = const AuthState(status: AuthStatus.authenticated, error: 'Offline');
         }
       }
     } else {
@@ -75,10 +86,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> login(String email, String password) async {
     state = AuthState.loading();
-    final (result, data, error) = await repository.login(email, password);
+    final (result, data, error) = await _repository.login(email, password);
 
     if (result == AuthResult.success && data != null) {
-      await userService.saveUserProfile(data.user);
+      await _userService.saveUserProfile(data.user);
       state = AuthState.authenticated(data.user);
     } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {
       state = AuthState.pending2FA(data.tempToken!);
@@ -90,11 +101,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
     state = AuthState.loading();
     try {
-      final success = await repository.verify2FA(tempToken, code, isBackupCode: isBackupCode);
+      final success = await _repository.verify2FA(tempToken, code, isBackupCode: isBackupCode);
       if (success) {
-        final userParams = await repository.authService.getMe();
+        final userParams = await _repository.authService.getMe();
         if (userParams.success && userParams.data != null) {
-           await userService.saveUserProfile(userParams.data!);
+           await _userService.saveUserProfile(userParams.data!);
            state = AuthState.authenticated(userParams.data!);
         } else {
            state = const AuthState(status: AuthStatus.authenticated);
@@ -107,12 +118,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  // --- RESTORED FUNCTIONALITY ---
-
   Future<void> register(String email, String password, String displayName) async {
     state = AuthState.loading();
     try {
-      final response = await repository.authService.register(
+      final response = await _repository.authService.register(
         email: email,
         password: password,
         displayName: displayName,
@@ -130,7 +139,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> forgotPassword(String email) async {
     state = AuthState.loading();
     try {
-      final response = await repository.authService.forgotPassword(email);
+      final response = await _repository.authService.forgotPassword(email);
       if (response.success) {
         state = AuthState.requiresOTP(email);
       } else {
@@ -144,11 +153,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> verifyOTP(String email, String code) async {
     state = AuthState.loading();
     try {
-      final response = await repository.authService.verifyOTP(email, code);
+      final response = await _repository.authService.verifyOTP(email, code);
       if (response.success && response.data != null) {
         final tempToken = response.data!['tempToken'] as String?;
         if (tempToken != null) {
-          // Stay in requiresOTP status but with tempToken to trigger navigation to reset password
           state = AuthState(
              status: AuthStatus.requiresOTP,
              email: email,
@@ -168,7 +176,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> resetPassword(String tempToken, String newPassword) async {
     state = AuthState.loading();
     try {
-      final response = await repository.authService.resetPassword(tempToken, newPassword);
+      final response = await _repository.authService.resetPassword(tempToken, newPassword);
       if (response.success) {
         state = AuthState.unauthenticated();
       } else {
@@ -181,24 +189,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> resendOTP(String email) async {
     try {
-      await repository.authService.resendOTP(email);
+      await _repository.authService.resendOTP(email);
     } catch (e) {
       debugPrint('Resend OTP error: $e');
     }
   }
 
   Future<void> logout() async {
-    await repository.logout();
-    await userService.clearUserProfile();
+    await _repository.logout();
+    await _userService.clearUserProfile();
     state = AuthState.unauthenticated();
   }
 }
 
-final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  final userService = ref.watch(userServiceProvider);
-  return AuthNotifier(repository, userService);
-});
+// Convert to NotifierProvider
+final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
 
 // Alias for compatibility
 final authStateProvider = authNotifierProvider;
