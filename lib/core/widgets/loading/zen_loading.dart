@@ -55,10 +55,6 @@ class _ZenLoadingState extends State<ZenLoading> with SingleTickerProviderStateM
               height: widget.size,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadius.lg),
-                border: Border.all(
-                  color: primaryColor.withValues(alpha: 0.1),
-                  width: 2.5,
-                ),
               ),
               child: Stack(
                 children: [

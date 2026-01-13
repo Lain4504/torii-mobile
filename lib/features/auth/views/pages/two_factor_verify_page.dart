@@ -24,6 +24,10 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
   @override
   void initState() {
     super.initState();
+    // Rebuild on focus change for border styling
+    _otpFocusNode.addListener(() => setState(() {}));
+    _backupFocusNode.addListener(() => setState(() {}));
+
     // Auto-focus logic
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -47,7 +51,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
 
   void _verify(String code) {
     final state = ref.read(authStateProvider);
-    if (state.status != AuthStatus.requires2FA || state.tempToken == null) return;
+    if (state.status != AuthStatus.pending2FA || state.tempToken == null) return;
 
     if (_isBackupCode) {
       ref.read(authStateProvider.notifier).verify2FA(state.tempToken!, code, isBackupCode: true);
@@ -60,18 +64,18 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
     
-    // Listen for successful 2FA verification
-    ref.listen<AuthState>(authStateProvider, (previous, next) {
-      if (previous?.status != next.status && next.isAuthenticated) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) context.go('/');
-        });
-      }
-    });
 
     final isLoading = authState.isLoading;
     final errorMessage = authState.error;
-    final helpMessage = authState.status == AuthStatus.requires2FA ? authState.error : null;
+    final helpMessage = authState.status == AuthStatus.pending2FA ? authState.error : null;
+
+    // Prevent flash of content when authenticated but waiting for redirect
+    if (authState.status == AuthStatus.authenticated) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: ZenLoading(text: 'FINALIZING...')),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -276,35 +280,57 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     required double letterSpacing,
     required ValueChanged<String> onChanged,
   }) {
+    // Mimic ZenTextField stying but focused on single centered input
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      height: 60,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
+        color: AppColors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
-      ),
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        keyboardType: TextInputType.number,
-        maxLength: maxLength,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 32,
-          fontWeight: AppTypography.bold,
-          letterSpacing: letterSpacing,
-          color: AppColors.primary,
+        border: Border.all(
+          color: focusNode.hasFocus 
+            ? AppColors.primary.withValues(alpha: 0.6) 
+            : AppColors.grey300.withValues(alpha: 0.4),
+          width: focusNode.hasFocus ? 1.5 : 1.0,
         ),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          counterText: "",
-          hintText: hintText,
-          hintStyle: TextStyle(
-            color: AppColors.textTertiary.withValues(alpha: 0.15),
-            letterSpacing: letterSpacing,
+        boxShadow: [
+          BoxShadow(
+             color: Colors.black.withValues(alpha: 0.01),
+             blurRadius: 10,
+             offset: const Offset(0, 4),
           ),
+        ],
+      ),
+      child: Center(
+        child: TextField(
+          controller: controller,
+          focusNode: focusNode,
+          keyboardType: TextInputType.number,
+          maxLength: maxLength,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24, // Smaller font than previous 32
+            fontWeight: AppTypography.bold,
+            letterSpacing: letterSpacing,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            disabledBorder: InputBorder.none,
+            filled: false,
+            counterText: "",
+            hintText: hintText,
+            hintStyle: TextStyle(
+              color: AppColors.textTertiary.withValues(alpha: 0.15),
+              letterSpacing: letterSpacing,
+            ),
+            contentPadding: EdgeInsets.zero,
+            isDense: true,
+          ),
+          onChanged: onChanged,
         ),
-        onChanged: onChanged,
       ),
     );
   }

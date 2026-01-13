@@ -37,7 +37,7 @@ class CourseCard extends StatelessWidget {
             children: [
               // Premium Thumbnail
               _buildThumbnail(isDark),
-              
+
               // Refined Content
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
@@ -47,7 +47,7 @@ class CourseCard extends StatelessWidget {
                     // Badge Row
                     _buildMetadata(theme),
                     const SizedBox(height: AppSpacing.sm),
-                    
+
                     // Elegant Title
                     Text(
                       course.title,
@@ -62,7 +62,7 @@ class CourseCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    
+
                     // Instructor with cleaner profile
                     Row(
                       children: [
@@ -96,9 +96,9 @@ class CourseCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: AppSpacing.lg),
-                    
+
                     // Stats & Price Bar
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -123,7 +123,7 @@ class CourseCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        
+
                         // Bold Price
                         Text(
                           course.priceLabel,
@@ -158,13 +158,13 @@ class CourseCard extends StatelessWidget {
             ),
             child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
                 ? Image.network(
-                    course.thumbnailUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => _buildPlaceholder(isDark),
-                  )
+              course.thumbnailUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => _buildPlaceholder(isDark),
+            )
                 : _buildPlaceholder(isDark),
           ),
-          
+
           // Subtle Overlay for text readability (if needed)
           Container(
             decoration: BoxDecoration(
@@ -175,7 +175,7 @@ class CourseCard extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Premium Enrolled Badge
           if (course.isEnrolled)
             Positioned(
@@ -239,15 +239,15 @@ class CourseCard extends StatelessWidget {
           textColor: AppColors.primary,
         ),
         const SizedBox(width: AppSpacing.sm),
-        
+
         // Type Tag (Differentiates Live vs Record)
         _buildTag(
           text: course.typeLabel.toUpperCase(),
-          backgroundColor: course.type == CourseType.liveClass 
-              ? AppColors.detailSurface 
+          backgroundColor: course.type == CourseType.liveClass
+              ? AppColors.detailSurface
               : AppColors.grey50,
-          textColor: course.type == CourseType.liveClass 
-              ? AppColors.detail 
+          textColor: course.type == CourseType.liveClass
+              ? AppColors.detail
               : AppColors.textSecondary,
         ),
       ],

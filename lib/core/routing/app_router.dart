@@ -1,3 +1,4 @@
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,76 +44,98 @@ import 'package:torii_app/features/instructor/views/pages/instructor_profile_pag
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authNotifier = ValueNotifier<AuthState>(ref.read(authStateProvider));
+  // Use ValueNotifier to bridge Riverpod state to GoRouter
+  // Initialize with current state
+  final authNotifier = ValueNotifier<AuthState>(ref.read(authNotifierProvider));
 
-  ref.listen(authStateProvider, (_, next) {
+  // Listen to provider changes and update the notifier
+  ref.listen(authNotifierProvider, (_, next) {
     authNotifier.value = next;
   });
 
   return GoRouter(
     navigatorKey: AppRouter.rootNavigatorKey,
-    refreshListenable: authNotifier,
     debugLogDiagnostics: kDebugMode,
+    initialLocation: '/login', // Start at login to let redirect logic decide
+    refreshListenable: authNotifier,
+    
     redirect: (context, state) async {
       final prefs = await SharedPreferences.getInstance();
-      final onboardingCompleted =
-          prefs.getBool('onboarding_completed') ?? false;
-      final isOnboarding = state.matchedLocation == '/onboarding';
-
-      // Onboarding check - but allow auth pages
+      final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+      final matchedLocation = state.matchedLocation;
+      
+      // Onboarding check
+      final isOnboarding = matchedLocation == '/onboarding';
       if (!onboardingCompleted && !isOnboarding) {
         return '/onboarding';
       }
-
-      // If onboarding completed and user tries to go to onboarding page, redirect to home
-      // But allow them to access auth pages (login, register, etc)
       if (onboardingCompleted && isOnboarding) {
-        return '/';
+        return '/login'; // Or rely on auth check
       }
 
-      // Auth check - SIMPLIFIED
-      final authState = ref.read(authStateProvider);
-      final isAuthenticated = authState.isAuthenticated;  // Use simple getter
-      final requestedLocation = state.matchedLocation;
+      // Read the LATEST state
+      // Use ref.read here because we are inside the callback, updated by refreshListenable
+      final authState = ref.read(authNotifierProvider);
+      final status = authState.status;
+      
+      final isVerifying2FA = matchedLocation == '/auth/verify-2fa';
+      final isLogin = matchedLocation == '/login';
+      final isRegister = matchedLocation == '/register';
+      
+      if (kDebugMode) {
+        print('🔄 Router redirect: status=$status, location=$matchedLocation');
+      }
 
-      debugPrint(
-        'AppRouter Redirect Check: Location=$requestedLocation, AuthState=${authState.status}',
-      );
+      // --- SNIPPET LOGIC ADAPTED ---
 
-      // PRIORITY 1: Handle 2FA Requirement
-      if (authState.status == AuthStatus.requires2FA) {
-        if (requestedLocation != '/auth/verify-2fa') {
-          return '/auth/verify-2fa';
+      // 1. Loading
+      if (status == AuthStatus.loading) return null;
+
+      // 2. Pending 2FA -> Force 2FA page
+      if (status == AuthStatus.pending2FA) {
+        if (!isVerifying2FA) {
+           return '/auth/verify-2fa';
         }
         return null;
       }
-
-      // Check if route is protected (support both exact match and path patterns)
-      bool isProtectedRoute = AppRouter.protectedRoutes.contains(requestedLocation);
       
-      // Also check for path parameter patterns like /learning/:courseId/:lessonId
-      if (!isProtectedRoute) {
-        for (final protectedPattern in AppRouter.protectedRoutes) {
-          if (protectedPattern.contains(':')) {
-            // Convert pattern to regex: /learning/:courseId/:lessonId -> ^/learning/[^/]+/[^/]+$
-            final regex = RegExp(
-               '^${protectedPattern.replaceAll(RegExp(r':[^/]+'), r'[^/]+')}\$'
-            );
-            if (regex.hasMatch(requestedLocation)) {
-              isProtectedRoute = true;
-              break;
-            }
+      // 3. Authenticated -> Redirect away from Login/2FA
+      if (status == AuthStatus.authenticated) {
+        if (isLogin || isVerifying2FA || isRegister) {
+          // Check for deep link redirect
+          final redirectTo = state.uri.queryParameters['redirect'];
+          if (redirectTo != null && redirectTo.isNotEmpty && !redirectTo.startsWith('/auth')) {
+            return redirectTo;
+          }
+          return '/';
+        }
+        return null; // Allow access to other pages
+      }
+
+      // 4. Unauthenticated
+      if (status == AuthStatus.unauthenticated || status == AuthStatus.requiresOTP) {
+        // Allow public routes
+        // We use the existing logic for public/protected routes to avoid breaking valid flows
+        // (Snippet was simple: if unauth && != login -> login. But we have register/courses etc)
+        
+        bool isProtectedRoute = AppRouter.protectedRoutes.contains(matchedLocation);
+        if (!isProtectedRoute) {
+          // Dynamic check
+          for (final protectedPattern in AppRouter.protectedRoutes) {
+             if (protectedPattern.contains(':')) {
+                final regex = RegExp('^${protectedPattern.replaceAll(RegExp(r':[^/]+'), r'[^/]+')}\$');
+                if (regex.hasMatch(matchedLocation)) {
+                  isProtectedRoute = true;
+                  break;
+                }
+             }
           }
         }
-      }
 
-      // If user is not authenticated and tries to access protected route -> redirect to login
-      if (!isAuthenticated && isProtectedRoute) {
-        return '/login?redirect=${Uri.encodeComponent(requestedLocation)}';
+        if (isProtectedRoute) {
+           return '/login?redirect=${Uri.encodeComponent(matchedLocation)}';
+        }
       }
-
-      // DON'T redirect authenticated users from auth pages
-      // Let them access login/register if they want (they might want to re-login)
 
       return null;
     },
@@ -130,8 +153,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/',
             builder: (context, state) {
-              final authState = ref.watch(authStateProvider);
-
+              final authState = ref.watch(authNotifierProvider);
               if (authState.isAuthenticated) {
                 return const DashboardPage();
               }

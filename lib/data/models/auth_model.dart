@@ -71,8 +71,8 @@ class AuthData {
 
   factory AuthData.fromJson(Map<String, dynamic> json) {
     return AuthData(
-      accessToken: json['accessToken'],
-      refreshToken: json['refreshToken'],
+      accessToken: json['accessToken'] ?? json['access_token'],
+      refreshToken: json['refreshToken'] ?? json['refresh_token'],
       user: User.fromJson(json['user'] ?? {}),
       requiresTwoFactor: json['requiresTwoFactor'] ?? false,
       twoFactorMethod: json['twoFactorMethod'],

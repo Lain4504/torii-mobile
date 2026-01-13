@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../constants/app_design_system.dart';
+import '../../features/auth/providers/auth_providers.dart';
+import '../../features/auth/models/auth_state.dart';
 import '../localization/l10n/app_localizations.dart';
 
 /// App Shell - Main Layout Wrapper
 /// 
 /// Contains the curved bottom navigation with centered FAB (Home).
-class AppShell extends StatelessWidget {
+/// Adapts navigation items based on authentication state.
+class AppShell extends ConsumerWidget {
   final Widget child;
   final GoRouterState state;
 
   const AppShell({super.key, required this.child, required this.state});
 
   @override
-  Widget build(BuildContext context) {
-    final activeIndex = _calculateIndex(state.matchedLocation);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+    final isAuthenticated = authState.status == AuthStatus.authenticated;
+
+    final activeIndex = _calculateIndex(state.matchedLocation, isAuthenticated);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -44,16 +51,24 @@ class AppShell extends StatelessWidget {
         onTap: (path) => context.go(path),
         isDark: isDark,
         context: context,
+        isAuthenticated: isAuthenticated,
       ),
     );
   }
 
-  // 0: Courses, 1: Exams, 2: Home, 3: Flashcards, 4: Live
-  int _calculateIndex(String location) {
-    if (location.startsWith('/courses')) return 0;
-    if (location.startsWith('/exams')) return 1;
-    if (location.startsWith('/flashcards')) return 3;
-    if (location.startsWith('/live-schedule')) return 4;
+  // Calculate index based on route and auth state
+  int _calculateIndex(String location, bool isAuthenticated) {
+    if (isAuthenticated) {
+      if (location.startsWith('/my-learning')) return 0;
+      if (location.startsWith('/community')) return 1;
+      if (location.startsWith('/notifications')) return 3;
+      if (location.startsWith('/settings')) return 4;
+    } else {
+      if (location.startsWith('/courses')) return 0;
+      if (location.startsWith('/exams')) return 1;
+      if (location.startsWith('/flashcards')) return 3;
+      if (location.startsWith('/live-schedule')) return 4;
+    }
     return 2; // Default to Home
   }
 }
@@ -63,12 +78,14 @@ class _BottomNavBar extends StatelessWidget {
   final Function(String) onTap;
   final bool isDark;
   final BuildContext context;
+  final bool isAuthenticated;
 
   const _BottomNavBar({
     required this.activeIndex,
     required this.onTap,
     required this.isDark,
     required this.context,
+    required this.isAuthenticated,
   });
 
   @override
@@ -89,24 +106,43 @@ class _BottomNavBar extends StatelessWidget {
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _NavBarItem(
-                  icon: Icons.school_outlined,
-                  activeIcon: Icons.school_rounded,
-                  label: AppLocalizations.of(context)!.courses,
-                  isSelected: activeIndex == 0,
-                  onTap: () => onTap('/courses'),
-                  isDark: isDark,
-                ),
-                _NavBarItem(
-                  icon: Icons.quiz_outlined,
-                  activeIcon: Icons.quiz_rounded,
-                  label: AppLocalizations.of(context)!.exams,
-                  isSelected: activeIndex == 1,
-                  onTap: () => onTap('/exams'),
-                  isDark: isDark,
-                ),
-              ],
+              children: isAuthenticated 
+                ? [
+                    _NavBarItem(
+                      icon: Icons.auto_stories_outlined,
+                      activeIcon: Icons.auto_stories_rounded,
+                      label: 'Learning', // TODO: Localize
+                      isSelected: activeIndex == 0,
+                      onTap: () => onTap('/my-learning'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
+                      icon: Icons.forum_outlined,
+                      activeIcon: Icons.forum_rounded,
+                      label: 'Community', // TODO: Localize
+                      isSelected: activeIndex == 1,
+                      onTap: () => onTap('/community'),
+                      isDark: isDark,
+                    ),
+                  ]
+                : [
+                    _NavBarItem(
+                      icon: Icons.school_outlined,
+                      activeIcon: Icons.school_rounded,
+                      label: AppLocalizations.of(context)?.courses ?? 'Courses',
+                      isSelected: activeIndex == 0,
+                      onTap: () => onTap('/courses'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
+                      icon: Icons.quiz_outlined,
+                      activeIcon: Icons.quiz_rounded,
+                      label: AppLocalizations.of(context)?.exams ?? 'Exams',
+                      isSelected: activeIndex == 1,
+                      onTap: () => onTap('/exams'),
+                      isDark: isDark,
+                    ),
+                  ],
             ),
           ),
           
@@ -117,24 +153,43 @@ class _BottomNavBar extends StatelessWidget {
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _NavBarItem(
-                  icon: Icons.style_outlined,
-                  activeIcon: Icons.style_rounded,
-                  label: AppLocalizations.of(context)!.cards,
-                  isSelected: activeIndex == 3,
-                  onTap: () => onTap('/flashcards'),
-                  isDark: isDark,
-                ),
-                _NavBarItem(
-                  icon: Icons.video_call_outlined,
-                  activeIcon: Icons.video_call_rounded,
-                  label: AppLocalizations.of(context)!.live,
-                  isSelected: activeIndex == 4,
-                  onTap: () => onTap('/live-schedule'),
-                  isDark: isDark,
-                ),
-              ],
+              children: isAuthenticated
+                ? [
+                    _NavBarItem(
+                      icon: Icons.notifications_none_rounded,
+                      activeIcon: Icons.notifications_rounded,
+                      label: 'Notifs', // TODO: Localize
+                      isSelected: activeIndex == 3,
+                      onTap: () => onTap('/notifications'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
+                      icon: Icons.person_outline_rounded,
+                      activeIcon: Icons.person_rounded,
+                      label: 'Profile', // TODO: Localize
+                      isSelected: activeIndex == 4,
+                      onTap: () => onTap('/settings'),
+                      isDark: isDark,
+                    ),
+                  ]
+                : [
+                    _NavBarItem(
+                      icon: Icons.style_outlined,
+                      activeIcon: Icons.style_rounded,
+                      label: AppLocalizations.of(context)?.cards ?? 'Cards',
+                      isSelected: activeIndex == 3,
+                      onTap: () => onTap('/flashcards'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
+                      icon: Icons.video_call_outlined,
+                      activeIcon: Icons.video_call_rounded,
+                      label: AppLocalizations.of(context)?.live ?? 'Live',
+                      isSelected: activeIndex == 4,
+                      onTap: () => onTap('/live-schedule'),
+                      isDark: isDark,
+                    ),
+                  ],
             ),
           ),
         ],

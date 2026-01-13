@@ -42,29 +42,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    
-   // Handle navigation based on auth state changes
-    ref.listen<AuthState>(authStateProvider, (previous, next) {
-      // Only navigate when state actually changes
-      if (previous?.status != next.status) {
-        if (next.isAuthenticated) {
-          // Login successful - navigate to intended destination
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              context.go(widget.redirectTo ?? '/');
-            }
-          });
-        } else if (next.status == AuthStatus.requires2FA) {
-          // Needs 2FA verification
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              context.go('/auth/verify-2fa');
-            }
-          });
-        }
-      }
-    });
-
     final isLoading = authState.isLoading;
     final errorMessage = authState.error;
 
@@ -192,7 +169,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             delay: const Duration(milliseconds: 200),
             child: IconButton(
               icon: const Icon(Icons.close_rounded, size: 20),
-              onPressed: () => context.pop(),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/');
+                }
+              },
               color: AppColors.textPrimary.withValues(alpha: 0.4),
             ),
           ),

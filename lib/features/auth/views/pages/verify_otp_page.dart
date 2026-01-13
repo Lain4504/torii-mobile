@@ -20,6 +20,16 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   @override
+  void initState() {
+    super.initState();
+    for (var node in _focusNodes) {
+      node.addListener(() {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
+  @override
   void dispose() {
     for (var controller in _controllers) {
       controller.dispose();
@@ -160,43 +170,62 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
   }
 
   Widget _buildOTPBox(int index) {
-    return SizedBox(
-      width: 50,
-      height: 60,
-      child: TextField(
-        controller: _controllers[index],
-        focusNode: _focusNodes[index],
-        textAlign: TextAlign.center,
-        keyboardType: TextInputType.number,
-        maxLength: 1,
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          fontWeight: AppTypography.bold,
+    return Container(
+      width: 45,
+      height: 56,
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(
+          color: _focusNodes[index].hasFocus 
+              ? AppColors.primary.withValues(alpha: 0.6)
+              : AppColors.grey300.withValues(alpha: 0.4),
+          width: 1.5,
         ),
-        decoration: InputDecoration(
-          counterText: '',
-          filled: true,
-          fillColor: AppColors.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: BorderSide(color: AppColors.grey300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.01),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: BorderSide(color: AppColors.grey300),
+        ],
+      ),
+      child: Center(
+        child: TextField(
+          controller: _controllers[index],
+          focusNode: _focusNodes[index],
+          textAlign: TextAlign.center,
+          keyboardType: TextInputType.number,
+          maxLength: 1,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: AppTypography.bold,
+            color: AppColors.textPrimary,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            borderSide: BorderSide(color: AppColors.primary, width: 2),
+          decoration: const InputDecoration(
+            counterText: '',
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            disabledBorder: InputBorder.none,
+            filled: false,
+            contentPadding: EdgeInsets.zero,
+            isDense: true,
           ),
+          onChanged: (value) {
+             setState(() {}); // Rebuild to update border color
+            if (value.isNotEmpty && index < 5) {
+              _focusNodes[index + 1].requestFocus();
+            }
+            if (value.isEmpty && index > 0) {
+              _focusNodes[index - 1].requestFocus();
+            }
+            if (index == 5 && _controllers.every((c) => c.text.isNotEmpty)) {
+              _verifyOTP();
+            }
+          },
         ),
-        onChanged: (value) {
-          if (value.length == 1 && index < 5) {
-            _focusNodes[index + 1].requestFocus();
-          }
-          if (index == 5 && _controllers.every((c) => c.text.isNotEmpty)) {
-            _verifyOTP();
-          }
-        },
       ),
     );
   }
