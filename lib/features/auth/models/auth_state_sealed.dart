@@ -1,13 +1,16 @@
 import '../../../data/models/auth_model.dart';
 
-/// Sealed class cho Authentication State
-/// Sử dụng sealed class để type-safe state management
 sealed class AuthState {}
 
-/// State khi user chưa đăng nhập
-class AuthUnauthenticated extends AuthState {}
+class AuthInitial extends AuthState {}
 
-/// State khi user đã đăng nhập
+class AuthLoading extends AuthState {}
+
+class AuthUnauthenticated extends AuthState {
+  final String? message;
+  AuthUnauthenticated({this.message});
+}
+
 class AuthAuthenticated extends AuthState {
   final User user;
   final String accessToken;
@@ -18,27 +21,9 @@ class AuthAuthenticated extends AuthState {
   });
 }
 
-/// State khi đang loading (login, logout, check auth)
-class AuthLoading extends AuthState {}
-
-/// State khi token đã hết hạn và cần refresh
-class AuthExpired extends AuthState {
-  final String message;
-
-  AuthExpired({this.message = 'Phiên đăng nhập đã hết hạn'});
-}
-
-/// State khi có lỗi xảy ra
-class AuthError extends AuthState {
-  final String message;
-
-  AuthError({required this.message});
-}
-
-/// State khi yêu cầu Two-Factor Authentication
 class AuthTwoFactorRequired extends AuthState {
   final String tempToken;
-  final String method; // 'totp' or 'email'
+  final String method;
   final String message;
   final String? error;
 
@@ -57,4 +42,24 @@ class AuthTwoFactorRequired extends AuthState {
       error: error ?? this.error,
     );
   }
+}
+
+class AuthError extends AuthState {
+  final String message;
+
+  AuthError({required this.message});
+}
+
+class AuthVerifyOTPRequired extends AuthState {
+  final String email;
+  final String message;
+
+  AuthVerifyOTPRequired({required this.email, required this.message});
+}
+
+class AuthResetPasswordRequired extends AuthState {
+  final String tempToken;
+  final String email;
+
+  AuthResetPasswordRequired({required this.tempToken, required this.email});
 }

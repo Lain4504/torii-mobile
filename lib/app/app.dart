@@ -16,7 +16,7 @@ class ToriiApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
     
     return MaterialApp.router(
-      title: 'Torii',
+      title: 'Torii Nihongo',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,

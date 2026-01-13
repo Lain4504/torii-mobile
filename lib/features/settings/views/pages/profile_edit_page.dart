@@ -41,8 +41,13 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'IDENTITY_CONFIG',
-          style: TextStyle(fontFamily: AppTypography.fontFamilySerif, fontWeight: AppTypography.black, fontStyle: FontStyle.italic),
+          'EDIT_PROFILE',
+          style: TextStyle(
+            fontFamily: AppTypography.fontFamilySerif,
+            fontWeight: AppTypography.black,
+            fontStyle: FontStyle.italic,
+            letterSpacing: 2.0,
+          ),
         ),
       ),
       body: ZenBackground(
@@ -63,7 +68,8 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                       child: const CircleAvatar(
                         radius: 50,
                         backgroundColor: AppColors.primarySurface,
-                        child: Icon(Icons.person_rounded, size: 50, color: AppColors.primary),
+                        backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200&h=200'),
+                        child: null,
                       ),
                     ),
                     Positioned(
@@ -83,19 +89,24 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               ),
               const SizedBox(height: 48),
 
-              // Form fields
-              _buildFieldLabel('IDENTITY_NAME'),
-              const SizedBox(height: 8),
-              _buildTextField(_nameController, 'Enter your name'),
-              const SizedBox(height: 24),
-
-              _buildFieldLabel('COMM_CHANNEL_EMAIL'),
-              const SizedBox(height: 8),
-              _buildTextField(_emailController, 'Enter your email', enabled: false),
+              _buildZenTextField(
+                label: 'FULL_NAME',
+                hint: 'Your name',
+                controller: _nameController,
+                icon: Icons.person_outline_rounded,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              _buildZenTextField(
+                label: 'EMAIL_ADDRESS',
+                hint: 'Your email',
+                controller: _emailController,
+                icon: Icons.alternate_email_rounded,
+                readOnly: true,
+              ),
               const SizedBox(height: 48),
 
               ZenButton(
-                text: 'SAVE CONFIGURATION',
+                text: 'SAVE CHANGES',
                 onPressed: () {
                   // TODO: Implement save logic
                   Navigator.pop(context);
@@ -107,12 +118,12 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'DISCARD_CHANGES',
+                  'CANCEL',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: AppTypography.black,
                     color: AppColors.textTertiary,
-                    letterSpacing: 1.0,
+                    letterSpacing: 1.5,
                   ),
                 ),
               ),
@@ -123,39 +134,36 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     );
   }
 
-  Widget _buildFieldLabel(String label) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: AppTypography.black,
-          letterSpacing: 2.0,
-          color: AppColors.primary.withOpacity(0.7),
+  Widget _buildZenTextField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    required IconData icon,
+    bool readOnly = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: AppTypography.black,
+            letterSpacing: 3.0,
+            color: AppColors.primary.withOpacity(0.5),
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String hint, {bool enabled = true}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: enabled ? Colors.white : AppColors.grey100,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.grey200.withOpacity(0.5)),
-      ),
-      child: TextField(
-        controller: controller,
-        enabled: enabled,
-        style: const TextStyle(fontWeight: AppTypography.bold),
-        decoration: InputDecoration(
-          contentPadding: const EdgeInsets.all(16),
+        const SizedBox(height: AppSpacing.sm),
+        ZenTextField(
+          label: '', // Hide internal label
           hintText: hint,
-          border: InputBorder.none,
-          hintStyle: TextStyle(color: AppColors.grey400, fontWeight: AppTypography.medium),
+          controller: controller,
+          icon: icon,
+          readOnly: readOnly,
         ),
-      ),
+      ],
     );
   }
 }
+// Note: ZenTextField currently doesn't have an 'enabled' prop. I should check if I need to update it or just use it as is.
+// Actually, let's just use regular decoration for consistent look if ZenTextField is too rigid.

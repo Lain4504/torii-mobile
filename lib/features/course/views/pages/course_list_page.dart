@@ -62,28 +62,28 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
               backgroundColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
-              expandedHeight: 140,
+              expandedHeight: 160,
               flexibleSpace: FlexibleSpaceBar(
                 background: Padding(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 80, AppSpacing.xl, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'NIHONGO CATALOG',
+                       Text(
+                        'COURSE_CATALOG',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: AppTypography.black,
-                          letterSpacing: 4.0,
-                          color: AppColors.primary.withOpacity(0.7),
+                          letterSpacing: 3.0,
+                          color: AppColors.primary.withOpacity(0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Universal Learning',
+                        'Master Japanese',
                         style: TextStyle(
                           fontFamily: AppTypography.fontFamilySerif,
-                          fontWeight: AppTypography.extraBold,
+                          fontWeight: AppTypography.bold,
                           fontSize: 32,
                           letterSpacing: -1.0,
                           fontStyle: FontStyle.italic,
@@ -131,10 +131,11 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
-                        borderRadius: BorderRadius.circular(4),
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
                       ),
                       child: Text(
                         '${filteredCourses.length}',
@@ -153,7 +154,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             // Course List
             if (state.isLoading)
               const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(child: ZenLoading(text: 'Accessing Catalog Matrix...')),
               )
             else if (state.error != null)
               SliverFillRemaining(
@@ -196,12 +197,12 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   Widget _buildSearchBar(ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.03),
+            color: AppColors.primary.withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -459,33 +460,33 @@ class _FilterChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected 
                 ? AppColors.primary
-                : Colors.white.withOpacity(0.6),
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+                : Colors.white.withOpacity(0.8),
+            borderRadius: BorderRadius.circular(AppRadius.full),
             border: Border.all(
               color: isSelected 
                   ? AppColors.primary
-                  : AppColors.borderLight.withOpacity(0.5),
+                  : AppColors.borderLight.withOpacity(0.3),
             ),
-            boxShadow: isSelected ? [
+            boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.2),
-                blurRadius: 10,
+                color: isSelected ? AppColors.primary.withOpacity(0.2) : AppColors.primary.withOpacity(0.02),
+                blurRadius: 15,
                 offset: const Offset(0, 4),
               )
-            ] : null,
+            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                label,
+                'COURSE_CATALOG',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontFamily: AppTypography.fontFamilySerif,
                   fontWeight: AppTypography.black,
-                  letterSpacing: 1.0,
-                  color: isSelected 
-                      ? Colors.white
-                      : AppColors.textSecondary,
+                  fontSize: 18,
+                  fontStyle: FontStyle.italic,
+                  letterSpacing: 2.0,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),

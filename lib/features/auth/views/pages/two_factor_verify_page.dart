@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:torii_mobile/features/auth/providers/auth_providers.dart';
-import 'package:torii_mobile/features/auth/models/auth_state_sealed.dart';
-import 'package:torii_mobile/core/constants/app_design_system.dart';
-import 'package:torii_mobile/core/widgets/widgets.dart';
-import 'package:torii_mobile/core/widgets/zen_background.dart';
-import 'package:torii_mobile/core/widgets/animations/entry_animation.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
 
 class TwoFactorVerifyPage extends ConsumerStatefulWidget {
   const TwoFactorVerifyPage({super.key});
@@ -16,9 +14,9 @@ class TwoFactorVerifyPage extends ConsumerStatefulWidget {
 }
 
 class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
-  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
-  bool _isBackupMode = false;
+  final List<TextEditingController> _controllers = List.generate(6, (index) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+  bool _isBackupCode = false;
   final TextEditingController _backupController = TextEditingController();
 
   @override
@@ -33,160 +31,218 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     super.dispose();
   }
 
-  String get _otpCode => _controllers.map((c) => c.text).join();
+  void _onType(int index, String value) {
+    if (value.isNotEmpty && index < 5) {
+      _focusNodes[index + 1].requestFocus();
+    }
+    _checkAndVerify();
+  }
 
-  void _onVerify() {
-    if (_isBackupMode) {
-      if (_backupController.text.isNotEmpty) {
-        ref.read(authStateProvider.notifier).verify2FA(_backupController.text, isBackupCode: true);
-      }
+  void _checkAndVerify() {
+    final code = _controllers.map((e) => e.text).join();
+    if (code.length == 6) {
+      _verify(code);
+    }
+  }
+
+  void _verify(String code) {
+    final state = ref.read(authStateProvider);
+    if (state is! AuthTwoFactorRequired) return;
+
+    if (_isBackupCode) {
+      ref.read(authStateProvider.notifier).verify2FA(state.tempToken, code, isBackupCode: true);
     } else {
-      if (_otpCode.length == 6) {
-        ref.read(authStateProvider.notifier).verify2FA(_otpCode);
-      }
+      ref.read(authStateProvider.notifier).verify2FA(state.tempToken, code);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    
-    // Redirect if authenticated
-    if (authState is AuthAuthenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.go('/');
-      });
-    }
+    ref.listen(authStateProvider, (previous, next) {
+      if (next is AuthAuthenticated) {
+        context.go('/');
+      }
+    });
 
-    String? error;
+    final authState = ref.watch(authStateProvider);
+    final isLoading = authState is AuthLoading;
+    String? errorMessage;
+    String? helpMessage;
+
     if (authState is AuthTwoFactorRequired) {
-      error = authState.error;
+      helpMessage = authState.message;
     } else if (authState is AuthError) {
-      error = authState.message;
+      errorMessage = authState.message;
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: ZenBackground(
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 60),
-                
-                // Icon Header
-                EntryAnimation(
-                  index: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      _isBackupMode ? Icons.vpn_key_rounded : Icons.security_rounded,
-                      size: 40,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Title & Subtitle
-                EntryAnimation(
-                  index: 1,
+          child: Column(
+            children: [
+              _buildAppBar(context),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   child: Column(
                     children: [
-                      Text(
-                        _isBackupMode ? 'BACKUP_PROTOCOL' : 'NEURAL_VERIFICATION',
-                        style: const TextStyle(
-                          fontFamily: AppTypography.fontFamilySerif,
-                          fontWeight: AppTypography.black,
-                          fontSize: 24,
-                          letterSpacing: -0.5,
+                      const SizedBox(height: AppSpacing.lg),
+                      _buildHeader(context),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      
+                      if (errorMessage != null) ...[
+                        EntryAnimation(
+                          index: 2,
+                          child: _buildErrorBanner(errorMessage),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _isBackupMode 
-                          ? 'Enter your 8-character recovery codes to bypass standard authentication.'
-                          : 'Enter the security code generated by your authenticator app.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.textTertiary,
-                          fontSize: 14,
-                          height: 1.5,
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+                      
+                      if (!_isBackupCode)
+                        EntryAnimation(
+                          index: 3,
+                          verticalOffset: 20,
+                          child: _buildCodeInput(),
+                        )
+                      else
+                        EntryAnimation(
+                          index: 3,
+                          child: ZenTextField(
+                            label: 'BACKUP CODE',
+                            controller: _backupController,
+                            hintText: 'Enter 8-digit backup code',
+                            icon: Icons.restore_page_rounded,
+                            textInputAction: TextInputAction.done,
+                            onSubmitted: (val) => _verify(val),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 48),
 
-                // Main Input Area
-                EntryAnimation(
-                  index: 2,
-                  child: _isBackupMode ? _buildBackupInput() : _buildOtpInput(),
-                ),
-
-                if (error != null) ...[
-                  const SizedBox(height: 16),
-                  EntryAnimation(
-                    index: 3,
-                    child: Text(
-                      error,
-                      style: const TextStyle(color: Color(0xFFE63946), fontSize: 12, fontWeight: AppTypography.bold),
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 48),
-
-                // Actions
-                EntryAnimation(
-                  index: 4,
-                  child: Column(
-                    children: [
-                      ZenButton(
-                        text: 'AUTHORIZE_ACCESS',
-                        onPressed: _onVerify,
-                        isLoading: authState is AuthLoading,
-                        isFullWidth: true,
-                      ),
-                      const SizedBox(height: 24),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _isBackupMode = !_isBackupMode;
-                             error = null;
-                          });
-                        },
-                        child: Text(
-                          _isBackupMode ? 'USE_AUTHENTICATOR_APP' : 'LOST_ACCESS_TO_APP?',
+                      if (helpMessage != null && !_isBackupCode) ...[
+                        const SizedBox(height: AppSpacing.xl),
+                        Text(
+                          helpMessage,
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: AppTypography.black,
-                            color: AppColors.textTertiary,
-                            letterSpacing: 2.0,
+                            fontSize: 12,
+                            color: AppColors.textSecondary.withOpacity(0.5),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                      
+                      const SizedBox(height: AppSpacing.xxxl),
+                      
+                      EntryAnimation(
+                        index: 4,
+                        child: TextButton(
+                          onPressed: () => setState(() => _isBackupCode = !_isBackupCode),
+                          child: Text(
+                            _isBackupCode ? 'USE AUTHENTICATOR APP' : 'USE BACKUP CODE',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: AppTypography.black,
+                              letterSpacing: 1.0,
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                
-                const SizedBox(height: 40),
-              ],
-            ),
+              ),
+              
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: ZenButton(
+                  text: 'CANCEL LOGISTICS',
+                  onPressed: () => ref.read(authStateProvider.notifier).logout(),
+                  isFullWidth: true,
+                  isPrimary: false,
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildOtpInput() {
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.lg),
+      child: Row(
+        children: [
+          EntryAnimation(
+            delay: const Duration(milliseconds: 200),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+              onPressed: () => ref.read(authStateProvider.notifier).logout(),
+              color: AppColors.textPrimary.withOpacity(0.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      children: [
+        EntryAnimation(
+          index: 0,
+          verticalOffset: -20,
+          child: Container(
+            width: 72, height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 25, offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.vibration_rounded, color: Colors.white, size: 36),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        EntryAnimation(
+          index: 1,
+          child: Column(
+            children: [
+              Text(
+                '2FA VERIFICATION',
+                style: TextStyle(
+                  fontFamily: AppTypography.fontFamilySerif,
+                  fontSize: AppTypography.fontSize2xl,
+                  letterSpacing: -1.0,
+                  fontWeight: AppTypography.bold,
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'MULTI-FACTOR AUTHENTICATION',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 4.0,
+                  color: AppColors.primary.withOpacity(0.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCodeInput() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(6, (index) {
@@ -198,50 +254,42 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             maxLength: 1,
-            style: const TextStyle(fontSize: 24, fontWeight: AppTypography.black, color: AppColors.primary),
+            style: const TextStyle(fontSize: 24, fontWeight: AppTypography.bold, color: AppColors.primary),
             decoration: InputDecoration(
               counterText: "",
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.grey300, width: 2),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.primary, width: 2),
-              ),
+              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.borderLight)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary, width: 2)),
             ),
-            onChanged: (value) {
-              if (value.isNotEmpty && index < 5) {
-                _focusNodes[index + 1].requestFocus();
-              } else if (value.isEmpty && index > 0) {
-                _focusNodes[index - 1].requestFocus();
-              }
-              if (_otpCode.length == 6) {
-                _onVerify();
-              }
-            },
+            onChanged: (value) => _onType(index, value),
           ),
         );
       }),
     );
   }
 
-  Widget _buildBackupInput() {
+  Widget _buildErrorBanner(String message) {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.grey200),
+        color: AppColors.errorLight.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: AppColors.error.withOpacity(0.1)),
       ),
-      child: TextField(
-        controller: _backupController,
-        style: const TextStyle(fontFamily: 'Courier', fontWeight: AppTypography.bold, letterSpacing: 2.0),
-        textAlign: TextAlign.center,
-        decoration: InputDecoration(
-          hintText: 'XXXX-XXXX',
-          hintStyle: TextStyle(color: AppColors.grey400, letterSpacing: 2.0),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.all(20),
-        ),
-        onSubmitted: (_) => _onVerify(),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: AppColors.errorDark,
+                fontSize: 12,
+                fontWeight: AppTypography.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

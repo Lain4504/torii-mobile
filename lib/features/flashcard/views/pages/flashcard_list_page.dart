@@ -64,20 +64,20 @@ class FlashcardListPage extends StatelessWidget {
                     children: [
                       const SizedBox(height: 60),
                       Text(
-                        'MEMORY PROTOCOLS',
+                        'PRACTICE_DECKS',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: AppTypography.black,
-                          letterSpacing: 4.0,
-                          color: AppColors.primary.withOpacity(0.7),
+                          letterSpacing: 3.0,
+                          color: AppColors.primary.withOpacity(0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'Neural Memory Banks',
+                      const Text(
+                        'Flashcard Sets',
                         style: TextStyle(
                           fontFamily: AppTypography.fontFamilySerif,
-                          fontWeight: AppTypography.extraBold,
+                          fontWeight: AppTypography.bold,
                           fontSize: 32,
                           letterSpacing: -1.0,
                           fontStyle: FontStyle.italic,
@@ -140,11 +140,17 @@ class FlashcardListPage extends StatelessWidget {
         child: FloatingActionButton.extended(
           onPressed: () {},
           backgroundColor: AppColors.primary,
-          elevation: 8,
-          icon: const Icon(Icons.add_rounded, color: Colors.white),
+          elevation: 12,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
+          icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
           label: const Text(
             'NEW DECK',
-            style: TextStyle(color: Colors.white, fontWeight: AppTypography.black, letterSpacing: 1.0, fontSize: 12),
+            style: TextStyle(
+              color: Colors.white, 
+              fontWeight: AppTypography.black, 
+              letterSpacing: 1.5, 
+              fontSize: 10,
+            ),
           ),
         ),
       ),
@@ -164,14 +170,14 @@ class _DeckCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        color: Colors.white.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
         border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.03),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: AppColors.primary.withOpacity(0.03),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -280,10 +286,11 @@ class _StatLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPrimary = color == AppColors.primary;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: isPrimary ? color.withOpacity(0.1) : AppColors.background,
-        borderRadius: BorderRadius.circular(6),
+        color: isPrimary ? color.withOpacity(0.1) : AppColors.primary.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: (isPrimary ? color : AppColors.borderLight).withOpacity(0.15)),
       ),
       child: Text(
         label,

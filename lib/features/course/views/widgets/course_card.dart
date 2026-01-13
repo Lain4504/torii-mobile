@@ -18,21 +18,21 @@ class CourseCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.card),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: AppColors.black.withOpacity(0.03),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
           ),
         ],
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.5), width: 1.5),
+        border: Border.all(color: AppColors.borderLight.withOpacity(0.3), width: 1.0),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: () => context.push('/courses/${course.id}'),
-          borderRadius: BorderRadius.circular(AppRadius.card),
+          borderRadius: BorderRadius.circular(AppRadius.xxl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -57,8 +57,9 @@ class CourseCard extends StatelessWidget {
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: AppTypography.extraBold,
                         color: AppColors.textPrimary,
-                        fontSize: 18,
-                        height: 1.3,
+                        fontSize: 19,
+                        height: 1.2,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -104,29 +105,24 @@ class CourseCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Premium Rating
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.accentSurface,
-                            borderRadius: BorderRadius.circular(AppRadius.full),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.star_rounded,
-                                size: 16,
-                                color: AppColors.accent,
+                        // Premium Rating
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.star_rounded,
+                              size: 16,
+                              color: Color(0xFFFFB800),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${course.rating}',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                fontWeight: AppTypography.black,
+                                color: AppColors.textSecondary,
+                                letterSpacing: 1.0,
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${course.rating}',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  fontWeight: AppTypography.bold,
-                                  color: AppColors.accentDark,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                         
                         // Bold Price
@@ -134,7 +130,8 @@ class CourseCard extends StatelessWidget {
                           course.priceLabel,
                           style: theme.textTheme.titleLarge?.copyWith(
                             color: AppColors.primary,
-                            fontWeight: AppTypography.extraBold,
+                            fontWeight: AppTypography.black,
+                            fontSize: 20,
                           ),
                         ),
                       ],
@@ -158,7 +155,7 @@ class CourseCard extends StatelessWidget {
           // High Quality Image Placeholder/Network
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.card - 1),
+              top: Radius.circular(AppRadius.xxl - 1),
             ),
             child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
                 ? Image.network(
@@ -189,12 +186,11 @@ class CourseCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.success,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppRadius.full),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.success.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
+                      color: AppColors.success.withOpacity(0.2),
+                      blurRadius: 10, offset: const Offset(0, 4),
                     ),
                   ],
                 ),
@@ -202,14 +198,14 @@ class CourseCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.check_circle_rounded, color: Colors.white, size: 14),
-                    SizedBox(width: 4),
+                    SizedBox(width: 6),
                     Text(
                       'ENROLLED',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 10,
-                        letterSpacing: 0.5,
-                        fontWeight: AppTypography.bold,
+                        fontSize: 9,
+                        letterSpacing: 2.0,
+                        fontWeight: AppTypography.black,
                       ),
                     ),
                   ],
@@ -265,18 +261,19 @@ class CourseCard extends StatelessWidget {
     required Color textColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
+        color: backgroundColor.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: backgroundColor.withOpacity(0.2)),
       ),
       child: Text(
-        text,
+        text.toUpperCase(),
         style: TextStyle(
           color: textColor,
-          fontSize: 10,
-          fontWeight: AppTypography.extraBold,
-          letterSpacing: 0.5,
+          fontSize: 8,
+          fontWeight: AppTypography.black,
+          letterSpacing: 2.5,
         ),
       ),
     );

@@ -4,37 +4,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../features/auth/providers/auth_providers.dart';
-import '../../features/auth/models/auth_state_sealed.dart';
-import '../../features/auth/views/pages/login_page.dart';
-import '../../features/auth/views/pages/register_page.dart';
-import '../../features/auth/views/pages/forgot_password_page.dart';
-import '../../features/auth/views/pages/verify_otp_page.dart';
-import '../../features/auth/views/pages/reset_password_page.dart';
-import '../../features/auth/views/pages/two_factor_verify_page.dart';
-import '../../features/course/views/pages/course_list_page.dart';
-import '../../features/course/views/pages/course_detail_page.dart';
-import '../../features/course/views/pages/payment_page.dart';
-import '../../features/dashboard/views/pages/home_page.dart';
-import '../../features/dashboard/views/pages/dashboard_page.dart';
-import '../../features/course/views/pages/my_learning_page.dart';
-import '../../features/exam/views/pages/exam_list_page.dart';
-import '../../features/exam/views/pages/exam_taking_page.dart';
-import '../../features/exam/models/exam_model.dart';
-import '../../features/flashcard/views/pages/flashcard_list_page.dart';
-import '../../features/flashcard/views/pages/flashcard_practice_page.dart';
-import '../../features/flashcard/models/flashcard_model.dart';
-import '../../features/course/views/pages/lesson_page.dart';
-import '../../features/course/models/lesson_model.dart';
-import '../../features/live_class/views/pages/live_class_schedule_page.dart';
-import '../../features/onboarding/views/pages/onboarding_page.dart';
-import '../../features/settings/views/pages/settings_page.dart';
-import '../../features/community/views/pages/post_list_page.dart';
-import '../../features/community/views/pages/post_detail_page.dart';
-import '../../features/community/models/post_model.dart';
-import '../../features/settings/views/pages/profile_edit_page.dart';
-import '../../features/settings/views/pages/security_settings_page.dart';
-import '../widgets/app_shell.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/features/auth/views/pages/login_page.dart';
+import 'package:torii_app/features/auth/views/pages/register_page.dart';
+import 'package:torii_app/features/auth/views/pages/forgot_password_page.dart';
+import 'package:torii_app/features/auth/views/pages/verify_otp_page.dart';
+import 'package:torii_app/features/auth/views/pages/reset_password_page.dart';
+import 'package:torii_app/features/auth/views/pages/two_factor_verify_page.dart';
+import 'package:torii_app/features/course/views/pages/course_list_page.dart';
+import 'package:torii_app/features/course/views/pages/course_detail_page.dart';
+import 'package:torii_app/features/course/views/pages/payment_page.dart';
+import 'package:torii_app/features/dashboard/views/pages/home_page.dart';
+import 'package:torii_app/features/dashboard/views/pages/dashboard_page.dart';
+import 'package:torii_app/features/course/views/pages/my_learning_page.dart';
+import 'package:torii_app/features/exam/views/pages/exam_list_page.dart';
+import 'package:torii_app/features/exam/views/pages/exam_taking_page.dart';
+import 'package:torii_app/features/exam/models/exam_model.dart';
+import 'package:torii_app/features/flashcard/views/pages/flashcard_list_page.dart';
+import 'package:torii_app/features/flashcard/views/pages/flashcard_practice_page.dart';
+import 'package:torii_app/features/flashcard/models/flashcard_model.dart';
+import 'package:torii_app/features/course/views/pages/lesson_page.dart';
+import 'package:torii_app/features/course/models/lesson_model.dart';
+import 'package:torii_app/features/live_class/views/pages/live_class_schedule_page.dart';
+import 'package:torii_app/features/onboarding/views/pages/onboarding_page.dart';
+import 'package:torii_app/features/settings/views/pages/settings_page.dart';
+import 'package:torii_app/features/community/views/pages/post_list_page.dart';
+import 'package:torii_app/features/community/views/pages/post_detail_page.dart';
+import 'package:torii_app/features/community/models/post_model.dart';
+import 'package:torii_app/features/settings/views/pages/profile_edit_page.dart';
+import 'package:torii_app/features/settings/views/pages/security_settings_page.dart';
+import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authNotifier = ValueNotifier<AuthState>(ref.read(authStateProvider));
@@ -66,21 +66,31 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState is AuthAuthenticated;
       final requestedLocation = state.matchedLocation;
 
+      debugPrint('AppRouter Redirect Check: Location=$requestedLocation, AuthState=$authState');
+
+      // PRIORITY 1: Handle 2FA Requirement
+      if (authState is AuthTwoFactorRequired) {
+        if (requestedLocation != '/auth/verify-2fa') {
+          return '/auth/verify-2fa';
+        }
+        return null;
+      }
+
+
+
       // Kiểm tra route có protected không
       final isProtectedRoute = AppRouter.protectedRoutes.contains(requestedLocation);
       final isLoginPage = requestedLocation == '/login';
       final isRegisterPage = requestedLocation == '/register';
+      final isVerify2FAPage = requestedLocation == '/auth/verify-2fa';
 
       // Nếu user chưa login và cố vào protected route -> redirect login
       if (!isAuthenticated && isProtectedRoute) {
         return '/login?redirect=${Uri.encodeComponent(requestedLocation)}';
       }
 
-
-
-
-      // Nếu user đã login và cố vào login/register page -> redirect home
-      if (isAuthenticated && (isLoginPage || isRegisterPage)) {
+      // Nếu user đã login và cố vào login/register/verify-2fa page -> redirect home
+      if (isAuthenticated && (isLoginPage || isRegisterPage || isVerify2FAPage)) {
         return '/';
       }
 
@@ -101,6 +111,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/',
             builder: (context, state) {
               final authState = ref.watch(authStateProvider);
+
+              
               if (authState is AuthAuthenticated) {
                 return const DashboardPage();
               }
@@ -176,7 +188,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
           return VerifyOTPPage(
             email: extra['email'] as String? ?? '',
-            type: extra['type'] as String? ?? 'reset-password',
           );
         },
       ),
