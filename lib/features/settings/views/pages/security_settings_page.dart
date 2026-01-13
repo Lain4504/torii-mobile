@@ -3,9 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
-import 'package:torii_app/core/widgets/zen_background.dart';
-import 'package:torii_app/core/widgets/animations/entry_animation.dart';
-import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/auth/providers/two_factor_provider.dart';
 
 class SecuritySettingsPage extends ConsumerStatefulWidget {

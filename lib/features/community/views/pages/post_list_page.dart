@@ -6,8 +6,6 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 import 'package:torii_app/features/community/providers/post_providers.dart';
 import 'package:torii_app/features/community/models/post_model.dart';
-import 'package:torii_app/core/widgets/zen_background.dart';
-import 'package:torii_app/core/widgets/animations/entry_animation.dart';
 
 class PostListPage extends ConsumerWidget {
   const PostListPage({super.key});

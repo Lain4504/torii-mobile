@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../../core/widgets/animations/entry_animation.dart';
 
 /// Onboarding Page - Minimalist First Impressions
 /// 
@@ -61,7 +60,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     await prefs.setBool('onboarding_completed', true);
     
     if (!mounted) return;
-    context.go('/login'); // Navigate to login after onboarding for first-time premium experience
+    context.go('/'); // Navigate to login after onboarding for first-time premium experience
   }
 
   @override

@@ -8,8 +8,6 @@ import '../../../auth/models/auth_state_sealed.dart';
 import '../../../course/providers/my_learning_provider.dart';
 import '../../../course/views/widgets/course_card.dart';
 import '../../../../core/theme/theme_provider.dart';
-import '../../../../core/widgets/zen_background.dart';
-import '../../../../core/widgets/animations/entry_animation.dart';
 
 /// Dashboard Page - Focused Learning Matrix for Authenticated Users
 class DashboardPage extends ConsumerStatefulWidget {

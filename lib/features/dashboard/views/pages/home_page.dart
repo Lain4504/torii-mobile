@@ -9,8 +9,6 @@ import 'package:torii_app/features/course/providers/course_providers.dart';
 import 'package:torii_app/features/course/views/widgets/course_card.dart';
 import 'package:torii_app/core/theme/theme_provider.dart';
 import 'package:torii_app/core/localization/l10n/app_localizations.dart';
-import 'package:torii_app/core/widgets/zen_background.dart';
-import 'package:torii_app/core/widgets/animations/entry_animation.dart';
 
 /// Home Page - Premium Zen UI Rebuild
 class HomePage extends ConsumerStatefulWidget {

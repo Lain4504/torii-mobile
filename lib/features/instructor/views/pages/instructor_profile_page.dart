@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/zen_background.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../../core/widgets/animations/entry_animation.dart';
 
 class InstructorProfilePage extends StatelessWidget {
   final String instructorId;

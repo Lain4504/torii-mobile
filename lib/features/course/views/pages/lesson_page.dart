@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../models/course_model.dart';
 import '../../models/lesson_model.dart';
-import '../../../../core/widgets/zen_background.dart';
 
 class LessonPage extends ConsumerStatefulWidget {
   final String courseId;

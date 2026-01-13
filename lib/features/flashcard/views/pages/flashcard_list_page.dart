@@ -3,8 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../models/flashcard_model.dart';
-import '../../../../core/widgets/zen_background.dart';
-import '../../../../core/widgets/animations/entry_animation.dart';
 
 /// Flashcard List Page - Premium Deck Interface
 class FlashcardListPage extends StatelessWidget {

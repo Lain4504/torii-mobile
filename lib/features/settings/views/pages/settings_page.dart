@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/localization/l10n/app_localizations.dart';
-import '../../../../core/widgets/cards/minimal_card.dart';
 import '../../../../core/widgets/zen_background.dart';
 import '../../../auth/providers/auth_providers.dart';
 import '../../../auth/models/auth_state_sealed.dart';

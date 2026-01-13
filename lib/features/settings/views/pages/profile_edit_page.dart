@@ -4,7 +4,6 @@ import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/providers/auth_providers.dart';
 import '../../../auth/models/auth_state_sealed.dart';
-import '../../../../core/widgets/zen_background.dart';
 
 class ProfileEditPage extends ConsumerStatefulWidget {
   const ProfileEditPage({super.key});

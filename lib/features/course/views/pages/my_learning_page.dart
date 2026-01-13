@@ -5,8 +5,6 @@ import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../providers/my_learning_provider.dart';
 import '../widgets/course_card.dart';
-import '../../../../core/widgets/zen_background.dart';
-import '../../../../core/widgets/animations/entry_animation.dart';
 
 class MyLearningPage extends ConsumerWidget {
   const MyLearningPage({super.key});
