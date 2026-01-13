@@ -132,8 +132,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signInRequired => 'Sign in Required';
 
   @override
-  String get signInToAccess =>
-      'Sign in to access this feature and track your progress.';
+  String get signInToAccess => 'Sign in to access this feature and track your progress.';
 
   @override
   String get cancel => 'Cancel';

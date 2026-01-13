@@ -11,19 +11,29 @@ import '../../features/auth/views/pages/register_page.dart';
 import '../../features/auth/views/pages/forgot_password_page.dart';
 import '../../features/auth/views/pages/verify_otp_page.dart';
 import '../../features/auth/views/pages/reset_password_page.dart';
+import '../../features/auth/views/pages/two_factor_verify_page.dart';
 import '../../features/course/views/pages/course_list_page.dart';
 import '../../features/course/views/pages/course_detail_page.dart';
 import '../../features/course/views/pages/payment_page.dart';
 import '../../features/dashboard/views/pages/home_page.dart';
+import '../../features/dashboard/views/pages/dashboard_page.dart';
+import '../../features/course/views/pages/my_learning_page.dart';
 import '../../features/exam/views/pages/exam_list_page.dart';
 import '../../features/exam/views/pages/exam_taking_page.dart';
 import '../../features/exam/models/exam_model.dart';
 import '../../features/flashcard/views/pages/flashcard_list_page.dart';
 import '../../features/flashcard/views/pages/flashcard_practice_page.dart';
 import '../../features/flashcard/models/flashcard_model.dart';
+import '../../features/course/views/pages/lesson_page.dart';
+import '../../features/course/models/lesson_model.dart';
 import '../../features/live_class/views/pages/live_class_schedule_page.dart';
 import '../../features/onboarding/views/pages/onboarding_page.dart';
 import '../../features/settings/views/pages/settings_page.dart';
+import '../../features/community/views/pages/post_list_page.dart';
+import '../../features/community/views/pages/post_detail_page.dart';
+import '../../features/community/models/post_model.dart';
+import '../../features/settings/views/pages/profile_edit_page.dart';
+import '../../features/settings/views/pages/security_settings_page.dart';
 import '../widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -89,7 +99,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const HomePage(),
+            builder: (context, state) {
+              final authState = ref.watch(authStateProvider);
+              if (authState is AuthAuthenticated) {
+                return const DashboardPage();
+              }
+              return const HomePage();
+            },
+          ),
+          GoRoute(
+            path: '/my-learning',
+            builder: (context, state) => const MyLearningPage(),
+          ),
+          GoRoute(
+            path: '/community',
+            builder: (context, state) => const PostListPage(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) {
+                   final post = state.extra as Post?;
+                   final id = state.pathParameters['id'] ?? '';
+                   return PostDetailPage(postId: id, post: post);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/courses',
@@ -158,6 +192,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/auth/verify-2fa',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const TwoFactorVerifyPage(),
+      ),
+      GoRoute(
         path: '/exams/take',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) {
@@ -182,6 +221,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const SettingsPage(),
+        routes: [
+          GoRoute(
+            path: 'profile/edit',
+            builder: (context, state) => const ProfileEditPage(),
+          ),
+          GoRoute(
+            path: 'security',
+            builder: (context, state) => const SecuritySettingsPage(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/learning/:courseId/:lessonId',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final courseId = state.pathParameters['courseId'] ?? '';
+          final lessonId = state.pathParameters['lessonId'] ?? '';
+          final lesson = state.extra as Lesson?;
+          return LessonPage(courseId: courseId, lessonId: lessonId, lesson: lesson);
+        },
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
@@ -208,6 +267,7 @@ class AppRouter {
     '/auth/forgot-password',
     '/auth/verify-otp',
     '/auth/reset-password',
+    '/auth/verify-2fa',
   ];
 }
 

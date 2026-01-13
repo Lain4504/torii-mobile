@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../services/auth/auth_service.dart';
 import '../../../../data/api/api_client.dart';
+import '../../../../core/widgets/zen_background.dart';
+import '../../../../core/widgets/animations/entry_animation.dart';
 
-/// Reset Password Page
-/// User sets new password after OTP verification
+/// Reset Password Page - Final Recovery Step
 class ResetPasswordPage extends ConsumerStatefulWidget {
   final String email;
   final String token;
@@ -21,8 +22,7 @@ class ResetPasswordPage extends ConsumerStatefulWidget {
   ConsumerState<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
-    with SingleTickerProviderStateMixin {
+class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -30,28 +30,11 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
   String? _errorMessage;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: AppDuration.slow,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: AppCurves.easeOut,
-    );
-    _animationController.forward();
-  }
 
   @override
   void dispose() {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -71,7 +54,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
       );
       
       if (mounted) {
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Password reset successfully! You can now login.'),
@@ -80,7 +62,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
           ),
         );
         
-        // Navigate to login page
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             context.go('/login');
@@ -99,106 +80,338 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.pageHorizontal,
-            ),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: AppSpacing.xl),
-                  
-                  // Header
-                  _buildHeader(context),
-                  
-                  const SizedBox(height: AppSpacing.xxl),
-                  
-                  // Error Message
-                  if (_errorMessage != null) ...[
-                    _buildErrorMessage(_errorMessage!),
-                    const SizedBox(height: AppSpacing.lg),
+      backgroundColor: AppColors.background,
+      body: ZenBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Custom Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Row(
+                  children: [
+                    EntryAnimation(
+                      delay: const Duration(milliseconds: 100),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                        onPressed: () => context.pop(),
+                        color: AppColors.textPrimary.withOpacity(0.5),
+                      ),
+                    ),
                   ],
-                  
-                  // Password Field
-                  _buildPasswordField(theme),
-                  
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // Confirm Password Field
-                  _buildConfirmPasswordField(theme),
-                  
-                  const SizedBox(height: AppSpacing.xl),
-                  
-                  // Reset Button
-                  _buildResetButton(_isLoading),
-                  
-                  const SizedBox(height: AppSpacing.xl),
-                ],
+                ),
               ),
-            ),
+              
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: AppSpacing.lg),
+                        
+                        // Zen Header
+                        _buildZenHeader(context),
+                        
+                        const SizedBox(height: AppSpacing.xxl),
+                        
+                        // Error Message
+                        if (_errorMessage != null) ...[
+                          EntryAnimation(
+                            index: 3,
+                            child: _buildErrorMessage(_errorMessage!),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                        ],
+                        
+                        // Form Fields
+                        EntryAnimation(
+                          index: 4,
+                          verticalOffset: 30,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildTextField(
+                                label: 'NEW PASSWORD',
+                                controller: _passwordController,
+                                hintText: 'Enter your new password',
+                                icon: Icons.lock_outline_rounded,
+                                obscureText: _obscurePassword,
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                    size: 18,
+                                    color: AppColors.textTertiary,
+                                  ),
+                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) return 'Please enter a password';
+                                  if (value.length < 8) return 'Password must be at least 8 characters';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              _buildTextField(
+                                label: 'CONFIRM PASSWORD',
+                                controller: _confirmPasswordController,
+                                hintText: 'Re-enter your new password',
+                                icon: Icons.check_circle_outline_rounded,
+                                obscureText: _obscureConfirmPassword,
+                                textInputAction: TextInputAction.done,
+                                onSubmitted: (_) => _resetPassword(),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                    size: 18,
+                                    color: AppColors.textTertiary,
+                                  ),
+                                  onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) return 'Please confirm your password';
+                                  if (value != _passwordController.text) return 'Passwords do not match';
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: AppSpacing.xl),
+                        
+                        // Action Button
+                        EntryAnimation(
+                          index: 5,
+                          child: _buildPrimaryButton(
+                            text: 'RESET CREDENTIALS',
+                            onPressed: _resetPassword,
+                            isLoading: _isLoading,
+                          ),
+                        ),
+                        
+                        const SizedBox(height: AppSpacing.xl),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    
+  Widget _buildZenHeader(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Logo
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: const Center(
-            child: Text(
-              '鳥',
-              style: TextStyle(
+        EntryAnimation(
+          index: 0,
+          verticalOffset: -20,
+          child: Container(
+            width: 80,
+            height: 80,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.lock_reset_rounded,
                 color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+                size: 40,
               ),
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(
-          'Set New Password',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: AppTypography.bold,
+        const SizedBox(height: AppSpacing.xl),
+        EntryAnimation(
+          index: 1,
+          child: Column(
+            children: [
+              Text(
+                'TORII NIHONGO',
+                style: TextStyle(
+                    fontFamily: AppTypography.fontFamilySerif,
+                    fontSize: AppTypography.fontSize3xl,
+                    letterSpacing: -1.5,
+                    fontWeight: AppTypography.bold,
+                    fontStyle: FontStyle.italic,
+                    color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'ACCESS RESTORATION',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 4.0,
+                  color: AppColors.primary.withOpacity(0.7),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          'Enter your new password below',
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: AppColors.textSecondary,
+        const SizedBox(height: AppSpacing.xl),
+        EntryAnimation(
+          index: 2,
+          child: Column(
+            children: [
+              Text(
+                'Security Protocol for',
+                style: TextStyle(
+                  fontSize: AppTypography.fontSizeSm,
+                  fontWeight: AppTypography.medium,
+                  color: AppColors.textSecondary.withOpacity(0.6),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.email,
+                style: const TextStyle(
+                  fontSize: AppTypography.fontSizeMd,
+                  fontWeight: AppTypography.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required String hintText,
+    required IconData icon,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    TextInputAction textInputAction = TextInputAction.next,
+    String? Function(String?)? validator,
+    void Function(String)? onSubmitted,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: AppTypography.black,
+              letterSpacing: 2.0,
+              color: AppColors.textTertiary,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+          ),
+          child: TextFormField(
+            controller: controller,
+            obscureText: obscureText,
+            textInputAction: textInputAction,
+            onFieldSubmitted: onSubmitted,
+            style: const TextStyle(
+              fontSize: AppTypography.fontSizeMd,
+              fontWeight: AppTypography.bold,
+              color: AppColors.textPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: hintText,
+              hintStyle: TextStyle(
+                color: AppColors.textTertiary.withOpacity(0.4),
+                fontWeight: AppTypography.medium,
+              ),
+              prefixIcon: Icon(icon, size: 20, color: AppColors.primary.withOpacity(0.7)),
+              suffixIcon: suffixIcon,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 16),
+            ),
+            validator: validator,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPrimaryButton({
+    required String text,
+    required VoidCallback onPressed,
+    bool isLoading = false,
+  }) {
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          elevation: 0,
+        ),
+        child: isLoading
+            ? const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    text.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: AppTypography.fontSizeSm,
+                      fontWeight: AppTypography.black,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  const Icon(Icons.security_rounded, size: 20),
+                ],
+              ),
+      ),
     );
   }
 
@@ -206,130 +419,25 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+        color: AppColors.errorLight.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.error.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: AppColors.error,
-            size: AppIconSize.sm,
-          ),
-          const SizedBox(width: AppSpacing.sm),
+          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
               message,
               style: const TextStyle(
                 color: AppColors.errorDark,
                 fontSize: AppTypography.fontSizeSm,
+                fontWeight: AppTypography.medium,
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPasswordField(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'New Password',
-          style: theme.textTheme.labelLarge,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        TextFormField(
-          controller: _passwordController,
-          obscureText: _obscurePassword,
-          textInputAction: TextInputAction.next,
-          style: theme.textTheme.bodyLarge,
-          decoration: InputDecoration(
-            hintText: 'Enter new password',
-            prefixIcon: const Icon(Icons.lock_outline_rounded, size: AppIconSize.sm),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword 
-                    ? Icons.visibility_off_outlined 
-                    : Icons.visibility_outlined,
-                size: AppIconSize.sm,
-              ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-            ),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter a new password';
-            }
-            if (value.length < 8) {
-              return 'Password must be at least 8 characters long';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConfirmPasswordField(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Confirm Password',
-          style: theme.textTheme.labelLarge,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        TextFormField(
-          controller: _confirmPasswordController,
-          obscureText: _obscureConfirmPassword,
-          textInputAction: TextInputAction.done,
-          onFieldSubmitted: (_) => _resetPassword(),
-          style: theme.textTheme.bodyLarge,
-          decoration: InputDecoration(
-            hintText: 'Confirm new password',
-            prefixIcon: const Icon(Icons.lock_outline_rounded, size: AppIconSize.sm),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscureConfirmPassword 
-                    ? Icons.visibility_off_outlined 
-                    : Icons.visibility_outlined,
-                size: AppIconSize.sm,
-              ),
-              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-            ),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please confirm your password';
-            }
-            if (value != _passwordController.text) {
-              return 'Passwords do not match';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildResetButton(bool isLoading) {
-    return SizedBox(
-      height: 52,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : _resetPassword,
-        child: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : const Text('Reset Password'),
       ),
     );
   }

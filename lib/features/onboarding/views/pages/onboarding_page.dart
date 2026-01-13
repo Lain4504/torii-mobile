@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_design_system.dart';
+import '../../../../core/widgets/animations/entry_animation.dart';
 
 /// Onboarding Page - Minimalist First Impressions
 /// 
@@ -73,189 +74,187 @@ class _OnboardingPageState extends State<OnboardingPage> {
     final theme = Theme.of(context);
     
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header with Skip
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          // Zen Background Pattern
+          Positioned.fill(
+            child: Container(
+              color: theme.scaffoldBackgroundColor,
+              child: Stack(
                 children: [
-                  // Logo
-                  Row(
+                  // Top Right Soft Glow
+                  Positioned(
+                    top: -100,
+                    right: -100,
+                    child: Container(
+                      width: 300,
+                      height: 300,
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySurface.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  // Bottom Left Soft Glow
+                  Positioned(
+                    bottom: -50,
+                    left: -50,
+                    child: Container(
+                      width: 250,
+                      height: 250,
+                      decoration: BoxDecoration(
+                        color: AppColors.accentSurface.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  // Subtle Grid/Pattern (Ma inspiration)
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: ZenPatternPainter(
+                        color: AppColors.grey200.withOpacity(0.2),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          SafeArea(
+            child: Column(
+              children: [
+                // Header with Logo
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.md,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                      EntryAnimation(
+                        delay: const Duration(milliseconds: 200),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                gradient: AppColors.primaryGradient,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.2),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '鳥',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Text(
+                              'TORII',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: AppTypography.extraBold,
+                                letterSpacing: 1.2,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
                         ),
-                        child: const Center(
-                          child: Text(
-                            '鳥',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                      ),
+                      
+                      if (_currentPage < _pages.length - 1)
+                        EntryAnimation(
+                          delay: const Duration(milliseconds: 300),
+                          child: TextButton(
+                            onPressed: _skipOnboarding,
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.textSecondary,
+                            ),
+                            child: const Text('Skip'),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                
+                // Page Content
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() => _currentPage = index);
+                    },
+                    itemCount: _pages.length,
+                    itemBuilder: (context, index) {
+                      return _OnboardingSlide(
+                        data: _pages[index],
+                        isActive: index == _currentPage,
+                      );
+                    },
+                  ),
+                ),
+                
+                // Bottom Section
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: Column(
+                    children: [
+                      // Page Indicators
+                      EntryAnimation(
+                        delay: const Duration(milliseconds: 400),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            _pages.length,
+                            (index) => _PageIndicator(isActive: index == _currentPage),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxl),
+                      
+                      // Action Button
+                      EntryAnimation(
+                        delay: const Duration(milliseconds: 500),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _nextPage,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              elevation: 8,
+                              shadowColor: AppColors.primary.withOpacity(0.25),
+                            ),
+                            child: Text(
+                              _currentPage == _pages.length - 1 
+                                  ? 'Begin Your Journey' 
+                                  : 'Explore More',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        'Torii',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: AppTypography.bold,
-                        ),
-                      ),
+                      const SizedBox(height: AppSpacing.md),
                     ],
                   ),
-                  
-                  // Skip Button
-                  if (_currentPage < _pages.length - 1)
-                    TextButton(
-                      onPressed: _skipOnboarding,
-                      child: Text(
-                        'Skip',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontWeight: AppTypography.medium,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+                ),
+              ],
             ),
-            
-            // Page Content
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) {
-                  setState(() => _currentPage = index);
-                },
-                itemCount: _pages.length,
-                itemBuilder: (context, index) {
-                  return _OnboardingSlide(data: _pages[index]);
-                },
-              ),
-            ),
-            
-            // Bottom Section
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.pageHorizontal),
-              child: Column(
-                children: [
-                  // Page Indicators
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _pages.length,
-                      (index) => _PageIndicator(isActive: index == _currentPage),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  
-                  // Action Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: _nextPage,
-                      child: Text(
-                        _currentPage == _pages.length - 1 
-                            ? 'Get Started' 
-                            : 'Continue',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Onboarding Slide - Individual page content
-class _OnboardingSlide extends StatelessWidget {
-  final _OnboardingData data;
-
-  const _OnboardingSlide({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Icon Container
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              data.icon,
-              size: 56,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xxl),
-          
-          // Subtitle
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.xs,
-            ),
-            decoration: BoxDecoration(
-              color: isDark 
-                  ? AppColors.surfaceVariantDark 
-                  : AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(AppRadius.full),
-            ),
-            child: Text(
-              data.subtitle,
-              style: TextStyle(
-                fontSize: AppTypography.fontSizeSm,
-                fontWeight: AppTypography.medium,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          
-          // Title
-          Text(
-            data.title,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: AppTypography.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          
-          // Description
-          Text(
-            data.description,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.6,
-            ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -263,7 +262,154 @@ class _OnboardingSlide extends StatelessWidget {
   }
 }
 
-/// Page Indicator - Dot indicator for current page
+/// Custom Background Painter for Zen aesthetic
+class ZenPatternPainter extends CustomPainter {
+  final Color color;
+  ZenPatternPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+
+    // Draw rhythmic vertical lines (like bamboo or shoji)
+    const spacing = 60.0;
+    for (double i = 0; i < size.width; i += spacing) {
+      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Onboarding Slide - Individual page content
+class _OnboardingSlide extends StatelessWidget {
+  final _OnboardingData data;
+  final bool isActive;
+
+  const _OnboardingSlide({
+    required this.data,
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Illustration/Icon Container
+          EntryAnimation(
+            animate: isActive,
+            index: 0,
+            verticalOffset: 40,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.black.withOpacity(0.04),
+                    blurRadius: 32,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Spinning outer ring (subtle decoration)
+                  Container(
+                    width: 140,
+                    height: 140,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColors.primarySurface,
+                        width: 1,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  Icon(
+                    data.icon,
+                    size: 72,
+                    color: AppColors.primary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xxxl),
+          
+          // Badge
+          EntryAnimation(
+            animate: isActive,
+            index: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(AppRadius.full),
+              ),
+              child: Text(
+                data.subtitle.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: AppTypography.bold,
+                  color: AppColors.primary,
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          
+          // Title
+          EntryAnimation(
+            animate: isActive,
+            index: 2,
+            child: Text(
+              data.title,
+              style: theme.textTheme.displaySmall?.copyWith(
+                fontWeight: AppTypography.extraBold,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          
+          // Description
+          EntryAnimation(
+            animate: isActive,
+            index: 3,
+            child: Text(
+              data.description,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.7,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Page Indicator
 class _PageIndicator extends StatelessWidget {
   final bool isActive;
 
@@ -273,13 +419,20 @@ class _PageIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: AppDuration.normal,
-      curve: AppCurves.easeOut,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 24 : 8,
-      height: 8,
+      curve: AppCurves.fastOutSlowIn,
+      margin: const EdgeInsets.symmetric(horizontal: 5),
+      width: isActive ? 32 : 8,
+      height: 6,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.primary : AppColors.grey300,
-        borderRadius: BorderRadius.circular(4),
+        color: isActive ? AppColors.primary : AppColors.grey300.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: isActive ? [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ] : null,
       ),
     );
   }

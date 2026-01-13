@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../constants/app_design_system.dart';
 
@@ -9,6 +10,7 @@ class EntryAnimation extends StatefulWidget {
   final double verticalOffset;
   final int index;
   final Duration stagger;
+  final bool animate; // New property to explicitly trigger/reset animation
 
   const EntryAnimation({
     super.key,
@@ -19,6 +21,7 @@ class EntryAnimation extends StatefulWidget {
     this.verticalOffset = 20.0,
     this.index = 0,
     this.stagger = const Duration(milliseconds: 50),
+    this.animate = true,
   });
 
   @override
@@ -30,6 +33,7 @@ class _EntryAnimationState extends State<EntryAnimation>
   late AnimationController _controller;
   late Animation<double> _opacity;
   late Animation<Offset> _translate;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -39,6 +43,16 @@ class _EntryAnimationState extends State<EntryAnimation>
       duration: widget.duration ?? AppDuration.slow,
     );
 
+    _initAnimations();
+
+    if (widget.animate) {
+      _play();
+    } else {
+      _controller.value = 0;
+    }
+  }
+
+  void _initAnimations() {
     _opacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _controller,
@@ -55,25 +69,51 @@ class _EntryAnimationState extends State<EntryAnimation>
         curve: widget.curve ?? AppCurves.easeOut,
       ),
     );
-
-    _play();
   }
 
-  void _play() async {
+  @override
+  void didUpdateWidget(EntryAnimation oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // If vertical offset changed, we need to rebuild the translation animation
+    if (oldWidget.verticalOffset != widget.verticalOffset || 
+        oldWidget.curve != widget.curve) {
+      _initAnimations();
+    }
+
+    // Logic to re-trigger animation if state changed
+    if (widget.animate && (!oldWidget.animate || oldWidget.index != widget.index)) {
+      _stop();
+      _controller.reset();
+      _play();
+    } else if (!widget.animate && oldWidget.animate) {
+      _stop();
+      _controller.reset();
+    }
+  }
+
+  void _play() {
+    _stop();
     final delay = (widget.delay ?? Duration.zero) + 
                   (widget.stagger * widget.index);
     
     if (delay > Duration.zero) {
-      await Future.delayed(delay);
-    }
-    
-    if (mounted) {
+      _timer = Timer(delay, () {
+        if (mounted) _controller.forward();
+      });
+    } else {
       _controller.forward();
     }
   }
 
+  void _stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
   @override
   void dispose() {
+    _stop();
     _controller.dispose();
     super.dispose();
   }

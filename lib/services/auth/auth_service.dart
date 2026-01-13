@@ -308,4 +308,125 @@ class AuthService {
       throw Exception(e.message ?? 'Failed to reset password');
     }
   }
+
+  /// Verify 2FA code
+  Future<Map<String, dynamic>> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/verify-2fa',
+        data: {
+          'tempToken': tempToken,
+          'code': code,
+          'backupCode': isBackupCode,
+        },
+        options: Options(
+          headers: {
+            'x-platform': 'mobile',
+          },
+        ),
+      );
+
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data!;
+      } else {
+        throw Exception(apiResponse.message ?? '2FA verification failed');
+      }
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        try {
+          final errorResponse = ApiResponse.fromJson(e.response!.data);
+          throw Exception(errorResponse.message ?? '2FA verification failed');
+        } catch (_) {
+          throw Exception(e.message ?? '2FA verification failed');
+        }
+      }
+      throw Exception(e.message ?? '2FA verification failed');
+    }
+  }
+
+  /// Get 2FA status
+  Future<Map<String, dynamic>> get2FAStatus() async {
+    try {
+      final response = await _apiClient.client.get('/api/auth/2fa/status');
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data!;
+      } else {
+        throw Exception(apiResponse.message ?? 'Failed to get 2FA status');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.message ?? 'Failed to get 2FA status');
+    }
+  }
+
+  /// Generate TOTP secret
+  Future<Map<String, dynamic>> generateTotpSecret() async {
+    try {
+      final response = await _apiClient.client.post('/api/auth/2fa/totp/generate');
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data!;
+      } else {
+        throw Exception(apiResponse.message ?? 'Failed to generate TOTP secret');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.message ?? 'Failed to generate TOTP secret');
+    }
+  }
+
+  /// Enable TOTP 2FA
+  Future<Map<String, dynamic>> enableTotp(String secret, String code) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/2fa/totp/enable',
+        data: {
+          'secret': secret,
+          'code': code,
+        },
+      );
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success) {
+        return apiResponse.data!;
+      } else {
+        throw Exception(apiResponse.message ?? 'Failed to enable 2FA');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.message ?? 'Failed to enable 2FA');
+    }
+  }
+
+  /// Disable 2FA
+  Future<void> disable2FA(String password) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/2fa/totp/disable',
+        data: {
+          'password': password,
+        },
+      );
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (!apiResponse.success) {
+        throw Exception(apiResponse.message ?? 'Failed to disable 2FA');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.message ?? 'Failed to disable 2FA');
+    }
+  }
+
+  /// Regenerate backup codes
+  Future<List<String>> regenerateBackupCodes() async {
+    try {
+      final response = await _apiClient.client.post('/api/auth/2fa/backup-codes/regenerate');
+      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
+      if (apiResponse.success && apiResponse.data != null) {
+        final codes = apiResponse.data!['backupCodes'] as List;
+        return codes.cast<String>();
+      } else {
+        throw Exception(apiResponse.message ?? 'Failed to regenerate backup codes');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.message ?? 'Failed to regenerate backup codes');
+    }
+  }
 }

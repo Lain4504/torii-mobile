@@ -186,13 +186,22 @@ class AuthStateNotifier extends Notifier<AuthState> {
     try {
       final data = await _authService.login(email, password);
       
+      // Check for 2FA requirement
+      if (data['requiresTwoFactor'] == true) {
+        state = AuthTwoFactorRequired(
+          tempToken: data['tempToken'],
+          method: data['twoFactorMethod'] ?? 'totp',
+          message: data['message'] ?? 'Enter code from your authenticator app',
+        );
+        return;
+      }
+
       if (data['user'] != null) {
           final user = User.fromJson(data['user']);
           final accessToken = data['access_token'];
           final refreshToken = data['refresh_token'] ?? '';
 
           // Save Session
-          // Access Token validity: 15 minutes (900s)
           await _tokenService.saveTokens(
               accessToken: accessToken,
               refreshToken: refreshToken,
@@ -208,6 +217,40 @@ class AuthStateNotifier extends Notifier<AuthState> {
 
     } catch (e) {
       state = AuthError(message: 'Login failed: ${e.toString()}');
+    }
+  }
+
+  /// Verify 2FA
+  Future<void> verify2FA(String code, {bool isBackupCode = false}) async {
+    final currentState = state;
+    if (currentState is! AuthTwoFactorRequired) return;
+
+    final tempToken = currentState.tempToken;
+    state = AuthLoading();
+
+    try {
+      final data = await _authService.verify2FA(tempToken, code, isBackupCode: isBackupCode);
+      
+      if (data['user'] != null) {
+          final user = User.fromJson(data['user']);
+          final accessToken = data['access_token'];
+          final refreshToken = data['refresh_token'] ?? '';
+
+          await _tokenService.saveTokens(
+              accessToken: accessToken,
+              refreshToken: refreshToken,
+              expiresIn: 15 * 60, 
+          );
+
+          await _userService.saveUserProfile(user);
+
+          state = AuthAuthenticated(user: user, accessToken: accessToken);
+      } else {
+          state = AuthError(message: '2FA verification failed: Invalid response');
+      }
+    } catch (e) {
+      // Revert to 2FA state with error
+      state = currentState.copyWith(error: e.toString().replaceAll('Exception: ', ''));
     }
   }
 

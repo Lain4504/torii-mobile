@@ -34,3 +34,27 @@ class AuthError extends AuthState {
 
   AuthError({required this.message});
 }
+
+/// State khi yêu cầu Two-Factor Authentication
+class AuthTwoFactorRequired extends AuthState {
+  final String tempToken;
+  final String method; // 'totp' or 'email'
+  final String message;
+  final String? error;
+
+  AuthTwoFactorRequired({
+    required this.tempToken,
+    this.method = 'totp',
+    this.message = 'Enter code from your authenticator app',
+    this.error,
+  });
+
+  AuthTwoFactorRequired copyWith({String? error}) {
+    return AuthTwoFactorRequired(
+      tempToken: tempToken,
+      method: method,
+      message: message,
+      error: error ?? this.error,
+    );
+  }
+}

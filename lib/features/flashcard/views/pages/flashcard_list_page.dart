@@ -3,8 +3,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../models/flashcard_model.dart';
+import '../../../../core/widgets/zen_background.dart';
+import '../../../../core/widgets/animations/entry_animation.dart';
 
-/// Flashcard List Page - Deck Selection
+/// Flashcard List Page - Premium Deck Interface
 class FlashcardListPage extends StatelessWidget {
   const FlashcardListPage({super.key});
 
@@ -16,113 +18,135 @@ class FlashcardListPage extends StatelessWidget {
     final decks = [
       const FlashcardDeck(
         id: '1', 
-        title: 'JLPT N5 Vocabulary', 
-        description: 'Essential words for N5', 
+        title: 'JLPT N5 Lexicon', 
+        description: 'Primary linguistic building blocks', 
         totalCards: 100, 
         learnedCards: 45,
         emoji: '🌱',
       ),
       const FlashcardDeck(
         id: '2', 
-        title: 'Basic Kanji', 
-        description: 'First 100 Kanji characters', 
+        title: 'Fundamental Kanji', 
+        description: 'The first century of characters', 
         totalCards: 100, 
         learnedCards: 12,
         emoji: '字',
       ),
       const FlashcardDeck(
         id: '3', 
-        title: 'Common Phrases', 
-        description: 'Daily life greetings', 
+        title: 'Protocol Greetings', 
+        description: 'Essential social synchronization', 
         totalCards: 50, 
         learnedCards: 50,
         emoji: '🗣️',
       ),
-      const FlashcardDeck(
-        id: '4', 
-        title: 'Food & Drink', 
-        description: 'Restaurant vocabulary', 
-        totalCards: 30, 
-        learnedCards: 0,
-        emoji: '🍱',
-      ),
-      const FlashcardDeck(
-        id: '5', 
-        title: 'JLPT N4 Grammar', 
-        description: 'Grammar points for N4', 
-        totalCards: 80, 
-        learnedCards: 5,
-        emoji: '📚',
-      ),
     ];
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // Header
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 120,
-            backgroundColor: theme.scaffoldBackgroundColor,
-            surfaceTintColor: Colors.transparent,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.pageHorizontal, 
-                vertical: AppSpacing.md,
-              ),
-              title: Text(
-                'My Decks',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: AppTypography.bold,
-                  color: theme.textTheme.titleLarge?.color,
-                ),
-              ),
-              background: Container(
-                alignment: Alignment.topRight,
-                padding: const EdgeInsets.only(top: 60, right: 20),
-                child: Opacity(
-                  opacity: 0.1,
-                  child: Icon(
-                    Icons.style_outlined,
-                    size: 80,
-                    color: AppColors.primary,
+      backgroundColor: AppColors.background,
+      body: ZenBackground(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              expandedHeight: 140,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 60),
+                      Text(
+                        'MEMORY PROTOCOLS',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: AppTypography.black,
+                          letterSpacing: 4.0,
+                          color: AppColors.primary.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Neural Memory Banks',
+                        style: TextStyle(
+                          fontFamily: AppTypography.fontFamilySerif,
+                          fontWeight: AppTypography.extraBold,
+                          fontSize: 32,
+                          letterSpacing: -1.0,
+                          fontStyle: FontStyle.italic,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ),
-
-          // Deck List
-          SliverPadding(
-            padding: const EdgeInsets.all(AppSpacing.pageHorizontal),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final deck = decks[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: EntryAnimation(
-                      index: index,
-                      child: _DeckCard(deck: deck),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.search_rounded, size: 20, color: AppColors.textPrimary),
                     ),
-                  );
-                },
-                childCount: decks.length,
+                  ),
+                ),
+              ],
+            ),
+
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: EntryAnimation(
+                        index: index % 5,
+                        verticalOffset: 20,
+                        child: _DeckCard(deck: decks[index]),
+                      ),
+                    );
+                  },
+                  childCount: decks.length,
+                ),
               ),
             ),
-          ),
-          
-          // Bottom spacing
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 80),
-          ),
-        ],
+            
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 20, right: 8),
+        child: FloatingActionButton.extended(
+          onPressed: () {},
+          backgroundColor: AppColors.primary,
+          elevation: 8,
+          icon: const Icon(Icons.add_rounded, color: Colors.white),
+          label: const Text(
+            'NEW DECK',
+            style: TextStyle(color: Colors.white, fontWeight: AppTypography.black, letterSpacing: 1.0, fontSize: 12),
+          ),
+        ),
       ),
     );
   }
@@ -136,120 +160,139 @@ class _DeckCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final progress = deck.progress;
 
-    return MinimalCard(
-      padding: EdgeInsets.zero,
-      onTap: () {
-        context.push('/flashcards/practice', extra: deck);
-      },
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.push('/flashcards/practice', extra: deck),
+            child: Column(
               children: [
-                // Icon
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Center(
-                    child: Text(
-                      deck.emoji ?? '📝',
-                      style: const TextStyle(fontSize: 24),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                
-                // Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
                     children: [
-                      Text(
-                        deck.title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: AppTypography.semiBold,
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                        ),
+                        child: Center(
+                          child: Text(
+                            deck.emoji ?? '📝',
+                            style: const TextStyle(fontSize: 28),
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        deck.description,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textTertiary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      
-                      // Stats Row
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6, 
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.success.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppRadius.xs),
-                            ),
-                            child: Text(
-                              '${deck.learnedCards} learned',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.success,
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              deck.title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: AppTypography.extraBold,
+                                fontSize: 17,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${deck.totalCards} cards',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
-                              color: AppColors.textTertiary,
+                            const SizedBox(height: 4),
+                            Text(
+                              deck.description,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: AppColors.textTertiary,
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                _StatLabel(
+                                  label: '${(progress * 100).toInt()}% SYNCED',
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: 12),
+                                _StatLabel(
+                                  label: '${deck.totalCards} NODES',
+                                  color: AppColors.textTertiary,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
+                      const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 24),
                     ],
                   ),
                 ),
-                
-                // Play Icon
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: AppColors.textTertiary,
-                ),
+                if (progress > 0)
+                  Container(
+                    height: 3,
+                    width: double.infinity,
+                    color: AppColors.borderLight.withOpacity(0.2),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: progress,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          boxShadow: [
+                            BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 4),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
-          
-          // Progress Bar
-          if (progress > 0)
-            Container(
-              height: 4,
-              width: double.infinity,
-              color: isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
-              alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(
-                widthFactor: progress,
-                child: Container(
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StatLabel extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _StatLabel({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPrimary = color == AppColors.primary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isPrimary ? color.withOpacity(0.1) : AppColors.background,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: AppTypography.black,
+          letterSpacing: 1.0,
+          color: isPrimary ? color : AppColors.textTertiary,
+        ),
       ),
     );
   }

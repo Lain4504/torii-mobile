@@ -140,7 +140,7 @@ class AccentCard extends StatelessWidget {
             color: cardBackground,
             borderRadius: borderRadius ?? BorderRadius.circular(AppRadius.card),
             border: Border.all(
-              color: accent.withValues(alpha: 0.3),
+              color: accent.withOpacity(0.3),
               width: 1,
             ),
           ),

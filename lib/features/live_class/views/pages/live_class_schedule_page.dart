@@ -4,6 +4,7 @@ import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../models/live_class_model.dart';
 
+/// Live Class Schedule Page - Premium Zen UI Rebuild
 class LiveClassSchedulePage extends StatefulWidget {
   const LiveClassSchedulePage({super.key});
 
@@ -26,17 +27,13 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
 
   void _generateWeekDays() {
     final now = DateTime.now();
-    // Start from Monday of current week
     final currentWeekday = now.weekday;
     final monday = now.subtract(Duration(days: currentWeekday - 1));
-    
-    _weekDays = List.generate(7, (index) => monday.add(Duration(days: index)));
+    _weekDays = List.generate(14, (index) => monday.add(Duration(days: index))); // Show 2 weeks
   }
 
   void _loadMockClasses() {
-    // Generate some mock classes for the selected week
     final now = DateTime.now();
-    
     _classes = [
       LiveClass(
         id: '1',
@@ -82,84 +79,97 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // AppBar
-          SliverAppBar(
-            pinned: true,
-            floating: true,
-            expandedHeight: 120,
-            backgroundColor: theme.scaffoldBackgroundColor,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageHorizontal),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 60),
-                    Text(
-                      'Live Schedule',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: AppTypography.bold,
+      backgroundColor: AppColors.background,
+      body: ZenBackground(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              expandedHeight: 140,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 60),
+                      Text(
+                        'TRANSMISSION LOG',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: AppTypography.black,
+                          letterSpacing: 4.0,
+                          color: AppColors.primary.withOpacity(0.7),
+                        ),
                       ),
-                    ),
-                    Text(
-                      DateFormat('MMMM yyyy').format(_selectedDate),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textTertiary,
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat('MMMM yyyy').format(_selectedDate),
+                        style: TextStyle(
+                          fontFamily: AppTypography.fontFamilySerif,
+                          fontWeight: AppTypography.extraBold,
+                          fontSize: 32,
+                          letterSpacing: -1.0,
+                          fontStyle: FontStyle.italic,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Calendar Strip
-          SliverToBoxAdapter(
-            child: _buildCalendarStrip(theme, isDark),
-          ),
+            SliverToBoxAdapter(
+              child: EntryAnimation(
+                delay: const Duration(milliseconds: 200),
+                child: _buildCalendarStrip(theme, isDark),
+              ),
+            ),
 
-          // Schedule List
-          SliverPadding(
-            padding: const EdgeInsets.all(AppSpacing.pageHorizontal),
-            sliver: _filteredClasses.isEmpty
-                ? SliverToBoxAdapter(child: _buildEmptyState(theme))
-                : SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                          child: EntryAnimation(
-                            index: index,
-                            child: _LiveClassCard(classData: _filteredClasses[index]),
-                          ),
-                        );
-                      },
-                      childCount: _filteredClasses.length,
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+              sliver: _filteredClasses.isEmpty
+                  ? SliverToBoxAdapter(child: _buildEmptyState(theme))
+                  : SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                            child: EntryAnimation(
+                              index: index % 5,
+                              verticalOffset: 20,
+                              child: _LiveClassCard(classData: _filteredClasses[index]),
+                            ),
+                          );
+                        },
+                        childCount: _filteredClasses.length,
+                      ),
                     ),
-                  ),
-          ),
-          
-          const SliverToBoxAdapter(child: SizedBox(height: 80)),
-        ],
+            ),
+            
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildCalendarStrip(ThemeData theme, bool isDark) {
     return Container(
-      height: 100,
+      height: 110,
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageHorizontal),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
         itemCount: _weekDays.length,
-        separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.md),
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final date = _weekDays[index];
           final isSelected = date.year == _selectedDate.year &&
@@ -173,49 +183,59 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
           return GestureDetector(
             onTap: () => setState(() => _selectedDate = date),
             child: AnimatedContainer(
-              duration: AppDuration.fast,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutQuart,
               width: 60,
               decoration: BoxDecoration(
                 color: isSelected 
                     ? AppColors.primary 
-                    : isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(AppRadius.full),
-                border: isToday && !isSelected
-                    ? Border.all(color: AppColors.primary, width: 2)
-                    : null,
-                boxShadow: isSelected ? AppElevation.softShadow : null,
+                    : Colors.white.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                  color: isSelected 
+                      ? AppColors.primary 
+                      : (isToday ? AppColors.primary.withOpacity(0.3) : AppColors.borderLight.withOpacity(0.5)),
+                  width: 1.5,
+                ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  )
+                ] : null,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    DateFormat('E').format(date).toUpperCase(), // MON, TUE
+                    DateFormat('E').format(date).toUpperCase(),
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                      fontWeight: AppTypography.black,
+                      letterSpacing: 1.0,
                       color: isSelected 
-                          ? Colors.white 
+                          ? Colors.white.withOpacity(0.7) 
                           : AppColors.textTertiary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     date.day.toString(),
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected 
-                          ? Colors.white 
-                          : theme.textTheme.bodyLarge?.color,
+                      fontSize: 22,
+                      fontWeight: AppTypography.black,
+                      letterSpacing: -1.0,
+                      color: isSelected ? Colors.white : AppColors.textPrimary,
                     ),
                   ),
-                  if (isSelected || isToday) ...[
-                    const SizedBox(height: 4),
+                  if (isToday && !isSelected) ...[
+                    const SizedBox(height: 6),
                     Container(
                       width: 4,
                       height: 4,
-                      decoration: BoxDecoration(
-                        color: isSelected ? Colors.white : AppColors.primary,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -231,27 +251,32 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
 
   Widget _buildEmptyState(ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.symmetric(vertical: 60),
       alignment: Alignment.center,
       child: Column(
         children: [
           Icon(
             Icons.event_busy_rounded,
             size: 64,
-            color: AppColors.textTertiary.withValues(alpha: 0.3),
+            color: AppColors.primary.withOpacity(0.1),
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'No classes scheduled',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: AppColors.textSecondary,
+          const SizedBox(height: AppSpacing.lg),
+          const Text(
+            'STILLNESS PREVAILS',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: AppTypography.black,
+              letterSpacing: 2.0,
+              color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Try selecting another date',
-            style: theme.textTheme.bodySmall?.copyWith(
+          const SizedBox(height: 8),
+          const Text(
+            'No transmissions detected for this cycle.',
+            style: TextStyle(
+              fontSize: 12,
               color: AppColors.textTertiary,
+              fontWeight: AppTypography.medium,
             ),
           ),
         ],
@@ -270,115 +295,139 @@ class _LiveClassCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isLive = classData.status == LiveClassStatus.live;
     
-    return MinimalCard(
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: IntrinsicHeight(
         child: Row(
           children: [
             // Time Column
             SizedBox(
-              width: 60,
+              width: 50,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     DateFormat('HH:mm').format(classData.startTime),
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontWeight: AppTypography.black,
+                      fontSize: 18,
+                      letterSpacing: -0.5,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   Text(
-                    DateFormat('a').format(classData.startTime), // AM/PM
+                    DateFormat('a').format(classData.startTime),
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
+                      fontWeight: AppTypography.black,
+                      letterSpacing: 1.0,
                       color: AppColors.textTertiary,
                     ),
                   ),
                   const Spacer(),
-                  // Duration line
                   Container(
                     width: 2,
                     height: 20,
-                    color: AppColors.grey200,
-                    margin: const EdgeInsets.only(left: 4, bottom: 4),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary.withOpacity(0.2), Colors.transparent],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
 
-            // Vertical Divider
-            VerticalDivider(
-              color: isLive ? AppColors.primary : AppColors.grey200,
-              width: 24,
-              thickness: isLive ? 2 : 1,
-            ),
+            const SizedBox(width: 20),
 
             // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status Badge
-                  if (isLive)
+                  if (isLive) ...[
                     Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.error,
                         borderRadius: BorderRadius.circular(4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.error.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: const Text(
-                        'LIVE NOW',
+                        'REAL-TIME TRANSMISSION',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 9,
+                          fontWeight: AppTypography.black,
+                          letterSpacing: 1.0,
                         ),
                       ),
                     ),
+                  ],
 
                   Text(
                     classData.title,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: AppTypography.semiBold,
+                      fontWeight: AppTypography.extraBold,
+                      fontSize: 17,
+                      height: 1.3,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      const CircleAvatar(
-                        radius: 8,
-                        backgroundColor: AppColors.grey200,
-                        child: Icon(Icons.person, size: 10, color: AppColors.textTertiary),
+                      Container(
+                        padding: const EdgeInsets.all(1),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                        ),
+                        child: const CircleAvatar(
+                          radius: 8,
+                          backgroundColor: AppColors.primarySurface,
+                          child: Icon(Icons.person_rounded, size: 10, color: AppColors.primary),
+                        ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 8),
                       Text(
                         classData.instructorName,
-                        style: theme.textTheme.bodySmall?.copyWith(
+                        style: const TextStyle(
+                          fontSize: 12,
                           color: AppColors.textSecondary,
+                          fontWeight: AppTypography.semiBold,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: 20),
                   
-                  // Join Button
-                  if (classData.status == LiveClassStatus.live || classData.status == LiveClassStatus.upcoming)
-                   SizedBox(
-                     width: double.infinity,
-                     child: OutlinedButton(
-                       onPressed: () {
-                         // TODO: Join Logic
-                       },
-                       style: OutlinedButton.styleFrom(
-                         foregroundColor: isLive ? AppColors.primary : AppColors.textSecondary,
-                         side: BorderSide(
-                           color: isLive ? AppColors.primary : AppColors.borderLight,
-                         ),
-                       ),
-                       child: Text(isLive ? 'Join Now' : 'Set Reminder'),
-                     ),
-                   ),
+                  ZenButton(
+                    text: isLive ? 'ESTABLISH LINK' : 'SET REMINDER',
+                    onPressed: () {},
+                    isFullWidth: true,
+                    // style override if needed
+                  ),
                 ],
               ),
             ),

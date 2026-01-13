@@ -9,11 +9,10 @@ import '../../../course/providers/course_providers.dart';
 import '../../../course/views/widgets/course_card.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/localization/l10n/app_localizations.dart';
+import '../../../../core/widgets/zen_background.dart';
+import '../../../../core/widgets/animations/entry_animation.dart';
 
-/// Home Page - Minimalist Dashboard
-/// 
-/// A clean, zen-inspired home page emphasizing focus and calm.
-/// Features generous whitespace, subtle animations, and clear hierarchy.
+/// Home Page - Premium Zen UI Rebuild
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -21,33 +20,13 @@ class HomePage extends ConsumerStatefulWidget {
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage> 
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-
+class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: AppDuration.slow,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: AppCurves.easeOut,
-    );
-    _animationController.forward();
-    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(courseListProvider.notifier).loadCourses();
     });
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   @override
@@ -59,31 +38,58 @@ class _HomePageState extends ConsumerState<HomePage>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: FadeTransition(
-        opacity: _fadeAnimation,
+      backgroundColor: AppColors.background,
+      body: ZenBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // Header
+            // Premium Header
             _buildHeader(context, user, isDark),
             
-            // Greeting Section
-            _buildGreetingSection(context, user),
+            // Greeting & AI Stats
+            SliverToBoxAdapter(
+              child: EntryAnimation(
+                index: 0,
+                child: _buildGreetingSection(context, user),
+              ),
+            ),
             
-            // Learning Progress (if authenticated)
-            if (user != null) _buildProgressSection(context, isDark),
+            // Learning Progress Terminal
+            if (user != null) 
+              SliverToBoxAdapter(
+                child: EntryAnimation(
+                  index: 1,
+                  verticalOffset: 30,
+                  child: _buildProgressSection(context),
+                ),
+              ),
             
-            // Quick Actions
-            _buildQuickActions(context, user, isDark),
+            // Path to Mastery Section
+            SliverToBoxAdapter(
+              child: EntryAnimation(
+                index: 2,
+                child: _buildQuickActions(context, user),
+              ),
+            ),
             
-            // Continue Learning
-            if (user != null) _buildContinueLearning(context),
+            // Continue Journey
+            if (user != null) 
+              SliverToBoxAdapter(
+                child: EntryAnimation(
+                  index: 3,
+                  child: _buildContinueLearning(context),
+                ),
+              ),
             
-            // Recommended Courses
-            _buildRecommendedCourses(context, courseState, isDark),
+            // Global Catalog / Recommended
+            SliverToBoxAdapter(
+              child: EntryAnimation(
+                index: 4,
+                child: _buildRecommendedCourses(context, courseState),
+              ),
+            ),
             
-            // Bottom Spacing
+            // Zen Spacing
             const SliverToBoxAdapter(
               child: SizedBox(height: AppSpacing.xxxl),
             ),
@@ -96,104 +102,111 @@ class _HomePageState extends ConsumerState<HomePage>
   Widget _buildHeader(BuildContext context, dynamic user, bool isDark) {
     return SliverAppBar(
       floating: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      pinned: false,
+      backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
-      toolbarHeight: 64,
+      toolbarHeight: 90,
       title: Row(
         children: [
-          // Logo
+          // Logo Box matching Web
           Container(
-            width: 36,
-            height: 36,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               color: AppColors.primary,
-              borderRadius: BorderRadius.circular(AppRadius.sm),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
             child: const Center(
-              child: Text(
-                '鳥',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 24),
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            'Torii',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: AppTypography.bold,
-              letterSpacing: AppTypography.letterSpacingTight,
-            ),
+          const SizedBox(width: AppSpacing.md),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'TORII',
+                style: TextStyle(
+                  fontFamily: AppTypography.fontFamilySerif,
+                  fontWeight: AppTypography.extraBold,
+                  fontSize: 22,
+                  letterSpacing: -1.0,
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.textPrimary,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'NIHONGO CENTER',
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 2.0,
+                  color: AppColors.primary.withOpacity(0.6),
+                ),
+              ),
+            ],
           ),
         ],
       ),
       actions: [
-        // Settings
-        IconButton(
-          onPressed: () => context.push('/settings'),
-          tooltip: AppLocalizations.of(context)!.settings,
-          icon: const Icon(
-            Icons.settings_outlined,
-            size: AppIconSize.md,
-          ),
-        ),
-        // Theme Toggle
-        IconButton(
+        // Theme Logic
+        _HeaderIconButton(
+          icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
           onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
-          tooltip: 'Toggle Theme',
-          icon: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return RotationTransition(
-                turns: child.key == const ValueKey('dark') 
-                    ? Tween<double>(begin: 0.75, end: 1).animate(animation)
-                    : Tween<double>(begin: 0.75, end: 1).animate(animation),
-                child: FadeTransition(opacity: animation, child: child),
-              );
-            },
-            child: Icon(
-              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-              key: ValueKey(isDark ? 'light' : 'dark'),
-              size: AppIconSize.md,
-            ),
-          ),
         ),
-        // Notifications
-        IconButton(
-          icon: const Icon(
-            Icons.notifications_none_outlined,
-            size: AppIconSize.md,
-          ),
-          onPressed: () {},
-          tooltip: 'Notifications',
-        ),
-        // Profile / Login
+        // Access Profile
         if (user == null)
           Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            padding: const EdgeInsets.only(right: AppSpacing.md),
             child: TextButton(
               onPressed: () => context.push('/login'),
-              child: Text(AppLocalizations.of(context)!.signIn),
+              child: Text(
+                AppLocalizations.of(context)!.signIn.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 1.0,
+                  color: AppColors.primary,
+                ),
+              ),
             ),
           )
         else
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.primarySurface,
-              child: Text(
-                user.displayName.isNotEmpty 
-                    ? user.displayName[0].toUpperCase() 
-                    : 'U',
-                style: const TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+            child: GestureDetector(
+              onTap: () => context.push('/settings'),
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary.withOpacity(0.1), width: 1.5),
+                ),
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.primarySurface,
+                  child: Text(
+                    user.displayName.isNotEmpty 
+                        ? user.displayName[0].toUpperCase() 
+                        : 'U',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: AppTypography.black,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -203,491 +216,105 @@ class _HomePageState extends ConsumerState<HomePage>
   }
 
   Widget _buildGreetingSection(BuildContext context, dynamic user) {
-    final theme = Theme.of(context);
-    
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.pageHorizontal,
-          AppSpacing.lg,
-          AppSpacing.pageHorizontal,
-          AppSpacing.md,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _getGreeting(context),
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: AppSpacing.xxs),
-            Text(
-              user != null
-                  ? (user.displayName.isNotEmpty ? user.displayName : AppLocalizations.of(context)!.learner)
-                  : AppLocalizations.of(context)!.welcomeToTorii,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: AppTypography.bold,
-              ),
-            ),
-            if (user != null) ...[
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                AppLocalizations.of(context)!.continueYourJourney,
-                style: theme.textTheme.bodyMedium,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProgressSection(BuildContext context, bool isDark) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.pageHorizontal,
-          vertical: AppSpacing.md,
-        ),
-        child: MinimalCard(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            children: [
-              // Stats Row
-              Row(
-                children: [
-                  _buildStatItem(
-                    context,
-                    icon: Icons.local_fire_department_outlined,
-                    value: '7',
-                    label: AppLocalizations.of(context)!.dayStreak,
-                    color: AppColors.accent,
-                  ),
-                  _buildDivider(),
-                  _buildStatItem(
-                    context,
-                    icon: Icons.star_outline_rounded,
-                    value: '1,240',
-                    label: AppLocalizations.of(context)!.totalXP,
-                    color: AppColors.primary,
-                  ),
-                  _buildDivider(),
-                  _buildStatItem(
-                    context,
-                    icon: Icons.workspace_premium_outlined,
-                    value: 'N4',
-                    label: AppLocalizations.of(context)!.level,
-                    color: AppColors.success,
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              // Daily Goal
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.dailyGoal,
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        const ProgressBar(
-                          progress: 0.7,
-                          height: 8,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: AppSpacing.xs,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
-                      borderRadius: BorderRadius.circular(AppRadius.chip),
-                    ),
-                    child: Text(
-                      '7/10',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: AppTypography.fontSizeSm,
-                        fontWeight: AppTypography.semiBold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatItem(
-    BuildContext context, {
-    required IconData icon,
-    required String value,
-    required String label,
-    required Color color,
-  }) {
-    return Expanded(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.md),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: AppIconSize.lg),
-          const SizedBox(height: AppSpacing.sm),
           Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: AppTypography.bold,
+            _getGreeting(context).toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: AppTypography.black,
+              letterSpacing: 3.0,
+              color: AppColors.textTertiary,
             ),
           ),
-          const SizedBox(height: AppSpacing.xxs),
+          const SizedBox(height: 4),
           Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall,
+            user != null
+                ? (user.displayName.isNotEmpty ? user.displayName : AppLocalizations.of(context)!.learner)
+                : AppLocalizations.of(context)!.welcomeToTorii,
+            style: const TextStyle(
+              fontSize: AppTypography.fontSize4xl,
+              fontWeight: AppTypography.extraBold,
+              color: AppColors.textPrimary,
+              letterSpacing: -1.0,
+              height: 1.1,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDivider() {
-    return Container(
-      width: 1,
-      height: 48,
-      color: AppColors.borderLight,
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context, dynamic user, bool isDark) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.pageHorizontal),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.quickStart,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: AppTypography.semiBold,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.school_outlined,
-                    label: 'Courses',
-                    onTap: () => context.go('/courses'),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.style_outlined,
-                    label: 'Flashcards',
-                    onTap: () {
-                      if (user == null) {
-                        _showLoginPrompt(context);
-                      } else {
-                        context.go('/flashcards');
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.quiz_outlined,
-                    label: 'Practice',
-                    onTap: () {
-                      if (user == null) {
-                        _showLoginPrompt(context);
-                      } else {
-                        context.go('/exams');
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.videocam_outlined,
-                    label: 'Live',
-                    onTap: () {
-                      if (user == null) {
-                        _showLoginPrompt(context);
-                      } else {
-                        context.go('/live-classes');
-                      }
-                    },
-                  ),
-                ),
-              ],
+  Widget _buildProgressSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withOpacity(0.04),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
             ),
           ],
+          border: Border.all(color: AppColors.white.withOpacity(0.1)),
         ),
-      ),
-    );
-  }
-
-  Widget _buildContinueLearning(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.pageHorizontal,
-          vertical: AppSpacing.md,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.continueLearning,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: AppTypography.semiBold,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          child: Column(
+            children: [
+              // Stats Bar
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.02),
+                  border: Border(bottom: BorderSide(color: AppColors.borderLight.withOpacity(0.5))),
+                ),
+                child: Row(
+                  children: [
+                    _buildStatItem(Icons.local_fire_department_rounded, '7', 'STREAK', const Color(0xFFE63946)),
+                    _buildVerticalDivider(),
+                    _buildStatItem(Icons.bolt_rounded, '1.2k', 'ZEN XP', AppColors.primary),
+                    _buildVerticalDivider(),
+                    _buildStatItem(Icons.emoji_events_rounded, 'N4', 'JLPT', AppColors.accent),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            MinimalCard(
-              onTap: () {},
-              child: Row(
-                children: [
-                  // Thumbnail
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                    child: const Icon(
-                      Icons.play_arrow_rounded,
-                      color: AppColors.primary,
-                      size: AppIconSize.lg,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              // Progress Terminal
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Lesson 12: Particle を',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: AppTypography.semiBold,
+                        const Text(
+                          'DAILY FOCUS GOAL',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: AppTypography.black,
+                            letterSpacing: 2.0,
+                            color: AppColors.textTertiary,
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.xxs),
                         Text(
-                          'N5 Grammar Course',
-                          style: theme.textTheme.bodySmall,
+                          '70%',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: AppTypography.black,
+                            fontSize: 12,
+                          ),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
-                        const ProgressBar(progress: 0.45, height: 4),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: AppColors.textTertiary,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecommendedCourses(
-    BuildContext context,
-    dynamic courseState,
-    bool isDark,
-  ) {
-    final theme = Theme.of(context);
-    
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.pageHorizontal,
-          vertical: AppSpacing.md,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-            Text(
-              AppLocalizations.of(context)!.recommended,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: AppTypography.semiBold,
-              ),
-            ),
-                TextButton(
-                  onPressed: () => context.go('/courses'),
-                  child: Text(AppLocalizations.of(context)!.seeAll),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (courseState.isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSpacing.xl),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (courseState.courses.isEmpty)
-              EmptyState(
-                icon: Icons.school_outlined,
-                title: AppLocalizations.of(context)!.noCoursesYet,
-                subtitle: AppLocalizations.of(context)!.checkBackLater,
-                action: ElevatedButton(
-                  onPressed: () => ref.read(courseListProvider.notifier).loadCourses(),
-                  child: Text(AppLocalizations.of(context)!.refresh),
-                ),
-              )
-            else
-              ...courseState.courses.take(3).map((course) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: CourseCard(course: course),
-              )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getGreeting(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final hour = DateTime.now().hour;
-    if (hour < 12) return l10n.goodMorning;
-    if (hour < 18) return l10n.goodAfternoon;
-    return l10n.goodEvening;
-  }
-
-  void _showLoginPrompt(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 48,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.grey300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const Icon(
-              Icons.lock_outline_rounded,
-              size: 48,
-              color: AppColors.textTertiary,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              AppLocalizations.of(context)!.signInRequired,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: AppTypography.semiBold,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              AppLocalizations.of(context)!.signInToAccess,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  context.push('/login');
-                },
-                child: Text(AppLocalizations.of(context)!.signIn),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Quick Action Button - Compact action tile
-class _QuickActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.md,
-          ),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.card),
-            border: Border.all(
-              color: isDark ? AppColors.borderDark : AppColors.borderLight,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: AppIconSize.lg,
-                color: AppColors.primary,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: AppTypography.medium,
+                    const SizedBox(height: AppSpacing.md),
+                    const ProgressBar(progress: 0.7, height: 12),
+                  ],
                 ),
               ),
             ],
@@ -696,4 +323,282 @@ class _QuickActionButton extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildStatItem(IconData icon, String value, String label, Color color) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: AppTypography.black,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 8,
+              fontWeight: AppTypography.black,
+              letterSpacing: 1.0,
+              color: AppColors.textTertiary.withOpacity(0.6),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerticalDivider() {
+    return Container(width: 1, height: 40, color: AppColors.borderLight.withOpacity(0.4));
+  }
+
+  Widget _buildQuickActions(BuildContext context, dynamic user) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'PATH TO MASTERY',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: AppTypography.black,
+              letterSpacing: 2.0,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            mainAxisSpacing: AppSpacing.md,
+            crossAxisSpacing: AppSpacing.md,
+            childAspectRatio: 1.25,
+            children: [
+              _QuickActionTile(Icons.map_outlined, 'Global Catalog', AppColors.primary, () => context.go('/courses')),
+              _QuickActionTile(Icons.psychology_outlined, 'Active Recall', AppColors.accent, () => user == null ? _showLoginPrompt(context) : context.go('/flashcards')),
+              _QuickActionTile(Icons.assignment_turned_in_outlined, 'Assessment', const Color(0xFF7D58A1), () => user == null ? _showLoginPrompt(context) : context.go('/exams')),
+              _QuickActionTile(Icons.videocam_outlined, 'Live Protocol', const Color(0xFFE63946), () => user == null ? _showLoginPrompt(context) : context.go('/live-classes')),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContinueLearning(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'OPTIMIZE FOCUS',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: AppTypography.black,
+              letterSpacing: 2.0,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.2),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.play_circle_outline_rounded, color: Colors.white, size: 36),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Particle を & に',
+                        style: TextStyle(fontSize: 16, fontWeight: AppTypography.extraBold),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Curriculum Unit • JLPT N5',
+                        style: TextStyle(fontSize: 11, fontWeight: AppTypography.bold, color: AppColors.textTertiary),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      const ProgressBar(progress: 0.45, height: 8),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.chevron_right_rounded, color: AppColors.primary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecommendedCourses(BuildContext context, dynamic courseState) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'NEURAL MEMORY BANKS',
+                style: TextStyle(fontSize: 11, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+              ),
+              TextButton(
+                onPressed: () => context.go('/courses'),
+                child: const Text('FULL ACCESS', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0, color: AppColors.primary)),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (courseState.isLoading)
+            const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator()))
+          else
+            ...courseState.courses.take(3).map((course) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              child: CourseCard(course: course),
+            )),
+        ],
+      ),
+    );
+  }
+
+  String _getGreeting(BuildContext context) {
+    final hour = DateTime.now().hour;
+    if (hour < 5) return 'Good night';
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  }
+
+  void _showLoginPrompt(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxxl))),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.grey200, borderRadius: BorderRadius.circular(10))),
+            const SizedBox(height: 40),
+            const Icon(Icons.lock_outline_rounded, size: 50, color: AppColors.primary),
+            const SizedBox(height: 24),
+            const Text('A MOMENT OF ZEN', style: TextStyle(fontSize: 20, fontWeight: AppTypography.black, letterSpacing: 2.0)),
+            const SizedBox(height: 12),
+            const Text(
+              'Please sign in to access your neural progress across the Torii Learning Matrix.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, height: 1.6, fontWeight: AppTypography.medium, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.push('/login');
+                },
+                child: const Text('INITIATE ACCESS', style: TextStyle(fontWeight: AppTypography.black, letterSpacing: 1.5)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('REMAIN ANONYMOUS', style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0))),
+          ],
+        ),
+      ),
+    );
+  }
 }
+
+class _HeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  const _HeaderIconButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: AppSpacing.sm),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), shape: BoxShape.circle, border: Border.all(color: AppColors.borderLight.withOpacity(0.5))),
+      child: IconButton(icon: Icon(icon, size: 20, color: AppColors.textPrimary), onPressed: onPressed),
+    );
+  }
+}
+
+class _QuickActionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionTile(this.icon, this.label, this.color, this.onTap);
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(AppRadius.xxl),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 28),
+              const Spacer(),
+              Text(
+                label.toUpperCase(),
+                style: const TextStyle(fontWeight: AppTypography.black, fontSize: 11, letterSpacing: 1.0, color: AppColors.textPrimary),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

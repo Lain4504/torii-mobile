@@ -6,9 +6,7 @@ import '../widgets/course_card.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 
-/// Course Catalog Page - Minimalist Course Browser
-/// 
-/// A clean, focused course browsing experience with filtering.
+/// Course Catalog Page - Premium Zen UI Rebuild
 class CourseCatalogPage extends ConsumerStatefulWidget {
   const CourseCatalogPage({super.key});
 
@@ -41,7 +39,6 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Filter courses
     final filteredCourses = state.courses.where((course) {
       final matchesSearch = 
           course.title.toLowerCase().contains(_searchController.text.toLowerCase()) ||
@@ -53,123 +50,189 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // App Bar
-          SliverAppBar(
-            floating: true,
-            pinned: true,
-            backgroundColor: theme.scaffoldBackgroundColor,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            expandedHeight: 120,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.pageHorizontal,
-                  80,
-                  AppSpacing.pageHorizontal,
-                  0,
-                ),
-                child: Text(
-                  'Courses',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: AppTypography.bold,
+      backgroundColor: AppColors.background,
+      body: ZenBackground(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Custom App Bar
+            SliverAppBar(
+              floating: true,
+              pinned: true,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              expandedHeight: 140,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 80, AppSpacing.xl, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'NIHONGO CATALOG',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: AppTypography.black,
+                          letterSpacing: 4.0,
+                          color: AppColors.primary.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Universal Learning',
+                        style: TextStyle(
+                          fontFamily: AppTypography.fontFamilySerif,
+                          fontWeight: AppTypography.extraBold,
+                          fontSize: 32,
+                          letterSpacing: -1.0,
+                          fontStyle: FontStyle.italic,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(64),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.pageHorizontal,
-                  0,
-                  AppSpacing.pageHorizontal,
-                  AppSpacing.md,
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(80),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
+                  child: _buildSearchBar(theme, isDark),
                 ),
-                child: _buildSearchBar(theme, isDark),
               ),
             ),
-          ),
 
-          // Filters
-          SliverToBoxAdapter(
-            child: _buildFilters(theme, isDark),
-          ),
-
-          // Results Count
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.pageHorizontal,
-                vertical: AppSpacing.sm,
-              ),
-              child: Text(
-                '${filteredCourses.length} courses found',
-                style: theme.textTheme.bodySmall,
+            // Filters
+            SliverToBoxAdapter(
+              child: EntryAnimation(
+                delay: const Duration(milliseconds: 200),
+                child: _buildFilters(theme, isDark),
               ),
             ),
-          ),
 
-          // Course List
-          if (state.isLoading)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (state.error != null)
-            SliverFillRemaining(
-              child: _buildErrorState(state.error!),
-            )
-          else if (filteredCourses.isEmpty)
-            SliverFillRemaining(
-              child: _buildEmptyState(),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.all(AppSpacing.pageHorizontal),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final course = filteredCourses[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: EntryAnimation(
-                        index: index,
-                        child: CourseCard(course: course),
+            // Results Count
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xl,
+                  vertical: AppSpacing.md,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'NEURAL MATCHES Found'.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: AppTypography.black,
+                        letterSpacing: 2.0,
+                        color: AppColors.textTertiary,
                       ),
-                    );
-                  },
-                  childCount: filteredCourses.length,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySurface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${filteredCourses.length}',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: AppTypography.black,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-        ],
+
+            // Course List
+            if (state.isLoading)
+              const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (state.error != null)
+              SliverFillRemaining(
+                child: _buildErrorState(state.error!),
+              )
+            else if (filteredCourses.isEmpty)
+              SliverFillRemaining(
+                child: _buildEmptyState(),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final course = filteredCourses[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                        child: EntryAnimation(
+                          index: index % 5, // Staggered over visible items
+                          verticalOffset: 20,
+                          child: CourseCard(course: course),
+                        ),
+                      );
+                    },
+                    childCount: filteredCourses.length,
+                  ),
+                ),
+              ),
+            
+            const SliverToBoxAdapter(
+              child: SizedBox(height: AppSpacing.xxl),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSearchBar(ThemeData theme, bool isDark) {
-    return TextField(
-      controller: _searchController,
-      onChanged: (_) => setState(() {}),
-      style: theme.textTheme.bodyLarge,
-      decoration: InputDecoration(
-        hintText: 'Search courses...',
-        prefixIcon: const Icon(Icons.search, size: AppIconSize.sm),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Icons.close, size: AppIconSize.sm),
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() {});
-                },
-              )
-            : null,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withOpacity(0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (_) => setState(() {}),
+        style: const TextStyle(
+          fontSize: AppTypography.fontSizeMd,
+          fontWeight: AppTypography.bold,
+          color: AppColors.textPrimary,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Search the Matrix...',
+          hintStyle: TextStyle(
+            color: AppColors.textTertiary.withOpacity(0.4),
+            fontWeight: AppTypography.medium,
+          ),
+          prefixIcon: Icon(Icons.search_rounded, size: 22, color: AppColors.primary.withOpacity(0.7)),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 20),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {});
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 16),
         ),
       ),
     );
@@ -179,40 +242,44 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.pageHorizontal,
+        horizontal: AppSpacing.xl,
         vertical: AppSpacing.sm,
       ),
       child: Row(
         children: [
           // Level Filter
           _FilterChip(
-            label: _selectedLevel?.name.toUpperCase() ?? 'Level',
+            label: _selectedLevel?.name.toUpperCase() ?? 'LEVEL PROTOCOL',
             isSelected: _selectedLevel != null,
             onTap: () => _showLevelPicker(),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.md),
           
           // Type Filter
           _FilterChip(
             label: _selectedType == CourseType.vod 
-                ? 'Video' 
+                ? 'CHRONOLOGICAL VOD' 
                 : _selectedType == CourseType.liveClass 
-                    ? 'Live' 
-                    : 'Type',
+                    ? 'REAL-TIME PROTOCOL' 
+                    : 'TRANSMISSION TYPE',
             isSelected: _selectedType != null,
             onTap: () => _showTypePicker(),
           ),
           
           // Clear Button
           if (_selectedLevel != null || _selectedType != null) ...[
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.md),
             TextButton.icon(
               onPressed: _clearFilters,
-              icon: const Icon(Icons.close, size: 16),
-              label: const Text('Clear'),
+              icon: const Icon(Icons.history_rounded, size: 16),
+              label: const Text('RESET FILTERS'),
               style: TextButton.styleFrom(
-                foregroundColor: AppColors.textSecondary,
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                foregroundColor: AppColors.primary,
+                textStyle: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 1.0,
+                ),
               ),
             ),
           ],
@@ -224,14 +291,14 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void _showLevelPicker() {
     showModalBottomSheet(
       context: context,
-      useRootNavigator: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
       ),
       builder: (context) => _PickerSheet(
-        title: 'Select Level',
+        title: 'Select Difficulty Protocol',
         items: [
-          _PickerItem(label: 'All Levels', value: null),
+          _PickerItem(label: 'All Matrix Levels', value: null),
           ...JLPTLevel.values.map((l) => _PickerItem(
             label: l.name.toUpperCase(),
             value: l,
@@ -249,16 +316,16 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void _showTypePicker() {
     showModalBottomSheet(
       context: context,
-      useRootNavigator: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
       ),
       builder: (context) => _PickerSheet(
-        title: 'Select Type',
+        title: 'Select Transmission Mode',
         items: [
-          _PickerItem(label: 'All Types', value: null),
-          _PickerItem(label: 'Video Course', value: CourseType.vod),
-          _PickerItem(label: 'Live Class', value: CourseType.liveClass),
+          _PickerItem(label: 'Unified Streams', value: null),
+          _PickerItem(label: 'VOD Archive', value: CourseType.vod),
+          _PickerItem(label: 'Live Synchronous', value: CourseType.liveClass),
         ],
         selectedValue: _selectedType,
         onSelect: (value) {
@@ -280,30 +347,39 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   Widget _buildErrorState(String error) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.error_outline,
-              size: 48,
-              color: AppColors.textTertiary,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Something went wrong',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              error,
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
+              Icons.wifi_off_rounded,
+              size: 64,
+              color: AppColors.error,
             ),
             const SizedBox(height: AppSpacing.lg),
-            OutlinedButton(
+            const Text(
+              'CONNECTION SEVERED',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: AppTypography.black,
+                letterSpacing: 2.0,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              error,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textTertiary,
+                fontWeight: AppTypography.medium,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            ZenButton(
+              text: 'RE-ESTABLISH LINK',
               onPressed: () => ref.read(courseListProvider.notifier).loadCourses(),
-              child: const Text('Try Again'),
             ),
           ],
         ),
@@ -314,30 +390,40 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.search_off_outlined,
-              size: 48,
-              color: AppColors.textTertiary,
+            Icon(
+              Icons.search_off_rounded,
+              size: 64,
+              color: AppColors.primary.withOpacity(0.2),
             ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'No courses found',
-              style: Theme.of(context).textTheme.titleMedium,
+            const SizedBox(height: AppSpacing.lg),
+            const Text(
+              'VOID DETECTED',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: AppTypography.black,
+                letterSpacing: 2.0,
+                color: AppColors.textPrimary,
+              ),
             ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Try adjusting your filters',
-              style: Theme.of(context).textTheme.bodySmall,
+            const SizedBox(height: AppSpacing.sm),
+            const Text(
+              'No protocols match your current search parameters.',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textTertiary,
+                fontWeight: AppTypography.medium,
+              ),
+              textAlign: TextAlign.center,
             ),
             if (_selectedLevel != null || _selectedType != null) ...[
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.xl),
               TextButton(
                 onPressed: _clearFilters,
-                child: const Text('Clear Filters'),
+                child: const Text('PURGE FILTERS', style: TextStyle(fontWeight: AppTypography.black, letterSpacing: 1.0)),
               ),
             ],
           ],
@@ -347,7 +433,6 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   }
 }
 
-/// Filter Chip - Minimal filter button
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -361,29 +446,33 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.chip),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
           ),
           decoration: BoxDecoration(
             color: isSelected 
-                ? AppColors.primarySurface
-                : isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
-            borderRadius: BorderRadius.circular(AppRadius.chip),
+                ? AppColors.primary
+                : Colors.white.withOpacity(0.6),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
               color: isSelected 
                   ? AppColors.primary
-                  : isDark ? AppColors.borderDark : AppColors.borderLight,
+                  : AppColors.borderLight.withOpacity(0.5),
             ),
+            boxShadow: isSelected ? [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
+            ] : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -391,19 +480,20 @@ class _FilterChip extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: AppTypography.fontSizeSm,
-                  fontWeight: isSelected ? AppTypography.semiBold : AppTypography.medium,
+                  fontSize: 10,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 1.0,
                   color: isSelected 
-                      ? AppColors.primary
-                      : theme.textTheme.bodyMedium?.color,
+                      ? Colors.white
+                      : AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.sm),
               Icon(
-                Icons.keyboard_arrow_down,
+                Icons.keyboard_arrow_down_rounded,
                 size: 16,
                 color: isSelected 
-                    ? AppColors.primary
+                    ? Colors.white
                     : AppColors.textTertiary,
               ),
             ],
@@ -414,7 +504,6 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-/// Picker Sheet - Bottom sheet for selection
 class _PickerSheet extends StatelessWidget {
   final String title;
   final List<_PickerItem> items;
@@ -430,52 +519,59 @@ class _PickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Handle
           Center(
             child: Container(
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.grey300,
-                borderRadius: BorderRadius.circular(2),
+                color: AppColors.grey200,
+                borderRadius: BorderRadius.circular(10),
               ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: AppTypography.black,
+              letterSpacing: 2.0,
+              color: AppColors.textTertiary,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          
-          // Title
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            child: Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: AppTypography.semiBold,
-              ),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final isSelected = selectedValue == item.value;
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                  title: Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: AppTypography.fontSizeMd,
+                      fontWeight: isSelected ? AppTypography.bold : AppTypography.medium,
+                      color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20)
+                      : null,
+                  onTap: () => onSelect(item.value),
+                );
+              },
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          
-          // Items
-          ...items.map((item) => ListTile(
-            title: Text(item.label),
-            trailing: selectedValue == item.value
-                ? const Icon(Icons.check, color: AppColors.primary)
-                : null,
-            onTap: () => onSelect(item.value),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-          )),
-          
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.xl),
         ],
       ),
     );
