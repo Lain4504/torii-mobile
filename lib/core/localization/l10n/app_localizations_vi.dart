@@ -15,7 +15,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get welcomeBack => 'Chào mừng trở lại';
 
   @override
-  String get signInToContinue => 'Đăng nhập để tiếp tục hành trình học tập của bạn';
+  String get signInToContinue =>
+      'Đăng nhập để tiếp tục hành trình học tập của bạn';
 
   @override
   String get email => 'Email';
@@ -48,7 +49,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get goodEvening => 'Chào buổi tối';
 
   @override
-  String get continueYourJourney => 'Tiếp tục hành trình học tiếng Nhật của bạn';
+  String get continueYourJourney =>
+      'Tiếp tục hành trình học tiếng Nhật của bạn';
 
   @override
   String get quickStart => 'Bắt đầu nhanh';
@@ -132,7 +134,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get signInRequired => 'Yêu cầu đăng nhập';
 
   @override
-  String get signInToAccess => 'Đăng nhập để truy cập tính năng này và theo dõi tiến độ của bạn.';
+  String get signInToAccess =>
+      'Đăng nhập để truy cập tính năng này và theo dõi tiến độ của bạn.';
 
   @override
   String get cancel => 'Hủy';
