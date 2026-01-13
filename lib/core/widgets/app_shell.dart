@@ -12,24 +12,24 @@ import '../localization/l10n/app_localizations.dart';
 /// Contains the curved bottom navigation with centered FAB (Home).
 /// Adapts navigation items based on authentication state.
 class AppShell extends ConsumerWidget {
-  final Widget child;
+  final StatefulNavigationShell navigationShell;
   final GoRouterState state;
 
-  const AppShell({super.key, required this.child, required this.state});
+  const AppShell({super.key, required this.navigationShell, required this.state});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncAuth = ref.watch(authStateProvider);
     final isAuthenticated = asyncAuth.asData?.value.status == AuthStatus.authenticated;
 
-    final activeIndex = _calculateIndex(state.matchedLocation, isAuthenticated);
+    final activeIndex = navigationShell.currentIndex;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       extendBody: true, // Important for the notch transparency/blur to work if needed
-      body: child,
+      body: navigationShell,
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.go('/'),
         shape: const CircleBorder(),
@@ -48,7 +48,7 @@ class AppShell extends ConsumerWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _BottomNavBar(
         activeIndex: activeIndex,
-        onTap: (path) => context.go(path),
+        onTap: (path) => _onItemTapped(context, path),
         isDark: isDark,
         context: context,
         isAuthenticated: isAuthenticated,
@@ -56,20 +56,10 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  // Calculate index based on route and auth state
-  int _calculateIndex(String location, bool isAuthenticated) {
-    if (isAuthenticated) {
-      if (location.startsWith('/my-learning')) return 0;
-      if (location.startsWith('/community')) return 1;
-      if (location.startsWith('/notifications')) return 3;
-      if (location.startsWith('/settings')) return 4;
-    } else {
-      if (location.startsWith('/courses')) return 0;
-      if (location.startsWith('/exams')) return 1;
-      if (location.startsWith('/flashcards')) return 3;
-      if (location.startsWith('/live-schedule')) return 4;
-    }
-    return 2; // Default to Home
+  void _onItemTapped(BuildContext context, String path) {
+    // We continue to use context.go(path) to support the dynamic auth logic.
+    // GoRouter will automatically map the path to the correct branch.
+    context.go(path);
   }
 }
 

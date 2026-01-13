@@ -82,14 +82,23 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       final (result, data, error) = await _repository.login(email, password);
 
       if (result == AuthResult.success && data != null) {
+        // Save tokens only on success
+        if (data.accessToken != null && data.refreshToken != null) {
+           await _repository.tokenStorage.saveTokens(data.accessToken!, data.refreshToken!);
+        }
         await _userService.saveUserProfile(data.user);
         state = AsyncValue.data(AuthState.authenticated(data.user));
       } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {
+        // Do NOT clear existing tokens yet (if any), just transition to pending2FA
+        // The data.tempToken is all we need for the next step
         state = AsyncValue.data(AuthState.pending2FA(data.tempToken!));
       } else {
+        // Login failed -> NOW we clear tokens to ensure clean state
+        await _repository.tokenStorage.clear();
         state = AsyncValue.data(AuthState.unauthenticated(error: error));
       }
     } catch (e) {
+      await _repository.tokenStorage.clear();
       state = AsyncValue.error(e, StackTrace.current);
     }
   }

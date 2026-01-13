@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,27 +43,24 @@ import 'package:torii_app/features/instructor/views/pages/instructor_profile_pag
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // Use ValueNotifier to bridge Riverpod state to GoRouter
-  // Note: authNotifierProvider is now AsyncNotifier, so ref.watch returns AsyncValue<AuthState>
-  // We initialize with what we have.
   final authStateAsync = ref.read(authNotifierProvider);
   final authNotifier = ValueNotifier<AsyncValue<AuthState>>(authStateAsync);
 
-  // Listen to provider changes and update the notifier
   ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (_, next) {
-    authNotifier.value = next;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+       authNotifier.value = next;
+    });
   });
 
   return GoRouter(
     navigatorKey: AppRouter.rootNavigatorKey,
     debugLogDiagnostics: kDebugMode,
-    initialLocation: '/', // Start at root
+    initialLocation: '/',
     refreshListenable: authNotifier,
     
     redirect: (context, state) {
       final authAsync = ref.read(authNotifierProvider);
-
-      // Template Logic: Only redirect when auth state is ready (AsyncData)
+      
       if (authAsync is AsyncLoading || authAsync is AsyncError) return null;
 
       final authState = authAsync.asData?.value;
@@ -76,18 +72,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isRegister = matchedLocation == '/register';
       final isVerifying2FA = matchedLocation == '/auth/verify-2fa';
       
-      // 1. Unauthenticated -> Force Login (except public routes)
       if (status == AuthStatus.unauthenticated) {
-        // Handling Onboarding Check
-        // Note: For strict template alignment, we prioritize Auth check first.
-        // But we keep public route check to allow landing page access if needed.
         if (AppRouter.publicRoutes.contains(matchedLocation)) {
            return null;
         }
         return '/login';
       }
 
-      // 2. Pending 2FA -> Force 2FA Page
       if (status == AuthStatus.pending2FA) {
         if (!isVerifying2FA) {
            return '/auth/verify-2fa';
@@ -95,17 +86,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // 3. Authenticated -> Redirect to Home if on Login/2FA
       if (status == AuthStatus.authenticated) {
         if (isLogin || isRegister || isVerifying2FA) {
            return '/';
         }
-        return null; // Allow access to other pages
+        return null; 
       }
       
-      // 4. Requires OTP (Forgot Password Flow) logic
       if (status == AuthStatus.requiresOTP) {
-         // Allow access to OTP verification pages
          if (matchedLocation.startsWith('/auth/')) return null;
          return '/auth/verify-otp';
       }
@@ -117,71 +105,109 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/onboarding',
         builder: (context, state) => const OnboardingPage(),
       ),
-      ShellRoute(
-        navigatorKey: AppRouter.shellNavigatorKey,
-        builder: (context, state, child) {
-          return AppShell(state: state, child: child);
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return AppShell(navigationShell: navigationShell, state: state);
         },
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) {
-              // Be careful watching async provider in build for logic, prefer checking value directly if needed
-              // But here we rely on router to protect us.
-              // Just in case, show loader if data is somehow missing in UI build
-              final asyncAuth = ref.watch(authNotifierProvider);
-              if (asyncAuth.value?.isAuthenticated == true) {
-                return const DashboardPage();
-              }
-              return const HomePage();
-            },
-          ),
-          GoRoute(
-            path: '/my-learning',
-            builder: (context, state) => const MyLearningPage(),
-          ),
-          GoRoute(
-            path: '/community',
-            builder: (context, state) => const PostListPage(),
+        branches: [
+          // Branch 0: Learning / Courses
+          StatefulShellBranch(
             routes: [
               GoRoute(
-                path: ':id',
-                builder: (context, state) {
-                  final post = state.extra as Post?;
-                  final id = state.pathParameters['id'] ?? '';
-                  return PostDetailPage(postId: id, post: post);
-                },
+                path: '/my-learning',
+                builder: (context, state) => const MyLearningPage(),
+              ),
+              GoRoute(
+                path: '/courses',
+                builder: (context, state) => const CourseCatalogPage(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    parentNavigatorKey: AppRouter.rootNavigatorKey,
+                    builder: (context, state) {
+                      final courseId = state.pathParameters['id'] ?? '';
+                      return CourseDetailPage(courseId: courseId);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
-          GoRoute(
-            path: '/courses',
-            builder: (context, state) => const CourseCatalogPage(),
+          
+          // Branch 1: Community / Exams
+          StatefulShellBranch(
             routes: [
               GoRoute(
-                path: ':id',
-                parentNavigatorKey: AppRouter.rootNavigatorKey,
-                builder: (context, state) {
-                  final courseId = state.pathParameters['id'] ?? '';
-                  return CourseDetailPage(courseId: courseId);
-                },
+                path: '/community',
+                builder: (context, state) => const PostListPage(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) {
+                      final post = state.extra as Post?;
+                      final id = state.pathParameters['id'] ?? '';
+                      return PostDetailPage(postId: id, post: post);
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: '/exams',
+                builder: (context, state) => const ExamListPage(),
               ),
             ],
           ),
-          GoRoute(
-            path: '/exams',
-            builder: (context, state) => const ExamListPage(),
+
+          // Branch 2: Home
+          StatefulShellBranch(
+            routes: [
+               GoRoute(
+                path: '/',
+                builder: (context, state) => const RootScreenWrapper(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/flashcards',
-            builder: (context, state) => const FlashcardListPage(),
+
+          // Branch 3: Notifications / Flashcards
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/notifications',
+                builder: (context, state) => const NotificationsPage(),
+              ),
+              GoRoute(
+                path: '/flashcards',
+                builder: (context, state) => const FlashcardListPage(),
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/live-schedule',
-            builder: (context, state) => const LiveClassSchedulePage(),
+
+          // Branch 4: Settings / Live Schedule
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                builder: (context, state) => const SettingsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'profile/edit',
+                    builder: (context, state) => const ProfileEditPage(),
+                  ),
+                  GoRoute(
+                    path: 'security',
+                    builder: (context, state) => const SecuritySettingsPage(),
+                  ),
+                ],
+              ),
+              GoRoute(
+                  path: '/live-schedule',
+                  builder: (context, state) => const LiveClassSchedulePage(),
+                ),
+            ],
           ),
         ],
       ),
+      // Root Routes (Overlay)
       GoRoute(
         path: '/login',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
@@ -244,26 +270,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/payment',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const PaymentPage(),
-      ),
-      GoRoute(
-        path: '/settings',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const SettingsPage(),
-        routes: [
-          GoRoute(
-            path: 'profile/edit',
-            builder: (context, state) => const ProfileEditPage(),
-          ),
-          GoRoute(
-            path: 'security',
-            builder: (context, state) => const SecuritySettingsPage(),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: '/notifications',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const NotificationsPage(),
       ),
       GoRoute(
         path: '/search',
@@ -346,4 +352,17 @@ class AppRouter {
     '/auth/reset-password',
     '/auth/verify-2fa',
   ];
+}
+
+class RootScreenWrapper extends ConsumerWidget {
+  const RootScreenWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncAuth = ref.watch(authStateProvider);
+    if (asyncAuth.value?.isAuthenticated == true) {
+      return const DashboardPage();
+    }
+    return const HomePage();
+  }
 }
