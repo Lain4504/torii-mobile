@@ -31,7 +31,7 @@ class MinimalCard extends StatelessWidget {
     final cardBackground = backgroundColor ?? 
         (isDark ? AppColors.surfaceDark : AppColors.surface);
     
-    final borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
+    final borderColor = isDark ? AppColors.grey300 : AppColors.grey300;
     
     return Material(
       color: Colors.transparent,
@@ -140,7 +140,7 @@ class AccentCard extends StatelessWidget {
             color: cardBackground,
             borderRadius: borderRadius ?? BorderRadius.circular(AppRadius.card),
             border: Border.all(
-              color: accent.withOpacity(0.3),
+              color: accent.withValues(alpha: 0.3),
               width: 1,
             ),
           ),
@@ -207,7 +207,7 @@ class _InteractiveCardState extends State<InteractiveCard>
     final cardBackground = widget.backgroundColor ?? 
         (isDark ? AppColors.surfaceDark : AppColors.surface);
     
-    final borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
+    final borderColor = isDark ? AppColors.grey300 : AppColors.grey300;
     
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),

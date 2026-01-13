@@ -68,7 +68,7 @@ class InstructorProfilePage extends StatelessWidget {
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 2),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 2),
           ),
           child: const CircleAvatar(
             radius: 50,
@@ -89,7 +89,7 @@ class InstructorProfilePage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppRadius.full),
           ),
           child: const Text(
@@ -111,9 +111,9 @@ class InstructorProfilePage extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildStatItem('12', 'COURSES'),
-        Container(width: 1, height: 30, color: AppColors.borderLight),
+        Container(width: 1, height: 30, color: AppColors.grey300),
         _buildStatItem('4.9', 'RATING', icon: Icons.star_rounded, iconColor: AppColors.accent),
-        Container(width: 1, height: 30, color: AppColors.borderLight),
+        Container(width: 1, height: 30, color: AppColors.grey300),
         _buildStatItem('25k', 'STUDENTS'),
       ],
     );
@@ -193,7 +193,7 @@ class InstructorProfilePage extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Expanded(child: Container(height: 1, color: AppColors.borderLight)),
+        Expanded(child: Container(height: 1, color: AppColors.grey300)),
       ],
     );
   }
@@ -228,9 +228,9 @@ class _InstructorCourseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
+        color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [

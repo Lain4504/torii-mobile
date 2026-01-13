@@ -104,7 +104,7 @@ class _SearchPageState extends State<SearchPage> {
                 borderRadius: BorderRadius.circular(AppRadius.full),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -185,7 +185,7 @@ class _CategoryChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: AppColors.grey300),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -222,7 +222,7 @@ class _RecentlyViewedItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Row(

@@ -90,7 +90,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       width: 300,
                       height: 300,
                       decoration: BoxDecoration(
-                        color: AppColors.primarySurface.withOpacity(0.3),
+                        color: AppColors.primarySurface.withValues(alpha: 0.3),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -103,7 +103,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       width: 250,
                       height: 250,
                       decoration: BoxDecoration(
-                        color: AppColors.accentSurface.withOpacity(0.3),
+                        color: AppColors.accentSurface.withValues(alpha: 0.3),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -112,7 +112,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   Positioned.fill(
                     child: CustomPaint(
                       painter: ZenPatternPainter(
-                        color: AppColors.grey200.withOpacity(0.2),
+                        color: AppColors.grey200.withValues(alpha: 0.2),
                       ),
                     ),
                   ),
@@ -145,7 +145,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary.withOpacity(0.2),
+                                    color: AppColors.primary.withValues(alpha: 0.2),
                                     blurRadius: 12,
                                     offset: const Offset(0, 4),
                                   ),
@@ -307,7 +307,7 @@ class _OnboardingSlide extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.black.withOpacity(0.04),
+                    color: AppColors.black.withValues(alpha: 0.04),
                     blurRadius: 32,
                     offset: const Offset(0, 12),
                   ),

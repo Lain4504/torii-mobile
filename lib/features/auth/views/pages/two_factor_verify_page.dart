@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 
 class TwoFactorVerifyPage extends ConsumerStatefulWidget {
@@ -47,33 +47,31 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
 
   void _verify(String code) {
     final state = ref.read(authStateProvider);
-    if (state is! AuthTwoFactorRequired) return;
+    if (state.status != AuthStatus.requires2FA || state.tempToken == null) return;
 
     if (_isBackupCode) {
-      ref.read(authStateProvider.notifier).verify2FA(state.tempToken, code, isBackupCode: true);
+      ref.read(authStateProvider.notifier).verify2FA(state.tempToken!, code, isBackupCode: true);
     } else {
-      ref.read(authStateProvider.notifier).verify2FA(state.tempToken, code);
+      ref.read(authStateProvider.notifier).verify2FA(state.tempToken!, code);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(authStateProvider, (previous, next) {
-      if (next is AuthAuthenticated) {
-        context.go('/');
+    final authState = ref.watch(authStateProvider);
+    
+    // Listen for successful 2FA verification
+    ref.listen<AuthState>(authStateProvider, (previous, next) {
+      if (previous?.status != next.status && next.isAuthenticated) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) context.go('/');
+        });
       }
     });
 
-    final authState = ref.watch(authStateProvider);
-    final isLoading = authState is AuthLoading;
-    String? errorMessage;
-    String? helpMessage;
-
-    if (authState is AuthTwoFactorRequired) {
-      helpMessage = authState.message;
-    } else if (authState is AuthError) {
-      errorMessage = authState.message;
-    }
+    final isLoading = authState.isLoading;
+    final errorMessage = authState.error;
+    final helpMessage = authState.status == AuthStatus.requires2FA ? authState.error : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -137,7 +135,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary.withOpacity(0.5),
+                            color: AppColors.textSecondary.withValues(alpha: 0.5),
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -207,7 +205,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
               onPressed: () => ref.read(authStateProvider.notifier).logout(),
-              color: AppColors.textPrimary.withOpacity(0.4),
+              color: AppColors.textPrimary.withValues(alpha: 0.4),
             ),
           ),
         ],
@@ -228,7 +226,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   blurRadius: 25, offset: const Offset(0, 8),
                 ),
               ],
@@ -259,7 +257,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
                   fontSize: 9,
                   fontWeight: AppTypography.black,
                   letterSpacing: 4.0,
-                  color: AppColors.primary.withOpacity(0.5),
+                  color: AppColors.primary.withValues(alpha: 0.5),
                 ),
               ),
             ],
@@ -281,9 +279,9 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
       ),
       child: TextField(
         controller: controller,
@@ -302,7 +300,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
           counterText: "",
           hintText: hintText,
           hintStyle: TextStyle(
-            color: AppColors.textTertiary.withOpacity(0.15),
+            color: AppColors.textTertiary.withValues(alpha: 0.15),
             letterSpacing: letterSpacing,
           ),
         ),
@@ -315,9 +313,9 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight.withOpacity(0.6),
+        color: AppColors.errorLight.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.error.withOpacity(0.1)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [

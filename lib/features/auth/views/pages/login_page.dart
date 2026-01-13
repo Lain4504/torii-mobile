@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/localization/l10n/app_localizations.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
@@ -24,16 +24,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _obscureText = true;
 
   @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      if (mounted) {
-         ref.read(authStateProvider.notifier).reset();
-      }
-    });
-  }
-
-  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -46,26 +36,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     await ref.read(authStateProvider.notifier).login(
       _emailController.text.trim(), 
       _passwordController.text.trim()
-    );
+   );
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(authStateProvider, (previous, next) {
-      if (next is AuthAuthenticated) {
-        context.go(widget.redirectTo ?? '/');
-      } else if (next is AuthTwoFactorRequired) {
-        context.go('/auth/verify-2fa');
+    final authState = ref.watch(authStateProvider);
+    
+   // Handle navigation based on auth state changes
+    ref.listen<AuthState>(authStateProvider, (previous, next) {
+      // Only navigate when state actually changes
+      if (previous?.status != next.status) {
+        if (next.isAuthenticated) {
+          // Login successful - navigate to intended destination
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              context.go(widget.redirectTo ?? '/');
+            }
+          });
+        } else if (next.status == AuthStatus.requires2FA) {
+          // Needs 2FA verification
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              context.go('/auth/verify-2fa');
+            }
+          });
+        }
       }
     });
 
-    final authState = ref.watch(authStateProvider);
-    final isLoading = authState is AuthLoading;
-    String? errorMessage;
-
-    if (authState is AuthError) {
-      errorMessage = authState.message;
-    }
+    final isLoading = authState.isLoading;
+    final errorMessage = authState.error;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -143,7 +144,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: AppTypography.bold,
-                                  color: AppColors.primary.withOpacity(0.7),
+                                  color: AppColors.primary.withValues(alpha: 0.7),
                                 ),
                               ),
                             ),
@@ -192,7 +193,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: IconButton(
               icon: const Icon(Icons.close_rounded, size: 20),
               onPressed: () => context.pop(),
-              color: AppColors.textPrimary.withOpacity(0.4),
+              color: AppColors.textPrimary.withValues(alpha: 0.4),
             ),
           ),
           EntryAnimation(
@@ -228,7 +229,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   blurRadius: 25, offset: const Offset(0, 8),
                 ),
               ],
@@ -259,7 +260,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   fontSize: 9,
                   fontWeight: AppTypography.black,
                   letterSpacing: 5.0,
-                  color: AppColors.primary.withOpacity(0.5),
+                  color: AppColors.primary.withValues(alpha: 0.5),
                 ),
               ),
             ],
@@ -273,9 +274,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight.withOpacity(0.6),
+        color: AppColors.errorLight.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.error.withOpacity(0.1)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -302,7 +303,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(width: 40, height: 1, color: AppColors.borderLight.withOpacity(0.4)),
+            Container(width: 40, height: 1, color: AppColors.grey300.withValues(alpha: 0.4)),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Text(
@@ -310,7 +311,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 style: TextStyle(fontSize: 8, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
               ),
             ),
-            Container(width: 40, height: 1, color: AppColors.borderLight.withOpacity(0.4)),
+            Container(width: 40, height: 1, color: AppColors.grey300.withValues(alpha: 0.4)),
           ],
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -341,9 +342,9 @@ class _SocialLoginButton extends StatelessWidget {
       child: Container(
         width: 56, height: 56,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         ),
         child: Icon(icon, color: AppColors.textPrimary, size: 32),
       ),

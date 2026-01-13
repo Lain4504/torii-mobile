@@ -1,67 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 
 class VerifyOTPPage extends ConsumerStatefulWidget {
   final String email;
 
-  const VerifyOTPPage({
-    super.key,
-    required this.email,
-  });
+  const VerifyOTPPage({super.key, required this.email});
 
   @override
   ConsumerState<VerifyOTPPage> createState() => _VerifyOTPPageState();
 }
 
 class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
-  final TextEditingController _otpController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _focusNode.requestFocus();
-    });
-  }
+  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   @override
   void dispose() {
-    _otpController.dispose();
-    _focusNode.dispose();
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var node in _focusNodes) {
+      node.dispose();
+    }
     super.dispose();
   }
 
-  void _verify() {
-    final otp = _otpController.text.trim();
-    if (otp.length == 6) {
-      ref.read(authStateProvider.notifier).verifyOTP(widget.email, otp);
+  void _verifyOTP() {
+    final code = _controllers.map((c) => c.text).join();
+    if (code.length == 6) {
+      ref.read(authStateProvider.notifier).verifyOTP(widget.email, code);
     }
+  }
+
+  void _resendOTP() {
+    ref.read(authStateProvider.notifier).resendOTP(widget.email);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('OTP code resent!')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(authStateProvider, (previous, next) {
-      if (next is AuthResetPasswordRequired) {
-        context.push('/auth/reset-password', extra: {
-          'email': next.email,
-          'token': next.tempToken,
-        });
+    final authState = ref.watch(authStateProvider);
+    
+    // Navigate to reset password when OTP verified
+    ref.listen<AuthState>(authStateProvider, (previous, next) {
+      if (previous?.status != next.status) {
+        if (next.status == AuthStatus.requiresOTP && next.tempToken != null) {
+          // OTP verified - navigate to reset password
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && next.email != null && next.tempToken != null) {
+              context.go('/auth/reset-password', extra: {
+                'email': next.email,
+                'tempToken': next.tempToken,
+              });
+            }
+          });
+        }
       }
     });
 
-    final authState = ref.watch(authStateProvider);
-    final isLoading = authState is AuthLoading;
-    String? errorMessage;
-
-    if (authState is AuthError) {
-      errorMessage = authState.message;
-    }
+    final isLoading = authState.isLoading;
+    final errorMessage = authState.error;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -76,38 +81,73 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   child: Column(
                     children: [
-                      const SizedBox(height: AppSpacing.lg),
-                      _buildHeader(context),
                       const SizedBox(height: AppSpacing.xxxl),
-                      if (errorMessage != null) ...[
-                        EntryAnimation(
-                          index: 2,
-                          child: _buildErrorBanner(errorMessage),
+                      Icon(
+                        Icons.mail_outline_rounded,
+                        size: 80,
+                        color: AppColors.primary.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      Text(
+                        'VERIFY CODE',
+                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          fontWeight: AppTypography.bold,
+                          letterSpacing: -1.2,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Enter the 6-digit code sent to\n${widget.email}',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(6, (index) => _buildOTPBox(index)),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      if (errorMessage != null && errorMessage.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: Text(
+                                  errorMessage,
+                                  style: TextStyle(color: AppColors.error, fontSize: 14),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                       ],
-                      EntryAnimation(
-                        index: 3,
-                        verticalOffset: 20,
-                        child: _buildOTPField(),
+                      ZenButton(
+                        onPressed: isLoading ? null : _verifyOTP,
+                        isLoading: isLoading,
+                        text: 'VERIFY CODE',
                       ),
-                      const SizedBox(height: AppSpacing.xl),
-                      EntryAnimation(
-                        index: 4,
-                        child: ZenButton(
-                          text: 'VERIFY IDENTIFICATION',
-                          onPressed: _verify,
-                          isLoading: isLoading,
-                          isFullWidth: true,
-                          icon: Icons.verified_user_rounded,
+                      const SizedBox(height: AppSpacing.lg),
+                      TextButton(
+                        onPressed: isLoading ? null : _resendOTP,
+                        child: Text(
+                          'Didn\'t receive code? RESEND',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: AppTypography.semiBold,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xxxl),
-                      EntryAnimation(
-                        index: 5,
-                        child: _buildResendSection(context),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
                     ],
                   ),
                 ),
@@ -119,187 +159,63 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        children: [
-          EntryAnimation(
-            delay: const Duration(milliseconds: 200),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-              onPressed: () => context.pop(),
-              color: AppColors.textPrimary.withOpacity(0.4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Column(
-      children: [
-        EntryAnimation(
-          index: 0,
-          verticalOffset: -20,
-          child: Container(
-            width: 72, height: 72,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.2),
-                  blurRadius: 25, offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.security_rounded, color: Colors.white, size: 36),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        EntryAnimation(
-          index: 1,
-          child: Column(
-            children: [
-              Text(
-                'VERIFICATION',
-                style: TextStyle(
-                  fontFamily: AppTypography.fontFamilySerif,
-                  fontSize: AppTypography.fontSize2xl,
-                  letterSpacing: -1.0,
-                  fontWeight: AppTypography.bold,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'IDENTITY AUTHENTICATION',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: AppTypography.black,
-                  letterSpacing: 4.0,
-                  color: AppColors.primary.withOpacity(0.5),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Text(
-                'Neural link established with\n${widget.email}',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: AppTypography.medium,
-                  color: AppColors.textSecondary.withOpacity(0.6),
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOTPField() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
-      ),
+  Widget _buildOTPBox(int index) {
+    return SizedBox(
+      width: 50,
+      height: 60,
       child: TextField(
-        controller: _otpController,
-        focusNode: _focusNode,
-        keyboardType: TextInputType.number,
-        maxLength: 6,
+        controller: _controllers[index],
+        focusNode: _focusNodes[index],
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 32,
+        keyboardType: TextInputType.number,
+        maxLength: 1,
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
           fontWeight: AppTypography.bold,
-          letterSpacing: 16.0, 
-          color: AppColors.primary,
         ),
         decoration: InputDecoration(
-          border: InputBorder.none,
-          counterText: "",
-          hintText: "••••••",
-          hintStyle: TextStyle(
-            color: AppColors.textTertiary.withOpacity(0.15),
-            letterSpacing: 16.0,
+          counterText: '',
+          filled: true,
+          fillColor: AppColors.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderSide: BorderSide(color: AppColors.grey300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderSide: BorderSide(color: AppColors.grey300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
         ),
-        onChanged: (val) {
-          if (val.length == 6) _verify();
+        onChanged: (value) {
+          if (value.length == 1 && index < 5) {
+            _focusNodes[index + 1].requestFocus();
+          }
+          if (index == 5 && _controllers.every((c) => c.text.isNotEmpty)) {
+            _verifyOTP();
+          }
         },
       ),
     );
   }
 
-  Widget _buildErrorBanner(String message) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.errorLight.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.error.withOpacity(0.1)),
-      ),
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: AppColors.errorDark,
-                fontSize: 12,
-                fontWeight: AppTypography.bold,
-              ),
+          IconButton(
+            onPressed: () => context.go('/auth/forgot-password'),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.surface,
+              foregroundColor: AppColors.textPrimary,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildResendSection(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          "HAVEN'T RECEIVED THE CODE?",
-          style: TextStyle(
-            fontSize: 10,
-            color: AppColors.textSecondary.withOpacity(0.5),
-            fontWeight: AppTypography.black,
-            letterSpacing: 1.0,
-          ),
-        ),
-        const SizedBox(height: 12),
-        InkWell(
-          onTap: () {
-            ref.read(authStateProvider.notifier).forgotPassword(widget.email);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Verification code resent.')),
-            );
-          },
-          borderRadius: BorderRadius.circular(AppRadius.full),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: const Text(
-              'RESEND PROTOCOL',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: AppTypography.black,
-                letterSpacing: 1.0,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

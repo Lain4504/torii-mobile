@@ -56,7 +56,7 @@ class _ZenLoadingState extends State<ZenLoading> with SingleTickerProviderStateM
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
-                  color: primaryColor.withOpacity(0.1),
+                  color: primaryColor.withValues(alpha: 0.1),
                   width: 2.5,
                 ),
               ),

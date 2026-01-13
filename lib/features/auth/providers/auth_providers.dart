@@ -6,15 +6,12 @@ import 'package:torii_app/services/auth/user_service.dart';
 import 'package:torii_app/data/models/auth_model.dart';
 import 'package:torii_app/data/api/api_client.dart';
 import 'package:torii_app/data/database/app_database.dart';
-import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
 
-final databaseProvider = Provider<AppDatabase>((ref) {
-  return AppDatabase();
-});
+// Service Providers
+final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
 
-final tokenServiceProvider = Provider<TokenService>((ref) {
-  return TokenService();
-});
+final tokenServiceProvider = Provider<TokenService>((ref) => TokenService());
 
 final userServiceProvider = Provider<UserService>((ref) {
   final database = ref.watch(databaseProvider);
@@ -31,10 +28,7 @@ final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(apiClient);
 });
 
-final initialAuthStateProvider = Provider<AuthState>((ref) {
-  return AuthInitial();
-});
-
+// Auth State Provider - Simplified
 final authStateProvider = NotifierProvider<AuthStateNotifier, AuthState>(
   AuthStateNotifier.new,
 );
@@ -42,195 +36,224 @@ final authStateProvider = NotifierProvider<AuthStateNotifier, AuthState>(
 class AuthStateNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
-    return ref.read(initialAuthStateProvider);
+    // Simple initial state - check if we have tokens
+    _initializeAuthState();
+    return AuthState.initial();
   }
 
   AuthService get _authService => ref.read(authServiceProvider);
   TokenService get _tokenService => ref.read(tokenServiceProvider);
   UserService get _userService => ref.read(userServiceProvider);
 
-  Future<void> initializeAuth() async {
-    state = AuthLoading();
+  /// Initialize auth state on app start - SIMPLIFIED
+  Future<void> _initializeAuthState() async {
     try {
-      final hasSession = await _tokenService.hasValidSession();
-      if (hasSession) {
-        final profileResponse = await _authService.getMe();
-        if (profileResponse.success && profileResponse.data != null) {
-          final user = profileResponse.data!;
-          final accessToken = await _tokenService.getAccessToken();
-          await _userService.saveUserProfile(user);
-          state = AuthAuthenticated(user: user, accessToken: accessToken!);
-        } else {
-          // Try local fallback
-          final localUser = await _userService.getUserProfile();
-          if (localUser != null) {
-            final accessToken = await _tokenService.getAccessToken();
-            state = AuthAuthenticated(user: localUser, accessToken: accessToken!);
-          } else {
-            state = AuthUnauthenticated();
-          }
-        }
+      final tokens = await _tokenService.getRawSession();
+      final cachedUser = await _userService.getUserProfile();
+
+      if (tokens != null && cachedUser != null) {
+        // Has stored session - assume authenticated
+        state = AuthState.authenticated(cachedUser);
       } else {
-        state = AuthUnauthenticated();
+        // No session
+        state = AuthState.unauthenticated();
       }
     } catch (e) {
-      debugPrint('Auth initialization error: $e');
-      state = AuthUnauthenticated();
+      debugPrint('Auth init error: $e');
+      state = AuthState.unauthenticated();
     }
   }
 
+  /// Login - SIMPLIFIED FLOW
   Future<void> login(String email, String password) async {
-    state = AuthLoading();
+    state = AuthState.loading();
+
     try {
       final response = await _authService.login(email: email, password: password);
+
       if (response.success && response.data != null) {
-        final data = response.data!;
-        if (data.requiresTwoFactor) {
-          state = AuthTwoFactorRequired(
-            tempToken: data.tempToken!,
-            method: data.twoFactorMethod ?? 'totp',
-            message: response.message ?? 'Enter code from your authenticator app',
+        final authData = response.data!;
+
+        // Check if requires 2FA
+        if (authData.requiresTwoFactor == true && authData.tempToken != null) {
+          state = AuthState.requires2FA(
+            authData.tempToken!,
+            message: response.message,
           );
         } else {
-          await _tokenService.saveTokens(
-            accessToken: data.accessToken!,
-            refreshToken: data.refreshToken!,
-          );
-          await _userService.saveUserProfile(data.user);
-          state = AuthAuthenticated(user: data.user, accessToken: data.accessToken!);
+          // Direct login success
+          await _completeLogin(authData);
         }
       } else {
-        state = AuthError(message: response.message ?? 'Login failed');
+        state = AuthState.unauthenticated(error: response.message);
       }
     } catch (e) {
-      state = AuthError(message: e.toString());
+      debugPrint('Login error: $e');
+      state = AuthState.unauthenticated(error: 'Login failed. Please try again.');
     }
   }
 
+  /// Complete login after successful authentication
+  Future<void> _completeLogin(AuthData authData) async {
+    try {
+      // Save tokens
+      await _tokenService.saveTokens(
+        accessToken: authData.accessToken!,
+        refreshToken: authData.refreshToken!,
+      );
+
+      // Save user profile
+      await _userService.saveUserProfile(authData.user!);
+
+      // Set authenticated state
+      state = AuthState.authenticated(authData.user!);
+    } catch (e) {
+      debugPrint('Complete login error: $e');
+      state = AuthState.unauthenticated(error: 'Failed to save session');
+    }
+  }
+
+  /// Verify 2FA code
   Future<void> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
-    state = AuthLoading();
+    state = AuthState.loading();
+
     try {
       final response = await _authService.verify2FA(
         tempToken: tempToken,
         code: code,
         backupCode: isBackupCode,
       );
+
       if (response.success && response.data != null) {
-        final data = response.data!;
-        await _tokenService.saveTokens(
-          accessToken: data.accessToken!,
-          refreshToken: data.refreshToken!,
-        );
-        await _userService.saveUserProfile(data.user);
-        state = AuthAuthenticated(user: data.user, accessToken: data.accessToken!);
+        await _completeLogin(response.data!);
       } else {
-        state = AuthError(message: response.message ?? 'Invalid or expired verification code');
+        state = AuthState.requires2FA(tempToken, message: response.message);
       }
     } catch (e) {
-      state = AuthError(message: e.toString());
+      debugPrint('2FA verify error: $e');
+      state = AuthState.requires2FA(tempToken, message: 'Verification failed');
     }
   }
 
+  /// Register new account
   Future<void> register(String email, String password, String displayName) async {
-    state = AuthLoading();
+    state = AuthState.loading();
+
     try {
       final response = await _authService.register(
         email: email,
         password: password,
         displayName: displayName,
       );
+
       if (response.success) {
-        state = AuthUnauthenticated(message: response.message);
+        // Registration successful - user needs to login
+        state = AuthState.unauthenticated();
       } else {
-        state = AuthError(message: response.message ?? 'Registration failed');
+        state = AuthState.unauthenticated(error: response.message);
       }
     } catch (e) {
-      state = AuthError(message: e.toString());
+      debugPrint('Register error: $e');
+      state = AuthState.unauthenticated(error: 'Registration failed');
     }
   }
 
+  /// Forgot password - request OTP
   Future<void> forgotPassword(String email) async {
-    state = AuthLoading();
+    state = AuthState.loading();
+
     try {
       final response = await _authService.forgotPassword(email);
+
       if (response.success) {
-        state = AuthVerifyOTPRequired(email: email, message: response.message ?? 'OTP sent to your email');
+        // OTP sent - transition to OTP verification state
+        state = AuthState.requiresOTP(email);
       } else {
-        state = AuthError(message: response.message ?? 'Failed to send OTP');
+        state = AuthState.unauthenticated(error: response.message);
       }
     } catch (e) {
-      state = AuthError(message: e.toString());
+      debugPrint('Forgot password error: $e');
+      state = AuthState.unauthenticated(error: 'Failed to send OTP');
     }
   }
 
+  /// Verify OTP code
   Future<void> verifyOTP(String email, String code) async {
-    state = AuthLoading();
+    state = AuthState.loading();
+
     try {
       final response = await _authService.verifyOTP(email, code);
+
       if (response.success && response.data != null) {
-        final tempToken = response.data!['tempToken'];
-        state = AuthResetPasswordRequired(tempToken: tempToken, email: email);
-      } else {
-        state = AuthError(message: response.message ?? 'Invalid OTP');
-      }
-    } catch (e) {
-      state = AuthError(message: e.toString());
-    }
-  }
-
-  Future<void> resetPassword(String token, String password) async {
-    state = AuthLoading();
-    try {
-      final response = await _authService.resetPassword(token, password);
-      if (response.success) {
-        state = AuthUnauthenticated(message: response.message);
-      } else {
-        state = AuthError(message: response.message ?? 'Failed to reset password');
-      }
-    } catch (e) {
-      state = AuthError(message: e.toString());
-    }
-  }
-
-  Future<void> logout() async {
-    final refreshToken = await _tokenService.getRefreshToken();
-    if (refreshToken != null) {
-      await _authService.logout(refreshToken);
-    }
-    await _tokenService.clearTokens();
-    await _userService.clearUserProfile();
-    state = AuthUnauthenticated();
-  }
-
-  Future<void> refreshProfile() async {
-    try {
-      final response = await _authService.getMe();
-      if (response.success && response.data != null) {
-        final user = response.data!;
-        await _userService.saveUserProfile(user);
-        final accessToken = await _tokenService.getAccessToken();
-        if (accessToken != null) {
-          state = AuthAuthenticated(user: user, accessToken: accessToken);
+        // OTP verified - got temp token for password reset
+        final tempToken = response.data!['tempToken'] as String?;
+        if (tempToken != null) {
+          state = state.copyWith(
+            status: AuthStatus.requiresOTP,
+            tempToken: tempToken,
+            email: email,
+          );
+        } else {
+          state = AuthState.requiresOTP(email).copyWith(error: 'Invalid OTP response');
         }
+      } else {
+        state = AuthState.requiresOTP(email).copyWith(error: response.message);
       }
     } catch (e) {
-      debugPrint('Silent profile refresh failed: $e');
+      debugPrint('Verify OTP error: $e');
+      state = AuthState.requiresOTP(email).copyWith(error: 'Invalid OTP code');
     }
   }
 
-  void resetError() {
-    if (state is AuthError) {
-      state = AuthUnauthenticated();
+  /// Reset password with temp token
+  Future<void> resetPassword(String tempToken, String newPassword) async {
+    state = AuthState.loading();
+
+    try {
+      final response = await _authService.resetPassword(tempToken, newPassword);
+
+      if (response.success) {
+        // Password reset successful - user needs to login
+        state = AuthState.unauthenticated();
+      } else {
+        state = AuthState.unauthenticated(error: response.message);
+      }
+    } catch (e) {
+      debugPrint('Reset password error: $e');
+      state = AuthState.unauthenticated(error: 'Failed to reset password');
     }
   }
 
+  /// Resend OTP
+  Future<void> resendOTP(String email) async {
+    try {
+      await _authService.resendOTP(email, reason: 'forgot_password');
+      // Don't change state, just send OTP again
+    } catch (e) {
+      debugPrint('Resend OTP error: $e');
+    }
+  }
+
+  /// Logout
+  Future<void> logout() async {
+    try {
+      // Get refresh token for backend logout
+      final tokens = await _tokenService.getRawSession();
+      if (tokens != null) {
+        await _authService.logout(tokens.refreshToken);
+      }
+    } catch (e) {
+      debugPrint('Logout API error: $e');
+    } finally {
+      // Clear local state regardless of API success
+      await _tokenService.clearTokens();
+      await _userService.clearUserProfile();
+      state = AuthState.unauthenticated();
+    }
+  }
+
+  /// Reset state to unauthenticated (for page init)
   void reset() {
-    state = AuthUnauthenticated();
-  }
-
-  User? get currentUser {
-    final s = state;
-    if (s is AuthAuthenticated) return s.user;
-    return null;
+    state = AuthState.unauthenticated();
   }
 }

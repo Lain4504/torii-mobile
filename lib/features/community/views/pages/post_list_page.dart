@@ -90,12 +90,12 @@ class _PostCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.03),
+            color: AppColors.primary.withValues(alpha: 0.03),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),

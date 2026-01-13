@@ -87,7 +87,8 @@ class CourseDetailNotifier extends Notifier<CourseDetailState> {
 
   /// Check wishlist status
   Future<void> checkWishlistStatus(String courseId) async {
-    final currentUser = ref.read(authStateProvider.notifier).currentUser;
+    final authState = ref.read(authStateProvider);
+    final currentUser = authState.user;
     if (currentUser == null) {
       // User not authenticated, can't check wishlist
       return;
@@ -112,7 +113,8 @@ class CourseDetailNotifier extends Notifier<CourseDetailState> {
   /// Toggle wishlist (add or remove)
   Future<void> toggleWishlist() async {
     final courseId = state.courseId;
-    final currentUser = ref.read(authStateProvider.notifier).currentUser;
+    final authState = ref.read(authStateProvider);
+    final currentUser = authState.user;
     
     if (currentUser == null) {
       state = state.copyWith(error: 'Please login to add to wishlist');

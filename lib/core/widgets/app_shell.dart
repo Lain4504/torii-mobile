@@ -79,7 +79,7 @@ class _BottomNavBar extends StatelessWidget {
       color: isDark ? AppColors.surfaceDark : AppColors.surface,
       surfaceTintColor: Colors.transparent,
       elevation: 20,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       padding: EdgeInsets.zero,
       height: 70, // Fixed height for consistency
       child: Row(

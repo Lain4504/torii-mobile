@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/providers/auth_providers.dart';
-import '../../../auth/models/auth_state_sealed.dart';
 import '../../../course/providers/my_learning_provider.dart';
 import '../../../course/views/widgets/course_card.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -29,7 +28,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final user = authState is AuthAuthenticated ? authState.user : null;
+    final user = authState.isAuthenticated ? authState.user : null;
     final myLearning = ref.watch(myLearningProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -110,7 +109,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             'LAST UPDATED: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
             style: TextStyle(
               fontSize: 9,
-              color: AppColors.primary.withOpacity(0.4),
+              color: AppColors.primary.withValues(alpha: 0.4),
               fontWeight: AppTypography.black,
               letterSpacing: 2.0,
             ),
@@ -156,9 +155,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppRadius.full),
-              border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
             ),
             child: Text(
               'ACTIVE_LESSONS',
@@ -166,7 +165,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 fontSize: 8,
                 fontWeight: AppTypography.black,
                 letterSpacing: 3.0,
-                color: AppColors.primary.withOpacity(0.6),
+                color: AppColors.primary.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -193,16 +192,16 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(AppRadius.xxl),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.04),
+              color: AppColors.primary.withValues(alpha: 0.04),
               blurRadius: 40,
               offset: const Offset(0, 15),
             ),
           ],
-          border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -218,7 +217,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     );
   }
 
-  Widget _buildDivider() => Container(width: 1, height: 40, color: AppColors.grey200.withOpacity(0.5));
+  Widget _buildDivider() => Container(width: 1, height: 40, color: AppColors.grey200.withValues(alpha: 0.5));
 
   Widget _buildActiveProtocol(BuildContext context, List<dynamic> courses) {
     if (courses.isEmpty) return const SizedBox.shrink();
@@ -252,7 +251,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.2),
+                        color: AppColors.primary.withValues(alpha: 0.2),
                         blurRadius: 15, offset: const Offset(0, 5),
                       ),
                     ],
@@ -278,7 +277,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                         style: TextStyle(
                           fontSize: 9, 
                           fontWeight: AppTypography.black, 
-                          color: AppColors.primary.withOpacity(0.5),
+                          color: AppColors.primary.withValues(alpha: 0.5),
                           letterSpacing: 1.5,
                         ),
                       ),
@@ -444,12 +443,12 @@ class _GlassContainer extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.02),
+            color: AppColors.primary.withValues(alpha: 0.02),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -478,12 +477,12 @@ class _ShortcutTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 24),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+            border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.02),
+                color: AppColors.primary.withValues(alpha: 0.02),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -520,9 +519,9 @@ class _HeaderAction extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.grey200.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.3)),
       ),
       child: IconButton(
         icon: Icon(icon, size: 20, color: AppColors.textPrimary),

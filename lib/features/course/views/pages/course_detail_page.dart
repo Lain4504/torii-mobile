@@ -214,11 +214,11 @@ class CourseDetailPage extends ConsumerWidget {
       leading: Container(
         margin: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withValues(alpha: 0.9),
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -234,11 +234,11 @@ class CourseDetailPage extends ConsumerWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -261,11 +261,11 @@ class CourseDetailPage extends ConsumerWidget {
           height: 40,
           margin: const EdgeInsets.only(right: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -287,16 +287,16 @@ class CourseDetailPage extends ConsumerWidget {
                   ? Image.network(course.thumbnailUrl!, fit: BoxFit.cover)
                   : Container(color: AppColors.grey200),
             ),
-            Container(decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.black.withOpacity(0.3), Colors.transparent], begin: Alignment.bottomCenter, end: Alignment.center))),
+            Container(decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.black.withValues(alpha: 0.3), Colors.transparent], begin: Alignment.bottomCenter, end: Alignment.center))),
             if (course.previewVideoUrl != null)
               Center(
                 child: Container(
                   width: 70,
                   height: 70,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.8), width: 2),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
                   ),
                   child: ClipOval(
                     child: Material(
@@ -333,9 +333,9 @@ class CourseDetailPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: bg.withOpacity(0.1), 
+        color: bg.withValues(alpha: 0.1), 
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: textCol.withOpacity(0.2)),
+        border: Border.all(color: textCol.withValues(alpha: 0.2)),
       ),
       child: Text(
         text.toUpperCase(),
@@ -349,7 +349,7 @@ class CourseDetailPage extends ConsumerWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary.withOpacity(0.1))),
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary.withValues(alpha: 0.1))),
           child: CircleAvatar(
             radius: 16,
             backgroundColor: AppColors.primarySurface,
@@ -386,12 +386,12 @@ class CourseDetailPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.04),
+            color: AppColors.primary.withValues(alpha: 0.04),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -413,7 +413,7 @@ class CourseDetailPage extends ConsumerWidget {
     return Expanded(
       child: Column(
         children: [
-          Icon(icon, size: 20, color: AppColors.primary.withOpacity(0.7)),
+          Icon(icon, size: 20, color: AppColors.primary.withValues(alpha: 0.7)),
           const SizedBox(height: 8),
           Text(value, style: const TextStyle(fontWeight: AppTypography.black, fontSize: 16, letterSpacing: -0.5)),
           Text(label, style: const TextStyle(fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 1.5, color: AppColors.textTertiary)),
@@ -422,7 +422,7 @@ class CourseDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildVerticalDivider() => Container(width: 1, height: 30, color: AppColors.borderLight.withOpacity(0.5));
+  Widget _buildVerticalDivider() => Container(width: 1, height: 30, color: AppColors.grey300.withValues(alpha: 0.5));
 
   Widget _buildSectionTitle(String title) {
     return Row(
@@ -457,7 +457,7 @@ class CourseDetailPage extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(top: 16, bottom: 8),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.primarySurface.withOpacity(0.5), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: AppColors.primarySurface.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
           Text('M$index', style: const TextStyle(fontWeight: AppTypography.black, color: AppColors.primary, fontSize: 18)),
@@ -481,12 +481,12 @@ class CourseDetailPage extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.02),
+            color: AppColors.primary.withValues(alpha: 0.02),
             blurRadius: 15,
             offset: const Offset(0, 4),
           ),
@@ -521,16 +521,16 @@ class CourseDetailPage extends ConsumerWidget {
         bottom: MediaQuery.of(context).padding.bottom + 20,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.05),
+            color: AppColors.primary.withValues(alpha: 0.05),
             blurRadius: 30,
             offset: const Offset(0, -10),
           ),
         ],
-        border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
+        border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.3))),
       ),
       child: SafeArea(
         top: false,

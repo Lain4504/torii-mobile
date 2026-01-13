@@ -105,7 +105,7 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
                           fontSize: 10,
                           fontWeight: AppTypography.black,
                           letterSpacing: 5.0,
-                          color: AppColors.primary.withOpacity(0.5),
+                          color: AppColors.primary.withValues(alpha: 0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -189,17 +189,17 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
               decoration: BoxDecoration(
                 color: isSelected 
                     ? AppColors.primary 
-                    : Colors.white.withOpacity(0.8),
+                    : Colors.white.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(AppRadius.xxl),
                 border: Border.all(
                   color: isSelected 
                       ? AppColors.primary 
-                      : (isToday ? AppColors.primary.withOpacity(0.2) : AppColors.borderLight.withOpacity(0.3)),
+                      : (isToday ? AppColors.primary.withValues(alpha: 0.2) : AppColors.grey300.withValues(alpha: 0.3)),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: isSelected ? AppColors.primary.withOpacity(0.2) : AppColors.primary.withOpacity(0.02),
+                    color: isSelected ? AppColors.primary.withValues(alpha: 0.2) : AppColors.primary.withValues(alpha: 0.02),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   )
@@ -215,7 +215,7 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
                       fontWeight: AppTypography.black,
                       letterSpacing: 1.0,
                       color: isSelected 
-                          ? Colors.white.withOpacity(0.7) 
+                          ? Colors.white.withValues(alpha: 0.7) 
                           : AppColors.textTertiary,
                     ),
                   ),
@@ -258,7 +258,7 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
           Icon(
             Icons.event_busy_rounded,
             size: 64,
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
           ),
           const SizedBox(height: AppSpacing.lg),
           const Text(
@@ -298,12 +298,12 @@ class _LiveClassCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.03),
+            color: AppColors.primary.withValues(alpha: 0.03),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -342,7 +342,7 @@ class _LiveClassCard extends StatelessWidget {
                     height: 20,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [AppColors.primary.withOpacity(0.2), Colors.transparent],
+                        colors: [AppColors.primary.withValues(alpha: 0.2), Colors.transparent],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -368,7 +368,7 @@ class _LiveClassCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(AppRadius.full),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.error.withOpacity(0.3),
+                            color: AppColors.error.withValues(alpha: 0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -401,7 +401,7 @@ class _LiveClassCard extends StatelessWidget {
                         padding: const EdgeInsets.all(1),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
                         ),
                         child: const CircleAvatar(
                           radius: 8,

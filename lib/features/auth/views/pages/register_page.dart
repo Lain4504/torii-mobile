@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 
@@ -43,25 +43,27 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(authStateProvider, (previous, next) {
-      if (next is AuthAuthenticated) {
-        context.go('/');
-      } else if (next is AuthUnauthenticated && next.message != null) {
-        // Handle successful registration message if needed
-        ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text(next.message!)),
-        );
-        context.go('/login');
+    final authState = ref.watch(authStateProvider);
+    
+    // Listen for registration completion
+    ref.listen<AuthState>(authStateProvider, (previous, next) {
+      if (previous?.status != next.status) {
+        if (next.status == AuthStatus.unauthenticated && previous?.status == AuthStatus.loading) {
+          // Registration successful - show message and navigate to login
+          if (next.error == null || next.error!.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Registration successful! Please login.')),
+            );
+          }
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) context.go('/login');
+          });
+        }
       }
     });
 
-    final authState = ref.watch(authStateProvider);
-    final isLoading = authState is AuthLoading;
-    String? errorMessage;
-
-    if (authState is AuthError) {
-      errorMessage = authState.message;
-    }
+    final isLoading = authState.isLoading;
+    final errorMessage = authState.error;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -173,7 +175,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                               'By creating an account, you agree to our terms of service and privacy protocols within the Torii ecosystem.',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: AppColors.textTertiary.withOpacity(0.5),
+                                color: AppColors.textTertiary.withValues(alpha: 0.5),
                                 height: 1.6,
                                 fontWeight: AppTypography.medium,
                               ),
@@ -210,7 +212,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
               onPressed: () => context.go('/login'),
-              color: AppColors.textPrimary.withOpacity(0.4),
+              color: AppColors.textPrimary.withValues(alpha: 0.4),
             ),
           ),
         ],
@@ -231,7 +233,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   blurRadius: 25, offset: const Offset(0, 8),
                 ),
               ],
@@ -262,7 +264,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   fontSize: 9,
                   fontWeight: AppTypography.black,
                   letterSpacing: 5.0,
-                  color: AppColors.primary.withOpacity(0.5),
+                  color: AppColors.primary.withValues(alpha: 0.5),
                 ),
               ),
             ],
@@ -276,9 +278,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight.withOpacity(0.6),
+        color: AppColors.errorLight.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.error.withOpacity(0.1)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -309,13 +311,13 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               'ALREADY A LEARNER?',
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary.withOpacity(0.5),
+                color: AppColors.textSecondary.withValues(alpha: 0.5),
                 fontWeight: AppTypography.medium,
               ),
             ),
             const SizedBox(width: 8),
             InkWell(
-              onTap: () => context.push('/login'),
+              onTap: () => context.go('/login'),
               borderRadius: BorderRadius.circular(4),
               child: const Text(
                 'SIGN IN',

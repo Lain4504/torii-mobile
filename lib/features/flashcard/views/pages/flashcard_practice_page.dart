@@ -78,7 +78,7 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
               child: Container(
                 height: 2,
                 width: double.infinity,
-                decoration: BoxDecoration(color: AppColors.borderLight.withOpacity(0.5), borderRadius: BorderRadius.circular(1)),
+                decoration: BoxDecoration(color: AppColors.grey300.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(1)),
                 child: FractionallySizedBox(
                   alignment: Alignment.centerLeft,
                   widthFactor: (_currentIndex + 1) / _cards.length,
@@ -120,11 +120,11 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
         constraints: const BoxConstraints(minHeight: 400, minWidth: double.infinity),
         padding: const EdgeInsets.all(40),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(32),
-          border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 40, offset: const Offset(0, 20)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, 20)),
           ],
         ),
         child: Column(
@@ -134,9 +134,9 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
               margin: const EdgeInsets.only(bottom: 40),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: _isFlipped ? AppColors.accent.withOpacity(0.1) : AppColors.primary.withOpacity(0.1),
+                color: _isFlipped ? AppColors.accent.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.full),
-                border: Border.all(color: (_isFlipped ? AppColors.accent : AppColors.primary).withOpacity(0.2)),
+                border: Border.all(color: (_isFlipped ? AppColors.accent : AppColors.primary).withValues(alpha: 0.2)),
               ),
               child: Text(
                 (_isFlipped ? 'SYNTHESIS' : 'STIMULUS').toUpperCase(),
@@ -258,9 +258,9 @@ class _ResponseButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(AppRadius.full),
-          border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
         ),
         child: Center(
           child: Text(

@@ -140,16 +140,16 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         bottom: MediaQuery.of(context).padding.bottom + 20,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.05),
+            color: AppColors.primary.withValues(alpha: 0.05),
             blurRadius: 30,
             offset: const Offset(0, -10),
           ),
         ],
-        border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
+        border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.3))),
       ),
       child: Row(
         children: [
@@ -157,9 +157,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.03),
+                color: AppColors.primary.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(AppRadius.full),
-                border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+                border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
               ),
               child: TextField(
                 controller: _commentController,

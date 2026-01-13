@@ -111,16 +111,16 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(AppRadius.full),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.05),
+                          color: AppColors.primary.withValues(alpha: 0.05),
                           blurRadius: 20,
                           offset: const Offset(0, 4),
                         ),
                       ],
-                      border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+                      border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -152,7 +152,7 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
             preferredSize: const Size.fromHeight(2),
             child: LinearProgressIndicator(
               value: (_currentIndex + 1) / _questions.length,
-              backgroundColor: AppColors.borderLight.withOpacity(0.5),
+              backgroundColor: AppColors.grey300.withValues(alpha: 0.5),
               color: AppColors.primary,
               minHeight: 2,
             ),
@@ -210,16 +210,16 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
                   bottom: MediaQuery.of(context).padding.bottom + 20,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.05),
+                      color: AppColors.primary.withValues(alpha: 0.05),
                       blurRadius: 30,
                       offset: const Offset(0, -10),
                     ),
                   ],
-                  border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
+                  border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.3))),
                 ),
                 child: SafeArea(
                   top: false,
@@ -311,15 +311,15 @@ class _OptionCard extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary.withOpacity(0.05) : Colors.white.withOpacity(0.6),
+            color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.6),
             borderRadius: BorderRadius.circular(AppRadius.xxl),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.borderLight.withOpacity(0.3),
+              color: isSelected ? AppColors.primary : AppColors.grey300.withValues(alpha: 0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.primary.withOpacity(0.02),
+                color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.02),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -333,7 +333,7 @@ class _OptionCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.primary : AppColors.background,
                   shape: BoxShape.circle,
-                  border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight, width: 1),
+                  border: Border.all(color: isSelected ? AppColors.primary : AppColors.grey300, width: 1),
                 ),
                 child: Center(
                   child: Text(

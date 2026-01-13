@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/providers/auth_providers.dart';
-import '../../../auth/models/auth_state_sealed.dart';
 
 class ProfileEditPage extends ConsumerStatefulWidget {
   const ProfileEditPage({super.key});
@@ -19,9 +18,10 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    final user = (ref.read(authStateProvider) as AuthAuthenticated).user;
-    _nameController = TextEditingController(text: user.displayName);
-    _emailController = TextEditingController(text: user.email);
+    final authState = ref.read(authStateProvider);
+    final user = authState.user;
+    _nameController = TextEditingController(text: user?.displayName ?? '');
+    _emailController = TextEditingController(text: user?.email ?? '');
   }
 
   @override

@@ -36,7 +36,7 @@ class AppTheme {
       surface: AppColors.surface,
       onSurface: AppColors.textPrimary,
       surfaceContainerHighest: AppColors.surfaceVariant,
-      outline: AppColors.borderLight,
+      outline: AppColors.grey300,
       outlineVariant: AppColors.grey200,
     ),
     
@@ -65,10 +65,10 @@ class AppTheme {
     cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 0,
-      shadowColor: AppColors.black.withOpacity(0.04),
+      shadowColor: AppColors.black.withValues(alpha: 0.04),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        side: const BorderSide(color: AppColors.borderLight, width: 1),
+        side: const BorderSide(color: AppColors.grey300, width: 1),
       ),
       margin: EdgeInsets.zero,
     ),
@@ -83,11 +83,11 @@ class AppTheme {
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        borderSide: const BorderSide(color: AppColors.borderLight),
+        borderSide: const BorderSide(color: AppColors.grey300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        borderSide: const BorderSide(color: AppColors.borderLight),
+        borderSide: const BorderSide(color: AppColors.grey300),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -135,7 +135,7 @@ class AppTheme {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.primary,
-        side: const BorderSide(color: AppColors.borderLight, width: 1.5),
+        side: const BorderSide(color: AppColors.grey300, width: 1.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
@@ -149,7 +149,7 @@ class AppTheme {
  
     // Navigation Bar Theme - Premium Floating Look
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: AppColors.background.withOpacity(0.94),
+      backgroundColor: AppColors.background.withValues(alpha: 0.94),
       elevation: 0,
       shadowColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
@@ -253,7 +253,7 @@ class AppTheme {
       surface: AppColors.surfaceDark,
       onSurface: AppColors.textPrimaryDark,
       surfaceContainerHighest: AppColors.surfaceVariantDark,
-      outline: AppColors.borderDark,
+      outline: AppColors.grey300,
       outlineVariant: AppColors.grey700,
     ),
     
@@ -283,7 +283,7 @@ class AppTheme {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        side: const BorderSide(color: AppColors.borderDark, width: 1),
+        side: const BorderSide(color: AppColors.grey300, width: 1),
       ),
     ),
  

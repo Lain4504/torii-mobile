@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state_sealed.dart';
 import 'package:torii_app/features/course/providers/course_providers.dart';
 import 'package:torii_app/features/course/views/widgets/course_card.dart';
 import 'package:torii_app/core/theme/theme_provider.dart';
@@ -32,7 +31,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final user = authState is AuthAuthenticated ? authState.user : null;
+    final user = authState.isAuthenticated ? authState.user : null;
     final courseState = ref.watch(courseListProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -118,12 +117,12 @@ class _HomePageState extends ConsumerState<HomePage> {
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
               ],
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: const Center(
               child: Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 24),
@@ -153,7 +152,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   fontSize: 8,
                   fontWeight: AppTypography.black,
                   letterSpacing: 2.0,
-                  color: AppColors.primary.withOpacity(0.6),
+                  color: AppColors.primary.withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -171,7 +170,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),
             child: TextButton(
-              onPressed: () => context.push('/login'),
+              onPressed: () => context.go('/login'),
               child: Text(
                 AppLocalizations.of(context)!.signIn.toUpperCase(),
                 style: const TextStyle(
@@ -192,7 +191,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primary.withOpacity(0.1), width: 1.5),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.1), width: 1.5),
                 ),
                 child: CircleAvatar(
                   radius: 20,
@@ -266,16 +265,16 @@ class _HomePageState extends ConsumerState<HomePage> {
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(AppRadius.xxl),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.04),
+              color: AppColors.primary.withValues(alpha: 0.04),
               blurRadius: 40,
               offset: const Offset(0, 15),
             ),
           ],
-          border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppRadius.xxl),
@@ -285,8 +284,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               Container(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.01),
-                  border: Border(bottom: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
+                  color: AppColors.primary.withValues(alpha: 0.01),
+                  border: Border(bottom: BorderSide(color: AppColors.grey300.withValues(alpha: 0.3))),
                 ),
                 child: Row(
                   children: [
@@ -358,7 +357,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               fontSize: 8,
               fontWeight: AppTypography.black,
               letterSpacing: 1.0,
-              color: AppColors.textTertiary.withOpacity(0.6),
+              color: AppColors.textTertiary.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -367,7 +366,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildVerticalDivider() {
-    return Container(width: 1, height: 40, color: AppColors.borderLight.withOpacity(0.4));
+    return Container(width: 1, height: 40, color: AppColors.grey300.withValues(alpha: 0.4));
   }
 
   Widget _buildQuickActions(BuildContext context, dynamic user) {
@@ -426,7 +425,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppRadius.xxl),
-              border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+              border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
             ),
             child: Row(
               children: [
@@ -438,7 +437,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.2),
+                        color: AppColors.primary.withValues(alpha: 0.2),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -583,7 +582,7 @@ class _HeaderIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(right: AppSpacing.sm),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), shape: BoxShape.circle, border: Border.all(color: AppColors.borderLight.withOpacity(0.5))),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.8), shape: BoxShape.circle, border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5))),
       child: IconButton(icon: Icon(icon, size: 20, color: AppColors.textPrimary), onPressed: onPressed),
     );
   }
@@ -609,7 +608,7 @@ class _QuickActionTile extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.xl),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+            border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

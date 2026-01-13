@@ -60,7 +60,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(AppRadius.chip),
                           ),
                           child: Text(
@@ -138,9 +138,9 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.4),
+                    Colors.black.withValues(alpha: 0.4),
                     Colors.transparent,
-                    Colors.black.withOpacity(0.4),
+                    Colors.black.withValues(alpha: 0.4),
                   ],
                 ),
               ),
@@ -150,9 +150,9 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
               ),
               child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 48),
             ),
@@ -185,7 +185,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
               child: Container(
                 height: 3,
                 width: double.infinity,
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 child: FractionallySizedBox(
                   alignment: Alignment.centerLeft,
                   widthFactor: 0.35,
@@ -230,7 +230,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: AppColors.primary.withOpacity(0.6)),
+          Icon(icon, size: 16, color: AppColors.primary.withValues(alpha: 0.6)),
           const SizedBox(width: 8),
           Text(label, style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
           const Spacer(),
@@ -268,16 +268,16 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
         bottom: MediaQuery.of(context).padding.bottom + 20,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.04),
+            color: AppColors.primary.withValues(alpha: 0.04),
             blurRadius: 40,
             offset: const Offset(0, -10),
           ),
         ],
-        border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.3))),
+        border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.3))),
       ),
       child: Row(
         children: [
@@ -321,10 +321,10 @@ class _CurriculumItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: isActive ? AppColors.primary.withOpacity(0.02) : Colors.white.withOpacity(0.5),
+        color: isActive ? AppColors.primary.withValues(alpha: 0.02) : Colors.white.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
         border: Border.all(
-          color: isActive ? AppColors.primary.withOpacity(0.2) : AppColors.borderLight.withOpacity(0.3),
+          color: isActive ? AppColors.primary.withValues(alpha: 0.2) : AppColors.grey300.withValues(alpha: 0.3),
         ),
       ),
       child: Row(

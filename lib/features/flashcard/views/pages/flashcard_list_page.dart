@@ -67,7 +67,7 @@ class FlashcardListPage extends StatelessWidget {
                           fontSize: 10,
                           fontWeight: AppTypography.black,
                           letterSpacing: 3.0,
-                          color: AppColors.primary.withOpacity(0.5),
+                          color: AppColors.primary.withValues(alpha: 0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -93,11 +93,11 @@ class FlashcardListPage extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -168,12 +168,12 @@ class _DeckCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.03),
+            color: AppColors.primary.withValues(alpha: 0.03),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -197,7 +197,7 @@ class _DeckCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.primarySurface,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
                         ),
                         child: Center(
                           child: Text(
@@ -251,7 +251,7 @@ class _DeckCard extends StatelessWidget {
                   Container(
                     height: 3,
                     width: double.infinity,
-                    color: AppColors.borderLight.withOpacity(0.2),
+                    color: AppColors.grey300.withValues(alpha: 0.2),
                     child: FractionallySizedBox(
                       alignment: Alignment.centerLeft,
                       widthFactor: progress,
@@ -259,7 +259,7 @@ class _DeckCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           boxShadow: [
-                            BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 4),
+                            BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 4),
                           ],
                         ),
                       ),
@@ -286,9 +286,9 @@ class _StatLabel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: isPrimary ? color.withOpacity(0.1) : AppColors.primary.withOpacity(0.03),
+        color: isPrimary ? color.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: (isPrimary ? color : AppColors.borderLight).withOpacity(0.15)),
+        border: Border.all(color: (isPrimary ? color : AppColors.grey300).withValues(alpha: 0.15)),
       ),
       child: Text(
         label,

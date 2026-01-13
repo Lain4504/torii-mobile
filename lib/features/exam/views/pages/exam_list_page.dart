@@ -42,7 +42,7 @@ class ExamListPage extends ConsumerWidget {
                           fontSize: 10,
                           fontWeight: AppTypography.black,
                           letterSpacing: 3.0,
-                          color: AppColors.primary.withOpacity(0.5),
+                          color: AppColors.primary.withValues(alpha: 0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -68,11 +68,11 @@ class ExamListPage extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -140,12 +140,12 @@ class ExamListPage extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(AppRadius.xxl),
-          border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.04),
+              color: AppColors.primary.withValues(alpha: 0.04),
               blurRadius: 30,
               offset: const Offset(0, 10),
             ),
@@ -164,13 +164,13 @@ class ExamListPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildVerticalDivider() => Container(width: 1, height: 30, color: AppColors.borderLight.withOpacity(0.5));
+  Widget _buildVerticalDivider() => Container(width: 1, height: 30, color: AppColors.grey300.withValues(alpha: 0.5));
 
   Widget _buildStatItem(IconData icon, String value, String label, Color color) {
     return Expanded(
       child: Column(
         children: [
-          Icon(icon, size: 20, color: color.withOpacity(0.7)),
+          Icon(icon, size: 20, color: color.withValues(alpha: 0.7)),
           const SizedBox(height: 8),
           Text(value, style: const TextStyle(fontWeight: AppTypography.black, fontSize: 18, letterSpacing: -0.5)),
           Text(label, style: const TextStyle(fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 1.5, color: AppColors.textTertiary)),
@@ -223,12 +223,12 @@ class _ExamCard extends StatelessWidget {
     
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.03),
+            color: AppColors.primary.withValues(alpha: 0.03),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -251,7 +251,7 @@ class _ExamCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.primarySurface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
                     ),
                     child: Center(
                       child: Text(
@@ -325,7 +325,7 @@ class _DetailChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.primary.withOpacity(0.6)),
+        Icon(icon, size: 14, color: AppColors.primary.withValues(alpha: 0.6)),
         const SizedBox(width: 6),
         Text(
           label.toUpperCase(),
@@ -349,7 +349,7 @@ class _StartExamSheet extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
-        border: Border(top: BorderSide(color: AppColors.borderLight.withOpacity(0.4))),
+        border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.4))),
       ),
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
       child: Column(
@@ -370,9 +370,9 @@ class _StartExamSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.background.withOpacity(0.5),
+              color: AppColors.background.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+              border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,

@@ -50,7 +50,7 @@ class ZenButton extends StatelessWidget {
         shadows = !disabled 
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.35),
+                  color: AppColors.primary.withValues(alpha: 0.35),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -59,7 +59,7 @@ class ZenButton extends StatelessWidget {
         break;
       case ZenButtonType.secondary:
         bgColor = Colors.transparent;
-        border = Border.all(color: AppColors.primary.withOpacity(0.5), width: 1.5);
+        border = Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 1.5);
         textColor = AppColors.primary;
         break;
       case ZenButtonType.ghost:

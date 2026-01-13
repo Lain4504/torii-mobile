@@ -76,7 +76,7 @@ class AchievementsPage extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary.withOpacity(0.1), Colors.white.withOpacity(0.5)],
+          colors: [AppColors.primary.withValues(alpha: 0.1), Colors.white.withValues(alpha: 0.5)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -84,7 +84,7 @@ class AchievementsPage extends StatelessWidget {
         border: Border.all(color: Colors.white),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -163,9 +163,9 @@ class AchievementsPage extends StatelessWidget {
           index: index,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(color: AppColors.borderLight),
+              border: Border.all(color: AppColors.grey300),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -191,7 +191,7 @@ class AchievementsPage extends StatelessWidget {
   Widget _buildLeaderboard() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
       child: Column(
@@ -211,7 +211,7 @@ class AchievementsPage extends StatelessWidget {
   Widget _buildLeaderboardItem(int rank, String name, String xp, bool isFirst, {bool isMe = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      color: isMe ? AppColors.primary.withOpacity(0.05) : Colors.transparent,
+      color: isMe ? AppColors.primary.withValues(alpha: 0.05) : Colors.transparent,
       child: Row(
         children: [
           SizedBox(
@@ -256,7 +256,7 @@ class AchievementsPage extends StatelessWidget {
   Widget _buildDivider() {
     return Container(
       height: 1,
-      color: AppColors.borderLight.withOpacity(0.5),
+      color: AppColors.grey300.withValues(alpha: 0.5),
       margin: const EdgeInsets.symmetric(horizontal: 20),
     );
   }

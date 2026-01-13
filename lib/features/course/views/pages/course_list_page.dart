@@ -75,7 +75,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                           fontSize: 10,
                           fontWeight: AppTypography.black,
                           letterSpacing: 3.0,
-                          color: AppColors.primary.withOpacity(0.5),
+                          color: AppColors.primary.withValues(alpha: 0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -133,9 +133,9 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppRadius.full),
-                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                       ),
                       child: Text(
                         '${filteredCourses.length}',
@@ -197,12 +197,12 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   Widget _buildSearchBar(ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.05),
+            color: AppColors.primary.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -219,10 +219,10 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
         decoration: InputDecoration(
           hintText: 'Search the Matrix...',
           hintStyle: TextStyle(
-            color: AppColors.textTertiary.withOpacity(0.4),
+            color: AppColors.textTertiary.withValues(alpha: 0.4),
             fontWeight: AppTypography.medium,
           ),
-          prefixIcon: Icon(Icons.search_rounded, size: 22, color: AppColors.primary.withOpacity(0.7)),
+          prefixIcon: Icon(Icons.search_rounded, size: 22, color: AppColors.primary.withValues(alpha: 0.7)),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.close_rounded, size: 20),
@@ -398,7 +398,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             Icon(
               Icons.search_off_rounded,
               size: 64,
-              color: AppColors.primary.withOpacity(0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
             ),
             const SizedBox(height: AppSpacing.lg),
             const Text(
@@ -460,16 +460,16 @@ class _FilterChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected 
                 ? AppColors.primary
-                : Colors.white.withOpacity(0.8),
+                : Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(AppRadius.full),
             border: Border.all(
               color: isSelected 
                   ? AppColors.primary
-                  : AppColors.borderLight.withOpacity(0.3),
+                  : AppColors.grey300.withValues(alpha: 0.3),
             ),
             boxShadow: [
               BoxShadow(
-                color: isSelected ? AppColors.primary.withOpacity(0.2) : AppColors.primary.withOpacity(0.02),
+                color: isSelected ? AppColors.primary.withValues(alpha: 0.2) : AppColors.primary.withValues(alpha: 0.02),
                 blurRadius: 15,
                 offset: const Offset(0, 4),
               )

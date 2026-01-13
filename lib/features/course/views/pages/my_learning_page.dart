@@ -59,7 +59,7 @@ class MyLearningPage extends ConsumerWidget {
                         fontSize: 10,
                         fontWeight: AppTypography.black,
                         letterSpacing: 3.0,
-                        color: AppColors.primary.withOpacity(0.5),
+                        color: AppColors.primary.withValues(alpha: 0.5),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -90,7 +90,7 @@ class MyLearningPage extends ConsumerWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.auto_stories_rounded, size: 64, color: AppColors.primary.withOpacity(0.1)),
+                        Icon(Icons.auto_stories_rounded, size: 64, color: AppColors.primary.withValues(alpha: 0.1)),
                         const SizedBox(height: 24),
                         const Text(
                           'NO SYNCED PROTOCOLS',

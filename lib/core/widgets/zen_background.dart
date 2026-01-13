@@ -17,7 +17,7 @@ class ZenPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color ?? AppColors.primary.withOpacity(0.03)
+      ..color = color ?? AppColors.primary.withValues(alpha: 0.03)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
@@ -59,7 +59,7 @@ class ZenBackground extends StatelessWidget {
           top: -150,
           right: -100,
           child: _Glow(
-            color: AppColors.primary.withOpacity(0.05),
+            color: AppColors.primary.withValues(alpha: 0.05),
             size: 450,
             blur: 100,
           ),
@@ -68,7 +68,7 @@ class ZenBackground extends StatelessWidget {
           bottom: -100,
           left: -120,
           child: _Glow(
-            color: AppColors.accent.withOpacity(0.04),
+            color: AppColors.accent.withValues(alpha: 0.04),
             size: 400,
             blur: 80,
           ),

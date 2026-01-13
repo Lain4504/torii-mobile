@@ -54,7 +54,7 @@ class ZenTextField extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.full),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.01),
+                color: Colors.black.withValues(alpha: 0.01),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -78,17 +78,17 @@ class ZenTextField extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: hintText,
                 hintStyle: TextStyle(
-                  color: AppColors.textTertiary.withOpacity(0.3),
+                  color: AppColors.textTertiary.withValues(alpha: 0.3),
                   fontWeight: AppTypography.medium,
                   fontSize: 14,
                 ),
                 filled: true,
                 fillColor: enabled 
-                    ? AppColors.white.withOpacity(0.7) 
-                    : AppColors.grey100.withOpacity(0.5),
+                    ? AppColors.white.withValues(alpha: 0.7) 
+                    : AppColors.grey100.withValues(alpha: 0.5),
                 prefixIcon: Padding(
                   padding: const EdgeInsets.only(left: 8),
-                  child: Icon(icon, size: 20, color: AppColors.primary.withOpacity(0.4)),
+                  child: Icon(icon, size: 20, color: AppColors.primary.withValues(alpha: 0.4)),
                 ),
                 suffixIcon: suffixIcon,
                 border: OutlineInputBorder(
@@ -98,14 +98,14 @@ class ZenTextField extends StatelessWidget {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.full),
                   borderSide: BorderSide(
-                    color: AppColors.borderLight.withOpacity(0.4),
+                    color: AppColors.grey300.withValues(alpha: 0.4),
                     width: 1,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.full),
                   borderSide: BorderSide(
-                    color: AppColors.primary.withOpacity(0.6),
+                    color: AppColors.primary.withValues(alpha: 0.6),
                     width: 1.5,
                   ),
                 ),

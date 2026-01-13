@@ -134,16 +134,16 @@ class _NotificationItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: isUnread ? Colors.white : Colors.white.withOpacity(0.6),
+        color: isUnread ? Colors.white : Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(
-          color: isUnread ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+          color: isUnread ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
           width: 1,
         ),
         boxShadow: [
           if (isUnread)
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.05),
+              color: AppColors.primary.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -155,7 +155,7 @@ class _NotificationItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 20),

@@ -88,12 +88,12 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
-          color: isEnabled ? AppColors.primary.withOpacity(0.02) : Colors.white.withOpacity(0.5),
+          color: isEnabled ? AppColors.primary.withValues(alpha: 0.02) : Colors.white.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(AppRadius.xxl),
-          border: Border.all(color: (isEnabled ? AppColors.primary : AppColors.borderLight).withOpacity(0.2)),
+          border: Border.all(color: (isEnabled ? AppColors.primary : AppColors.grey300).withValues(alpha: 0.2)),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.03),
+              color: AppColors.primary.withValues(alpha: 0.03),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -247,9 +247,9 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.xl),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(AppRadius.xxl),
-              border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+              border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
             ),
             child: Column(
               children: [
@@ -341,9 +341,9 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
               children: (state.backupCodes ?? []).map((code) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.05),
+                  color: AppColors.primary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(AppRadius.full),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
                 ),
                 child: Text(code, style: const TextStyle(fontFamily: 'Courier', fontWeight: AppTypography.black, letterSpacing: 1.0)),
               )).toList(),

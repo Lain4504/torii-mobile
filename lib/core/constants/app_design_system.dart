@@ -105,8 +105,8 @@ class AppColors {
   );
 
   // Glass Effects
-  static Color glassLight = white.withOpacity(0.8);
-  static Color glassDark = Color(0xFF0F172A).withOpacity(0.8);
+  static Color glassLight = white.withValues(alpha: 0.8);
+  static Color glassDark = Color(0xFF0F172A).withValues(alpha: 0.8);
 }
 
 // ============================================================================
@@ -220,12 +220,12 @@ class AppElevation {
   // Soft Shadows - Light Mode
   static List<BoxShadow> softShadow = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.03),
+      color: Colors.black.withValues(alpha: 0.03),
       blurRadius: 8,
       offset: const Offset(0, 2),
     ),
     BoxShadow(
-      color: Colors.black.withOpacity(0.02),
+      color: Colors.black.withValues(alpha: 0.02),
       blurRadius: 24,
       offset: const Offset(0, 8),
     ),
@@ -233,12 +233,12 @@ class AppElevation {
   
   static List<BoxShadow> mediumShadow = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.05),
+      color: Colors.black.withValues(alpha: 0.05),
       blurRadius: 12,
       offset: const Offset(0, 4),
     ),
     BoxShadow(
-      color: Colors.black.withOpacity(0.03),
+      color: Colors.black.withValues(alpha: 0.03),
       blurRadius: 32,
       offset: const Offset(0, 12),
     ),
@@ -246,7 +246,7 @@ class AppElevation {
   
   static List<BoxShadow> cardShadow = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.04),
+      color: Colors.black.withValues(alpha: 0.04),
       blurRadius: 16,
       offset: const Offset(0, 4),
     ),
@@ -255,7 +255,7 @@ class AppElevation {
   // Dark Mode Shadows
   static List<BoxShadow> darkSoftShadow = [
     BoxShadow(
-      color: Colors.black.withOpacity(0.2),
+      color: Colors.black.withValues(alpha: 0.2),
       blurRadius: 8,
       offset: const Offset(0, 2),
     ),
