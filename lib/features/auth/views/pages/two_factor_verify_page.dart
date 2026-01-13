@@ -1,0 +1,376 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+
+class TwoFactorVerifyPage extends ConsumerStatefulWidget {
+  const TwoFactorVerifyPage({super.key});
+
+  @override
+  ConsumerState<TwoFactorVerifyPage> createState() => _TwoFactorVerifyPageState();
+}
+
+class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
+  final TextEditingController _otpController = TextEditingController();
+  final TextEditingController _backupController = TextEditingController();
+  final FocusNode _otpFocusNode = FocusNode();
+  final FocusNode _backupFocusNode = FocusNode();
+  
+  bool _isBackupCode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Rebuild on focus change for border styling
+    _otpFocusNode.addListener(() => setState(() {}));
+    _backupFocusNode.addListener(() => setState(() {}));
+
+    // Auto-focus logic
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        if (_isBackupCode) {
+          _backupFocusNode.requestFocus();
+        } else {
+          _otpFocusNode.requestFocus();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _otpController.dispose();
+    _backupController.dispose();
+    _otpFocusNode.dispose();
+    _backupFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _verify(String code) {
+    final asyncAuth = ref.read(authStateProvider);
+    final state = asyncAuth.asData?.value;
+    
+    if (state == null || state.status != AuthStatus.pending2FA || state.tempToken == null) return;
+
+    if (_isBackupCode) {
+      ref.read(authStateProvider.notifier).verify2FA(state.tempToken!, code, isBackupCode: true);
+    } else {
+      ref.read(authStateProvider.notifier).verify2FA(state.tempToken!, code);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final asyncAuth = ref.watch(authStateProvider);
+    
+    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
+    
+    // Also check isLoading
+    final isLoading = asyncAuth.isLoading;
+    final helpMessage = asyncAuth.asData?.value.status == AuthStatus.pending2FA ? asyncAuth.asData?.value.error : null;
+
+    // Prevent flash of content when authenticated but waiting for redirect
+    if (asyncAuth.asData?.value.status == AuthStatus.authenticated) {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: ZenLoading(text: 'FINALIZING...')),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: ZenBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar(context, isLoading),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: AppSpacing.lg),
+                      _buildHeader(context),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      
+                      if (errorMessage != null) ...[
+                        EntryAnimation(
+                          index: 2,
+                          child: _buildErrorBanner(errorMessage),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+                      
+                      if (!_isBackupCode)
+                        EntryAnimation(
+                          index: 3,
+                          verticalOffset: 20,
+                          child: _buildSingleInputField(
+                            controller: _otpController,
+                            focusNode: _otpFocusNode,
+                            hintText: '••••••',
+                            maxLength: 6,
+                            letterSpacing: 16.0,
+                            onChanged: (val) {
+                              // Manual submit only
+                            },
+                          ),
+                        )
+                      else
+                        EntryAnimation(
+                          index: 3,
+                          child: _buildSingleInputField(
+                            controller: _backupController,
+                            focusNode: _backupFocusNode,
+                            hintText: '••••••••',
+                            maxLength: 8,
+                            letterSpacing: 12.0, // Slightly tighter for 8 digits
+                            onChanged: (val) {
+                              // Manual submit only
+                            },
+                          ),
+                        ),
+
+                      if (helpMessage != null && !_isBackupCode) ...[
+                        const SizedBox(height: AppSpacing.xl),
+                        Text(
+                          helpMessage,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary.withValues(alpha: 0.5),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                      
+                      const SizedBox(height: AppSpacing.xxxl),
+                      
+                      EntryAnimation(
+                        index: 4,
+                        child: TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _isBackupCode = !_isBackupCode;
+                              _otpController.clear();
+                              _backupController.clear();
+                            });
+                            // Re-focus after frame
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                if (_isBackupCode) {
+                                  _backupFocusNode.requestFocus();
+                                } else {
+                                  _otpFocusNode.requestFocus();
+                                }
+                              }
+                            });
+                          },
+                          child: Text(
+                            _isBackupCode ? 'USE AUTHENTICATOR APP' : 'USE BACKUP CODE',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: AppTypography.black,
+                              letterSpacing: 1.0,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: ZenButton(
+                  text: 'VERIFY SECURITY',
+                  onPressed: () {
+                     if (_isBackupCode) {
+                        if (_backupController.text.length == 8) _verify(_backupController.text);
+                     } else {
+                        if (_otpController.text.length == 6) _verify(_otpController.text);
+                     }
+                  },
+                  isFullWidth: true,
+                  isLoading: isLoading,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context, bool isLoading) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.lg),
+      child: Row(
+        children: [
+          EntryAnimation(
+            delay: const Duration(milliseconds: 200),
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+              onPressed: isLoading ? null : () {
+                 // For 2FA, "Back" essentially means aborting the current login attempt
+                 ref.read(authStateProvider.notifier).logout();
+              },
+              color: AppColors.textPrimary.withValues(alpha: isLoading ? 0.2 : 0.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      children: [
+        EntryAnimation(
+          index: 0,
+          verticalOffset: -20,
+          child: Container(
+            width: 72, height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  blurRadius: 25, offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.vibration_rounded, color: Colors.white, size: 36),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        EntryAnimation(
+          index: 1,
+          child: Column(
+            children: [
+              Text(
+                '2FA VERIFICATION',
+                style: TextStyle(
+                  fontFamily: AppTypography.fontFamilySerif,
+                  fontSize: AppTypography.fontSize2xl,
+                  letterSpacing: -1.0,
+                  fontWeight: AppTypography.bold,
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'MULTI-FACTOR AUTHENTICATION',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 4.0,
+                  color: AppColors.primary.withValues(alpha: 0.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Refactored to match VerifyOTPPage style but reusable
+  Widget _buildSingleInputField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String hintText,
+    required int maxLength,
+    required double letterSpacing,
+    required ValueChanged<String> onChanged,
+  }) {
+    // Mimic ZenTextField stying but focused on single centered input
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(
+          color: focusNode.hasFocus 
+            ? AppColors.primary.withValues(alpha: 0.6) 
+            : AppColors.grey300.withValues(alpha: 0.4),
+          width: focusNode.hasFocus ? 1.5 : 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+             color: Colors.black.withValues(alpha: 0.01),
+             blurRadius: 10,
+             offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Center(
+        child: TextField(
+          controller: controller,
+          focusNode: focusNode,
+          keyboardType: TextInputType.number,
+          maxLength: maxLength,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24, // Smaller font than previous 32
+            fontWeight: AppTypography.bold,
+            letterSpacing: letterSpacing,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            disabledBorder: InputBorder.none,
+            filled: false,
+            counterText: "",
+            hintText: hintText,
+            hintStyle: TextStyle(
+              color: AppColors.textTertiary.withValues(alpha: 0.15),
+              letterSpacing: letterSpacing,
+            ),
+            contentPadding: EdgeInsets.zero,
+            isDense: true,
+          ),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner(String message) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.errorLight.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: AppColors.errorDark,
+                fontSize: 12,
+                fontWeight: AppTypography.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

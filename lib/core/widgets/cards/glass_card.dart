@@ -45,8 +45,8 @@ class GlassCard extends StatelessWidget {
             borderRadius: borderRadius ?? BorderRadius.circular(AppRadius.card),
             border: border ?? Border.all(
               color: isDark 
-                  ? AppColors.borderDark.withValues(alpha: 0.5)
-                  : AppColors.borderLight.withValues(alpha: 0.5),
+                  ? AppColors.grey300.withValues(alpha: 0.5)
+                  : AppColors.grey300.withValues(alpha: 0.5),
               width: 1,
             ),
           ),

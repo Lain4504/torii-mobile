@@ -1,30 +1,26 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../services/auth/auth_service.dart';
-import '../../../services/auth/token_service.dart';
-import '../../../services/auth/user_service.dart';
-import '../../../data/models/auth_model.dart';
-import '../../../data/api/api_client.dart';
-import '../../../data/database/app_database.dart';
-import '../models/auth_state_sealed.dart';
+import 'package:torii_app/services/auth/auth_service.dart';
+import 'package:torii_app/services/auth/token_service.dart';
+import 'package:torii_app/services/auth/user_service.dart';
+import 'package:torii_app/data/api/api_client.dart';
+import 'package:torii_app/data/database/app_database.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
+import 'package:torii_app/features/auth/repositories/auth_repository.dart';
+import 'package:torii_app/features/auth/repositories/token_storage.dart';
 
-/// Provider cho AppDatabase (singleton)
-final databaseProvider = Provider<AppDatabase>((ref) {
-  return AppDatabase();
-});
+// --- DATA LAYER ---
+final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
 
-/// Provider cho TokenService
-final tokenServiceProvider = Provider<TokenService>((ref) {
-  return TokenService();
-});
+final tokenServiceProvider = Provider<TokenService>((ref) => TokenService());
 
-/// Provider cho UserService
+final tokenStorageProvider = Provider<TokenStorage>((ref) => TokenStorage());
+
 final userServiceProvider = Provider<UserService>((ref) {
   final database = ref.watch(databaseProvider);
   return UserService(database);
 });
 
-/// Provider cho ApiClient
 final apiClientProvider = Provider<ApiClient>((ref) {
   final tokenService = ref.watch(tokenServiceProvider);
   return ApiClient(tokenService: tokenService);
@@ -35,294 +31,186 @@ final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(apiClient);
 });
 
-/// Provider để inject initial state từ main (Pre-fetching)
-final initialAuthStateProvider = Provider<AuthState>((ref) {
-  throw UnimplementedError('initialAuthStateProvider must be overridden in main.dart');
+// --- REPOSITORY LAYER ---
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  final tokenStorage = ref.watch(tokenStorageProvider);
+  final authService = ref.watch(authServiceProvider);
+  return AuthRepository(tokenStorage, authService);
 });
 
-/// Provider cho AuthStateNotifier
-final authStateProvider = NotifierProvider<AuthStateNotifier, AuthState>(
-  AuthStateNotifier.new,
-);
+// --- STATE MANAGEMENT ---
+class AuthNotifier extends AsyncNotifier<AuthState> {
+  late AuthRepository _repository;
+  late UserService _userService;
 
-/// Notifier để quản lý authentication state với JWT
-class AuthStateNotifier extends Notifier<AuthState> {
   @override
-  AuthState build() {
-    // Hydrate state immediately from the injected provider
-    return ref.read(initialAuthStateProvider);
+  Future<AuthState> build() async {
+    _repository = ref.watch(authRepositoryProvider);
+    _userService = ref.watch(userServiceProvider);
+    return _init();
   }
 
-  // Dependencies
-  AuthService get _authService => ref.read(authServiceProvider);
-  TokenService get _tokenService => ref.read(tokenServiceProvider);
-  UserService get _userService => ref.read(userServiceProvider);
-
-  /// Initialize auth state khi app khởi động
-  /// Fetches latest profile from server to sync verification status
-  Future<void> initializeAuth() async {
-    // If we are already authenticated (via hydration), we DON'T show loading.
-    // We just sync in the background.
-    final isHydrated = state is AuthAuthenticated;
-    
-    if (!isHydrated) {
-      state = AuthLoading();
-    }
-
-    try {
-        debugPrint('Initializing Auth State (Hydrated: $isHydrated)...');
-        // Check if we have a session
-        final session = await _tokenService.getRawSession();
-        
-        if (session != null) {
-            // Check if tokens are valid
-            if (await _tokenService.hasValidSession()) {
-                 try {
-                    debugPrint('Found session, fetching latest profile from server...');
-
-                    // Always try to fetch latest profile from server to sync status
-                    final data = await _authService.getProfile();
-                    final user = User.fromJson(data['user']);
-                    
-                    // Update local DB
-                    await _userService.saveUserProfile(user);
-                    
-                    debugPrint('Fetched latest user from server: ${user.email}');
-                    state = AuthAuthenticated(user: user, accessToken: session.accessToken);
-                 } catch (e) {
-                    // Fallback to local DB if server fetch fails (offline)
-                    debugPrint('Failed to fetch profile from server: $e');
-                    
-                    if (isHydrated) {
-                       // We already have the user from local DB used in hydration.
-                       // Just keep the current state, don't do anything.
-                       debugPrint('Keeping hydrated state.');
-                    } else {
-                        debugPrint('Falling back to local profile...');
-                        final user = await _userService.getUserProfile();
-                        if (user != null) {
-                            debugPrint('Restored user from local DB: ${user.email}');
-                            state = AuthAuthenticated(user: user, accessToken: session.accessToken);
-                        } else {
-                            state = AuthUnauthenticated();
-                        }
-                    }
-                 }
-            } else {
-                debugPrint('Session expired or invalid');
-                state = AuthUnauthenticated();
-            }
-        } else {
-             if (!isHydrated) state = AuthUnauthenticated();
+  Future<AuthState> _init() async {
+    final token = await _repository.tokenStorage.getAccessToken();
+    if (token != null) {
+      final user = await _userService.getUserProfile();
+      if (user != null) {
+        return AuthState.authenticated(user);
+      } else {
+        try {
+           final response = await _repository.authService.getMe();
+           if (response.success && response.data != null) {
+              await _userService.saveUserProfile(response.data!);
+              return AuthState.authenticated(response.data!);
+           } else {
+              // Token valid, but profile fetch failed
+              return const AuthState(status: AuthStatus.authenticated, error: 'Could not refresh profile');
+           }
+        } catch (_) {
+           return const AuthState(status: AuthStatus.authenticated, error: 'Offline');
         }
-    } catch (e) {
-      debugPrint('Auth initialization error: $e');
-      if (!isHydrated) state = AuthError(message: 'Failed to initialize auth: $e');
+      }
+    } else {
+      return AuthState.unauthenticated();
     }
   }
 
-  /// Refresh user profile from server
-  /// Called when app resumes to sync verification status
-  /// 
-  /// OPTIMIZATIONS:
-  /// 1. Only refresh if user status is PENDING (not ACTIVE)
-  /// 2. Debounce to prevent multiple calls
-  /// 3. Fail silently with cached data
-  DateTime? _lastRefreshTime;
-  static const _refreshCooldown = Duration(seconds: 30);
-
-  Future<void> refreshProfile() async {
-    final currentState = state;
-    
-    // Only refresh if authenticated
-    if (currentState is! AuthAuthenticated) {
-      return;
-    }
-
-
-
-    // OPTIMIZATION 1: REMOVED (Status field removed)
-
-    // OPTIMIZATION 2: Debounce - skip if refreshed recently
-    final now = DateTime.now();
-    if (_lastRefreshTime != null) {
-      final timeSinceLastRefresh = now.difference(_lastRefreshTime!);
-      if (timeSinceLastRefresh < _refreshCooldown) {
-        debugPrint('Skipping refresh - cooldown period (${_refreshCooldown.inSeconds - timeSinceLastRefresh.inSeconds}s remaining)');
-        return;
-      }
-    }
-
-    try {
-      debugPrint('Refreshing user profile from server...');
-      _lastRefreshTime = now;
-      
-      final data = await _authService.getProfile();
-      
-      if (data['user'] != null) {
-        final updatedUser = User.fromJson(data['user']);
-        debugPrint('Profile refreshed: ${updatedUser.email}');
-        
-        // Update local database
-        await _userService.saveUserProfile(updatedUser);
-        
-        // Update state
-        state = AuthAuthenticated(
-          user: updatedUser, 
-          accessToken: currentState.accessToken,
-        );
-      }
-    } catch (e) {
-      debugPrint('Failed to refresh profile: $e');
-      // OPTIMIZATION 3: Fail silently - keep existing cached data
-      // Don't update state on error
-    }
-  }
-
-  /// Login với email và password
   Future<void> login(String email, String password) async {
-    state = AuthLoading();
-
+    state = const AsyncValue.loading();
     try {
-      final data = await _authService.login(email, password);
-      
-      if (data['user'] != null) {
-          final user = User.fromJson(data['user']);
-          final accessToken = data['access_token'];
-          final refreshToken = data['refresh_token'] ?? '';
+      final (result, data, error) = await _repository.login(email, password);
 
-          // Save Session
-          // Access Token validity: 15 minutes (900s)
-          await _tokenService.saveTokens(
-              accessToken: accessToken,
-              refreshToken: refreshToken,
-              expiresIn: 15 * 60, 
-          );
-
-          await _userService.saveUserProfile(user);
-
-          state = AuthAuthenticated(user: user, accessToken: accessToken);
+      if (result == AuthResult.success && data != null) {
+        // Save tokens only on success
+        if (data.accessToken != null && data.refreshToken != null) {
+           await _repository.tokenStorage.saveTokens(data.accessToken!, data.refreshToken!);
+        }
+        await _userService.saveUserProfile(data.user);
+        state = AsyncValue.data(AuthState.authenticated(data.user));
+      } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {
+        // Do NOT clear existing tokens yet (if any), just transition to pending2FA
+        // The data.tempToken is all we need for the next step
+        state = AsyncValue.data(AuthState.pending2FA(data.tempToken!));
       } else {
-          state = AuthError(message: 'Login failed: Invalid response');
+        // Login failed -> NOW we clear tokens to ensure clean state
+        await _repository.tokenStorage.clear();
+        state = AsyncValue.data(AuthState.unauthenticated(error: error));
       }
-
     } catch (e) {
-      state = AuthError(message: 'Login failed: ${e.toString()}');
+      await _repository.tokenStorage.clear();
+      state = AsyncValue.error(e, StackTrace.current);
     }
   }
 
-  /// Register
-  Future<bool> register(String email, String fullName, String password) async {
-    state = AuthLoading();
-
+  Future<void> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
+    state = const AsyncValue.loading();
     try {
-      final data = await _authService.register(email, password, fullName);
-      
-      // AUTO LOGIN logic similar to login()
-      if (data['user'] != null) {
-          final user = User.fromJson(data['user']);
-          final accessToken = data['access_token'];
-          final refreshToken = data['refresh_token'] ?? '';
-
-          await _tokenService.saveTokens(
-              accessToken: accessToken,
-              refreshToken: refreshToken,
-              expiresIn: 15 * 60, 
-          );
-
-          await _userService.saveUserProfile(user);
-
-          state = AuthAuthenticated(user: user, accessToken: accessToken);
-          return true;
+      final authData = await _repository.verify2FA(tempToken, code, isBackupCode: isBackupCode);
+      if (authData != null) {
+        await _userService.saveUserProfile(authData.user);
+        state = AsyncValue.data(AuthState.authenticated(authData.user));
       } else {
-          // If for some reason backend only returns user but not tokens
-          state = AuthUnauthenticated();
-          return true;
+        state = AsyncValue.data(AuthState.pending2FA(tempToken, error: 'Verification failed. Please check your code.'));
       }
     } catch (e) {
-      state = AuthError(message: 'Registration failed: ${e.toString()}');
-      return false;
+      state = AsyncValue.data(AuthState.pending2FA(tempToken, error: 'Error: $e'));
     }
   }
 
-  /// Verify Email
-  Future<bool> verifyEmail(String otp) async {
-    final user = currentUser;
-    if (user == null) return false;
-
+  Future<void> register(String email, String password, String displayName) async {
+    state = const AsyncValue.loading();
     try {
-      await _authService.verifyEmail(user.email, otp);
-      
-      // Update local user state to ACTIVE
-      final updatedUser = User(
-          id: user.id,
-          email: user.email,
-          displayName: user.displayName,
-          avatar: user.avatar,
-          role: user.role,
-
+      final response = await _repository.authService.register(
+        email: email,
+        password: password,
+        displayName: displayName,
       );
-      
-      await _userService.saveUserProfile(updatedUser);
-      
-      final currentState = state;
-      if (currentState is AuthAuthenticated) {
-        state = AuthAuthenticated(user: updatedUser, accessToken: currentState.accessToken);
+      if (response.success) {
+        state = AsyncValue.data(AuthState.unauthenticated());
+      } else {
+        state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
       }
-      return true;
     } catch (e) {
-      // Don't change global state to error, just return false
-      return false;
+      state = AsyncValue.data(AuthState.unauthenticated(error: 'Registration failed'));
     }
   }
 
-  /// Resend Verification
-  Future<bool> resendVerification() async {
-    final user = currentUser;
-    if (user == null) return false;
-
+  Future<void> forgotPassword(String email) async {
+    state = const AsyncValue.loading();
     try {
-      await _authService.resendVerification(user.email);
-      return true;
+      final response = await _repository.authService.forgotPassword(email);
+      if (response.success) {
+        state = AsyncValue.data(AuthState.requiresOTP(email));
+      } else {
+        // Ensure clean state on failure
+        await _repository.tokenStorage.clear();
+        state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
+      }
     } catch (e) {
-      return false;
+      await _repository.tokenStorage.clear();
+      state = AsyncValue.data(AuthState.unauthenticated(error: 'Failed to send OTP'));
     }
   }
 
-  /// Logout
+  Future<void> verifyOTP(String email, String code) async {
+     state = const AsyncValue.loading();
+     try {
+        final response = await _repository.authService.verifyOTP(email, code);
+        if (response.success && response.data != null) {
+          final tempToken = response.data!['tempToken'] as String?;
+          if (tempToken != null) {
+             state = AsyncValue.data(AuthState(
+                 status: AuthStatus.requiresOTP,
+                 email: email,
+                 tempToken: tempToken
+             ));
+          } else {
+             state = AsyncValue.data(AuthState.requiresOTP(email, error: 'Invalid OTP response'));
+          }
+        } else {
+          state = AsyncValue.data(AuthState.requiresOTP(email, error: response.message));
+        }
+     } catch (e) {
+       state = AsyncValue.data(AuthState.requiresOTP(email, error: 'Invalid OTP code'));
+     }
+  }
+
+  Future<void> resetPassword(String tempToken, String newPassword) async {
+    state = const AsyncValue.loading();
+    try {
+      final response = await _repository.authService.resetPassword(tempToken, newPassword);
+      if (response.success) {
+        state = AsyncValue.data(AuthState.unauthenticated());
+      } else {
+        await _repository.tokenStorage.clear();
+        state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
+      }
+    } catch (e) {
+      await _repository.tokenStorage.clear();
+      state = AsyncValue.data(AuthState.unauthenticated(error: 'Failed to reset password'));
+    }
+  }
+
+  Future<void> resendOTP(String email) async {
+    try {
+      await _repository.authService.resendOTP(email);
+    } catch (e) {
+      debugPrint('Resend OTP error: $e');
+    }
+  }
+
   Future<void> logout() async {
-    state = AuthLoading();
     try {
-      await _authService.logout();
-    } catch (_) {
-      // Ignore checks
-    } finally {
-        await _clearSession();
-        state = AuthUnauthenticated();
-    }
-  }
-
-  /// Clear toàn bộ session data
-  Future<void> _clearSession() async {
-    await _tokenService.clearTokens();
+      await _repository.logout();
+    } catch (_) {}
     await _userService.clearUserProfile();
-  }
-
-  /// Handle session expired (gọi từ UI khi cần)
-  Future<void> handleSessionExpired() async {
-    await _clearSession();
-    state = AuthExpired(message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-  }
-
-  /// Check if user is authenticated
-  bool get isAuthenticated => state is AuthAuthenticated;
-
-  /// Get current user (null nếu chưa login)
-  User? get currentUser {
-    final currentState = state;
-    if (currentState is AuthAuthenticated) {
-      return currentState.user;
-    }
-    return null;
+    state = AsyncValue.data(AuthState.unauthenticated());
   }
 }
+
+
+// AsyncNotifierProvider
+final authNotifierProvider = AsyncNotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+
+// Alias
+final authStateProvider = authNotifierProvider;

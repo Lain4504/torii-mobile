@@ -1,25 +1,25 @@
 import '../../data/database/app_database.dart';
 import '../../data/models/auth_model.dart';
 
-/// Service để quản lý user profile với Drift database
+/// Service for managing user profile with Drift database - Cleaned New Rebuild
 class UserService {
   UserService(this._database);
 
   final AppDatabase _database;
 
-  /// Lưu user profile vào database
+  /// Save user profile to database
   Future<void> saveUserProfile(User user) async {
     await _database.saveUserProfile(
       id: user.id,
       email: user.email,
       displayName: user.displayName,
-      avatar: user.avatar,
+      avatar: user.avatarUrl,
       role: user.role,
-
+      status: user.status,
     );
   }
 
-  /// Lấy user profile từ database
+  /// Get user profile from database
   Future<User?> getUserProfile() async {
     final profile = await _database.getUserProfile();
     
@@ -31,18 +31,20 @@ class UserService {
       id: profile.id,
       email: profile.email,
       displayName: profile.displayName,
-      avatar: profile.avatar,
+      avatarUrl: profile.avatar,
       role: profile.role,
-
+      status: profile.status,
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt,
     );
   }
 
-  /// Xóa user profile (logout)
+  /// Clear user profile (logout)
   Future<void> clearUserProfile() async {
     await _database.clearUserProfile();
   }
 
-  /// Kiểm tra có user profile không
+  /// Check if user profile exists
   Future<bool> hasUserProfile() async {
     final profile = await getUserProfile();
     return profile != null;

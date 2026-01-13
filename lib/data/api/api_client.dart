@@ -62,10 +62,15 @@ class ApiClient {
           try {
             final tokenService = _tokenService;
             if (tokenService != null) {
-              final token = await tokenService.getAccessToken();
-              if (token != null) {
-                options.headers['Authorization'] = 'Bearer $token';
+              // ONLY add Authorization header if it's not already manually provided
+              // This allows verify-2fa and verify-otp to use a tempToken
+              if (!options.headers.containsKey('Authorization')) {
+                final token = await tokenService.getAccessToken();
+                if (token != null) {
+                  options.headers['Authorization'] = 'Bearer $token';
+                }
               }
+              
               // Add platform header for mobile-specific logic
               options.headers['x-platform'] = 'mobile';
             }
@@ -117,21 +122,19 @@ class ApiClient {
               ));
 
               final response = await tokenDio.post('/api/auth/refresh', data: {
-                'refresh_token': refreshToken,
+                'refreshToken': refreshToken,
               });
 
               if (response.statusCode == 200) {
                 final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
                 if (apiResponse.success && apiResponse.data != null) {
                   final data = apiResponse.data!;
-                  final newAccessToken = data['access_token'];
-                  final newRefreshToken = data['refresh_token'];
+                  final newAccessToken = data['accessToken'] ?? data['access_token'];
+                  final newRefreshToken = data['refreshToken'] ?? data['refresh_token'];
 
-                  // Update tokens in storage
                   await tokenService.saveTokens(
-                    accessToken: newAccessToken,
-                    refreshToken: newRefreshToken,
-                    expiresIn: 15 * 60, // Default 15m
+                    accessToken: newAccessToken!,
+                    refreshToken: newRefreshToken ?? refreshToken,
                   );
 
                   // Retry original request

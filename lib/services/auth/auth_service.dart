@@ -1,48 +1,19 @@
-
 import 'package:dio/dio.dart';
-import '../../core/models/api_response.dart';
 import '../../data/api/api_client.dart';
+import '../../data/models/auth_model.dart';
+import '../../core/models/api_response.dart';
 
 class AuthService {
   final ApiClient _apiClient;
 
   AuthService(this._apiClient);
 
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    try {
-      final response = await _apiClient.client.post(
-        '/api/auth/login',
-        data: {
-          'email': email,
-          'password': password,
-        },
-        options: Options(
-          headers: {
-            'x-platform': 'mobile',
-          },
-        ),
-      );
-
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
-      if (apiResponse.success) {
-        return apiResponse.data!;
-      } else {
-        throw Exception(apiResponse.message ?? 'Login failed');
-      }
-    } on DioException catch (e) {
-      if (e.response?.data != null) {
-        try {
-          final errorResponse = ApiResponse.fromJson(e.response!.data);
-          throw Exception(errorResponse.message ?? 'Login failed');
-        } catch (_) {
-          throw Exception(e.message ?? 'Login failed');
-        }
-      }
-      throw Exception(e.message ?? 'Login failed');
-    }
-  }
-
-  Future<Map<String, dynamic>> register(String email, String password, String displayName) async {
+  /// 1.1 Register
+  Future<ApiResponse<AuthData>> register({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
     try {
       final response = await _apiClient.client.post(
         '/api/auth/register',
@@ -51,261 +22,212 @@ class AuthService {
           'password': password,
           'displayName': displayName,
         },
-        options: Options(
-          headers: {
-            'x-platform': 'mobile',
-          },
-        ),
       );
-
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
-      if (apiResponse.success) {
-        return apiResponse.data!;
-      } else {
-        throw Exception(apiResponse.message ?? 'Registration failed');
-      }
+      return ApiResponse.fromJson(response.data, (json) => AuthData.fromJson(json));
     } on DioException catch (e) {
-      if (e.response?.data != null) {
-        try {
-          final errorResponse = ApiResponse.fromJson(e.response!.data);
-          throw Exception(errorResponse.message ?? 'Registration failed');
-        } catch (_) {
-          throw Exception(e.message ?? 'Registration failed');
-        }
-      }
-      throw Exception(e.message ?? 'Registration failed');
+      return _handleError(e);
     }
   }
 
-  Future<Map<String, dynamic>> verifyEmail(String email, String otp) async {
+  /// 1.2 Login
+  Future<ApiResponse<AuthData>> login({
+    required String email,
+    required String password,
+  }) async {
     try {
       final response = await _apiClient.client.post(
-        '/api/auth/verify-email',
+        '/api/auth/login',
         data: {
           'email': email,
-          'otp': otp,
+          'password': password,
         },
+        options: Options(headers: {'x-platform': 'mobile'}),
       );
-
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
-      if (apiResponse.success) {
-        return apiResponse.data ?? {};
-      } else {
-        throw Exception(apiResponse.message ?? 'Verification failed');
-      }
+      return ApiResponse.fromJson(response.data, (json) => AuthData.fromJson(json));
     } on DioException catch (e) {
-      if (e.response?.data != null) {
-        try {
-          final errorResponse = ApiResponse.fromJson(e.response!.data);
-          throw Exception(errorResponse.message ?? 'Verification failed');
-        } catch (_) {
-          throw Exception(e.message ?? 'Verification failed');
-        }
-      }
-      throw Exception(e.message ?? 'Verification failed');
+      return _handleError(e);
     }
   }
 
-  Future<Map<String, dynamic>> resendVerification(String email) async {
+  /// 1.3 Verify 2FA
+  Future<ApiResponse<AuthData>> verify2FA({
+    required String tempToken,
+    required String code,
+    bool backupCode = false,
+  }) async {
     try {
       final response = await _apiClient.client.post(
-        '/api/auth/resend-verification',
+        '/api/auth/login/verify-2fa',
         data: {
-          'email': email,
+          'tempToken': tempToken,
+          'code': code,
+          'backupCode': backupCode,
         },
+        options: Options(headers: {'x-platform': 'mobile'}),
       );
-
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
-      if (apiResponse.success) {
-        return apiResponse.data ?? {};
-      } else {
-        throw Exception(apiResponse.message ?? 'Resend failed');
-      }
+      return ApiResponse.fromJson(response.data, (json) => AuthData.fromJson(json));
     } on DioException catch (e) {
-      if (e.response?.data != null) {
-        try {
-          final errorResponse = ApiResponse.fromJson(e.response!.data);
-          throw Exception(errorResponse.message ?? 'Resend failed');
-        } catch (_) {
-          throw Exception(e.message ?? 'Resend failed');
-        }
-      }
-      throw Exception(e.message ?? 'Resend failed');
+      return _handleError(e);
     }
   }
 
-  /// Get user profile from server
-  /// Used to sync latest user status (e.g., after email verification)
-  Future<Map<String, dynamic>> getProfile() async {
-    try {
-      final response = await _apiClient.client.get('/api/auth/profile');
-
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
-      if (apiResponse.success) {
-        return apiResponse.data!;
-      } else {
-        throw Exception(apiResponse.message ?? 'Failed to get profile');
-      }
-    } on DioException catch (e) {
-      if (e.response?.data != null) {
-        try {
-          final errorResponse = ApiResponse.fromJson(e.response!.data);
-          throw Exception(errorResponse.message ?? 'Failed to get profile');
-        } catch (_) {
-          throw Exception(e.message ?? 'Failed to get profile');
-        }
-      }
-      throw Exception(e.message ?? 'Failed to get profile');
-    }
-  }
-
-  Future<void> logout() async {
-    try {
-      await _apiClient.client.post('/api/auth/logout');
-    } on DioException {
-      // Safe to ignore
-    }
-  }
-
-  /// Request password reset - sends OTP to email
-  Future<Map<String, dynamic>> forgotPassword(String email) async {
+  /// 1.4 Forgot Password
+  Future<ApiResponse<void>> forgotPassword(String email) async {
     try {
       final response = await _apiClient.client.post(
         '/api/auth/forgot-password',
-        data: {
-          'email': email,
-          'platform': 'mobile',
-        },
-        options: Options(
-          headers: {
-            'x-platform': 'mobile',
-          },
-        ),
+        data: {'email': email, 'platform': 'mobile'},
       );
-
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
-      if (apiResponse.success) {
-        return apiResponse.data ?? {};
-      } else {
-        throw Exception(apiResponse.message ?? 'Failed to send reset code');
-      }
+      return ApiResponse.fromJson(response.data, (_) {});
     } on DioException catch (e) {
-      if (e.response?.data != null) {
-        try {
-          final errorResponse = ApiResponse.fromJson(e.response!.data);
-          throw Exception(errorResponse.message ?? 'Failed to send reset code');
-        } catch (_) {
-          throw Exception(e.message ?? 'Failed to send reset code');
-        }
-      }
-      throw Exception(e.message ?? 'Failed to send reset code');
+      return _handleError(e);
     }
   }
 
-  /// Verify OTP code for password reset
-  /// Returns email and tempToken if successful
-  Future<Map<String, dynamic>> verifyOTP(String email, String otp, {String type = 'reset-password'}) async {
+  Future<ApiResponse<Map<String, dynamic>>> verifyOTP(String email, String code) async {
     try {
       final response = await _apiClient.client.post(
         '/api/auth/verify-otp',
-        data: {
-          'email': email,
-          'otp': otp,
-          'type': type,
-        },
-        options: Options(
-          headers: {
-            'x-platform': 'mobile',
-          },
-        ),
+        data: {'email': email, 'code': code},
       );
-
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
-      if (apiResponse.success) {
-        return apiResponse.data ?? {};
-      } else {
-        throw Exception(apiResponse.message ?? 'Invalid or expired verification code');
-      }
+      return ApiResponse.fromJson(response.data, (json) => json as Map<String, dynamic>);
     } on DioException catch (e) {
-      if (e.response?.data != null) {
-        try {
-          final errorResponse = ApiResponse.fromJson(e.response!.data);
-          throw Exception(errorResponse.message ?? 'Verification failed');
-        } catch (_) {
-          throw Exception(e.message ?? 'Verification failed');
-        }
-      }
-      throw Exception(e.message ?? 'Verification failed');
+      return _handleError(e);
     }
   }
 
-  /// Resend OTP code
-  Future<Map<String, dynamic>> resendOTP(String email, {String type = 'reset-password'}) async {
+  Future<ApiResponse<void>> resendOTP(String email, {String reason = 'forgot_password'}) async {
     try {
       final response = await _apiClient.client.post(
         '/api/auth/resend-otp',
-        data: {
-          'email': email,
-          'type': type,
-        },
-        options: Options(
-          headers: {
-            'x-platform': 'mobile',
-          },
-        ),
+        data: {'email': email, 'reason': reason},
       );
-
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
-      if (apiResponse.success) {
-        return apiResponse.data ?? {};
-      } else {
-        throw Exception(apiResponse.message ?? 'Failed to resend code');
-      }
+      return ApiResponse.fromJson(response.data, (_) {});
     } on DioException catch (e) {
-      if (e.response?.data != null) {
-        try {
-          final errorResponse = ApiResponse.fromJson(e.response!.data);
-          throw Exception(errorResponse.message ?? 'Failed to resend code');
-        } catch (_) {
-          throw Exception(e.message ?? 'Failed to resend code');
-        }
-      }
-      throw Exception(e.message ?? 'Failed to resend code');
+      return _handleError(e);
     }
   }
 
-  /// Reset password using token from OTP verification
-  Future<Map<String, dynamic>> resetPassword(String token, String newPassword) async {
+  /// 1.5 Refresh Token
+  Future<ApiResponse<Map<String, dynamic>>> refreshToken(String refreshToken) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/refresh',
+        data: {'refreshToken': refreshToken},
+        options: Options(headers: {'x-platform': 'mobile'}),
+      );
+      return ApiResponse.fromJson(response.data, (json) => json as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  /// 1.6 Reset Password
+  Future<ApiResponse<void>> resetPassword(String token, String password) async {
     try {
       final response = await _apiClient.client.post(
         '/api/auth/reset-password',
-        data: {
-          'token': token,
-          'password': newPassword,
-        },
-        options: Options(
-          headers: {
-            'x-platform': 'mobile',
-          },
-        ),
+        data: {'token': token, 'password': password},
       );
-
-      final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
-      if (apiResponse.success) {
-        return apiResponse.data ?? {};
-      } else {
-        throw Exception(apiResponse.message ?? 'Failed to reset password');
-      }
+      return ApiResponse.fromJson(response.data, (_) {});
     } on DioException catch (e) {
-      if (e.response?.data != null) {
-        try {
-          final errorResponse = ApiResponse.fromJson(e.response!.data);
-          throw Exception(errorResponse.message ?? 'Failed to reset password');
-        } catch (_) {
-          throw Exception(e.message ?? 'Failed to reset password');
-        }
-      }
-      throw Exception(e.message ?? 'Failed to reset password');
+      return _handleError(e);
     }
+  }
+
+  /// 2. 2FA Setup
+  Future<ApiResponse<Map<String, dynamic>>> get2FAStatus() async {
+    try {
+      final response = await _apiClient.client.get('/api/auth/2fa/status');
+      return ApiResponse.fromJson(response.data, (json) => json as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> generateTOTPSecret() async {
+    try {
+      final response = await _apiClient.client.post('/api/auth/2fa/totp/generate');
+      return ApiResponse.fromJson(response.data, (json) => json as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ApiResponse<List<String>>> enableTOTP(String secret, String code) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/2fa/totp/enable',
+        data: {'secret': secret, 'code': code},
+      );
+      return ApiResponse.fromJson(response.data, (json) => List<String>.from(json['backupCodes'] ?? []));
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ApiResponse<List<String>>> regenerateBackupCodes() async {
+    try {
+      final response = await _apiClient.client.post('/api/auth/2fa/backup-codes/regenerate');
+      return ApiResponse.fromJson(response.data, (json) => List<String>.from(json['backupCodes'] ?? []));
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ApiResponse<void>> disable2FA(String password) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/2fa/totp/disable',
+        data: {'password': password},
+      );
+      return ApiResponse.fromJson(response.data, (_) {});
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  /// 3. User Profile
+  Future<ApiResponse<User>> getMe() async {
+    try {
+      final response = await _apiClient.client.get('/api/auth/me');
+      return ApiResponse.fromJson(response.data, (json) => User.fromJson(json));
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ApiResponse<User>> updateProfile(String displayName) async {
+    try {
+      final response = await _apiClient.client.patch(
+        '/api/auth/me',
+        data: {'displayName': displayName},
+      );
+      return ApiResponse.fromJson(response.data, (json) => User.fromJson(json));
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ApiResponse<void>> logout(String refreshToken) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/logout',
+        data: {'refreshToken': refreshToken},
+      );
+      return ApiResponse.fromJson(response.data, (_) {});
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  ApiResponse<T> _handleError<T>(DioException e) {
+    if (e.response?.data != null && e.response?.data is Map) {
+      return ApiResponse.fromJson(e.response!.data, (_) => null as T);
+    }
+    return ApiResponse(
+      success: false,
+      message: e.message ?? 'Unknown error occurred',
+    );
   }
 }

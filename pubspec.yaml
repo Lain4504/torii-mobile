@@ -48,6 +48,8 @@ dependencies:
   pretty_dio_logger: ^1.4.0  # HTTP logging interceptor (như OkHttp LoggingInterceptor)
   intl: ^0.20.2
   flutter_native_splash: ^2.4.7
+  qr_flutter: ^4.1.0
+  flutter_launcher_icons: ^0.14.4
   
   # Firebase packages
 
@@ -80,6 +82,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/icons/
 
   # Generate localization files from ARB files
   generate: true
@@ -111,8 +114,13 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 flutter_native_splash:
-  color: "#D32F2F"
-  # image: assets/images/splash.png # Uncomment when image is available
+  color: "#FFFFFF"
+  image: assets/images/splash.png
   android_12:
-    color: "#D32F2F"
-    # image: assets/images/splash.png
+    color: "#FFFFFF"
+    image: assets/images/splash.png
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/app_icon.png"
+  remove_alpha_ios: true

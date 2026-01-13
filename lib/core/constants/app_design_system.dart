@@ -13,101 +13,100 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary - Deep Teal (Japanese Garden Inspired)
-  static const Color primary = Color(0xFF2D5A5A);
-  static const Color primaryLight = Color(0xFF4A7C7C);
-  static const Color primaryDark = Color(0xFF1E3D3D);
-  static const Color primarySurface = Color(0xFFE8F0F0);
+  // Primary - Ruri-kon (Lapis Indigo)
+  static const Color primary = Color(0xFF2B4C7E);
+  static const Color primaryLight = Color(0xFF4A6DA1);
+  static const Color primaryDark = Color(0xFF1B3254);
+  static const Color primarySurface = Color(0xFFF0F4FA);
   
-  // Accent - Warm Sand (Traditional Wood Tones)
-  static const Color accent = Color(0xFFD4A574);
-  static const Color accentLight = Color(0xFFE5C9A8);
-  static const Color accentDark = Color(0xFFB88A5C);
-  static const Color accentSurface = Color(0xFFFAF5EF);
+  // Accent - Yanagi (Willow Green)
+  static const Color accent = Color(0xFF8B9D83);
+  static const Color accentLight = Color(0xFFAAB8A5);
+  static const Color accentDark = Color(0xFF6B7B64);
+  static const Color accentSurface = Color(0xFFF4F6F3);
+  
+  // Second Accent - Sakura Dust (Subtle Detail)
+  static const Color detail = Color(0xFFD4B5B0);
+  static const Color detailLight = Color(0xFFE5D2CF);
+  static const Color detailSurface = Color(0xFFFAF6F5);
   
   // Semantic Colors - Muted & Calm
-  static const Color success = Color(0xFF4A9168);
-  static const Color successLight = Color(0xFFE8F5ED);
-  static const Color successDark = Color(0xFF2E5A41);
+  static const Color success = Color(0xFF6B8E6B);
+  static const Color successLight = Color(0xFFF0F4F0);
+  static const Color successDark = Color(0xFF4A634A);
   
-  static const Color error = Color(0xFFBF4A4A);
-  static const Color errorLight = Color(0xFFF8EAEA);
-  static const Color errorDark = Color(0xFF8B3636);
+  static const Color error = Color(0xFFBC6C6C);
+  static const Color errorLight = Color(0xFFF9F1F1);
+  static const Color errorDark = Color(0xFF8C4F4F);
   
-  static const Color warning = Color(0xFFD49B4A);
-  static const Color warningLight = Color(0xFFFDF6EB);
-  static const Color warningDark = Color(0xFF9A7035);
+  static const Color warning = Color(0xFFD4A373);
+  static const Color warningLight = Color(0xFFFAF3EB);
+  static const Color warningDark = Color(0xFF9E7A56);
   
-  static const Color info = Color(0xFF4A7CB8);
-  static const Color infoLight = Color(0xFFEBF2FA);
-  static const Color infoDark = Color(0xFF355985);
+  static const Color info = Color(0xFF7B9AAD);
+  static const Color infoLight = Color(0xFFF1F5F7);
+  static const Color infoDark = Color(0xFF5A7281);
 
-  // Neutral - Light Mode (Soft & Warm)
+  // Neutral - Sumi-iro (Ink)
   static const Color white = Color(0xFFFFFFFF);
-  static const Color black = Color(0xFF000000);
+  static const Color black = Color(0xFF1E293B);
   
-  // Grey Scale - Warmer tones
-  static const Color grey50 = Color(0xFFFAFBFC);
-  static const Color grey100 = Color(0xFFF3F4F6);
-  static const Color grey200 = Color(0xFFE5E7EB);
-  static const Color grey300 = Color(0xFFD1D5DB);
-  static const Color grey400 = Color(0xFF9CA3AF);
-  static const Color grey500 = Color(0xFF6B7280);
-  static const Color grey600 = Color(0xFF4B5563);
-  static const Color grey700 = Color(0xFF374151);
-  static const Color grey800 = Color(0xFF1F2937);
-  static const Color grey900 = Color(0xFF111827);
+  // Grey Scale - Refined Slate
+  static const Color grey50 = Color(0xFFF8FAFC);
+  static const Color grey100 = Color(0xFFF1F5F9);
+  static const Color grey200 = Color(0xFFE2E8F0);
+  static const Color grey300 = Color(0xFFCBD5E1);
+  static const Color grey400 = Color(0xFF94A3B8);
+  static const Color grey500 = Color(0xFF64748B);
+  static const Color grey600 = Color(0xFF475569);
+  static const Color grey700 = Color(0xFF334155);
+  static const Color grey800 = Color(0xFF1E293B);
+  static const Color grey900 = Color(0xFF0F172A);
 
-  // Light Mode Backgrounds
-  static const Color background = Color(0xFFFAFBFC);
+  // Light Mode Backgrounds - Gofun-iro (Shell White)
+  static const Color background = Color(0xFFFAF9F6); 
   static const Color surface = white;
   static const Color surfaceVariant = grey50;
   static const Color surfaceElevated = white;
 
   // Light Mode Text
-  static const Color textPrimary = Color(0xFF1A1F26);
-  static const Color textSecondary = Color(0xFF4B5563);
-  static const Color textTertiary = Color(0xFF9CA3AF);
+  static const Color textPrimary = Color(0xFF1E293B);
+  static const Color textSecondary = Color(0xFF475569);
+  static const Color textTertiary = Color(0xFF94A3B8);
   static const Color textOnPrimary = white;
-  static const Color textOnAccent = Color(0xFF1A1F26);
+  static const Color textOnAccent = white;
 
-  // Dark Mode Backgrounds
-  static const Color backgroundDark = Color(0xFF0F1419);
-  static const Color surfaceDark = Color(0xFF1A1F26);
-  static const Color surfaceVariantDark = Color(0xFF242B35);
-  static const Color surfaceElevatedDark = Color(0xFF2D3643);
+  // Dark Mode Backgrounds - Kuro-tsurubami (Deep Charcoal)
+  static const Color backgroundDark = Color(0xFF0F172A);
+  static const Color surfaceDark = Color(0xFF1E293B);
+  static const Color surfaceVariantDark = Color(0xFF334155);
+  static const Color surfaceElevatedDark = Color(0xFF334155);
 
   // Dark Mode Text
-  static const Color textPrimaryDark = Color(0xFFF5F7FA);
-  static const Color textSecondaryDark = Color(0xFFB4BCC9);
-  static const Color textTertiaryDark = Color(0xFF6B7A8A);
+  static const Color textPrimaryDark = Color(0xFFF8FAFC);
+  static const Color textSecondaryDark = Color(0xFFCBD5E1);
+  static const Color textTertiaryDark = Color(0xFF64748B);
 
   // Borders
-  static const Color borderLight = Color(0xFFE5E7EB);
-  static const Color borderDark = Color(0xFF2D3643);
+  static const Color borderLight = Color(0xFFE2E8F0);
+  static const Color borderDark = Color(0xFF334155);
 
-  // Gradients - Subtle & Elegant
+  // Gradients - Zen Ambient Glow
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF2D5A5A), Color(0xFF4A7C7C)],
+    colors: [Color(0xFF2B4C7E), Color(0xFF4A6DA1)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
   
-  static const LinearGradient accentGradient = LinearGradient(
-    colors: [Color(0xFFD4A574), Color(0xFFE5C9A8)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-  
-  static const LinearGradient surfaceGradient = LinearGradient(
-    colors: [Color(0xFFFAFBFC), Color(0xFFF3F4F6)],
+  static const LinearGradient zenGradient = LinearGradient(
+    colors: [Color(0xFFFAF9F6), Color(0xFFF0F4FA)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
   // Glass Effects
-  static Color glassLight = white.withValues(alpha: 0.9);
-  static Color glassDark = surfaceDark.withValues(alpha: 0.85);
+  static Color glassLight = white.withValues(alpha: 0.8);
+  static Color glassDark = Color(0xFF0F172A).withValues(alpha: 0.8);
 }
 
 // ============================================================================
@@ -117,14 +116,14 @@ class AppColors {
 class AppSpacing {
   AppSpacing._();
 
-  static const double xxs = 2.0;   // Micro
-  static const double xs = 4.0;    // Tiny
-  static const double sm = 8.0;    // Small
-  static const double md = 16.0;   // Medium (base unit)
-  static const double lg = 24.0;   // Large
-  static const double xl = 32.0;   // Extra large
-  static const double xxl = 48.0;  // 2x large
-  static const double xxxl = 64.0; // 3x large
+  static const double xxs = 2.0;   
+  static const double xs = 4.0;    
+  static const double sm = 8.0;    
+  static const double md = 16.0;   
+  static const double lg = 24.0;   
+  static const double xl = 32.0;   
+  static const double xxl = 48.0;  
+  static const double xxxl = 64.0; 
   
   // Semantic Spacing
   static const double pageHorizontal = 20.0;
@@ -135,7 +134,7 @@ class AppSpacing {
 }
 
 // ============================================================================
-// BORDER RADIUS - Soft & Rounded
+// BORDER RADIUS - Extra Rounded Zen Style
 // ============================================================================
 
 class AppRadius {
@@ -145,26 +144,28 @@ class AppRadius {
   static const double sm = 8.0;
   static const double md = 12.0;
   static const double lg = 16.0;
-  static const double xl = 20.0;
-  static const double xxl = 24.0;
+  static const double xl = 24.0;
+  static const double xxl = 32.0;
+  static const double xxxl = 48.0;
   static const double full = 9999.0;
   
   // Semantic
-  static const double card = 16.0;
-  static const double button = 12.0;
-  static const double input = 12.0;
+  static const double card = 32.0;
+  static const double button = 16.0;
+  static const double input = 16.0;
   static const double chip = 9999.0;
 }
 
 // ============================================================================
-// TYPOGRAPHY - Clean & Readable
+// TYPOGRAPHY - Zen Education Focus
 // ============================================================================
 
 class AppTypography {
   AppTypography._();
 
   // Font Family
-  static const String fontFamily = 'Inter';
+  static const String fontFamily = 'Outfit'; // Premium Modern Sans
+  static const String fontFamilySerif = 'Noto Serif JP'; // Japanese Serif for headings
   static const String fontFamilyJapanese = 'Noto Sans JP';
 
   // Font Sizes - Modular Scale
@@ -185,20 +186,22 @@ class AppTypography {
   static const FontWeight semiBold = FontWeight.w600;
   static const FontWeight bold = FontWeight.w700;
   static const FontWeight extraBold = FontWeight.w800;
+  static const FontWeight black = FontWeight.w900;
 
   // Line Heights
-  static const double lineHeightTight = 1.2;
-  static const double lineHeightSnug = 1.375;
+  static const double lineHeightTight = 1.1;
+  static const double lineHeightSnug = 1.25;
   static const double lineHeightNormal = 1.5;
-  static const double lineHeightRelaxed = 1.625;
-  static const double lineHeightLoose = 2.0;
+  static const double lineHeightRelaxed = 1.6;
 
   // Letter Spacing
   static const double letterSpacingTight = -0.5;
   static const double letterSpacingNormal = 0.0;
   static const double letterSpacingWide = 0.5;
   static const double letterSpacingWider = 1.0;
+  static const double letterSpacingWidest = 2.0;
 }
+
 
 // ============================================================================
 // ELEVATION & SHADOWS - Subtle & Soft

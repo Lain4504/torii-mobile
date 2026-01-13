@@ -33,7 +33,7 @@ class CourseRepository {
       }
 
       final response = await _dio.get(
-        '/courses',
+        '/api/courses',
         queryParameters: queryParams,
       );
 
@@ -46,7 +46,7 @@ class CourseRepository {
   /// Fetch single course by ID
   Future<Course?> findOne(String id) async {
     try {
-      final response = await _dio.get('/courses/$id');
+      final response = await _dio.get('/api/courses/$id');
       if (response.data == null) return null;
       
       final data = response.data;
@@ -64,7 +64,7 @@ class CourseRepository {
   /// Fetch course by slug
   Future<Course?> findBySlug(String slug) async {
     try {
-      final response = await _dio.get('/courses/slug/$slug');
+      final response = await _dio.get('/api/courses/slug/$slug');
       if (response.data == null) return null;
       
       final data = response.data;
@@ -82,7 +82,7 @@ class CourseRepository {
   /// Get course by ID (alias for findOne with better error handling)
   Future<Course> getCourseById(String courseId) async {
     try {
-      final response = await _dio.get('/courses/$courseId');
+      final response = await _dio.get('/api/courses/$courseId');
       
       if (response.statusCode == 200) {
         final data = response.data;
@@ -109,7 +109,7 @@ class CourseRepository {
   /// Get course curriculum (modules and lessons)
   Future<Curriculum> getCourseCurriculum(String courseId) async {
     try {
-      final response = await _dio.get('/courses/$courseId/curriculum');
+      final response = await _dio.get('/api/courses/$courseId/curriculum');
       
       if (response.statusCode == 200) {
         final data = response.data;
@@ -130,6 +130,39 @@ class CourseRepository {
       throw Exception('Failed to load curriculum: ${e.message}');
     } catch (e) {
       throw Exception('Failed to load curriculum: $e');
+    }
+  }
+
+  /// Get courses enrolled by current user
+  Future<List<Course>> getMyCourses() async {
+    try {
+      final response = await _dio.get('/api/learning-progress/my-courses');
+      
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final list = data is Map<String, dynamic> && data.containsKey('data')
+            ? data['data'] as List
+            : data as List;
+            
+        return list.map((item) => Course.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load my courses');
+      }
+    } catch (e) {
+      throw Exception('Failed to load my courses: $e');
+    }
+  }
+
+  /// Get learning statistics for user
+  Future<Map<String, dynamic>> getLearningStats() async {
+    try {
+      final response = await _dio.get('/api/learning-progress/stats');
+      if (response.statusCode == 200) {
+        return response.data as Map<String, dynamic>;
+      }
+      return {};
+    } catch (_) {
+      return {};
     }
   }
 }

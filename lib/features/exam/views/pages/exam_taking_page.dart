@@ -2,8 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../models/exam_model.dart';
+import '../../../../core/widgets/widgets.dart';
 
-/// Exam Taking Page - The actual test interface
+/// Exam Taking Page - Premium Simulation Interface
 class ExamTakingPage extends StatefulWidget {
   final Exam? exam;
 
@@ -16,7 +17,7 @@ class ExamTakingPage extends StatefulWidget {
 class _ExamTakingPageState extends State<ExamTakingPage> {
   late List<Question> _questions;
   int _currentIndex = 0;
-  final Map<int, int> _answers = {}; // Index -> Selected Option Index
+  final Map<int, int> _answers = {};
   Timer? _timer;
   int _secondsRemaining = 0;
 
@@ -24,8 +25,6 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
   void initState() {
     super.initState();
     _questions = _getMockQuestions();
-    
-    // Set duration (default 60 min if null)
     _secondsRemaining = (widget.exam?.durationMinutes ?? 60) * 60;
     _startTimer();
   }
@@ -67,18 +66,6 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
         options: ['To drink', 'To see', 'To eat', 'To sleep'],
         correctIndex: 2,
       ),
-      const Question(
-        id: '4',
-        text: 'Choose the correct Kanji for "Mountain"',
-        options: ['川', '田', '山', '刀'],
-        correctIndex: 2,
-      ),
-      const Question(
-        id: '5',
-        text: 'Complete: "Ohayou ______"',
-        options: ['Gozaimasu', 'Kudasai', 'Desu', 'Masu'],
-        correctIndex: 0,
-      ),
     ];
   }
 
@@ -94,7 +81,7 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     return PopScope(
-      canPop: false, // Prevent accidental back
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         final shouldPop = await _showExitDialog();
@@ -103,42 +90,50 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: AppColors.background,
         appBar: AppBar(
           automaticallyImplyLeading: false,
           elevation: 0,
-          backgroundColor: theme.scaffoldBackgroundColor,
+          backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           title: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.close_rounded),
+                icon: const Icon(Icons.close_rounded, color: AppColors.textPrimary),
                 onPressed: () async {
                   if (await _showExitDialog()) {
                     if (context.mounted) Navigator.pop(context);
                   }
                 },
-                tooltip: 'Quit',
               ),
               Expanded(
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
+                      color: Colors.white.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(AppRadius.full),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.timer_outlined, size: 16, color: AppColors.primary),
-                        const SizedBox(width: 8),
+                        const Icon(Icons.timer_rounded, size: 16, color: AppColors.primary),
+                        const SizedBox(width: 10),
                         Text(
                           _timerText,
                           style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                            fontFamily: 'Courier',
+                            fontWeight: AppTypography.black,
+                            fontSize: 15,
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ],
@@ -146,123 +141,114 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
                   ),
                 ),
               ),
-              TextButton(
+              ZenButton(
+                text: 'FINISH',
                 onPressed: _submitExam,
-                child: const Text('Submit'),
+                // small size
               ),
             ],
           ),
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(4),
+            preferredSize: const Size.fromHeight(2),
             child: LinearProgressIndicator(
               value: (_currentIndex + 1) / _questions.length,
-              backgroundColor: isDark ? AppColors.surfaceVariantDark : AppColors.grey200,
+              backgroundColor: AppColors.grey300.withValues(alpha: 0.5),
               color: AppColors.primary,
               minHeight: 2,
             ),
           ),
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Question Number
-                    Text(
-                      'Question ${_currentIndex + 1}/${_questions.length}',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: AppColors.textTertiary,
+        body: ZenBackground(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'NODE ${_currentIndex + 1} OF ${_questions.length}',
+                        style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    
-                    // Question Text
-                    Text(
-                      _questions[_currentIndex].text,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: AppTypography.bold,
-                        height: 1.4,
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        _questions[_currentIndex].text,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: AppTypography.extraBold,
+                          fontSize: 24,
+                          height: 1.3,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    
-                    // Options
-                    ...List.generate(
-                      _questions[_currentIndex].options.length,
-                      (index) => _OptionCard(
-                        text: _questions[_currentIndex].options[index],
-                        isSelected: _answers[_currentIndex] == index,
-                        onTap: () {
-                          setState(() {
-                            _answers[_currentIndex] = index;
-                          });
-                        },
-                        isDark: isDark,
-                        index: index,
+                      const SizedBox(height: 40),
+                      ...List.generate(
+                        _questions[_currentIndex].options.length,
+                        (index) => EntryAnimation(
+                          index: index,
+                          child: _OptionCard(
+                            text: _questions[_currentIndex].options[index],
+                            isSelected: _answers[_currentIndex] == index,
+                            onTap: () {
+                              setState(() {
+                                _answers[_currentIndex] = index;
+                              });
+                            },
+                            index: index,
+                          ),
+                        ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              Container(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  bottom: MediaQuery.of(context).padding.bottom + 20,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.05),
+                      blurRadius: 30,
+                      offset: const Offset(0, -10),
                     ),
                   ],
+                  border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.3))),
                 ),
-              ),
-            ),
-            
-            // Bottom Bar
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor,
-                border: Border(
-                  top: BorderSide(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                child: SafeArea(
+                  top: false,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _NavButton(
+                        icon: Icons.chevron_left_rounded,
+                        label: 'PREVIOUS',
+                        onPressed: _currentIndex > 0 ? () => setState(() => _currentIndex--) : null,
+                      ),
+                      _NavButton(
+                        icon: Icons.chevron_right_rounded,
+                        label: _currentIndex < _questions.length - 1 ? 'NEXT' : 'SUBMIT',
+                        isPrimary: true,
+                        onPressed: () {
+                          if (_currentIndex < _questions.length - 1) {
+                            setState(() => _currentIndex++);
+                          } else {
+                            _submitExam();
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton.icon(
-                    onPressed: _currentIndex > 0
-                        ? () => setState(() => _currentIndex--)
-                        : null,
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    label: const Text('Previous'),
-                  ),
-                  
-                  if (_currentIndex < _questions.length - 1)
-                    ElevatedButton.icon(
-                      onPressed: () => setState(() => _currentIndex++),
-                      icon: const Icon(Icons.arrow_forward_rounded),
-                      label: const Text('Next'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.full),
-                        ),
-                      ),
-                    )
-                  else
-                    ElevatedButton.icon(
-                      onPressed: _submitExam,
-                      icon: const Icon(Icons.check_circle_outline),
-                      label: const Text('Finish'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.full),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -272,17 +258,11 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
     return await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Quit Exam?'),
-        content: const Text('Your progress will be lost.'),
+        title: const Text('Abort Mission?', style: TextStyle(fontWeight: AppTypography.black)),
+        content: const Text('Your current simulation progress will be purged from memory.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Continue'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Quit', style: TextStyle(color: AppColors.error)),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CONTINUE')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('ABORT', style: TextStyle(color: AppColors.error))),
         ],
       ),
     ) ?? false;
@@ -294,15 +274,15 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Exam Completed! 🎉'),
-        content: Text('You answered ${_answers.length} out of ${_questions.length} questions.'),
+        title: const Text('SYNCH COMPLETE 🎉', style: TextStyle(fontWeight: AppTypography.black)),
+        content: Text('You have successfully mapped ${_answers.length} out of ${_questions.length} nodes.'),
         actions: [
-          ElevatedButton(
+          ZenButton(
+            text: 'RETURN TO ARCHIVE',
             onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close page
+              Navigator.pop(context);
+              Navigator.pop(context);
             },
-            child: const Text('Return Home'),
           ),
         ],
       ),
@@ -314,79 +294,108 @@ class _OptionCard extends StatelessWidget {
   final String text;
   final bool isSelected;
   final VoidCallback onTap;
-  final bool isDark;
   final int index;
 
-  const _OptionCard({
-    required this.text,
-    required this.isSelected,
-    required this.onTap,
-    required this.isDark,
-    required this.index,
-  });
+  const _OptionCard({required this.text, required this.isSelected, required this.onTap, required this.index});
 
   @override
   Widget build(BuildContext context) {
     final letters = ['A', 'B', 'C', 'D'];
     
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(16),
         child: AnimatedContainer(
-          duration: AppDuration.fast,
-          padding: const EdgeInsets.all(AppSpacing.md),
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
-            color: isSelected 
-                ? AppColors.primarySurface
-                : isDark ? AppColors.surfaceVariantDark : AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+            color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
             border: Border.all(
-              color: isSelected
-                  ? AppColors.primary
-                  : isDark ? AppColors.borderDark : AppColors.borderLight,
-              width: isSelected ? 2 : 1,
+              color: isSelected ? AppColors.primary : AppColors.grey300.withValues(alpha: 0.3),
+              width: 1.5,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.02),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.transparent,
-                  border: Border.all(
-                    color: isSelected ? AppColors.primary : AppColors.textTertiary,
-                    width: isSelected ? 0 : 1.5,
-                  ),
+                  color: isSelected ? AppColors.primary : AppColors.background,
                   shape: BoxShape.circle,
+                  border: Border.all(color: isSelected ? AppColors.primary : AppColors.grey300, width: 1),
                 ),
                 child: Center(
                   child: Text(
                     letters[index % 4],
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.textTertiary,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(color: isSelected ? Colors.white : AppColors.textTertiary, fontWeight: AppTypography.black, fontSize: 14),
                   ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
+              const SizedBox(width: 16),
               Expanded(
                 child: Text(
                   text,
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    color: isSelected 
-                        ? AppColors.primary 
-                        : isDark ? Colors.white : AppColors.textPrimary,
+                    fontWeight: isSelected ? AppTypography.bold : AppTypography.medium,
+                    color: isSelected ? AppColors.primary : AppColors.textPrimary,
                   ),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+  final bool isPrimary;
+
+  const _NavButton({required this.icon, required this.label, this.onPressed, this.isPrimary = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isPrimary ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            if (!isPrimary) Icon(icon, size: 20, color: onPressed == null ? AppColors.textTertiary : AppColors.textPrimary),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: AppTypography.black,
+                letterSpacing: 1.0,
+                color: isPrimary ? Colors.white : (onPressed == null ? AppColors.textTertiary : AppColors.textPrimary),
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (isPrimary) Icon(icon, size: 20, color: Colors.white),
+          ],
         ),
       ),
     );

@@ -5,7 +5,7 @@
 /// 
 /// Usage:
 /// ```dart
-/// import 'package:torii_mobile/core/widgets/widgets.dart';
+/// import 'package:torii_app/core/widgets/widgets.dart';
 /// ```
 library;
 
@@ -26,6 +26,7 @@ export 'progress/progress_bar.dart';
 
 // Loading
 export 'loading/shimmer_loading.dart';
+export 'loading/zen_loading.dart';
 
 // States
 export 'states/empty_state.dart';
@@ -38,3 +39,12 @@ export 'animations/entry_animation.dart';
 
 // Shell
 export 'app_shell.dart';
+
+// Buttons
+export 'buttons/zen_button.dart';
+
+// Inputs
+export 'inputs/zen_text_field.dart';
+
+// Background
+export 'zen_background.dart';

@@ -6,11 +6,9 @@ import '../../models/curriculum_model.dart';
 import '../../models/module_model.dart';
 import '../../providers/course_providers.dart';
 import '../../../../core/constants/app_design_system.dart';
+import '../../../../core/widgets/widgets.dart';
 
-
-/// Course Detail Page - Minimalist Course Information
-/// 
-/// A clean, focused course detail view with clear hierarchy.
+/// Course Detail Page - Premium Zen UI Rebuild
 class CourseDetailPage extends ConsumerWidget {
   final String courseId;
 
@@ -22,40 +20,34 @@ class CourseDetailPage extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final state = ref.watch(courseDetailProvider(courseId));
 
-    // Show loading state
     if (state.isLoading && state.course == null) {
-      return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const ZenLoadingScreen(text: 'Loading course...');
     }
 
-    // Show error state
     if (state.error != null && state.course == null) {
       return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          title: const Text('Error'),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                state.error!,
-                style: theme.textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              ElevatedButton(
-                onPressed: () {
-                  ref.read(courseDetailProvider(courseId).notifier).loadCourseDetail(courseId);
-                },
-                child: const Text('Retry'),
-              ),
-            ],
+        backgroundColor: AppColors.background,
+        body: ZenBackground(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                const SizedBox(height: 16),
+                Text(
+                  state.error!,
+                  style: theme.textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ZenButton(
+                  text: 'TRY AGAIN',
+                  onPressed: () {
+                    ref.read(courseDetailProvider(courseId).notifier).loadCourseDetail(courseId);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -63,121 +55,143 @@ class CourseDetailPage extends ConsumerWidget {
 
     final course = state.course;
     if (course == null) {
-      return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        body: const Center(
-          child: Text('Course not found'),
-        ),
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(child: Text('Protocol Missing')),
       );
     }
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // Header with thumbnail
-          _buildHeader(context, isDark, course, state.isWishlisted, state.isTogglingWishlist, ref),
+      backgroundColor: AppColors.background,
+      body: ZenBackground(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            _buildHeader(context, isDark, course, state.isWishlisted, state.isTogglingWishlist, ref),
 
-          // Content
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.pageHorizontal),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Meta badges
-                  _buildMetaBadges(course),
-                  const SizedBox(height: AppSpacing.md),
-
-                  // Title
-                  Text(
-                    course.title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: AppTypography.bold,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-
-                  // Instructor & Rating
-                  _buildInstructorRow(theme, course),
-                  
-                  const SizedBox(height: AppSpacing.lg),
-                  
-                  // Stats Row
-                  _buildStatsRow(theme, isDark, course, state.curriculum),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // About Section
-                  if (course.description != null && course.description!.isNotEmpty) ...[
-                    _buildSectionTitle(theme, 'About This Course'),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      course.description!,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: AppColors.textSecondary,
-                        height: 1.7,
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    EntryAnimation(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildMetaBadges(course),
+                          const SizedBox(height: AppSpacing.md),
+                          Text(
+                            course.title,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: AppTypography.extraBold,
+                              fontSize: 26,
+                              letterSpacing: -0.5,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _buildInstructorRow(theme, course),
+                        ],
                       ),
                     ),
+                    
                     const SizedBox(height: AppSpacing.xl),
-                  ],
+                    
+                    EntryAnimation(
+                      delay: const Duration(milliseconds: 200),
+                      child: _buildStatsRow(theme, isDark, course, state.curriculum),
+                    ),
 
-                  // What You'll Learn
-                  if (course.learningOutcomes.isNotEmpty) ...[
-                    _buildSectionTitle(theme, 'What You\'ll Learn'),
-                    const SizedBox(height: AppSpacing.md),
-                    _buildLearningPoints(theme, course),
-                    const SizedBox(height: AppSpacing.xl),
-                  ],
+                    const SizedBox(height: AppSpacing.xxl),
 
-                  // Curriculum Section
-                  _buildSectionTitle(theme, 'Curriculum'),
-                  const SizedBox(height: AppSpacing.md),
-                  if (state.isLoadingCurriculum)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(AppSpacing.xl),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  else if (state.curriculum != null && state.curriculum!.modules.isNotEmpty)
-                    ...state.curriculum!.modules.expand((module) {
-                      final moduleIndex = state.curriculum!.modules.indexOf(module) + 1;
-                      return [
-                        _buildModuleHeader(context, theme, isDark, module, moduleIndex),
-                        ...module.lessons.map((lesson) {
-                          final lessonIndex = module.lessons.indexOf(lesson) + 1;
-                          return _buildCurriculumItem(
-                            context,
-                            '$moduleIndex.$lessonIndex',
-                            lesson.title,
-                            lesson.durationLabel,
-                            isFree: lesson.isPreview,
-                          );
-                        }),
-                      ];
-                    })
-                  else
-                    Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: Text(
-                        'No curriculum available',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                    if (course.description != null && course.description!.isNotEmpty) ...[
+                      EntryAnimation(
+                        delay: const Duration(milliseconds: 300),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionTitle('Course Overview'),
+                            const SizedBox(height: AppSpacing.md),
+                            Text(
+                              course.description!,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: AppColors.textSecondary,
+                                height: 1.8,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.xxl),
+                    ],
+
+                    if (course.learningOutcomes.isNotEmpty) ...[
+                      EntryAnimation(
+                        delay: const Duration(milliseconds: 400),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionTitle('What you\'ll learn'),
+                            const SizedBox(height: AppSpacing.lg),
+                            _buildLearningPoints(theme, course),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxl),
+                    ],
+
+                    EntryAnimation(
+                      delay: const Duration(milliseconds: 500),
+                      child: _buildSectionTitle('Course Content'),
                     ),
-                  
-                  // Bottom spacing for action bar
-                  const SizedBox(height: 120),
-                ],
+                    const SizedBox(height: AppSpacing.lg),
+                    
+                    if (state.isLoadingCurriculum)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+                          child: ZenLoading(text: 'Syncing curriculum blocks...'),
+                        ),
+                      )
+                    else if (state.curriculum != null && state.curriculum!.modules.isNotEmpty)
+                      ...state.curriculum!.modules.expand((module) {
+                        final moduleIndex = state.curriculum!.modules.indexOf(module) + 1;
+                        return [
+                          _buildModuleHeader(context, theme, isDark, module, moduleIndex),
+                          ...module.lessons.map((lesson) {
+                            final lessonIndex = module.lessons.indexOf(lesson) + 1;
+                            return _buildCurriculumItem(
+                              context,
+                              '$moduleIndex.$lessonIndex',
+                              lesson.title,
+                              lesson.durationLabel,
+                              isFree: lesson.isPreview,
+                            );
+                          }),
+                        ];
+                      })
+                    else
+                      Padding(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Text(
+                          'No curriculum archive found',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.textTertiary,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    
+                    const SizedBox(height: 120),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-      
-      // Bottom Action Bar
       bottomNavigationBar: _buildBottomBar(context, theme, isDark, course),
     );
   }
@@ -191,63 +205,75 @@ class CourseDetailPage extends ConsumerWidget {
     WidgetRef ref,
   ) {
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 240,
       pinned: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      backgroundColor: AppColors.background,
       surfaceTintColor: Colors.transparent,
+      leadingWidth: 70,
       leading: Container(
-        margin: const EdgeInsets.all(8),
+        margin: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
         decoration: BoxDecoration(
-          color: isDark 
-              ? Colors.black.withValues(alpha: 0.5)
-              : Colors.white.withValues(alpha: 0.9),
+          color: Colors.white.withValues(alpha: 0.9),
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.textPrimary),
+          onPressed: () => context.pop(),
         ),
       ),
       actions: [
         Container(
-          margin: const EdgeInsets.all(8),
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            color: isDark 
-                ? Colors.black.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: IconButton(
             icon: isTogglingWishlist
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                 : Icon(
-                    isWishlisted ? Icons.favorite : Icons.favorite_border_outlined,
-                    color: isWishlisted ? Colors.red : null,
+                    isWishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                    size: 20,
+                    color: isWishlisted ? AppColors.error : AppColors.textPrimary,
                   ),
-            onPressed: isTogglingWishlist
-                ? null
-                : () {
-                    ref.read(courseDetailProvider(course.id).notifier).toggleWishlist();
-                  },
+            onPressed: isTogglingWishlist ? null : () => ref.read(courseDetailProvider(course.id).notifier).toggleWishlist(),
           ),
         ),
+        const SizedBox(width: 12),
         Container(
-          margin: const EdgeInsets.only(right: 8),
+          width: 40,
+          height: 40,
+          margin: const EdgeInsets.only(right: 16),
           decoration: BoxDecoration(
-            color: isDark 
-                ? Colors.black.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.9),
+            color: Colors.white.withValues(alpha: 0.9),
             shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {
-              // TODO: Implement share functionality
-            },
+            icon: const Icon(Icons.share_rounded, size: 20, color: AppColors.textPrimary),
+            onPressed: () {},
           ),
         ),
       ],
@@ -255,46 +281,31 @@ class CourseDetailPage extends ConsumerWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            course.thumbnailUrl != null
-                ? Image.network(
-                    course.thumbnailUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: isDark ? AppColors.surfaceVariantDark : AppColors.grey200,
-                      child: const Center(
-                        child: Icon(
-                          Icons.school_outlined,
-                          size: 48,
-                          color: AppColors.textTertiary,
-                        ),
-                      ),
-                    ),
-                  )
-                : Container(
-                    color: isDark ? AppColors.surfaceVariantDark : AppColors.grey200,
-                    child: const Center(
-                      child: Icon(
-                        Icons.school_outlined,
-                        size: 48,
-                        color: AppColors.textTertiary,
-                      ),
-                    ),
-                  ),
-            // Play button overlay (only if preview video exists)
+            Hero(
+              tag: 'course-${course.id}',
+              child: course.thumbnailUrl != null
+                  ? Image.network(course.thumbnailUrl!, fit: BoxFit.cover)
+                  : Container(color: AppColors.grey200),
+            ),
+            Container(decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.black.withValues(alpha: 0.3), Colors.transparent], begin: Alignment.bottomCenter, end: Alignment.center))),
             if (course.previewVideoUrl != null)
               Center(
                 child: Container(
-                  width: 64,
-                  height: 64,
+                  width: 70,
+                  height: 70,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: Colors.white.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
-                    boxShadow: AppElevation.softShadow,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
                   ),
-                  child: const Icon(
-                    Icons.play_arrow_rounded,
-                    size: 36,
-                    color: AppColors.primary,
+                  child: ClipOval(
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {},
+                        child: const Icon(Icons.play_arrow_rounded, size: 48, color: Colors.white),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -307,121 +318,52 @@ class CourseDetailPage extends ConsumerWidget {
   Widget _buildMetaBadges(Course course) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.primarySurface,
-            borderRadius: BorderRadius.circular(AppRadius.xs),
-          ),
-          child: Text(
-            course.levelLabel,
-            style: const TextStyle(
-              color: AppColors.primary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: course.type == CourseType.liveClass 
-                ? AppColors.accentSurface
-                : AppColors.surfaceVariant,
-            borderRadius: BorderRadius.circular(AppRadius.xs),
-          ),
-          child: Text(
-            course.typeLabel,
-            style: TextStyle(
-              color: course.type == CourseType.liveClass 
-                  ? AppColors.accentDark
-                  : AppColors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        if (course.isFree) ...[
-          const SizedBox(width: AppSpacing.sm),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: AppSpacing.xs,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.successLight,
-              borderRadius: BorderRadius.circular(AppRadius.xs),
-            ),
-            child: const Text(
-              'Free',
-              style: TextStyle(
-                color: AppColors.successDark,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+        _buildBadge(course.levelLabel, AppColors.primarySurface, AppColors.primary),
+        const SizedBox(width: 8),
+        _buildBadge(course.typeLabel, AppColors.accentSurface, AppColors.accentDark),
         if (course.isEnrolled) ...[
-          const SizedBox(width: AppSpacing.sm),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: AppSpacing.xs,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.successLight,
-              borderRadius: BorderRadius.circular(AppRadius.xs),
-            ),
-            child: const Text(
-              'Enrolled',
-              style: TextStyle(
-                color: AppColors.successDark,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          const SizedBox(width: 8),
+          _buildBadge('SYNCHRONIZED', AppColors.successLight, AppColors.successDark),
         ],
       ],
+    );
+  }
+
+  Widget _buildBadge(String text, Color bg, Color textCol) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg.withValues(alpha: 0.1), 
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: textCol.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        text.toUpperCase(),
+        style: TextStyle(color: textCol, fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 2.0),
+      ),
     );
   }
 
   Widget _buildInstructorRow(ThemeData theme, Course course) {
     return Row(
       children: [
-        CircleAvatar(
-          radius: 18,
-          backgroundImage: course.instructorAvatarUrl.isNotEmpty
-              ? NetworkImage(course.instructorAvatarUrl)
-              : null,
-          backgroundColor: AppColors.grey200,
-          child: course.instructorAvatarUrl.isEmpty
-              ? const Icon(Icons.person, size: 18)
-              : null,
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary.withValues(alpha: 0.1))),
+          child: CircleAvatar(
+            radius: 16,
+            backgroundColor: AppColors.primarySurface,
+            backgroundImage: course.instructorAvatarUrl.isNotEmpty ? NetworkImage(course.instructorAvatarUrl) : null,
+            child: course.instructorAvatarUrl.isEmpty ? const Icon(Icons.person_rounded, size: 16, color: AppColors.primary) : null,
+          ),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                course.instructorName,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: AppTypography.semiBold,
-                ),
-              ),
-              Text(
-                'Instructor',
-                style: theme.textTheme.bodySmall,
-              ),
+              Text(course.instructorName, style: theme.textTheme.titleSmall?.copyWith(fontWeight: AppTypography.bold)),
+              Text('Principal Instructor', style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary)),
             ],
           ),
         ),
@@ -429,16 +371,8 @@ class CourseDetailPage extends ConsumerWidget {
           children: [
             const Icon(Icons.star_rounded, size: 18, color: AppColors.accent),
             const SizedBox(width: 4),
-            Text(
-              course.rating.toStringAsFixed(1),
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: AppTypography.bold,
-              ),
-            ),
-            Text(
-              ' (${course.reviewCount})',
-              style: theme.textTheme.bodySmall,
-            ),
+            Text(course.rating.toStringAsFixed(1), style: theme.textTheme.titleSmall?.copyWith(fontWeight: AppTypography.black)),
+            Text(' (${course.reviewCount})', style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary)),
           ],
         ),
       ],
@@ -446,165 +380,94 @@ class CourseDetailPage extends ConsumerWidget {
   }
 
   Widget _buildStatsRow(ThemeData theme, bool isDark, Course course, Curriculum? curriculum) {
-    // Calculate duration from curriculum
-    String durationLabel = 'N/A';
-    if (curriculum != null && curriculum.totalDurationMinutes > 0) {
-      durationLabel = curriculum.totalDurationLabel;
-    } else if (course.durationWeeks != null) {
-      durationLabel = '${course.durationWeeks} weeks';
-    }
-
-    // Format student count
-    String studentCount = course.enrolledCount.toString();
-    if (course.enrolledCount >= 1000) {
-      studentCount = '${(course.enrolledCount / 1000).toStringAsFixed(1)}k';
-    }
+    String duration = curriculum?.totalDurationLabel ?? (course.durationWeeks != null ? '${course.durationWeeks} weeks' : 'N/A');
+    String studentCount = course.enrolledCount >= 1000 ? '${(course.enrolledCount / 1000).toStringAsFixed(1)}k' : course.enrolledCount.toString();
 
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.04),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          _buildStat(theme, Icons.schedule_outlined, durationLabel, 'Duration'),
-          _buildStatDivider(isDark),
-          _buildStat(theme, Icons.library_books_outlined, course.totalLessons.toString(), 'Lessons'),
-          _buildStatDivider(isDark),
-          _buildStat(theme, Icons.people_outline, studentCount, 'Students'),
+          _buildStatItem(Icons.timer_rounded, duration, 'HOURS'),
+          _buildVerticalDivider(),
+          _buildStatItem(Icons.layers_rounded, course.totalLessons.toString(), 'LESSONS'),
+          _buildVerticalDivider(),
+          _buildStatItem(Icons.group_rounded, studentCount, 'STUDENTS'),
         ],
       ),
     );
   }
 
-  Widget _buildStat(ThemeData theme, IconData icon, String value, String label) {
+  Widget _buildStatItem(IconData icon, String value, String label) {
     return Expanded(
       child: Column(
         children: [
-          Icon(icon, size: 20, color: AppColors.primary),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            value,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: AppTypography.bold,
-            ),
-          ),
-          Text(
-            label,
-            style: theme.textTheme.bodySmall,
-          ),
+          Icon(icon, size: 20, color: AppColors.primary.withValues(alpha: 0.7)),
+          const SizedBox(height: 8),
+          Text(value, style: const TextStyle(fontWeight: AppTypography.black, fontSize: 16, letterSpacing: -0.5)),
+          Text(label, style: const TextStyle(fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 1.5, color: AppColors.textTertiary)),
         ],
       ),
     );
   }
 
-  Widget _buildStatDivider(bool isDark) {
-    return Container(
-      width: 1,
-      height: 40,
-      color: isDark ? AppColors.borderDark : AppColors.borderLight,
-    );
-  }
+  Widget _buildVerticalDivider() => Container(width: 1, height: 30, color: AppColors.grey300.withValues(alpha: 0.5));
 
-  Widget _buildSectionTitle(ThemeData theme, String title) {
-    return Text(
-      title,
-      style: theme.textTheme.titleLarge?.copyWith(
-        fontWeight: AppTypography.semiBold,
-      ),
+  Widget _buildSectionTitle(String title) {
+    return Row(
+      children: [
+        Container(width: 4, height: 16, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(width: 12),
+        Text(
+          title.toUpperCase(),
+          style: const TextStyle(fontSize: 12, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textPrimary),
+        ),
+      ],
     );
   }
 
   Widget _buildLearningPoints(ThemeData theme, Course course) {
-    final points = course.learningOutcomes;
-    
-    if (points.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    
     return Column(
-      children: points.map((point) => Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      children: course.learningOutcomes.map((point) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              margin: const EdgeInsets.only(top: 2),
-              child: const Icon(
-                Icons.check_circle_rounded,
-                size: 18,
-                color: AppColors.success,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                point,
-                style: theme.textTheme.bodyLarge,
-              ),
-            ),
+            const Icon(Icons.check_circle_rounded, size: 18, color: AppColors.success),
+            const SizedBox(width: 12),
+            Expanded(child: Text(point, style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15, color: AppColors.textSecondary))),
           ],
         ),
       )).toList(),
     );
   }
 
-  Widget _buildModuleHeader(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    Module module,
-    int moduleIndex,
-  ) {
+  Widget _buildModuleHeader(BuildContext context, ThemeData theme, bool isDark, Module module, int index) {
     return Container(
-      margin: EdgeInsets.only(
-        top: moduleIndex > 1 ? AppSpacing.lg : 0,
-        bottom: AppSpacing.sm,
-      ),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
+      margin: const EdgeInsets.only(top: 16, bottom: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.primarySurface.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Center(
-              child: Text(
-                'M$moduleIndex',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: AppTypography.bold,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
+          Text('M$index', style: const TextStyle(fontWeight: AppTypography.black, color: AppColors.primary, fontSize: 18)),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  module.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: AppTypography.semiBold,
-                  ),
-                ),
-                if (module.durationLabel.isNotEmpty)
-                  Text(
-                    module.durationLabel,
-                    style: theme.textTheme.bodySmall,
-                  ),
+                Text(module.title, style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 16)),
+                if (module.durationLabel.isNotEmpty) Text(module.durationLabel, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
               ],
             ),
           ),
@@ -613,89 +476,37 @@ class CourseDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCurriculumItem(
-    BuildContext context,
-    String number,
-    String title,
-    String duration, {
-    bool isFree = false,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
+  Widget _buildCurriculumItem(BuildContext context, String num, String title, String duration, {bool isFree = false}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(AppSpacing.md),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: isDark ? AppColors.borderDark : AppColors.borderLight,
-        ),
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.02),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Center(
-              child: Text(
-                number,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: AppTypography.semiBold,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
+          Text(num, style: const TextStyle(fontWeight: AppTypography.black, color: AppColors.textTertiary, fontSize: 12)),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: AppTypography.medium,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  duration,
-                  style: theme.textTheme.bodySmall,
-                ),
+                Text(title, style: const TextStyle(fontWeight: AppTypography.semiBold, fontSize: 14)),
+                Text(duration, style: const TextStyle(fontSize: 11, color: AppColors.textTertiary, fontWeight: AppTypography.medium)),
               ],
             ),
           ),
-          if (isFree)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xxs,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.successLight,
-                borderRadius: BorderRadius.circular(AppRadius.xs),
-              ),
-              child: const Text(
-                'Preview',
-                style: TextStyle(
-                  color: AppColors.successDark,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            )
-          else
-            const Icon(
-              Icons.lock_outline,
-              size: 18,
-              color: AppColors.textTertiary,
-            ),
+          if (isFree) _buildBadge('PREVIEW', AppColors.successLight, AppColors.successDark)
+          else const Icon(Icons.lock_outline_rounded, size: 18, color: AppColors.textTertiary),
         ],
       ),
     );
@@ -703,65 +514,58 @@ class CourseDetailPage extends ConsumerWidget {
 
   Widget _buildBottomBar(BuildContext context, ThemeData theme, bool isDark, Course course) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).padding.bottom + 20,
+      ),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.05),
+            blurRadius: 30,
+            offset: const Offset(0, -10),
           ),
-        ),
+        ],
+        border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.3))),
       ),
       child: SafeArea(
+        top: false,
         child: Row(
           children: [
             Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Price',
-                  style: theme.textTheme.bodySmall,
-                ),
+                const Text('ACCESS COST', style: TextStyle(fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 1.5, color: AppColors.textTertiary)),
+                const SizedBox(height: 4),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
-                    if (course.hasDiscount)
-                      Text(
-                        course.originalPriceLabel,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          decoration: TextDecoration.lineThrough,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    if (course.hasDiscount) const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      course.priceLabel,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: AppTypography.bold,
-                      ),
-                    ),
+                    Text(course.priceLabel, style: const TextStyle(fontSize: 24, fontWeight: AppTypography.black, color: AppColors.primary)),
+                    if (course.hasDiscount) ...[
+                      const SizedBox(width: 8),
+                      Text(course.originalPriceLabel, style: const TextStyle(fontSize: 14, decoration: TextDecoration.lineThrough, color: AppColors.textTertiary)),
+                    ],
                   ],
                 ),
               ],
             ),
-            const SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: 24),
             Expanded(
-              child: SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (course.isEnrolled) {
-                      // TODO: Go to learning
-                    } else {
-                      context.push('/payment');
-                    }
-                  },
-                  child: Text(
-                    course.isEnrolled ? 'Continue Learning' : 'Enroll Now',
-                  ),
-                ),
+              child: ZenButton(
+                text: course.isEnrolled ? 'RESUME NEURAL LINK' : 'INITIALIZE ENROLLMENT',
+                onPressed: () {
+                  if (course.isEnrolled) {
+                    // Navigate to course content
+                  } else {
+                    context.push('/payment');
+                  }
+                },
               ),
             ),
           ],

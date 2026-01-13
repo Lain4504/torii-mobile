@@ -30,7 +30,7 @@ class ElevatedCard extends StatelessWidget {
     final cardBackground = backgroundColor ?? 
         (isDark ? AppColors.surfaceDark : AppColors.surface);
     
-    final borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
+    final borderColor = isDark ? AppColors.grey300 : AppColors.grey300;
     
     return Material(
       color: Colors.transparent,

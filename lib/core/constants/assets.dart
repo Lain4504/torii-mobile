@@ -8,8 +8,4 @@ class Assets {
   // Base paths
   static const String _imagesPath = 'assets/images';
 
-  // Onboarding images
-  static const String onboarding1 = '$_imagesPath/onboarding_01.webp';
-  static const String onboarding2 = '$_imagesPath/onboarding_02.webp';
-  static const String onboarding3 = '$_imagesPath/onboarding_03.webp';
 }
