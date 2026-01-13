@@ -49,16 +49,9 @@ class ZenTextField extends StatelessWidget {
           ),
         ),
         Container(
-          height: 60, // Standard thon dài height
+          height: 60,
           decoration: BoxDecoration(
-            color: enabled 
-                ? AppColors.white.withOpacity(0.7) 
-                : AppColors.grey100.withOpacity(0.5),
             borderRadius: BorderRadius.circular(AppRadius.full),
-            border: Border.all(
-              color: AppColors.borderLight.withOpacity(0.4),
-              width: 1,
-            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.01),
@@ -89,13 +82,26 @@ class ZenTextField extends StatelessWidget {
                   fontWeight: AppTypography.medium,
                   fontSize: 14,
                 ),
+                filled: true,
+                fillColor: enabled 
+                    ? AppColors.white.withOpacity(0.7) 
+                    : AppColors.grey100.withOpacity(0.5),
                 prefixIcon: Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: Icon(icon, size: 20, color: AppColors.primary.withOpacity(0.4)),
                 ),
                 suffixIcon: suffixIcon,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  borderSide: BorderSide(
+                    color: AppColors.borderLight.withOpacity(0.4),
+                    width: 1,
+                  ),
+                ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.full),
                   borderSide: BorderSide(

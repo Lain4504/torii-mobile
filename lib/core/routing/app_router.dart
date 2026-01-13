@@ -34,6 +34,12 @@ import 'package:torii_app/features/community/views/pages/post_detail_page.dart';
 import 'package:torii_app/features/community/models/post_model.dart';
 import 'package:torii_app/features/settings/views/pages/profile_edit_page.dart';
 import 'package:torii_app/features/settings/views/pages/security_settings_page.dart';
+import 'package:torii_app/features/notification/views/pages/notifications_page.dart';
+import 'package:torii_app/features/search/views/pages/search_page.dart';
+import 'package:torii_app/features/offline/views/pages/downloads_page.dart';
+import 'package:torii_app/features/gamification/views/pages/achievements_page.dart';
+import 'package:torii_app/features/course/views/pages/wishlist_page.dart';
+import 'package:torii_app/features/instructor/views/pages/instructor_profile_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -242,6 +248,39 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const SecuritySettingsPage(),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/notifications',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const NotificationsPage(),
+      ),
+      GoRoute(
+        path: '/search',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const SearchPage(),
+      ),
+       GoRoute(
+        path: '/downloads',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const DownloadsPage(),
+      ),
+      GoRoute(
+        path: '/achievements',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const AchievementsPage(),
+      ),
+      GoRoute(
+        path: '/wishlist',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const WishlistPage(),
+      ),
+      GoRoute(
+        path: '/instructor/:id',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+           final id = state.pathParameters['id'] ?? '';
+           return InstructorProfilePage(instructorId: id);
+        },
       ),
       GoRoute(
         path: '/learning/:courseId/:lessonId',

@@ -137,8 +137,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
         ),
         _HeaderAction(
+          icon: Icons.search_rounded,
+          onPressed: () => context.push('/search'),
+        ),
+        _HeaderAction(
           icon: Icons.notifications_none_rounded,
-          onPressed: () {},
+          onPressed: () => context.push('/notifications'),
         ),
         const SizedBox(width: AppSpacing.md),
       ],

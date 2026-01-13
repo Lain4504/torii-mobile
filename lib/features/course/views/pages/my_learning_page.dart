@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../providers/my_learning_provider.dart';
@@ -38,6 +39,14 @@ class MyLearningPage extends ConsumerWidget {
                   color: AppColors.textPrimary,
                 ),
               ),
+              actions: [
+                IconButton(
+                  onPressed: () => context.push('/downloads'),
+                  icon: const Icon(Icons.download_done_rounded, color: AppColors.textPrimary),
+                  tooltip: 'Downloads',
+                ),
+                const SizedBox(width: AppSpacing.md),
+              ],
             ),
             
             SliverPadding(
@@ -106,7 +115,7 @@ class MyLearningPage extends ConsumerWidget {
                         const SizedBox(height: 40),
                         ZenButton(
                           text: 'OPEN CATALOG', 
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => context.go('/courses'),
                           isFullWidth: true,
                         ),
                       ],

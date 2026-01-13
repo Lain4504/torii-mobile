@@ -141,27 +141,13 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     required IconData icon,
     bool readOnly = false,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: AppTypography.black,
-            letterSpacing: 3.0,
-            color: AppColors.primary.withOpacity(0.5),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        ZenTextField(
-          label: '', // Hide internal label
-          hintText: hint,
-          controller: controller,
-          icon: icon,
-          readOnly: readOnly,
-        ),
-      ],
+    return ZenTextField(
+      label: label,
+      hintText: hint,
+      controller: controller,
+      icon: icon,
+      readOnly: readOnly,
+      enabled: !readOnly,
     );
   }
 }

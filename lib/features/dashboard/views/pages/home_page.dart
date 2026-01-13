@@ -173,7 +173,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),
             child: TextButton(
-              onPressed: () => context.go('/login'),
+              onPressed: () => context.push('/login'),
               child: Text(
                 AppLocalizations.of(context)!.signIn.toUpperCase(),
                 style: const TextStyle(
