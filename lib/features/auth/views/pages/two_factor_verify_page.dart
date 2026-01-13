@@ -14,35 +14,35 @@ class TwoFactorVerifyPage extends ConsumerStatefulWidget {
 }
 
 class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
-  final List<TextEditingController> _controllers = List.generate(6, (index) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
-  bool _isBackupCode = false;
+  final TextEditingController _otpController = TextEditingController();
   final TextEditingController _backupController = TextEditingController();
+  final FocusNode _otpFocusNode = FocusNode();
+  final FocusNode _backupFocusNode = FocusNode();
+  
+  bool _isBackupCode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-focus logic
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        if (_isBackupCode) {
+          _backupFocusNode.requestFocus();
+        } else {
+          _otpFocusNode.requestFocus();
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    for (var node in _focusNodes) {
-      node.dispose();
-    }
+    _otpController.dispose();
     _backupController.dispose();
+    _otpFocusNode.dispose();
+    _backupFocusNode.dispose();
     super.dispose();
-  }
-
-  void _onType(int index, String value) {
-    if (value.isNotEmpty && index < 5) {
-      _focusNodes[index + 1].requestFocus();
-    }
-    _checkAndVerify();
-  }
-
-  void _checkAndVerify() {
-    final code = _controllers.map((e) => e.text).join();
-    if (code.length == 6) {
-      _verify(code);
-    }
   }
 
   void _verify(String code) {
@@ -104,18 +104,29 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
                         EntryAnimation(
                           index: 3,
                           verticalOffset: 20,
-                          child: _buildCodeInput(),
+                          child: _buildSingleInputField(
+                            controller: _otpController,
+                            focusNode: _otpFocusNode,
+                            hintText: '••••••',
+                            maxLength: 6,
+                            letterSpacing: 16.0,
+                            onChanged: (val) {
+                              if (val.length == 6) _verify(val);
+                            },
+                          ),
                         )
                       else
                         EntryAnimation(
                           index: 3,
-                          child: ZenTextField(
-                            label: 'BACKUP CODE',
+                          child: _buildSingleInputField(
                             controller: _backupController,
-                            hintText: 'Enter 8-digit backup code',
-                            icon: Icons.restore_page_rounded,
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (val) => _verify(val),
+                            focusNode: _backupFocusNode,
+                            hintText: '••••••••',
+                            maxLength: 8,
+                            letterSpacing: 12.0, // Slightly tighter for 8 digits
+                            onChanged: (val) {
+                              if (val.length == 8) _verify(val);
+                            },
                           ),
                         ),
 
@@ -137,7 +148,23 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
                       EntryAnimation(
                         index: 4,
                         child: TextButton(
-                          onPressed: () => setState(() => _isBackupCode = !_isBackupCode),
+                          onPressed: () {
+                            setState(() {
+                              _isBackupCode = !_isBackupCode;
+                              _otpController.clear();
+                              _backupController.clear();
+                            });
+                            // Re-focus after frame
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                if (_isBackupCode) {
+                                  _backupFocusNode.requestFocus();
+                                } else {
+                                  _otpFocusNode.requestFocus();
+                                }
+                              }
+                            });
+                          },
                           child: Text(
                             _isBackupCode ? 'USE AUTHENTICATOR APP' : 'USE BACKUP CODE',
                             style: const TextStyle(
@@ -242,28 +269,45 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     );
   }
 
-  Widget _buildCodeInput() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: List.generate(6, (index) {
-        return SizedBox(
-          width: 45,
-          child: TextField(
-            controller: _controllers[index],
-            focusNode: _focusNodes[index],
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: 1,
-            style: const TextStyle(fontSize: 24, fontWeight: AppTypography.bold, color: AppColors.primary),
-            decoration: InputDecoration(
-              counterText: "",
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.borderLight)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.primary, width: 2)),
-            ),
-            onChanged: (value) => _onType(index, value),
+  // Refactored to match VerifyOTPPage style but reusable
+  Widget _buildSingleInputField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String hintText,
+    required int maxLength,
+    required double letterSpacing,
+    required ValueChanged<String> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(AppRadius.full),
+        border: Border.all(color: AppColors.borderLight.withOpacity(0.3)),
+      ),
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        keyboardType: TextInputType.number,
+        maxLength: maxLength,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 32,
+          fontWeight: AppTypography.bold,
+          letterSpacing: letterSpacing,
+          color: AppColors.primary,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          counterText: "",
+          hintText: hintText,
+          hintStyle: TextStyle(
+            color: AppColors.textTertiary.withOpacity(0.15),
+            letterSpacing: letterSpacing,
           ),
-        );
-      }),
+        ),
+        onChanged: onChanged,
+      ),
     );
   }
 

@@ -204,7 +204,7 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
 
   Widget _buildOTPField() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.6),
         borderRadius: BorderRadius.circular(AppRadius.full),
