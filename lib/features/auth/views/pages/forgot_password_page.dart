@@ -33,21 +33,24 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
+    final asyncAuth = ref.watch(authStateProvider);
     
     // Navigate to OTP page when state changes
-    ref.listen<AuthState>(authStateProvider, (previous, next) {
-      if (previous?.status != next.status && next.status == AuthStatus.requiresOTP) {
+    ref.listen<AsyncValue<AuthState>>(authStateProvider, (previous, next) {
+      final prevStatus = previous?.asData?.value.status;
+      final nextState = next.asData?.value;
+      
+      if (nextState != null && prevStatus != nextState.status && nextState.status == AuthStatus.requiresOTP) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && next.email != null) {
-            context.go('/auth/verify-otp', extra: next.email);
+          if (mounted && nextState.email != null) {
+            context.go('/auth/verify-otp', extra: {'email': nextState.email});
           }
         });
       }
     });
     
-    final isLoading = authState.isLoading;
-    final errorMessage = authState.error;
+    final isLoading = asyncAuth.isLoading;
+    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
 
     return Scaffold(
       backgroundColor: AppColors.background,

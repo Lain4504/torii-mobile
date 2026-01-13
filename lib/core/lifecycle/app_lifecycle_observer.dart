@@ -40,10 +40,11 @@ class _AppLifecycleObserverState extends ConsumerState<AppLifecycleObserver>
   }
 
   Future<void> _refreshUserProfile() async {
-    final authState = ref.read(authStateProvider);
+    final asyncAuth = ref.read(authStateProvider);
+    final authState = asyncAuth.asData?.value;
     
     // Only refresh if user is authenticated
-    if (authState.isAuthenticated) {
+    if (authState?.isAuthenticated ?? false) {
       try {
         // Note: refreshProfile method may not exist in simplified AuthProvider
         // This is optional - user profile will be fresh from token refresh

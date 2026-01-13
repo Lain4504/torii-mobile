@@ -30,8 +30,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final user = authState.isAuthenticated ? authState.user : null;
+    final asyncAuth = ref.watch(authStateProvider);
+    final authState = asyncAuth.asData?.value;
+    final user = (authState?.isAuthenticated ?? false) ? authState?.user : null;
     final courseState = ref.watch(courseListProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;

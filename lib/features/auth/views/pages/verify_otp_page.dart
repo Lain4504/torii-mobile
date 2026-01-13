@@ -56,27 +56,42 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
+    final asyncAuth = ref.watch(authStateProvider);
+    final isLoading = asyncAuth.isLoading;
+    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
+    
+    // Check for success/redirect logic
+    final authState = asyncAuth.asData?.value;
+    if (authState != null && authState.status == AuthStatus.requiresOTP && authState.tempToken != null) {
+       // Navigate to reset password
+       WidgetsBinding.instance.addPostFrameCallback((_) {
+         context.go('/auth/reset-password', extra: {
+           'email': widget.email,
+           'tempToken': authState.tempToken
+         });
+       });
+    }
     
     // Navigate to reset password when OTP verified
-    ref.listen<AuthState>(authStateProvider, (previous, next) {
-      if (previous?.status != next.status) {
-        if (next.status == AuthStatus.requiresOTP && next.tempToken != null) {
+    // Navigate to reset password when OTP verified
+    ref.listen<AsyncValue<AuthState>>(authStateProvider, (previous, next) {
+      final prevStatus = previous?.asData?.value.status;
+      final nextState = next.asData?.value;
+      
+      if (nextState != null && prevStatus != nextState.status) {
+        if (nextState.status == AuthStatus.requiresOTP && nextState.tempToken != null) {
           // OTP verified - navigate to reset password
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && next.email != null && next.tempToken != null) {
+            if (mounted && nextState.email != null && nextState.tempToken != null) {
               context.go('/auth/reset-password', extra: {
-                'email': next.email,
-                'tempToken': next.tempToken,
+                'email': nextState.email,
+                'tempToken': nextState.tempToken,
               });
             }
           });
         }
       }
     });
-
-    final isLoading = authState.isLoading;
-    final errorMessage = authState.error;
 
     return Scaffold(
       backgroundColor: AppColors.background,

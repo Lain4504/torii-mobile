@@ -45,12 +45,18 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
+    final asyncAuth = ref.watch(authStateProvider);
     
     // Navigate to login on successful reset
-    ref.listen<AuthState>(authStateProvider, (previous, next) {
-      if (previous?.status != next.status && next.status == AuthStatus.unauthenticated) {
-        if (previous?.status == AuthStatus.loading) {
+    ref.listen<AsyncValue<AuthState>>(authStateProvider, (previous, next) {
+      final prevStatus = previous?.asData?.value.status;
+      final nextState = next.asData?.value;
+      
+      if (nextState != null && prevStatus != nextState.status && nextState.status == AuthStatus.unauthenticated) {
+        // Technically logic is trickier with async value, usually success means next has no error and we came from a flow.
+        // But here unauthenticated usually means we cleared the temp token etc.
+        // Assuming Reset Password action sets state to Unauthenticated on success.
+         if (prevStatus != null) {
           // Password reset successful
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Password reset successful! Please login.')),
@@ -62,8 +68,8 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
       }
     });
 
-    final isLoading = authState.isLoading;
-    final errorMessage = authState.error;
+    final isLoading = asyncAuth.isLoading;
+    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
 
     return Scaffold(
       backgroundColor: AppColors.background,

@@ -1,7 +1,7 @@
 
 import 'package:torii_app/data/models/auth_model.dart';
 
-enum AuthStatus { authenticated, unauthenticated, pending2FA, loading, requiresOTP }
+enum AuthStatus { authenticated, unauthenticated, pending2FA, requiresOTP }
 
 class AuthState {
   final AuthStatus status;
@@ -19,13 +19,10 @@ class AuthState {
   });
 
   // Convenience getters
-  bool get isLoading => status == AuthStatus.loading;
   bool get isAuthenticated => status == AuthStatus.authenticated;
 
   // Factory constructors for easier state management
   factory AuthState.initial() => const AuthState(status: AuthStatus.unauthenticated);
-  
-  factory AuthState.loading() => const AuthState(status: AuthStatus.loading);
   
   factory AuthState.authenticated(User user) => AuthState(status: AuthStatus.authenticated, user: user);
   

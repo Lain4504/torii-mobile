@@ -18,8 +18,8 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   @override
   void initState() {
     super.initState();
-    final authState = ref.read(authStateProvider);
-    final user = authState.user;
+    final asyncAuth = ref.read(authStateProvider);
+    final user = asyncAuth.asData?.value.user;
     _nameController = TextEditingController(text: user?.displayName ?? '');
     _emailController = TextEditingController(text: user?.email ?? '');
   }

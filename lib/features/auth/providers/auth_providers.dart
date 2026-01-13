@@ -40,86 +40,83 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 // --- STATE MANAGEMENT ---
-class AuthNotifier extends Notifier<AuthState> {
+class AuthNotifier extends AsyncNotifier<AuthState> {
   late AuthRepository _repository;
   late UserService _userService;
 
   @override
-  AuthState build() {
+  Future<AuthState> build() async {
     _repository = ref.watch(authRepositoryProvider);
     _userService = ref.watch(userServiceProvider);
-    
-    // Asynchronous initialization
-    // We defer this to the next frame/microtask to avoid modifying state during build
-    Future.microtask(() => _init());
-    
-    return AuthState.loading();
+    return _init();
   }
 
-  Future<void> _init() async {
-    // If already initialized or state changed, be careful. 
-    // Here we just run the check.
-    
+  Future<AuthState> _init() async {
     final token = await _repository.tokenStorage.getAccessToken();
     if (token != null) {
       final user = await _userService.getUserProfile();
       if (user != null) {
-        state = AuthState.authenticated(user);
+        return AuthState.authenticated(user);
       } else {
         try {
            final response = await _repository.authService.getMe();
            if (response.success && response.data != null) {
               await _userService.saveUserProfile(response.data!);
-              state = AuthState.authenticated(response.data!);
+              return AuthState.authenticated(response.data!);
            } else {
-              // Token might be valid but profile fetch failed, stay valid optimistically or refresh
-              state = const AuthState(status: AuthStatus.authenticated, error: 'Could not refresh profile');
+              // Token valid, but profile fetch failed
+              return const AuthState(status: AuthStatus.authenticated, error: 'Could not refresh profile');
            }
         } catch (_) {
-           state = const AuthState(status: AuthStatus.authenticated, error: 'Offline');
+           return const AuthState(status: AuthStatus.authenticated, error: 'Offline');
         }
       }
     } else {
-      state = AuthState.unauthenticated();
+      return AuthState.unauthenticated();
     }
   }
 
   Future<void> login(String email, String password) async {
-    state = AuthState.loading();
-    final (result, data, error) = await _repository.login(email, password);
+    state = const AsyncValue.loading();
+    try {
+      final (result, data, error) = await _repository.login(email, password);
 
-    if (result == AuthResult.success && data != null) {
-      await _userService.saveUserProfile(data.user);
-      state = AuthState.authenticated(data.user);
-    } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {
-      state = AuthState.pending2FA(data.tempToken!);
-    } else {
-      state = AuthState.unauthenticated(error: error);
+      if (result == AuthResult.success && data != null) {
+        await _userService.saveUserProfile(data.user);
+        state = AsyncValue.data(AuthState.authenticated(data.user));
+      } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {
+        state = AsyncValue.data(AuthState.pending2FA(data.tempToken!));
+      } else {
+        state = AsyncValue.data(AuthState.unauthenticated(error: error));
+      }
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
     }
   }
 
   Future<void> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
-    state = AuthState.loading();
+    state = const AsyncValue.loading();
     try {
       final success = await _repository.verify2FA(tempToken, code, isBackupCode: isBackupCode);
       if (success) {
         final userParams = await _repository.authService.getMe();
         if (userParams.success && userParams.data != null) {
-           await _userService.saveUserProfile(userParams.data!);
-           state = AuthState.authenticated(userParams.data!);
+          await _userService.saveUserProfile(userParams.data!);
+          state = AsyncValue.data(AuthState.authenticated(userParams.data!));
         } else {
-           state = const AuthState(status: AuthStatus.authenticated);
+          // Fallback if profile fails load but token is valid
+          state = const AsyncValue.data(AuthState(status: AuthStatus.authenticated));
         }
       } else {
-        state = AuthState.pending2FA(tempToken, error: 'Verification failed. Please check your code.');
+        state = AsyncValue.data(AuthState.pending2FA(tempToken, error: 'Verification failed. Please check your code.'));
       }
     } catch (e) {
-       state = AuthState.pending2FA(tempToken, error: 'Error: $e');
+      state = AsyncValue.data(AuthState.pending2FA(tempToken, error: 'Error: $e'));
     }
   }
 
   Future<void> register(String email, String password, String displayName) async {
-    state = AuthState.loading();
+    state = const AsyncValue.loading();
     try {
       final response = await _repository.authService.register(
         email: email,
@@ -127,63 +124,63 @@ class AuthNotifier extends Notifier<AuthState> {
         displayName: displayName,
       );
       if (response.success) {
-        state = AuthState.unauthenticated();
+        state = AsyncValue.data(AuthState.unauthenticated());
       } else {
-        state = AuthState.unauthenticated(error: response.message);
+        state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
       }
     } catch (e) {
-      state = AuthState.unauthenticated(error: 'Registration failed');
+      state = AsyncValue.data(AuthState.unauthenticated(error: 'Registration failed'));
     }
   }
 
   Future<void> forgotPassword(String email) async {
-    state = AuthState.loading();
+    state = const AsyncValue.loading();
     try {
       final response = await _repository.authService.forgotPassword(email);
       if (response.success) {
-        state = AuthState.requiresOTP(email);
+        state = AsyncValue.data(AuthState.requiresOTP(email));
       } else {
-        state = AuthState.unauthenticated(error: response.message);
+        state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
       }
     } catch (e) {
-      state = AuthState.unauthenticated(error: 'Failed to send OTP');
+      state = AsyncValue.data(AuthState.unauthenticated(error: 'Failed to send OTP'));
     }
   }
 
   Future<void> verifyOTP(String email, String code) async {
-    state = AuthState.loading();
-    try {
-      final response = await _repository.authService.verifyOTP(email, code);
-      if (response.success && response.data != null) {
-        final tempToken = response.data!['tempToken'] as String?;
-        if (tempToken != null) {
-          state = AuthState(
-             status: AuthStatus.requiresOTP,
-             email: email,
-             tempToken: tempToken
-          );
+     state = const AsyncValue.loading();
+     try {
+        final response = await _repository.authService.verifyOTP(email, code);
+        if (response.success && response.data != null) {
+          final tempToken = response.data!['tempToken'] as String?;
+          if (tempToken != null) {
+             state = AsyncValue.data(AuthState(
+                 status: AuthStatus.requiresOTP,
+                 email: email,
+                 tempToken: tempToken
+             ));
+          } else {
+             state = AsyncValue.data(AuthState.requiresOTP(email, error: 'Invalid OTP response'));
+          }
         } else {
-          state = AuthState.requiresOTP(email, error: 'Invalid OTP response');
+          state = AsyncValue.data(AuthState.requiresOTP(email, error: response.message));
         }
-      } else {
-        state = AuthState.requiresOTP(email, error: response.message);
-      }
-    } catch (e) {
-      state = AuthState.requiresOTP(email, error: 'Invalid OTP code');
-    }
+     } catch (e) {
+       state = AsyncValue.data(AuthState.requiresOTP(email, error: 'Invalid OTP code'));
+     }
   }
 
   Future<void> resetPassword(String tempToken, String newPassword) async {
-    state = AuthState.loading();
+    state = const AsyncValue.loading();
     try {
       final response = await _repository.authService.resetPassword(tempToken, newPassword);
       if (response.success) {
-        state = AuthState.unauthenticated();
+        state = AsyncValue.data(AuthState.unauthenticated());
       } else {
-        state = AuthState.unauthenticated(error: response.message);
+        state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
       }
     } catch (e) {
-      state = AuthState.unauthenticated(error: 'Failed to reset password');
+      state = AsyncValue.data(AuthState.unauthenticated(error: 'Failed to reset password'));
     }
   }
 
@@ -196,14 +193,17 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
-    await _repository.logout();
+    try {
+      await _repository.logout();
+    } catch (_) {}
     await _userService.clearUserProfile();
-    state = AuthState.unauthenticated();
+    state = AsyncValue.data(AuthState.unauthenticated());
   }
 }
 
-// Convert to NotifierProvider
-final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
 
-// Alias for compatibility
+// AsyncNotifierProvider
+final authNotifierProvider = AsyncNotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+
+// Alias
 final authStateProvider = authNotifierProvider;

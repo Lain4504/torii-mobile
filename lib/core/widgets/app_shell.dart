@@ -19,8 +19,8 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-    final isAuthenticated = authState.status == AuthStatus.authenticated;
+    final asyncAuth = ref.watch(authStateProvider);
+    final isAuthenticated = asyncAuth.asData?.value.status == AuthStatus.authenticated;
 
     final activeIndex = _calculateIndex(state.matchedLocation, isAuthenticated);
     final theme = Theme.of(context);

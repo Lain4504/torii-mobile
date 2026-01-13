@@ -50,8 +50,10 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
   }
 
   void _verify(String code) {
-    final state = ref.read(authStateProvider);
-    if (state.status != AuthStatus.pending2FA || state.tempToken == null) return;
+    final asyncAuth = ref.read(authStateProvider);
+    final state = asyncAuth.asData?.value;
+    
+    if (state == null || state.status != AuthStatus.pending2FA || state.tempToken == null) return;
 
     if (_isBackupCode) {
       ref.read(authStateProvider.notifier).verify2FA(state.tempToken!, code, isBackupCode: true);
@@ -62,15 +64,16 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
+    final asyncAuth = ref.watch(authStateProvider);
     
-
-    final isLoading = authState.isLoading;
-    final errorMessage = authState.error;
-    final helpMessage = authState.status == AuthStatus.pending2FA ? authState.error : null;
+    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
+    
+    // Also check isLoading
+    final isLoading = asyncAuth.isLoading;
+    final helpMessage = asyncAuth.asData?.value.status == AuthStatus.pending2FA ? asyncAuth.asData?.value.error : null;
 
     // Prevent flash of content when authenticated but waiting for redirect
-    if (authState.status == AuthStatus.authenticated) {
+    if (asyncAuth.asData?.value.status == AuthStatus.authenticated) {
       return const Scaffold(
         backgroundColor: AppColors.background,
         body: Center(child: ZenLoading(text: 'FINALIZING...')),

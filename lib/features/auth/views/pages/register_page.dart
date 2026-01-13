@@ -43,27 +43,34 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
+    final asyncAuth = ref.watch(authStateProvider);
     
     // Listen for registration completion
-    ref.listen<AuthState>(authStateProvider, (previous, next) {
-      if (previous?.status != next.status) {
-        if (next.status == AuthStatus.unauthenticated && previous?.status == AuthStatus.loading) {
-          // Registration successful - show message and navigate to login
-          if (next.error == null || next.error!.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Registration successful! Please login.')),
-            );
-          }
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) context.go('/login');
-          });
+    ref.listen<AsyncValue<AuthState>>(authStateProvider, (previous, next) {
+       final prevStatus = previous?.asData?.value.status;
+       final nextState = next.asData?.value;
+
+      if (nextState != null && prevStatus != nextState.status) {
+        if (nextState.status == AuthStatus.unauthenticated && prevStatus != null) { 
+           // Technically if we were loading/unauth before, and now unauth?
+           // The logic for "success" in registration is tricky because both start and end might be unauth unless we have a specific "loading" STATE inside AuthState too, or we infer from AsyncLoading -> AsyncData(Unauth).
+           // But AsyncNotifier handles AsyncLoading.
+           
+           if (!next.isLoading && !next.hasError && previous!.isLoading) {
+              // Completed loading successfully
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Registration successful! Please login.')),
+              );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                 if (mounted) context.go('/login');
+              });
+           }
         }
       }
     });
 
-    final isLoading = authState.isLoading;
-    final errorMessage = authState.error;
+    final isLoading = asyncAuth.isLoading;
+    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
 
     return Scaffold(
       backgroundColor: AppColors.background,

@@ -148,10 +148,10 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildProfileSection(BuildContext context, WidgetRef ref) {
-    final authState = ref.read(authStateProvider);
-    final isAuthenticated = authState.isAuthenticated;
+    final asyncAuth = ref.read(authStateProvider);
+    final isAuthenticated = asyncAuth.asData?.value.isAuthenticated ?? false;
     if (!isAuthenticated) return const SizedBox.shrink();
-    final user = authState.user; // This line is duplicated in the original request, keeping the first one.
+    final user = asyncAuth.asData?.value.user;
 
     // The following lines seem to be for TextEditingControllers, which are not declared in this class.
     // If they are meant to be class members, they need to be declared.

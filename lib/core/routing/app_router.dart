@@ -45,96 +45,69 @@ import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Use ValueNotifier to bridge Riverpod state to GoRouter
-  // Initialize with current state
-  final authNotifier = ValueNotifier<AuthState>(ref.read(authNotifierProvider));
+  // Note: authNotifierProvider is now AsyncNotifier, so ref.watch returns AsyncValue<AuthState>
+  // We initialize with what we have.
+  final authStateAsync = ref.read(authNotifierProvider);
+  final authNotifier = ValueNotifier<AsyncValue<AuthState>>(authStateAsync);
 
   // Listen to provider changes and update the notifier
-  ref.listen(authNotifierProvider, (_, next) {
+  ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (_, next) {
     authNotifier.value = next;
   });
 
   return GoRouter(
     navigatorKey: AppRouter.rootNavigatorKey,
     debugLogDiagnostics: kDebugMode,
-    initialLocation: '/login', // Start at login to let redirect logic decide
+    initialLocation: '/', // Start at root
     refreshListenable: authNotifier,
     
-    redirect: (context, state) async {
-      final prefs = await SharedPreferences.getInstance();
-      final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
-      final matchedLocation = state.matchedLocation;
-      
-      // Onboarding check
-      final isOnboarding = matchedLocation == '/onboarding';
-      if (!onboardingCompleted && !isOnboarding) {
-        return '/onboarding';
-      }
-      if (onboardingCompleted && isOnboarding) {
-        return '/login'; // Or rely on auth check
-      }
+    redirect: (context, state) {
+      final authAsync = ref.read(authNotifierProvider);
 
-      // Read the LATEST state
-      // Use ref.read here because we are inside the callback, updated by refreshListenable
-      final authState = ref.read(authNotifierProvider);
+      // Template Logic: Only redirect when auth state is ready (AsyncData)
+      if (authAsync is AsyncLoading || authAsync is AsyncError) return null;
+
+      final authState = authAsync.asData?.value;
+      if (authState == null) return null;
+
       final status = authState.status;
-      
-      final isVerifying2FA = matchedLocation == '/auth/verify-2fa';
+      final matchedLocation = state.matchedLocation;
       final isLogin = matchedLocation == '/login';
       final isRegister = matchedLocation == '/register';
+      final isVerifying2FA = matchedLocation == '/auth/verify-2fa';
       
-      if (kDebugMode) {
-        print('🔄 Router redirect: status=$status, location=$matchedLocation');
+      // 1. Unauthenticated -> Force Login (except public routes)
+      if (status == AuthStatus.unauthenticated) {
+        // Handling Onboarding Check
+        // Note: For strict template alignment, we prioritize Auth check first.
+        // But we keep public route check to allow landing page access if needed.
+        if (AppRouter.publicRoutes.contains(matchedLocation)) {
+           return null;
+        }
+        return '/login';
       }
 
-      // --- SNIPPET LOGIC ADAPTED ---
-
-      // 1. Loading
-      if (status == AuthStatus.loading) return null;
-
-      // 2. Pending 2FA -> Force 2FA page
+      // 2. Pending 2FA -> Force 2FA Page
       if (status == AuthStatus.pending2FA) {
         if (!isVerifying2FA) {
            return '/auth/verify-2fa';
         }
         return null;
       }
-      
-      // 3. Authenticated -> Redirect away from Login/2FA
+
+      // 3. Authenticated -> Redirect to Home if on Login/2FA
       if (status == AuthStatus.authenticated) {
-        if (isLogin || isVerifying2FA || isRegister) {
-          // Check for deep link redirect
-          final redirectTo = state.uri.queryParameters['redirect'];
-          if (redirectTo != null && redirectTo.isNotEmpty && !redirectTo.startsWith('/auth')) {
-            return redirectTo;
-          }
-          return '/';
+        if (isLogin || isRegister || isVerifying2FA) {
+           return '/';
         }
         return null; // Allow access to other pages
       }
-
-      // 4. Unauthenticated
-      if (status == AuthStatus.unauthenticated || status == AuthStatus.requiresOTP) {
-        // Allow public routes
-        // We use the existing logic for public/protected routes to avoid breaking valid flows
-        // (Snippet was simple: if unauth && != login -> login. But we have register/courses etc)
-        
-        bool isProtectedRoute = AppRouter.protectedRoutes.contains(matchedLocation);
-        if (!isProtectedRoute) {
-          // Dynamic check
-          for (final protectedPattern in AppRouter.protectedRoutes) {
-             if (protectedPattern.contains(':')) {
-                final regex = RegExp('^${protectedPattern.replaceAll(RegExp(r':[^/]+'), r'[^/]+')}\$');
-                if (regex.hasMatch(matchedLocation)) {
-                  isProtectedRoute = true;
-                  break;
-                }
-             }
-          }
-        }
-
-        if (isProtectedRoute) {
-           return '/login?redirect=${Uri.encodeComponent(matchedLocation)}';
-        }
+      
+      // 4. Requires OTP (Forgot Password Flow) logic
+      if (status == AuthStatus.requiresOTP) {
+         // Allow access to OTP verification pages
+         if (matchedLocation.startsWith('/auth/')) return null;
+         return '/auth/verify-otp';
       }
 
       return null;
@@ -153,8 +126,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/',
             builder: (context, state) {
-              final authState = ref.watch(authNotifierProvider);
-              if (authState.isAuthenticated) {
+              // Be careful watching async provider in build for logic, prefer checking value directly if needed
+              // But here we rely on router to protect us.
+              // Just in case, show loader if data is somehow missing in UI build
+              final asyncAuth = ref.watch(authNotifierProvider);
+              if (asyncAuth.value?.isAuthenticated == true) {
                 return const DashboardPage();
               }
               return const HomePage();

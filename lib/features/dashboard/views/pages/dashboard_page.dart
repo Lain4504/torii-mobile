@@ -27,8 +27,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final user = authState.isAuthenticated ? authState.user : null;
+    final asyncAuth = ref.watch(authStateProvider);
+    final authState = asyncAuth.asData?.value;
+    final user = (authState?.isAuthenticated ?? false) ? authState?.user : null;
     final myLearning = ref.watch(myLearningProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 

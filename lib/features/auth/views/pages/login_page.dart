@@ -41,9 +41,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authStateProvider);
-    final isLoading = authState.isLoading;
-    final errorMessage = authState.error;
+    final asyncAuth = ref.watch(authStateProvider);
+    final isLoading = asyncAuth.isLoading;
+    final errorMessage = asyncAuth.error?.toString(); // or extract from value if needed
 
     return Scaffold(
       backgroundColor: AppColors.background,
