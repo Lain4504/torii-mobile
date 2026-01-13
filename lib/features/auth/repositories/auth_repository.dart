@@ -2,7 +2,6 @@
 import 'package:torii_app/features/auth/repositories/token_storage.dart';
 import 'package:torii_app/services/auth/auth_service.dart';
 import 'package:torii_app/data/models/auth_model.dart';
-import 'package:torii_app/core/models/api_response.dart';
 
 enum AuthResult { success, requires2FA, failure }
 
@@ -34,7 +33,7 @@ class AuthRepository {
     return (AuthResult.failure, null, response.message ?? 'Login failed');
   }
 
-  Future<bool> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
+  Future<AuthData?> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
     final response = await authService.verify2FA(
       tempToken: tempToken,
       code: code,
@@ -45,10 +44,10 @@ class AuthRepository {
       final data = response.data!;
       if (data.accessToken != null && data.refreshToken != null) {
         await tokenStorage.saveTokens(data.accessToken!, data.refreshToken!);
-        return true;
+        return data;
       }
     }
-    return false;
+    return null;
   }
 
   Future<void> logout() async {
@@ -69,8 +68,9 @@ class AuthRepository {
 
     final response = await authService.refreshToken(refreshToken);
     if (response.success && response.data != null) {
-      final newAccessToken = response.data!['accessToken'];
-      final newRefreshToken = response.data!['refreshToken'] ?? refreshToken; // Sometimes refresh token rotates
+      final data = response.data!;
+      final newAccessToken = data['accessToken'] ?? data['access_token'];
+      final newRefreshToken = data['refreshToken'] ?? data['refresh_token'] ?? refreshToken; // Sometimes refresh token rotates
       
       if (newAccessToken != null) {
         await tokenStorage.saveTokens(newAccessToken, newRefreshToken);

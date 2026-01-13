@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/services/auth/auth_service.dart';
@@ -106,16 +105,10 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<void> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
     state = const AsyncValue.loading();
     try {
-      final success = await _repository.verify2FA(tempToken, code, isBackupCode: isBackupCode);
-      if (success) {
-        final userParams = await _repository.authService.getMe();
-        if (userParams.success && userParams.data != null) {
-          await _userService.saveUserProfile(userParams.data!);
-          state = AsyncValue.data(AuthState.authenticated(userParams.data!));
-        } else {
-          // Fallback if profile fails load but token is valid
-          state = const AsyncValue.data(AuthState(status: AuthStatus.authenticated));
-        }
+      final authData = await _repository.verify2FA(tempToken, code, isBackupCode: isBackupCode);
+      if (authData != null) {
+        await _userService.saveUserProfile(authData.user);
+        state = AsyncValue.data(AuthState.authenticated(authData.user));
       } else {
         state = AsyncValue.data(AuthState.pending2FA(tempToken, error: 'Verification failed. Please check your code.'));
       }
@@ -149,9 +142,12 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       if (response.success) {
         state = AsyncValue.data(AuthState.requiresOTP(email));
       } else {
+        // Ensure clean state on failure
+        await _repository.tokenStorage.clear();
         state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
       }
     } catch (e) {
+      await _repository.tokenStorage.clear();
       state = AsyncValue.data(AuthState.unauthenticated(error: 'Failed to send OTP'));
     }
   }
@@ -186,9 +182,11 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       if (response.success) {
         state = AsyncValue.data(AuthState.unauthenticated());
       } else {
+        await _repository.tokenStorage.clear();
         state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
       }
     } catch (e) {
+      await _repository.tokenStorage.clear();
       state = AsyncValue.data(AuthState.unauthenticated(error: 'Failed to reset password'));
     }
   }

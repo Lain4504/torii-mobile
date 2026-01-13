@@ -129,12 +129,12 @@ class ApiClient {
                 final apiResponse = ApiResponse<Map<String, dynamic>>.fromJson(response.data);
                 if (apiResponse.success && apiResponse.data != null) {
                   final data = apiResponse.data!;
-                  final newAccessToken = data['accessToken'];
-                  final newRefreshToken = data['refreshToken'];
+                  final newAccessToken = data['accessToken'] ?? data['access_token'];
+                  final newRefreshToken = data['refreshToken'] ?? data['refresh_token'];
 
                   await tokenService.saveTokens(
-                    accessToken: newAccessToken,
-                    refreshToken: newRefreshToken,
+                    accessToken: newAccessToken!,
+                    refreshToken: newRefreshToken ?? refreshToken,
                   );
 
                   // Retry original request

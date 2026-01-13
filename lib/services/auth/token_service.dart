@@ -10,8 +10,8 @@ class AuthSessionData {
 class TokenService {
   final _storage = const FlutterSecureStorage();
 
-  static const String _accessTokenKey = 'accessToken';
-  static const String _refreshTokenKey = 'refreshToken';
+  static const String _accessTokenKey = 'access_token';
+  static const String _refreshTokenKey = 'refresh_token';
 
   Future<void> saveTokens({
     required String accessToken,

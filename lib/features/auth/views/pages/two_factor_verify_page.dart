@@ -86,7 +86,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
+              _buildAppBar(context, isLoading),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -116,7 +116,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
                             maxLength: 6,
                             letterSpacing: 16.0,
                             onChanged: (val) {
-                              if (val.length == 6) _verify(val);
+                              // Manual submit only
                             },
                           ),
                         )
@@ -130,7 +130,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
                             maxLength: 8,
                             letterSpacing: 12.0, // Slightly tighter for 8 digits
                             onChanged: (val) {
-                              if (val.length == 8) _verify(val);
+                              // Manual submit only
                             },
                           ),
                         ),
@@ -189,10 +189,16 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 child: ZenButton(
-                  text: 'CANCEL LOGISTICS',
-                  onPressed: () => ref.read(authStateProvider.notifier).logout(),
+                  text: 'VERIFY SECURITY',
+                  onPressed: () {
+                     if (_isBackupCode) {
+                        if (_backupController.text.length == 8) _verify(_backupController.text);
+                     } else {
+                        if (_otpController.text.length == 6) _verify(_otpController.text);
+                     }
+                  },
                   isFullWidth: true,
-                  isPrimary: false,
+                  isLoading: isLoading,
                 ),
               ),
             ],
@@ -202,7 +208,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, bool isLoading) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.lg),
       child: Row(
@@ -211,8 +217,11 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
             delay: const Duration(milliseconds: 200),
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-              onPressed: () => ref.read(authStateProvider.notifier).logout(),
-              color: AppColors.textPrimary.withValues(alpha: 0.4),
+              onPressed: isLoading ? null : () {
+                 // For 2FA, "Back" essentially means aborting the current login attempt
+                 ref.read(authStateProvider.notifier).logout();
+              },
+              color: AppColors.textPrimary.withValues(alpha: isLoading ? 0.2 : 0.4),
             ),
           ),
         ],
