@@ -536,29 +536,36 @@ class CourseDetailPage extends ConsumerWidget {
         top: false,
         child: Row(
           children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('ACCESS COST', style: TextStyle(fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 1.5, color: AppColors.textTertiary)),
-                const SizedBox(height: 4),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(course.priceLabel, style: const TextStyle(fontSize: 24, fontWeight: AppTypography.black, color: AppColors.primary)),
-                    if (course.hasDiscount) ...[
-                      const SizedBox(width: 8),
-                      Text(course.originalPriceLabel, style: const TextStyle(fontSize: 14, decoration: TextDecoration.lineThrough, color: AppColors.textTertiary)),
-                    ],
-                  ],
-                ),
-              ],
+            Flexible(
+              flex: 3,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('ACCESS COST', style: TextStyle(fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 1.5, color: AppColors.textTertiary)),
+                  const SizedBox(height: 4),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(course.priceLabel, style: const TextStyle(fontSize: 22, fontWeight: AppTypography.black, color: AppColors.primary)),
+                        if (course.hasDiscount) ...[
+                          const SizedBox(width: 8),
+                          Text(course.originalPriceLabel, style: const TextStyle(fontSize: 12, decoration: TextDecoration.lineThrough, color: AppColors.textTertiary)),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 24),
-            Expanded(
+            const SizedBox(width: 16),
+            Flexible(
+              flex: 4,
               child: ZenButton(
-                text: course.isEnrolled ? 'RESUME NEURAL LINK' : 'INITIALIZE ENROLLMENT',
+                text: course.isEnrolled ? 'RESUME COURSE' : 'ENROLL NOW',
                 onPressed: () {
                   if (course.isEnrolled) {
                     // Navigate to course content

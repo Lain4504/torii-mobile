@@ -153,9 +153,7 @@ class CourseCard extends StatelessWidget {
         children: [
           // High Quality Image Placeholder/Network
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.xxl - 1),
-            ),
+            borderRadius: BorderRadius.circular(AppRadius.xxl - 1),
             child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
                 ? Image.network(
               course.thumbnailUrl!,
