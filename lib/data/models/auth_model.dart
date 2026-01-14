@@ -9,6 +9,11 @@ class User {
   final String status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final Map<String, dynamic>? appMetadata;
+  final Map<String, dynamic>? userMetadata;
+  final DateTime? bannedUntil;
+  final DateTime? lastSignInAt;
+  final DateTime? deletedAt;
 
   User({
     required this.id,
@@ -20,6 +25,11 @@ class User {
     this.status = 'active',
     this.createdAt,
     this.updatedAt,
+    this.appMetadata,
+    this.userMetadata,
+    this.bannedUntil,
+    this.lastSignInAt,
+    this.deletedAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -33,6 +43,11 @@ class User {
       status: json['status'] ?? 'active',
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'] as String) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
+      appMetadata: json['appMetadata'] != null ? Map<String, dynamic>.from(json['appMetadata']) : null,
+      userMetadata: json['userMetadata'] != null ? Map<String, dynamic>.from(json['userMetadata']) : null,
+      bannedUntil: json['bannedUntil'] != null ? DateTime.parse(json['bannedUntil'] as String) : null,
+      lastSignInAt: json['lastSignInAt'] != null ? DateTime.parse(json['lastSignInAt'] as String) : null,
+      deletedAt: json['deletedAt'] != null ? DateTime.parse(json['deletedAt'] as String) : null,
     );
   }
 
@@ -47,6 +62,11 @@ class User {
       'status': status,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'appMetadata': appMetadata,
+      'userMetadata': userMetadata,
+      'bannedUntil': bannedUntil?.toIso8601String(),
+      'lastSignInAt': lastSignInAt?.toIso8601String(),
+      'deletedAt': deletedAt?.toIso8601String(),
     };
   }
 }
