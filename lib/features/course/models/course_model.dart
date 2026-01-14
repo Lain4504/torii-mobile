@@ -185,17 +185,28 @@ class Course {
   String get priceLabel {
     if (isFree) return 'Free';
     if (discountPrice != null && discountPrice! < price) {
-      return '\$${discountPrice!.toStringAsFixed(2)}';
+      return '${_formatVND(discountPrice!)} VNĐ';
     }
-    return '\$${price.toStringAsFixed(2)}';
+    return '${_formatVND(price)} VNĐ';
   }
 
   String get originalPriceLabel {
     if (isFree) return 'Free';
     if (discountPrice != null && discountPrice! < price) {
-      return '\$${price.toStringAsFixed(2)}';
+      return '${_formatVND(price)} VNĐ';
     }
     return '';
+  }
+
+  // Format number as VND (Vietnamese Dong) - no decimals, dot as thousand separator
+  String _formatVND(double amount) {
+    // Convert to integer (no decimals for VND)
+    final intValue = amount.toInt();
+    // Format with dot as thousand separator
+    return intValue.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
   }
 
   bool get hasDiscount => discountPrice != null && discountPrice! < price;
