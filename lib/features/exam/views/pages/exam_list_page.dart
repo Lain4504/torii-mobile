@@ -11,8 +11,7 @@ class ExamListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final exams = _getMockExams();
 
     return Scaffold(
@@ -343,8 +342,6 @@ class _StartExamSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,

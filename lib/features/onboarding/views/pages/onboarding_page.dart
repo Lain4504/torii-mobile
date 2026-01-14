@@ -51,10 +51,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
     }
   }
 
-  void _skipOnboarding() {
-    _completeOnboarding();
-  }
-
   Future<void> _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_completed', true);
