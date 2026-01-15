@@ -23,7 +23,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(courseListProvider.notifier).loadCourses();
+      ref.read(courseListProvider.notifier).loadCourses(refresh: true);
     });
   }
 
@@ -62,10 +62,15 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
               backgroundColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
-              expandedHeight: 190,
+              expandedHeight: 200,
               flexibleSpace: FlexibleSpaceBar(
                 background: Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 80, AppSpacing.xl, 0),
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.xl, 
+                    MediaQuery.of(context).padding.top + AppSpacing.md, 
+                    AppSpacing.xl, 
+                    0
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -90,6 +95,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                           color: AppColors.textPrimary,
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.md),
                     ],
                   ),
                 ),
@@ -294,6 +300,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void _showLevelPicker() {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
@@ -319,6 +326,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void _showTypePicker() {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
