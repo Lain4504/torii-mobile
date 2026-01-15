@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/localization/l10n/app_localizations.dart';
 import 'package:torii_app/core/widgets/widgets.dart';

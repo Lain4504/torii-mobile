@@ -14,33 +14,34 @@ class CourseCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.03),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3), width: 1.0),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => context.push('/courses/${course.id}'),
-          borderRadius: BorderRadius.circular(AppRadius.xxl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Premium Thumbnail
-              _buildThumbnail(isDark),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.xxl),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withValues(alpha: 0.03),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
+            ),
+          ],
+          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3), width: 1.0),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.push('/courses/${course.id}'),
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Premium Thumbnail - No padding to fill corners
+                _buildThumbnail(isDark),
 
               // Refined Content
               Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -138,7 +139,8 @@ class CourseCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -153,8 +155,11 @@ class CourseCard extends StatelessWidget {
         children: [
           // High Quality Image Placeholder/Network
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.xxl - 1),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(AppRadius.xxl),
+              topRight: Radius.circular(AppRadius.xxl),
+              bottomLeft: Radius.circular(0),
+              bottomRight: Radius.circular(0),
             ),
             child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
                 ? Image.network(

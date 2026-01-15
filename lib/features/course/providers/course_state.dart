@@ -50,8 +50,11 @@ class CourseListNotifier extends Notifier<CourseListState> {
   Future<void> loadCourses({
     JLPTLevel? level,
     String? search,
-    bool refresh = false,
+    bool refresh = true,
   }) async {
+    // Guard: Prevent multiple simultaneous loads
+    if (state.isLoading) return;
+    
     final repository = ref.read(courseRepositoryProvider);
     
     // If refreshing, reset to page 1

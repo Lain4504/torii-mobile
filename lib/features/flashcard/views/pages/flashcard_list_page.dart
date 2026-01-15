@@ -10,8 +10,6 @@ class FlashcardListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     // Mock Data
     final decks = [
       const FlashcardDeck(

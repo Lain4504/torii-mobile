@@ -5,7 +5,4 @@
 class Assets {
   Assets._(); // Private constructor to prevent instantiation
 
-  // Base paths
-  static const String _imagesPath = 'assets/images';
-
 }

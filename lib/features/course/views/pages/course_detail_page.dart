@@ -514,61 +514,88 @@ class CourseDetailPage extends ConsumerWidget {
 
   Widget _buildBottomBar(BuildContext context, ThemeData theme, bool isDark, Course course) {
     return Container(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).padding.bottom + 20,
+      padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).padding.bottom + 20),
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 30,
-            offset: const Offset(0, -10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceVariantDark : Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          boxShadow: isDark ? AppElevation.darkSoftShadow : AppElevation.mediumShadow,
+          border: Border.all(
+            color: (isDark ? AppColors.borderDark : AppColors.grey300).withValues(alpha: 0.4),
           ),
-        ],
-        border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.3))),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('ACCESS COST', style: TextStyle(fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 1.5, color: AppColors.textTertiary)),
-                const SizedBox(height: 4),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+        ),
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 5,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(course.priceLabel, style: const TextStyle(fontSize: 24, fontWeight: AppTypography.black, color: AppColors.primary)),
-                    if (course.hasDiscount) ...[
-                      const SizedBox(width: 8),
-                      Text(course.originalPriceLabel, style: const TextStyle(fontSize: 14, decoration: TextDecoration.lineThrough, color: AppColors.textTertiary)),
-                    ],
+                    const Text(
+                      'ACCESS COST',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: AppTypography.black,
+                        letterSpacing: 1.5,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            course.priceLabel,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: AppTypography.black,
+                              color: isDark ? AppColors.primaryLight : AppColors.primary,
+                            ),
+                          ),
+                          if (course.hasDiscount) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              course.originalPriceLabel,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                decoration: TextDecoration.lineThrough,
+                                color: AppColors.textTertiary,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-              ],
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: ZenButton(
-                text: course.isEnrolled ? 'RESUME NEURAL LINK' : 'INITIALIZE ENROLLMENT',
-                onPressed: () {
-                  if (course.isEnrolled) {
-                    // Navigate to course content
-                  } else {
-                    context.push('/payment');
-                  }
-                },
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 6,
+                child: ZenButton(
+                  text: course.isEnrolled ? 'RESUME' : 'ENROLL NOW',
+                  onPressed: () {
+                    if (course.isEnrolled) {
+                      // Navigate to course content
+                    } else {
+                      context.push('/payment');
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

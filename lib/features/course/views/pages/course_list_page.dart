@@ -23,7 +23,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(courseListProvider.notifier).loadCourses();
+      ref.read(courseListProvider.notifier).loadCourses(refresh: true);
     });
   }
 
@@ -62,42 +62,48 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
               backgroundColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
-              expandedHeight: 160,
+              expandedHeight: 200,
               flexibleSpace: FlexibleSpaceBar(
                 background: Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 80, AppSpacing.xl, 0),
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.xl, 
+                    MediaQuery.of(context).padding.top + AppSpacing.md, 
+                    AppSpacing.xl, 
+                    0
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                        Text(
-                        'COURSE_CATALOG',
+                        'COLLECTION',
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: AppTypography.black,
-                          letterSpacing: 3.0,
-                          color: AppColors.primary.withValues(alpha: 0.5),
+                          fontWeight: AppTypography.semiBold,
+                          letterSpacing: 2.0,
+                          color: AppColors.textTertiary,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
-                        'Master Japanese',
+                        'Explore Courses',
                         style: TextStyle(
                           fontFamily: AppTypography.fontFamilySerif,
-                          fontWeight: AppTypography.bold,
-                          fontSize: 32,
-                          letterSpacing: -1.0,
-                          fontStyle: FontStyle.italic,
+                          fontWeight: AppTypography.medium,
+                          fontSize: AppTypography.fontSize4xl,
+                          letterSpacing: -0.5,
                           color: AppColors.textPrimary,
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.md),
                     ],
                   ),
                 ),
               ),
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(80),
+                preferredSize: const Size.fromHeight(90),
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.md),
                   child: _buildSearchBar(theme, isDark),
                 ),
               ),
@@ -121,29 +127,30 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                 child: Row(
                   children: [
                     Text(
-                      'NEURAL MATCHES Found'.toUpperCase(),
+                      'AVAILABLE COURSES'.toUpperCase(),
                       style: TextStyle(
                         fontSize: 9,
-                        fontWeight: AppTypography.black,
-                        letterSpacing: 2.0,
+                        fontWeight: AppTypography.semiBold,
+                        letterSpacing: 1.5,
                         color: AppColors.textTertiary,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppRadius.full),
-                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                      width: 4,
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        color: AppColors.grey300,
+                        shape: BoxShape.circle,
                       ),
-                      child: Text(
-                        '${filteredCourses.length}',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: AppTypography.black,
-                          color: AppColors.primary,
-                        ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      '${filteredCourses.length}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: AppTypography.bold,
+                        color: AppColors.primary.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -154,7 +161,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             // Course List
             if (state.isLoading)
               const SliverFillRemaining(
-                child: Center(child: ZenLoading(text: 'Accessing Catalog Matrix...')),
+                child: Center(child: ZenLoading(text: 'Preparing your library...')),
               )
             else if (state.error != null)
               SliverFillRemaining(
@@ -197,14 +204,14 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   Widget _buildSearchBar(ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
+        color: AppColors.surface.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -217,12 +224,13 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
           color: AppColors.textPrimary,
         ),
         decoration: InputDecoration(
-          hintText: 'Search the Matrix...',
+          hintText: 'Find your path...',
           hintStyle: TextStyle(
-            color: AppColors.textTertiary.withValues(alpha: 0.4),
-            fontWeight: AppTypography.medium,
+            color: AppColors.textTertiary.withValues(alpha: 0.5),
+            fontWeight: AppTypography.regular,
+            fontSize: 14,
           ),
-          prefixIcon: Icon(Icons.search_rounded, size: 22, color: AppColors.primary.withValues(alpha: 0.7)),
+          prefixIcon: Icon(Icons.search_rounded, size: 20, color: AppColors.textTertiary.withValues(alpha: 0.6)),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.close_rounded, size: 20),
@@ -233,7 +241,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
         ),
       ),
     );
@@ -250,7 +258,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
         children: [
           // Level Filter
           _FilterChip(
-            label: _selectedLevel?.name.toUpperCase() ?? 'LEVEL PROTOCOL',
+            label: _selectedLevel != null ? 'JLPT ${_selectedLevel!.name.toUpperCase()}' : 'Level',
             isSelected: _selectedLevel != null,
             onTap: () => _showLevelPicker(),
           ),
@@ -259,10 +267,10 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
           // Type Filter
           _FilterChip(
             label: _selectedType == CourseType.vod 
-                ? 'CHRONOLOGICAL VOD' 
+                ? 'Video Courses' 
                 : _selectedType == CourseType.liveClass 
-                    ? 'REAL-TIME PROTOCOL' 
-                    : 'TRANSMISSION TYPE',
+                    ? 'Live Classes' 
+                    : 'Format',
             isSelected: _selectedType != null,
             onTap: () => _showTypePicker(),
           ),
@@ -292,14 +300,15 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void _showLevelPicker() {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
       ),
       builder: (context) => _PickerSheet(
-        title: 'Select Difficulty Protocol',
+        title: 'Select Difficulty',
         items: [
-          _PickerItem(label: 'All Matrix Levels', value: null),
+          _PickerItem(label: 'All Levels', value: null),
           ...JLPTLevel.values.map((l) => _PickerItem(
             label: l.name.toUpperCase(),
             value: l,
@@ -317,16 +326,17 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   void _showTypePicker() {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
       ),
       builder: (context) => _PickerSheet(
-        title: 'Select Transmission Mode',
+        title: 'Select Learning Format',
         items: [
-          _PickerItem(label: 'Unified Streams', value: null),
-          _PickerItem(label: 'VOD Archive', value: CourseType.vod),
-          _PickerItem(label: 'Live Synchronous', value: CourseType.liveClass),
+          _PickerItem(label: 'Unified Library', value: null),
+          _PickerItem(label: 'Video Archive', value: CourseType.vod),
+          _PickerItem(label: 'Live Sessions', value: CourseType.liveClass),
         ],
         selectedValue: _selectedType,
         onSelect: (value) {
@@ -402,17 +412,17 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             ),
             const SizedBox(height: AppSpacing.lg),
             const Text(
-              'VOID DETECTED',
+              'No Results Found',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: AppTypography.black,
-                letterSpacing: 2.0,
+                fontWeight: AppTypography.semiBold,
+                letterSpacing: 1.0,
                 color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
             const Text(
-              'No protocols match your current search parameters.',
+              'No courses match your current search parameters.',
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textTertiary,
@@ -424,7 +434,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
               const SizedBox(height: AppSpacing.xl),
               TextButton(
                 onPressed: _clearFilters,
-                child: const Text('PURGE FILTERS', style: TextStyle(fontWeight: AppTypography.black, letterSpacing: 1.0)),
+                child: const Text('CLEAR FILTERS', style: TextStyle(fontWeight: AppTypography.semiBold, letterSpacing: 1.0)),
               ),
             ],
           ],
@@ -460,36 +470,28 @@ class _FilterChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected 
                 ? AppColors.primary
-                : Colors.white.withValues(alpha: 0.8),
+                : AppColors.grey100.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(AppRadius.full),
             border: Border.all(
               color: isSelected 
                   ? AppColors.primary
-                  : AppColors.grey300.withValues(alpha: 0.3),
+                  : AppColors.grey200.withValues(alpha: 0.5),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: isSelected ? AppColors.primary.withValues(alpha: 0.2) : AppColors.primary.withValues(alpha: 0.02),
-                blurRadius: 15,
-                offset: const Offset(0, 4),
-              )
-            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'COURSE_CATALOG',
+                label,
                 style: TextStyle(
-                  fontFamily: AppTypography.fontFamilySerif,
-                  fontWeight: AppTypography.black,
-                  fontSize: 18,
-                  fontStyle: FontStyle.italic,
-                  letterSpacing: 2.0,
-                  color: AppColors.textPrimary,
+                  fontWeight: isSelected ? AppTypography.bold : AppTypography.medium,
+                  fontSize: 12,
+                  color: isSelected 
+                      ? Colors.white
+                      : AppColors.textSecondary,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: 4),
               Icon(
                 Icons.keyboard_arrow_down_rounded,
                 size: 16,

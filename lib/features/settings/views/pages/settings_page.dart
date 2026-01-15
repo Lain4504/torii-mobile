@@ -105,9 +105,9 @@ class SettingsPage extends ConsumerWidget {
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.grey300.withOpacity(0.3)),
+            border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
           ),
           child: Material(
             color: Colors.transparent,
@@ -121,7 +121,7 @@ class SettingsPage extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.security_rounded, color: AppColors.primary, size: 20),
@@ -136,7 +136,7 @@ class SettingsPage extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary.withOpacity(0.5)),
+                    Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary.withValues(alpha: 0.5)),
                   ],
                 ),
               ),
@@ -185,7 +185,7 @@ class SettingsPage extends ConsumerWidget {
                 radius: 30,
                 backgroundColor: AppColors.primarySurface,
                 child: Text(
-                  (user?.displayName?.isNotEmpty ?? false) ? user!.displayName[0].toUpperCase() : 'U',
+                  (user != null && user.displayName.isNotEmpty) ? user.displayName[0].toUpperCase() : 'U',
                   style: const TextStyle(color: AppColors.primary, fontWeight: AppTypography.black, fontSize: 24),
                 ),
               ),
