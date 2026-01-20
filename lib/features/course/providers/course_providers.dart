@@ -28,16 +28,14 @@ final courseDetailProvider = NotifierProvider.family<CourseDetailNotifier, Cours
 );
 
 /// Notifier for managing course detail state
-class CourseDetailNotifier extends Notifier<CourseDetailState> {
-  final String _courseId;
-
-  CourseDetailNotifier(this._courseId);
+class CourseDetailNotifier extends FamilyNotifier<CourseDetailState, String> {
+  // String _courseId is NOT needed as field, use arg from build
 
   @override
-  CourseDetailState build() {
+  CourseDetailState build(String arg) {
     // Load course detail when provider is created
-    Future.microtask(() => loadCourseDetail(_courseId));
-    return CourseDetailState(courseId: _courseId);
+    Future.microtask(() => loadCourseDetail(arg));
+    return CourseDetailState(courseId: arg);
   }
 
   CourseRepository get _courseRepository => ref.read(courseRepositoryProvider);

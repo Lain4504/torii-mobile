@@ -22,6 +22,9 @@ import 'package:torii_app/features/exam/views/pages/exam_taking_page.dart';
 import 'package:torii_app/features/exam/models/exam_model.dart';
 import 'package:torii_app/features/flashcard/views/pages/flashcard_list_page.dart';
 import 'package:torii_app/features/flashcard/views/pages/flashcard_practice_page.dart';
+import 'package:torii_app/features/flashcard/views/pages/deck_detail_page.dart';
+import 'package:torii_app/features/flashcard/views/pages/add_deck_page.dart';
+import 'package:torii_app/features/flashcard/views/pages/add_flashcard_page.dart';
 import 'package:torii_app/features/flashcard/models/flashcard_model.dart';
 import 'package:torii_app/features/course/views/pages/lesson_page.dart';
 import 'package:torii_app/features/course/models/lesson_model.dart';
@@ -150,9 +153,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
+
               GoRoute(
-                path: '/exams',
-                builder: (context, state) => const ExamListPage(),
+                path: '/flashcards',
+                builder: (context, state) => const FlashcardListPage(),
               ),
             ],
           ),
@@ -175,8 +179,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const NotificationsPage(),
               ),
               GoRoute(
-                path: '/flashcards',
-                builder: (context, state) => const FlashcardListPage(),
+                path: '/exams',
+                builder: (context, state) => const ExamListPage(),
               ),
             ],
           ),
@@ -263,6 +267,37 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final deck = state.extra as FlashcardDeck?;
           return FlashcardPracticePage(deck: deck);
+        },
+      ),
+      GoRoute(
+        path: '/flashcards/add-deck',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+           final deckToEdit = state.extra as FlashcardDeck?;
+           return AddDeckPage(deckToEdit: deckToEdit);
+        },
+      ),
+      GoRoute(
+        path: '/flashcards/deck-detail',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final deck = state.extra as FlashcardDeck;
+          // Must import DeckDetailPage. I'll add import at top next.
+          return DeckDetailPage(deck: deck);
+        },
+      ),
+      GoRoute(
+        path: '/flashcards/add-card',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          if (state.extra is FlashcardDeck) {
+             return AddFlashcardPage(deck: state.extra as FlashcardDeck);
+          }
+          final map = state.extra as Map;
+          return AddFlashcardPage(
+             deck: map['deck'] as FlashcardDeck,
+             cardToEdit: map['card'] as Flashcard?,
+          );
         },
       ),
       GoRoute(

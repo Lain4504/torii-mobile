@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/models/api_response.dart';
@@ -31,9 +33,15 @@ class ApiClient {
 
   bool _isRefreshing = false;
   final List<Map<String, dynamic>> _failedRequestQueue = [];
+  final CookieJar _cookieJar = CookieJar(); // Single instance
 
   /// Setup interceptors để tự động thêm token vào header và xử lý refresh token
   void _setupInterceptors() {
+    // ==========================================
+    // 0. COOKIE MANAGER (Priority High)
+    // ==========================================
+    _dio.interceptors.add(CookieManager(_cookieJar));
+
     // ==========================================
     // 1. LOGGING INTERCEPTOR
     // ==========================================

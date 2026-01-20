@@ -14,6 +14,7 @@ class ZenTextField extends StatelessWidget {
   final void Function(String)? onSubmitted;
   final bool enabled;
   final bool readOnly;
+  final int maxLines;
 
   const ZenTextField({
     super.key,
@@ -29,6 +30,7 @@ class ZenTextField extends StatelessWidget {
     this.onSubmitted,
     this.enabled = true,
     this.readOnly = false,
+    this.maxLines = 1,
   });
 
   @override
@@ -49,7 +51,7 @@ class ZenTextField extends StatelessWidget {
           ),
         ),
         Container(
-          height: 60,
+          height: maxLines > 1 ? null : 60,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.full),
             boxShadow: [
@@ -62,6 +64,7 @@ class ZenTextField extends StatelessWidget {
           ),
           child: Center(
             child: TextFormField(
+              maxLines: maxLines,
               controller: controller,
               obscureText: obscureText,
               keyboardType: keyboardType,
