@@ -1,42 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../models/flashcard_model.dart';
+import '../../providers/flashcard_providers.dart';
 
 /// Flashcard List Page - Premium Deck Interface
-class FlashcardListPage extends StatelessWidget {
+// ... imports
+
+class FlashcardListPage extends ConsumerWidget {
   const FlashcardListPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Mock Data
-    final decks = [
-      const FlashcardDeck(
-        id: '1', 
-        title: 'JLPT N5 Lexicon', 
-        description: 'Primary linguistic building blocks', 
-        totalCards: 100, 
-        learnedCards: 45,
-        emoji: '🌱',
-      ),
-      const FlashcardDeck(
-        id: '2', 
-        title: 'Fundamental Kanji', 
-        description: 'The first century of characters', 
-        totalCards: 100, 
-        learnedCards: 12,
-        emoji: '字',
-      ),
-      const FlashcardDeck(
-        id: '3', 
-        title: 'Protocol Greetings', 
-        description: 'Essential social synchronization', 
-        totalCards: 50, 
-        learnedCards: 50,
-        emoji: '🗣️',
-      ),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final decksAsync = ref.watch(flashcardDecksProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -85,45 +63,55 @@ class FlashcardListPage extends StatelessWidget {
                 ),
               ),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.search_rounded, size: 20, color: AppColors.textPrimary),
-                    ),
-                  ),
+                IconButton(
+                   icon: const Icon(Icons.refresh_rounded, color: AppColors.textPrimary),
+                   onPressed: () => ref.refresh(flashcardDecksProvider),
                 ),
               ],
             ),
 
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                      child: EntryAnimation(
-                        index: index % 5,
-                        verticalOffset: 20,
-                        child: _DeckCard(deck: decks[index]),
+              sliver: decksAsync.when(
+                data: (decks) {
+                  if (decks.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Center(
+                         child: Padding(
+                           padding: const EdgeInsets.only(top: 50),
+                           child: Column(
+                             children: [
+                               const Text('No decks found. Create one to start!', style: TextStyle(color: AppColors.textTertiary)),
+                               const SizedBox(height: 20),
+                               ZenButton(
+                                 text: 'CREATE FIRST DECK',
+                                 onPressed: () => context.push('/flashcards/add-deck'),
+                                 icon: Icons.add_circle_outline_rounded,
+                               ),
+                             ],
+                           ),
+                         ),
                       ),
                     );
-                  },
-                  childCount: decks.length,
-                ),
+                  }
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                          child: EntryAnimation(
+                            index: index % 5,
+                            verticalOffset: 20,
+                            child: _DeckCard(deck: decks[index]),
+                          ),
+                        );
+                      },
+                      childCount: decks.length,
+                    ),
+                  );
+                },
+                loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+                error: (err, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
               ),
             ),
             
@@ -132,9 +120,9 @@ class FlashcardListPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 20, right: 8),
+        padding: const EdgeInsets.only(bottom: 110, right: 8),
         child: FloatingActionButton.extended(
-          onPressed: () {},
+          onPressed: () => context.push('/flashcards/add-deck'),
           backgroundColor: AppColors.primary,
           elevation: 12,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
@@ -154,24 +142,62 @@ class FlashcardListPage extends StatelessWidget {
   }
 }
 
-class _DeckCard extends StatelessWidget {
+class _DeckCard extends ConsumerWidget {
   final FlashcardDeck deck;
 
   const _DeckCard({required this.deck});
 
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Deck'),
+        content: const Text('Are you sure you want to delete this deck? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+       final success = await ref.read(flashcardControllerProvider.notifier).deleteDeck(deck.id);
+       if (success && context.mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Deck deleted successfully')),
+         );
+       }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark; // Detect Dark Mode
     final progress = deck.progress;
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
+        // UI/UX Pro Max: Dark mode adaptive color
+        color: isDark 
+            ? AppColors.textPrimary.withValues(alpha: 0.05) 
+            : Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+        border: Border.all(
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.1) 
+                : AppColors.grey300.withValues(alpha: 0.3)
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.03),
+            color: AppColors.primary.withValues(alpha: isDark ? 0.0 : 0.03),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -193,7 +219,7 @@ class _DeckCard extends StatelessWidget {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
+                          color: isDark ? AppColors.primary.withValues(alpha: 0.2) : AppColors.primarySurface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
                         ),
@@ -214,24 +240,30 @@ class _DeckCard extends StatelessWidget {
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: AppTypography.extraBold,
                                 fontSize: 17,
+                                color: isDark ? Colors.white : AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               deck.description,
+                              maxLines: 2, // Limit lines to prevent vertical layout issues
+                              overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: AppColors.textTertiary,
                                 fontSize: 13,
                               ),
                             ),
                             const SizedBox(height: 12),
-                            Row(
+                            // UI/UX Fix: Use Wrap to prevent overflow on small screens
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
                               children: [
-                                _StatLabel(
-                                  label: '${(progress * 100).toInt()}% SYNCED',
-                                  color: AppColors.primary,
-                                ),
-                                const SizedBox(width: 12),
+                                // Mastery percentage hidden due to backend calculation issue
+                                // _StatLabel(
+                                //   label: '${(progress * 100).toInt()}% MASTERED',
+                                //   color: AppColors.primary,
+                                // ),
                                 _StatLabel(
                                   label: '${deck.totalCards} NODES',
                                   color: AppColors.textTertiary,
@@ -241,7 +273,64 @@ class _DeckCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 24),
+                       // Actions Menu
+                       PopupMenuButton<String>(
+                         icon: const Icon(Icons.more_vert_rounded, color: AppColors.textTertiary),
+                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                         onSelected: (value) {
+                           if (value == 'add') {
+                             context.push('/flashcards/add-card', extra: deck);
+                           } else if (value == 'delete') {
+                             _confirmDelete(context, ref);
+                           } else if (value == 'edit') {
+                             context.push('/flashcards/add-deck', extra: deck);
+                           } else if (value == 'manage') {
+                             context.push('/flashcards/deck-detail', extra: deck);
+                           }
+                         },
+                         itemBuilder: (context) => [
+                           const PopupMenuItem(
+                             value: 'manage',
+                             child: Row(
+                               children: [
+                                 Icon(Icons.list_alt_rounded, color: AppColors.textSecondary, size: 20),
+                                 SizedBox(width: 8),
+                                 Text('Manage Cards'),
+                               ],
+                             ),
+                           ),
+                           const PopupMenuItem(
+                             value: 'add',
+                             child: Row(
+                               children: [
+                                 Icon(Icons.add_rounded, color: AppColors.textSecondary, size: 20),
+                                 SizedBox(width: 8),
+                                 Text('Add Card'),
+                               ],
+                             ),
+                           ),
+                           const PopupMenuItem(
+                             value: 'edit',
+                             child: Row(
+                               children: [
+                                 Icon(Icons.edit_rounded, size: 20),
+                                 SizedBox(width: 8),
+                                 Text('Edit Deck'),
+                               ],
+                             ),
+                           ),
+                           const PopupMenuItem(
+                             value: 'delete',
+                             child: Row(
+                               children: [
+                                 Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.error),
+                                 SizedBox(width: 8),
+                                 Text('Delete', style: TextStyle(color: AppColors.error)),
+                               ],
+                             ),
+                           ),
+                         ],
+                       ),
                     ],
                   ),
                 ),

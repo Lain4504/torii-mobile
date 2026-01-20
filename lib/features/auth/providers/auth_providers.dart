@@ -8,6 +8,7 @@ import 'package:torii_app/data/database/app_database.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/repositories/auth_repository.dart';
 import 'package:torii_app/features/auth/repositories/token_storage.dart';
+import 'package:torii_app/features/flashcard/providers/flashcard_providers.dart';
 
 // --- DATA LAYER ---
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
@@ -82,10 +83,19 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
       if (result == AuthResult.success && data != null) {
         // Save tokens only on success
-        if (data.accessToken != null && data.refreshToken != null) {
-           await _repository.tokenStorage.saveTokens(data.accessToken!, data.refreshToken!);
+        if (data.accessToken != null) {
+           // If refreshToken is managed by Cookie (null in body), we save empty string or keep logic consistent
+           await _repository.tokenStorage.saveTokens(data.accessToken!, data.refreshToken ?? '');
         }
         await _userService.saveUserProfile(data.user);
+        
+        // Clear flashcard cache from previous account
+        try {
+          ref.invalidate(flashcardDecksProvider);
+        } catch (_) {
+          // Ignore if provider doesn't exist yet
+        }
+        
         state = AsyncValue.data(AuthState.authenticated(data.user));
       } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {
         // Do NOT clear existing tokens yet (if any), just transition to pending2FA
@@ -108,6 +118,14 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       final authData = await _repository.verify2FA(tempToken, code, isBackupCode: isBackupCode);
       if (authData != null) {
         await _userService.saveUserProfile(authData.user);
+        
+        // Clear flashcard cache from previous account
+        try {
+          ref.invalidate(flashcardDecksProvider);
+        } catch (_) {
+          // Ignore if provider doesn't exist yet
+        }
+        
         state = AsyncValue.data(AuthState.authenticated(authData.user));
       } else {
         state = AsyncValue.data(AuthState.pending2FA(tempToken, error: 'Verification failed. Please check your code.'));

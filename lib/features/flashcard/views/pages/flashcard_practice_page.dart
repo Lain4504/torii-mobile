@@ -1,43 +1,84 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../models/flashcard_model.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../providers/flashcard_providers.dart';
 
 /// Flashcard Practice Page - Premium Spaced Repetition Interface
-class FlashcardPracticePage extends StatefulWidget {
+class FlashcardPracticePage extends ConsumerStatefulWidget {
   final FlashcardDeck? deck;
 
   const FlashcardPracticePage({super.key, this.deck});
 
   @override
-  State<FlashcardPracticePage> createState() => _FlashcardPracticePageState();
+  ConsumerState<FlashcardPracticePage> createState() => _FlashcardPracticePageState();
 }
 
-class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
+class _FlashcardPracticePageState extends ConsumerState<FlashcardPracticePage> {
   int _currentIndex = 0;
   bool _isFlipped = false;
-  late final List<Flashcard> _cards;
+  List<Flashcard> _cards = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _cards = _getMockCards(widget.deck?.id);
+    _loadCards();
   }
 
-  List<Flashcard> _getMockCards(String? deckId) {
-    return [
-      const Flashcard(id: '1', front: 'こんにちは', back: 'Hello / Good Afternoon', reading: 'konnichiwa'),
-      const Flashcard(id: '2', front: 'ありがとう', back: 'Thank you', reading: 'arigatou'),
-      const Flashcard(id: '3', front: '猫', back: 'Cat', reading: 'neko'),
-      const Flashcard(id: '4', front: '犬', back: 'Dog', reading: 'inu'),
-      const Flashcard(id: '5', front: '水', back: 'Water', reading: 'mizu'),
-    ];
+  Future<void> _loadCards() async {
+    if (widget.deck == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+    
+    // Fetch ALL cards for the deck (not just due cards)
+    // This allows users to practice the same deck multiple times
+    try {
+      final repository = ref.read(flashcardRepositoryProvider);
+      final cards = await repository.getDeckCards(widget.deck!.id);
+      if (mounted) {
+        setState(() {
+          _cards = cards;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_cards.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('No cards in this deck yet!'),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Go Back'),
+              )
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -108,8 +149,19 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
   }
 
   Widget _buildCard(ThemeData theme, bool isDark) {
+    // Show completion screen when all cards are done
+    if (_currentIndex >= _cards.length) {
+      return _buildCompletionScreen(theme, isDark);
+    }
+    
     final card = _cards[_currentIndex];
     
+    // Use Getters from the Refactored Model (front, back, reading)
+    // Model has: frontText, backText. Getters map front->frontText.
+    final frontText = card.front; 
+    final backText = card.back;
+    final readingText = card.reading;
+
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       transitionBuilder: (child, animation) {
@@ -150,9 +202,10 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
             ),
 
             Text(
-              _isFlipped ? card.back : card.front,
+              _isFlipped ? backText : frontText,
               style: TextStyle(
-                fontFamily: _isFlipped ? AppTypography.fontFamilySerif : theme.textTheme.headlineLarge?.fontFamily,
+                // Replaced fontFamilySans with fontFamily
+                fontFamily: _isFlipped ? AppTypography.fontFamilySerif : AppTypography.fontFamily,
                 fontSize: _isFlipped ? 32 : 54,
                 fontWeight: AppTypography.black,
                 height: 1.2,
@@ -161,10 +214,10 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
               textAlign: TextAlign.center,
             ),
             
-            if (!_isFlipped && card.reading != null) ...[
+            if (!_isFlipped && readingText != null) ...[
               const SizedBox(height: 24),
               Text(
-                card.reading!,
+                readingText,
                 style: const TextStyle(
                   fontSize: 20,
                   color: AppColors.textTertiary,
@@ -192,7 +245,138 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
     );
   }
 
+  Widget _buildCompletionScreen(ThemeData theme, bool isDark) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 400, minWidth: double.infinity),
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 40, offset: const Offset(0, 20)),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Success Icon
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.success.withValues(alpha: 0.2), width: 2),
+            ),
+            child: const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 48),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Completion Message
+          Text(
+            'SESSION COMPLETE',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: AppTypography.black,
+              letterSpacing: 3.0,
+              color: AppColors.success.withValues(alpha: 0.8),
+            ),
+          ),
+          
+          const SizedBox(height: 12),
+          
+          Text(
+            'Well Done!',
+            style: const TextStyle(
+              fontFamily: AppTypography.fontFamilySerif,
+              fontSize: 36,
+              fontWeight: AppTypography.black,
+              fontStyle: FontStyle.italic,
+              height: 1.2,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          Text(
+            'You\'ve completed all ${_cards.length} cards in this deck.',
+            style: const TextStyle(
+              fontSize: 15,
+              color: AppColors.textTertiary,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          
+          const SizedBox(height: 48),
+          
+          // Action Buttons
+          Column(
+            children: [
+              // Learn Again Button (Primary)
+              SizedBox(
+                width: double.infinity,
+                child: ZenButton(
+                  text: 'LEARN AGAIN',
+                  onPressed: _restartSession,
+                  icon: Icons.refresh_rounded,
+                  isFullWidth: true,
+                ),
+              ),
+              
+              const SizedBox(height: 12),
+              
+              // Back Button (Secondary)
+              SizedBox(
+                width: double.infinity,
+                child: InkWell(
+                  onTap: () {
+                    ref.invalidate(flashcardDecksProvider);
+                    Navigator.pop(context);
+                  },
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    decoration: BoxDecoration(
+                      color: AppColors.grey300.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                      border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3), width: 1.5),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.arrow_back_rounded, color: AppColors.textSecondary, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          'BACK TO DECKS',
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontWeight: AppTypography.black,
+                            fontSize: 11,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildControls(ThemeData theme, bool isDark) {
+    // Hide controls when session is complete
+    if (_currentIndex >= _cards.length) {
+      return const SizedBox.shrink();
+    }
+    
     if (!_isFlipped) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -204,6 +388,9 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
       );
     }
 
+    // Quality: 0=Retry (Forgot), 3=Hard, 4=Good, 5=Easy
+    // Logic: 0->Again, 3->Hard, 4->Good, 5->Easy
+    // Service.submitProgress handles mapping these ints to Enum Strings.
     return EntryAnimation(
       verticalOffset: 20,
       child: Padding(
@@ -212,23 +399,33 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
           children: [
             Row(
               children: [
-                Expanded(child: _ResponseButton(label: 'RETRY', color: AppColors.error, onTap: _nextCard)),
+                Expanded(child: _ResponseButton(label: 'RETRY', color: AppColors.error, onTap: () => _handleResponse(0))),
                 const SizedBox(width: 12),
-                Expanded(child: _ResponseButton(label: 'CHALLENGING', color: AppColors.warning, onTap: _nextCard)),
+                Expanded(child: _ResponseButton(label: 'CHALLENGING', color: AppColors.warning, onTap: () => _handleResponse(3))),
               ],
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _ResponseButton(label: 'COHERENT', color: AppColors.primary, onTap: _nextCard)),
+                Expanded(child: _ResponseButton(label: 'COHERENT', color: AppColors.primary, onTap: () => _handleResponse(4))),
                 const SizedBox(width: 12),
-                Expanded(child: _ResponseButton(label: 'MASTERED', color: AppColors.success, onTap: _nextCard)),
+                Expanded(child: _ResponseButton(label: 'MASTERED', color: AppColors.success, onTap: () => _handleResponse(5))),
               ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _handleResponse(int quality) async {
+    if (_currentIndex < _cards.length) {
+      final card = _cards[_currentIndex];
+      // Fire and forget progress update
+      await ref.read(flashcardControllerProvider.notifier).submitProgress(card.id, quality);
+    }
+    
+    _nextCard();
   }
 
   void _nextCard() {
@@ -238,8 +435,20 @@ class _FlashcardPracticePageState extends State<FlashcardPracticePage> {
         _isFlipped = false;
       });
     } else {
-      Navigator.pop(context);
+      // Show completion screen instead of auto-redirect
+      setState(() {
+        _currentIndex++; // Move past last card to trigger completion UI
+      });
     }
+  }
+
+  void _restartSession() {
+    setState(() {
+      // Shuffle cards for variety
+      _cards.shuffle();
+      _currentIndex = 0;
+      _isFlipped = false;
+    });
   }
 }
 

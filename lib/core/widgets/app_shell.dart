@@ -107,11 +107,11 @@ class _BottomNavBar extends StatelessWidget {
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.forum_outlined,
-                      activeIcon: Icons.forum_rounded,
-                      label: 'Community', // TODO: Localize
+                      icon: Icons.style_outlined,
+                      activeIcon: Icons.style_rounded,
+                      label: 'Flashcards', // TODO: Localize
                       isSelected: activeIndex == 1,
-                      onTap: () => onTap('/community'),
+                      onTap: () => onTap('/flashcards'),
                       isDark: isDark,
                     ),
                   ]
@@ -125,11 +125,11 @@ class _BottomNavBar extends StatelessWidget {
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.quiz_outlined,
-                      activeIcon: Icons.quiz_rounded,
-                      label: AppLocalizations.of(context)?.exams ?? 'Exams',
+                      icon: Icons.style_outlined,
+                      activeIcon: Icons.style_rounded,
+                      label: AppLocalizations.of(context)?.cards ?? 'Cards',
                       isSelected: activeIndex == 1,
-                      onTap: () => onTap('/exams'),
+                      onTap: () => onTap('/flashcards'),
                       isDark: isDark,
                     ),
                   ],
@@ -164,11 +164,11 @@ class _BottomNavBar extends StatelessWidget {
                   ]
                 : [
                     _NavBarItem(
-                      icon: Icons.style_outlined,
-                      activeIcon: Icons.style_rounded,
-                      label: AppLocalizations.of(context)?.cards ?? 'Cards',
+                      icon: Icons.quiz_outlined,
+                      activeIcon: Icons.quiz_rounded,
+                      label: AppLocalizations.of(context)?.exams ?? 'Exams',
                       isSelected: activeIndex == 3,
-                      onTap: () => onTap('/flashcards'),
+                      onTap: () => onTap('/exams'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
