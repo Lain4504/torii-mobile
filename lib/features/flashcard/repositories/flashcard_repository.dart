@@ -16,6 +16,14 @@ class FlashcardRepository {
     return [];
   }
 
+  Future<FlashcardDeck?> getDeckById(String id) async {
+    final response = await _service.getDeckById(id);
+    if (response.success && response.data != null) {
+      return response.data!;
+    }
+    return null;
+  }
+
   Future<FlashcardDeck?> createDeck(String title, String description) async {
     final response = await _service.createDeck(
       title: title, 

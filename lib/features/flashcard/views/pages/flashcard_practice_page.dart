@@ -55,6 +55,10 @@ class _FlashcardPracticePageState extends ConsumerState<FlashcardPracticePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    
+    // Watch fresh deck data
+    final deckId = widget.deck?.id;
+    final deckAsync = deckId != null ? ref.watch(singleDeckProvider(deckId)) : const AsyncValue<FlashcardDeck?>.data(null);
 
     if (_isLoading) {
       return const Scaffold(
@@ -80,71 +84,78 @@ class _FlashcardPracticePageState extends ConsumerState<FlashcardPracticePage> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Column(
-          children: [
-            Text(
-              (widget.deck?.title ?? 'SESSION').toUpperCase(),
-              style: const TextStyle(fontSize: 12, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.primary),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${_currentIndex + 1} / ${_cards.length} NODES',
-              style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0, color: AppColors.textTertiary),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.tune_rounded, size: 20, color: AppColors.textPrimary),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: ZenBackground(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                height: 2,
-                width: double.infinity,
-                decoration: BoxDecoration(color: AppColors.grey300.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(1)),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: (_currentIndex + 1) / _cards.length,
-                  child: Container(decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(1))),
+    return deckAsync.when(
+      data: (freshDeck) {
+        final currentDeck = freshDeck ?? widget.deck;
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            title: Column(
+              children: [
+                Text(
+                  (currentDeck?.title ?? 'SESSION').toUpperCase(),
+                  style: const TextStyle(fontSize: 12, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.primary),
                 ),
-              ),
+                const SizedBox(height: 4),
+                Text(
+                  '${_currentIndex + 1} / ${_cards.length} NODES',
+                  style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0, color: AppColors.textTertiary),
+                ),
+              ],
             ),
-            
-            Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() => _isFlipped = !_isFlipped),
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: _buildCard(theme, isDark),
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppColors.textPrimary),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.tune_rounded, size: 20, color: AppColors.textPrimary),
+                onPressed: () {},
+              ),
+            ],
+          ),
+          body: ZenBackground(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    height: 2,
+                    width: double.infinity,
+                    decoration: BoxDecoration(color: AppColors.grey300.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(1)),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: (_currentIndex + 1) / _cards.length,
+                      child: Container(decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(1))),
+                    ),
                   ),
                 ),
-              ),
-            ),
+                
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _isFlipped = !_isFlipped),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: _buildCard(theme, isDark),
+                      ),
+                    ),
+                  ),
+                ),
 
-            _buildControls(theme, isDark),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+                _buildControls(theme, isDark),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Error loading deck: $err'))),
     );
   }
 

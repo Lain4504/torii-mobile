@@ -22,6 +22,20 @@ class FlashcardService {
     }
   }
 
+  /// 2.1 Get Deck By Id
+  /// GET /api/flashcard-decks/:id
+  Future<ApiResponse<FlashcardDeck>> getDeckById(String id) async {
+    try {
+      final response = await _apiClient.client.get('/api/flashcard-decks/$id');
+      return ApiResponse.fromJson(
+        response.data,
+        (json) => FlashcardDeck.fromJson(json['deck']),
+      );
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
   /// 1. Create Deck
   /// POST /api/flashcard-decks
   Future<ApiResponse<FlashcardDeck>> createDeck({
