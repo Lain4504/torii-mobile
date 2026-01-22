@@ -13,71 +13,79 @@ class DeckDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final deckAsync = ref.watch(singleDeckProvider(deck.id));
     final cardsAsync = ref.watch(deckContentProvider(deck.id));
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: ZenBackground(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              pinned: true,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-                onPressed: () => context.pop(),
-              ),
-              title: Text(
-                deck.title.toUpperCase(),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: AppTypography.bold,
-                  letterSpacing: 1.5,
+        child: deckAsync.when(
+          data: (freshDeck) {
+            final currentDeck = freshDeck ?? deck;
+            return CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  pinned: true,
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+                    onPressed: () => context.pop(),
+                  ),
+                  title: Text(
+                    currentDeck.title.toUpperCase(),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: AppTypography.bold,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+                      onPressed: () => context.push('/flashcards/add-card', extra: currentDeck),
+                    ),
+                  ],
                 ),
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
-                  onPressed: () => context.push('/flashcards/add-card', extra: deck),
+                
+                SliverPadding(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  sliver: cardsAsync.when(
+                    data: (cards) {
+                      if (cards.isEmpty) {
+                        return const SliverToBoxAdapter(
+                          child: Center(
+                            child:  Padding(
+                              padding: EdgeInsets.only(top: 50),
+                              child: Text('No cards yet. Add one!', style: TextStyle(color: AppColors.textTertiary)),
+                            ),
+                          ),
+                        );
+                      }
+                      
+                      return SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                             final card = cards[index];
+                             return Padding(
+                               padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                               child: _CardItem(card: card, deck: currentDeck),
+                             );
+                          },
+                          childCount: cards.length,
+                        ),
+                      );
+                    },
+                    loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
+                    error: (error, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $error'))),
+                  ),
                 ),
               ],
-            ),
-            
-            SliverPadding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              sliver: cardsAsync.when(
-                data: (cards) {
-                  if (cards.isEmpty) {
-                    return const SliverToBoxAdapter(
-                      child: Center(
-                        child:  Padding(
-                          padding: EdgeInsets.only(top: 50),
-                          child: Text('No cards yet. Add one!', style: TextStyle(color: AppColors.textTertiary)),
-                        ),
-                      ),
-                    );
-                  }
-                  
-                  return SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                         final card = cards[index];
-                         return Padding(
-                           padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                           child: _CardItem(card: card, deck: deck),
-                         );
-                      },
-                      childCount: cards.length,
-                    ),
-                  );
-                },
-                loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-                error: (error, stack) => SliverToBoxAdapter(child: Center(child: Text('Error: $error'))),
-              ),
-            ),
-          ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Error loading deck: $err')),
         ),
       ),
     );

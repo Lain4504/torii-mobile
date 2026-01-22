@@ -29,6 +29,11 @@ class FlashcardDecksNotifier extends AsyncNotifier<List<FlashcardDeck>> {
      return repository.getDecks();
   }
 
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => ref.read(flashcardRepositoryProvider).getDecks());
+  }
+
   Future<bool> deleteDeck(String id) async {
     final previous = state.valueOrNull ?? [];
     state = const AsyncValue.loading();
@@ -67,6 +72,12 @@ class FlashcardDecksNotifier extends AsyncNotifier<List<FlashcardDeck>> {
     state = AsyncValue.data(updated);
   }
 }
+
+// 1.1 Single Deck Provider (FutureProvider - AutoDispose)
+final singleDeckProvider = FutureProvider.family.autoDispose<FlashcardDeck?, String>((ref, id) async {
+  final repository = ref.watch(flashcardRepositoryProvider);
+  return repository.getDeckById(id);
+});
 
 // 2. Due Cards Provider (FutureProvider - AutoDispose)
 final deckCardsProvider = FutureProvider.family.autoDispose<List<Flashcard>, String>((ref, deckId) async {
