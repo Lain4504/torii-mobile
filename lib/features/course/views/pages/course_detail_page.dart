@@ -7,6 +7,7 @@ import '../../models/module_model.dart';
 import '../../providers/course_providers.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../auth/providers/auth_providers.dart';
 
 /// Course Detail Page - Premium Zen UI Rebuild
 class CourseDetailPage extends ConsumerWidget {
@@ -192,7 +193,7 @@ class CourseDetailPage extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomBar(context, theme, isDark, course),
+      bottomNavigationBar: _buildBottomBar(context, theme, isDark, course, ref),
     );
   }
 
@@ -252,7 +253,22 @@ class CourseDetailPage extends ConsumerWidget {
                     size: 20,
                     color: isWishlisted ? AppColors.error : AppColors.textPrimary,
                   ),
-            onPressed: isTogglingWishlist ? null : () => ref.read(courseDetailProvider(course.id).notifier).toggleWishlist(),
+            onPressed: isTogglingWishlist
+                ? null
+                : () async {
+                    final result = await ref.read(courseDetailProvider(course.id).notifier).toggleWishlist();
+                    if (context.mounted && result != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(result
+                              ? 'Đã thêm vào yêu thích'
+                              : 'Đã xóa khỏi yêu thích'),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: result ? AppColors.success : AppColors.textSecondary,
+                        ),
+                      );
+                    }
+                  },
           ),
         ),
         const SizedBox(width: 12),
@@ -512,7 +528,7 @@ class CourseDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context, ThemeData theme, bool isDark, Course course) {
+  Widget _buildBottomBar(BuildContext context, ThemeData theme, bool isDark, Course course, WidgetRef ref) {
     return Container(
       padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).padding.bottom + 20),
       decoration: const BoxDecoration(
@@ -521,11 +537,32 @@ class CourseDetailPage extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceVariantDark : Colors.white,
+          // Glassmorphic effect
+          gradient: LinearGradient(
+            colors: [
+              (isDark ? AppColors.surfaceVariantDark : Colors.white).withValues(alpha: 0.95),
+              (isDark ? AppColors.surfaceVariantDark : Colors.white).withValues(alpha: 0.98),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
           borderRadius: BorderRadius.circular(AppRadius.xxl),
-          boxShadow: isDark ? AppElevation.darkSoftShadow : AppElevation.mediumShadow,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: isDark ? 0.1 : 0.08),
+              blurRadius: 30,
+              offset: const Offset(0, -5),
+            ),
+            if (!isDark)
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.5),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+          ],
           border: Border.all(
-            color: (isDark ? AppColors.borderDark : AppColors.grey300).withValues(alpha: 0.4),
+            color: (isDark ? AppColors.borderDark : AppColors.primary).withValues(alpha: 0.12),
+            width: 1.5,
           ),
         ),
         child: SafeArea(
@@ -585,11 +622,43 @@ class CourseDetailPage extends ConsumerWidget {
                 flex: 6,
                 child: ZenButton(
                   text: course.isEnrolled ? 'RESUME' : 'ENROLL NOW',
-                  onPressed: () {
+                  onPressed: () async {
                     if (course.isEnrolled) {
                       // Navigate to course content
+                      context.push('/courses/${course.id}/lessons');
                     } else {
-                      context.push('/payment');
+                      // Check if user is authenticated
+                      final authState = ref.read(authNotifierProvider);
+                      final isAuthenticated = authState.asData?.value.isAuthenticated ?? false;
+                      
+                      if (!isAuthenticated) {
+                        // Show message and navigate to login
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Vui lòng đăng nhập để đăng ký khóa học'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          context.push('/login');
+                        }
+                        return;
+                      }
+                      
+                      // Navigate to payment screen
+                      final result = await context.push<bool>(
+                        '/payment',
+                        extra: {
+                          'courseId': course.id,
+                          'amount': course.discountPrice ?? course.price,
+                          'courseTitle': course.title,
+                        },
+                      );
+                      
+                      // If payment successful, refresh course detail
+                      if (result == true) {
+                        ref.read(courseDetailProvider(course.id).notifier).loadCourseDetail(course.id);
+                      }
                     }
                   },
                 ),

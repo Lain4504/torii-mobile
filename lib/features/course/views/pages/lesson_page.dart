@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:video_player/video_player.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../models/lesson_model.dart';
+import '../../models/lesson_material_model.dart';
+import '../../providers/lesson_providers.dart';
+import '../../repositories/course_repository.dart';
+import '../../../auth/providers/auth_providers.dart';
 
 class LessonPage extends ConsumerStatefulWidget {
   final String courseId;
@@ -21,342 +28,883 @@ class LessonPage extends ConsumerStatefulWidget {
 }
 
 class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProviderStateMixin {
+  VideoPlayerController? _videoController;
+  bool _isVideoInitialized = false;
+  String? _currentVideoUrl;
   late TabController _tabController;
+  
+  List<LessonMaterial> _materials = [];
+  // final List<Comment> _comments = [];
+  bool _isLoadingMaterials = false;
+  // bool _isLoadingComments = false;
+  String? _materialsError;
+  // String? _commentsError;
+  
+  // Video controls state
+  bool _showVideoControls = true;
+  bool _isVideoPlaying = false;
+  Duration _videoPosition = Duration.zero;
+  Duration _videoDuration = Duration.zero;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    // Delay loading materials to ensure lesson is loaded first
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMaterials();
+    });
+    // Comments will be loaded when needed (requires postId which may not be available)
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _videoController?.removeListener(_videoListener);
+    _videoController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadMaterials() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingMaterials = true;
+      _materialsError = null;
+    });
+
+    try {
+      final repository = CourseRepository(
+        dio: ref.read(apiClientProvider).client,
+      );
+      final materials = await repository.getLessonMaterials(widget.lessonId);
+      
+      if (mounted) {
+        setState(() {
+          _materials = materials;
+          _isLoadingMaterials = false;
+        });
+      }
+    } catch (e) {
+      
+      if (mounted) {
+        setState(() {
+          _materialsError = e.toString();
+          _isLoadingMaterials = false;
+        });
+      }
+    }
+  }
+
+  void _initializeVideo(String videoUrl) {
+    if (_videoController != null) {
+      _videoController!.removeListener(_videoListener);
+      _videoController!.dispose();
+    }
+    
+    _currentVideoUrl = videoUrl;
+    _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+    _videoController!.addListener(_videoListener);
+    _videoController!.initialize().then((_) {
+      if (mounted) {
+        setState(() {
+          _isVideoInitialized = true;
+          _videoDuration = _videoController!.value.duration;
+        });
+      }
+    }).catchError((error) {
+      if (mounted) {
+        setState(() {
+          _isVideoInitialized = false;
+          _currentVideoUrl = null;
+        });
+      }
+    });
+  }
+
+  void _videoListener() {
+    if (_videoController != null && mounted) {
+      setState(() {
+        _isVideoPlaying = _videoController!.value.isPlaying;
+        _videoPosition = _videoController!.value.position;
+        _videoDuration = _videoController!.value.duration;
+      });
+    }
+  }
+
+  void _togglePlayPause() {
+    if (_videoController != null) {
+      setState(() {
+        _showVideoControls = true;
+      });
+      
+      if (_videoController!.value.isPlaying) {
+        _videoController!.pause();
+      } else {
+        _videoController!.play();
+      }
+      
+      // Auto-hide controls after 3 seconds
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && _videoController != null && _videoController!.value.isPlaying) {
+          setState(() {
+            _showVideoControls = false;
+          });
+        }
+      });
+    }
+  }
+
+  void _seekTo(Duration position) {
+    if (_videoController != null) {
+      _videoController!.seekTo(position);
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    
+    if (hours > 0) {
+      return '${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(seconds)}';
+    }
+    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final lesson = widget.lesson;
+    // If lesson object is provided, use it immediately (has videoUrl from curriculum)
+    // Otherwise, load from API
+    final hasInitialLesson = widget.lesson != null && 
+                             (widget.lesson!.videoUrl != null || widget.lesson!.articleContent != null);
+    
+    final state = ref.watch(lessonDetailProvider(widget.lessonId));
+    // Prefer loaded lesson from API (has full details), fallback to initial lesson
+    final lesson = state.lesson ?? widget.lesson;
+
+    // Only show loading if we don't have initial lesson and API is loading
+    if (state.isLoading && !hasInitialLesson && lesson == null) {
+      return const ZenLoadingScreen(text: 'Loading lesson...');
+    }
+
+    if (state.error != null && lesson == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: ZenBackground(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                const SizedBox(height: 16),
+                Text(
+                  state.error!,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ZenButton(
+                  text: 'TRY AGAIN',
+                  onPressed: () {
+                    ref.read(lessonDetailProvider(widget.lessonId).notifier).loadLessonDetail(widget.lessonId);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (lesson == null) {
+      return const ZenLoadingScreen(text: 'Lesson not found...');
+    }
+
+    // Initialize video if lesson is video type and has videoUrl
+    if (lesson.isVideo && lesson.videoUrl != null && lesson.videoUrl!.isNotEmpty) {
+      // Check if we need to initialize or reinitialize video
+      final needsInit = _videoController == null || 
+                       !_isVideoInitialized ||
+                       (_currentVideoUrl != lesson.videoUrl);
+      
+      if (needsInit) {
+        _initializeVideo(lesson.videoUrl!);
+      }
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: ZenBackground(
-        child: Column(
-          children: [
-            // Premium Video Header
-            _buildVideoPlayer(lesson),
-            
-            // Lesson Info & Tabs
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(AppSpacing.xl),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(AppRadius.chip),
-                          ),
-                          child: Text(
-                            'MODULE 3 • LESSON ${lesson?.order ?? 1}',
-                            style: TextStyle(fontSize: 8, fontWeight: AppTypography.black, color: AppColors.primary, letterSpacing: 1.0),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          lesson?.title ?? 'Untitled Lesson',
-                          style: const TextStyle(fontSize: 22, fontWeight: AppTypography.extraBold, letterSpacing: -0.5),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Zen Tabs
-                  TabBar(
-                    controller: _tabController,
-                    indicatorColor: AppColors.primary,
-                    indicatorWeight: 3,
-                    indicatorSize: TabBarIndicatorSize.label,
-                    labelColor: AppColors.textPrimary,
-                    unselectedLabelColor: AppColors.textTertiary,
-                    dividerColor: Colors.transparent,
-                    labelStyle: const TextStyle(fontWeight: AppTypography.black, fontSize: 10, letterSpacing: 2.0),
-                    tabs: const [
-                      Tab(text: 'OVERVIEW'),
-                      Tab(text: 'CURRICULUM'),
-                      Tab(text: 'RESOURCES'),
-                    ],
-                  ),
-                  
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildOverviewTab(lesson),
-                        _buildCurriculumTab(),
-                        _buildResourcesTab(),
-                      ],
-                    ),
-                  ),
-                ],
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // App Bar
+            SliverAppBar(
+              floating: true,
+              pinned: true,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
+
+            // Video Player (only for video lessons)
+            if (lesson.isVideo) _buildVideoPlayer(lesson),
             
-            // Bottom Action Bar
-            _buildBottomBar(),
+            // Tabs for content, materials, and comments
+            _buildTabsContent(lesson),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildVideoPlayer(Lesson? lesson) {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
-          image: DecorationImage(
-            image: NetworkImage('https://images.unsplash.com/photo-1528610320207-68096fee5603?auto=format&fit=crop&q=80&w=800'),
-            fit: BoxFit.cover,
-            opacity: 0.6,
-          ),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
+  Widget _buildVideoPlayer(Lesson lesson) {
+    return SliverToBoxAdapter(
+      child: lesson.videoUrl != null && lesson.videoUrl!.isNotEmpty
+          ? AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Container(
+                color: Colors.black,
+                child: _isVideoInitialized && _videoController != null
+                    ? GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _showVideoControls = !_showVideoControls;
+                          });
+                          // Auto-hide controls after 3 seconds
+                          if (_showVideoControls) {
+                            Future.delayed(const Duration(seconds: 3), () {
+                              if (mounted && _videoController != null && _videoController!.value.isPlaying) {
+                                setState(() {
+                                  _showVideoControls = false;
+                                });
+                              }
+                            });
+                          }
+                        },
+                        child: Stack(
+                          children: [
+                            // Video Player
+                            VideoPlayer(_videoController!),
+                            
+                            // Controls Overlay
+                            AnimatedOpacity(
+                              opacity: _showVideoControls ? 1.0 : 0.0,
+                              duration: const Duration(milliseconds: 300),
+                              child: Container(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                child: Stack(
+                                  children: [
+                                    // Center Play/Pause Button
+                                    Center(
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: _togglePlayPause,
+                                          borderRadius: BorderRadius.circular(50),
+                                          child: Container(
+                                            width: 80,
+                                            height: 80,
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withValues(alpha: 0.6),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              _isVideoPlaying
+                                                  ? Icons.pause
+                                                  : Icons.play_arrow,
+                                              color: Colors.white,
+                                              size: 48,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    
+                                    // Bottom Controls Bar
+                                    Positioned(
+                                      bottom: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withValues(alpha: 0.8),
+                                            ],
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // Seek Bar
+                                            SliderTheme(
+                                              data: SliderTheme.of(context).copyWith(
+                                                trackHeight: 4,
+                                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                                                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                                                activeTrackColor: AppColors.primary,
+                                                inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
+                                                thumbColor: AppColors.primary,
+                                                overlayColor: AppColors.primary.withValues(alpha: 0.2),
+                                              ),
+                                              child: Slider(
+                                                value: _videoDuration.inMilliseconds > 0
+                                                    ? _videoPosition.inMilliseconds.toDouble()
+                                                    : 0.0,
+                                                max: _videoDuration.inMilliseconds > 0
+                                                    ? _videoDuration.inMilliseconds.toDouble()
+                                                    : 1.0,
+                                                onChanged: (value) {
+                                                  _seekTo(Duration(milliseconds: value.toInt()));
+                                                },
+                                              ),
+                                            ),
+                                            
+                                            // Time and Controls
+                                            Row(
+                                              children: [
+                                                // Play/Pause Button
+                                                Material(
+                                                  color: Colors.transparent,
+                                                  child: InkWell(
+                                                    onTap: _togglePlayPause,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.all(8),
+                                                      child: Icon(
+                                                        _isVideoPlaying
+                                                            ? Icons.pause
+                                                            : Icons.play_arrow,
+                                                        color: Colors.white,
+                                                        size: 28,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                
+                                                const SizedBox(width: 12),
+                                                
+                                                // Time Display
+                                                Text(
+                                                  '${_formatDuration(_videoPosition)} / ${_formatDuration(_videoDuration)}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                                
+                                                const Spacer(),
+                                                
+                                                // Fullscreen Button (optional)
+                                                Material(
+                                                  color: Colors.transparent,
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      // TODO: Implement fullscreen
+                                                    },
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    child: const Padding(
+                                                      padding: EdgeInsets.all(8),
+                                                      child: Icon(
+                                                        Icons.fullscreen,
+                                                        color: Colors.white,
+                                                        size: 24,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
+              ),
+            )
+          : AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Container(
+                color: Colors.black,
+                child: const Center(
+                  child: Text(
+                    'Video not available',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildTabsContent(Lesson lesson) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Gradient Overlay
+            // Lesson Header
             Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.4),
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.4),
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadius.chip),
+              ),
+              child: Text(
+                'LESSON ${lesson.order}',
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: AppTypography.black,
+                  color: AppColors.primary,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              lesson.title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: AppTypography.extraBold,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            // Tabs
+            TabBar(
+              controller: _tabController,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textTertiary,
+              indicatorColor: AppColors.primary,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: AppTypography.bold,
+                letterSpacing: 1.0,
+              ),
+              tabs: const [
+                Tab(
+                  icon: Icon(Icons.book_outlined, size: 18),
+                  text: 'Bài học',
+                ),
+                Tab(
+                  icon: Icon(Icons.description_outlined, size: 18),
+                  text: 'Tài liệu',
+                ),
+                Tab(
+                  icon: Icon(Icons.comment_outlined, size: 18),
+                  text: 'Thảo luận',
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // Tab Content
+            SizedBox(
+              height: 400,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildContentTab(lesson),
+                  _buildResourcesTab(),
+                  _buildCommentsTab(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 120),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContentTab(Lesson lesson) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: AppSpacing.md),
+          if (lesson.isArticle && lesson.articleContent != null && lesson.articleContent!.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(AppRadius.xxl),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.03),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Html(
+                data: lesson.articleContent!,
+                style: {
+                  "body": Style(
+                    margin: Margins.zero,
+                    padding: HtmlPaddings.zero,
+                    fontSize: FontSize(16),
+                    lineHeight: const LineHeight(1.8),
+                    color: AppColors.textPrimary,
+                    fontFamily: AppTypography.fontFamily,
+                  ),
+                  "p": Style(
+                    margin: Margins.only(bottom: 20),
+                    textAlign: TextAlign.justify,
+                  ),
+                  "h1": Style(
+                    fontSize: FontSize(22),
+                    fontWeight: FontWeight.bold,
+                    margin: Margins.only(top: 24, bottom: 16),
+                    color: AppColors.primary,
+                  ),
+                  "h2": Style(
+                    fontSize: FontSize(18),
+                    fontWeight: FontWeight.bold,
+                    margin: Margins.only(top: 20, bottom: 12),
+                    color: AppColors.primary,
+                  ),
+                  "strong": Style(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  "blockquote": Style(
+                    margin: Margins.only(left: 0, top: 16, bottom: 16),
+                    padding: HtmlPaddings.only(left: 16),
+                    border: Border(left: BorderSide(color: AppColors.primary.withValues(alpha: 0.5), width: 4)),
+                    fontStyle: FontStyle.italic,
+                    color: AppColors.textSecondary,
+                  ),
+                },
+              ),
+            )
+          else if (lesson.description != null && lesson.description!.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.xxl),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.02),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Text(
+                lesson.description!,
+                style: const TextStyle(
+                  fontSize: 16,
+                  height: 1.8,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            )
+          else
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(40),
+                child: Text('No article content available'),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResourcesTab() {
+    if (_isLoadingMaterials) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_materialsError != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Lỗi khi tải tài liệu',
+              style: TextStyle(color: AppColors.error),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _loadMaterials,
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_materials.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.description_outlined,
+              size: 48,
+              color: AppColors.textTertiary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Chưa có tài liệu',
+              style: TextStyle(
+                color: AppColors.textTertiary,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _materials.length,
+      itemBuilder: (context, index) {
+        final material = _materials[index];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () async {
+                final uri = Uri.parse(material.fileUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.grey300.withValues(alpha: 0.2),
+                  ),
+                  color: AppColors.grey100.withValues(alpha: 0.3),
+                ),
+                child: Row(
+                  children: [
+                    // Icon
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.grey300.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Icon(
+                        material.isPdf
+                            ? Icons.picture_as_pdf
+                            : material.isVideo
+                                ? Icons.video_library
+                                : Icons.description,
+                        color: AppColors.primary,
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Tài liệu đi kèm',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: AppTypography.black,
+                              letterSpacing: 3.0,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            material.title ?? 'Tài liệu ${index + 1}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: AppTypography.extraBold,
+                              letterSpacing: -0.5,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Text(
+                                material.fileExtension.toUpperCase(),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: AppTypography.black,
+                                  letterSpacing: 2.0,
+                                  color: AppColors.textTertiary,
+                                ),
+                              ),
+                              Container(
+                                width: 4,
+                                height: 4,
+                                margin: const EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.4),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              Text(
+                                material.formattedFileSize,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: AppTypography.black,
+                                  letterSpacing: 2.0,
+                                  color: AppColors.textTertiary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Download Button
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.download,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Tải',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: AppTypography.black,
+                              letterSpacing: 2.0,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            
-            // Play Button
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
-              ),
-              child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 48),
-            ),
-            
-            // Back Button
-            Positioned(
-              top: 40,
-              left: 20,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            
-            // Expander Button
-            Positioned(
-              bottom: 10,
-              right: 20,
-              child: IconButton(
-                icon: const Icon(Icons.fullscreen_rounded, color: Colors.white),
-                onPressed: () {},
-              ),
-            ),
-            
-            // Progress line
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 3,
-                width: double.infinity,
-                color: Colors.white.withValues(alpha: 0.3),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: 0.35,
-                  child: Container(color: AppColors.primary),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOverviewTab(Lesson? lesson) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'TRANSCRIPTION',
-            style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'In this lesson, we will explore the nuances of the particles "&" and "に". These are fundamental to Japanese sentence structure and are often confused by beginners. Pay close attention to the directional application of に and the object focus of を.',
-            style: TextStyle(fontSize: 15, height: 1.7, color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 24),
-          const SectionDivider(title: 'ZEN_LEARNING_METADATA'),
-          const SizedBox(height: 16),
-          _buildMetaRow(Icons.timer_outlined, 'Duration', '12:45'),
-          _buildMetaRow(Icons.trending_up_rounded, 'Difficulty', 'Medium'),
-          _buildMetaRow(Icons.auto_awesome_rounded, 'XP Yield', '150 XP'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetaRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: AppColors.primary.withValues(alpha: 0.6)),
-          const SizedBox(width: 8),
-          Text(label, style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: AppTypography.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCurriculumTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      itemCount: 5,
-      itemBuilder: (context, index) {
-        return _CurriculumItem(
-          index: index + 1,
-          title: 'Section ${index + 1}: Particle Advanced Logic',
-          isCompleted: index == 0,
-          isActive: index == 1,
         );
       },
     );
   }
 
-  Widget _buildResourcesTab() {
-    return const Center(child: Text('No resources available for this protocol.'));
-  }
-
-  Widget _buildBottomBar() {
-    return Container(
-      padding: EdgeInsets.only(
-        left: AppSpacing.xl,
-        right: AppSpacing.xl,
-        top: 20,
-        bottom: MediaQuery.of(context).padding.bottom + 20,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.04),
-            blurRadius: 40,
-            offset: const Offset(0, -10),
-          ),
-        ],
-        border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.3))),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.skip_previous_rounded, color: AppColors.textTertiary),
-          ),
-          const Spacer(),
-          ZenButton(
-            text: 'COMPLETE & NEXT',
-            onPressed: () {},
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.skip_next_rounded, color: AppColors.primary),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CurriculumItem extends StatelessWidget {
-  final int index;
-  final String title;
-  final bool isCompleted;
-  final bool isActive;
-
-  const _CurriculumItem({
-    required this.index,
-    required this.title,
-    this.isCompleted = false,
-    this.isActive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.primary.withValues(alpha: 0.02) : Colors.white.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(
-          color: isActive ? AppColors.primary.withValues(alpha: 0.2) : AppColors.grey300.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Row(
+  Widget _buildCommentsTab() {
+    // Comments require postId, which may not be available for lessons
+    // For now, show a placeholder similar to web-learner
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: 96,
+            height: 96,
             decoration: BoxDecoration(
-              color: isCompleted ? AppColors.accent : (isActive ? AppColors.primary : AppColors.grey200),
-              shape: BoxShape.circle,
+              color: AppColors.primarySurface.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(24),
             ),
-            child: Center(
-              child: isCompleted 
-                ? const Icon(Icons.check, color: Colors.white, size: 14)
-                : Text('$index', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: AppTypography.black)),
+            child: Icon(
+              Icons.comment_outlined,
+              size: 48,
+              color: AppColors.primary.withValues(alpha: 0.3),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
+          const SizedBox(height: 24),
+          Text(
+            'Diễn đàn thảo luận',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: AppTypography.black,
+              letterSpacing: 2.0,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Tham gia Trao đổi kiến thức',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: AppTypography.extraBold,
+              letterSpacing: -0.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              title,
+              'Tương tác với các học viên khác và đội ngũ giảng viên chuyên môn để giải đáp thắc mắc.',
               style: TextStyle(
-                fontWeight: isActive ? AppTypography.extraBold : AppTypography.medium,
-                color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
-                fontSize: 14,
+                fontSize: 12,
+                color: AppColors.textTertiary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              // TODO: Implement comment functionality when postId is available
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Tính năng đang phát triển')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
+            child: const Text('Bắt đầu thảo luận'),
           ),
-          if (isActive)
-             const Icon(Icons.graphic_eq_rounded, size: 16, color: AppColors.primary),
         ],
       ),
     );
   }
+
 }

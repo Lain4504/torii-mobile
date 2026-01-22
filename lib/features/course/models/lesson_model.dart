@@ -4,6 +4,9 @@ class Lesson {
   final String title;
   final String contentType; // 'video', 'article', etc.
   final int? videoDuration; // Duration in seconds
+  final String? videoUrl; // Video URL for video lessons
+  final String? articleContent; // HTML content for article lessons
+  final String? description; // Lesson description
   final int order;
   final bool isPreview;
   final bool isUnlocked;
@@ -13,6 +16,9 @@ class Lesson {
     required this.title,
     required this.contentType,
     this.videoDuration,
+    this.videoUrl,
+    this.articleContent,
+    this.description,
     required this.order,
     this.isPreview = false,
     this.isUnlocked = true,
@@ -24,7 +30,10 @@ class Lesson {
       title: json['title'] as String,
       contentType: json['contentType'] as String? ?? 'video',
       videoDuration: json['videoDuration'] as int?,
-      order: json['order'] as int? ?? 0,
+      videoUrl: json['videoUrl'] as String?,
+      articleContent: json['articleContent'] as String?,
+      description: json['description'] as String?,
+      order: json['order'] as int? ?? json['orderIndex'] as int? ?? 0,
       isPreview: json['isPreview'] as bool? ?? false,
       isUnlocked: json['isUnlocked'] as bool? ?? true,
     );
@@ -36,6 +45,9 @@ class Lesson {
       'title': title,
       'contentType': contentType,
       'videoDuration': videoDuration,
+      'videoUrl': videoUrl,
+      'articleContent': articleContent,
+      'description': description,
       'order': order,
       'isPreview': isPreview,
       'isUnlocked': isUnlocked,
@@ -48,6 +60,12 @@ class Lesson {
     final minutes = (videoDuration! / 60).ceil();
     return '$minutes min';
   }
+
+  /// Check if lesson is video type
+  bool get isVideo => contentType.toLowerCase() == 'video';
+
+  /// Check if lesson is article type
+  bool get isArticle => contentType.toLowerCase() == 'article';
 }
 
 
