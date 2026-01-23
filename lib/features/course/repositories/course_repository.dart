@@ -3,7 +3,6 @@ import '../models/course_model.dart';
 import '../models/curriculum_model.dart';
 import '../models/lesson_model.dart';
 import '../models/lesson_material_model.dart';
-import '../models/comment_model.dart';
 
 /// Course Repository - Handles API calls for courses
 class CourseRepository {
@@ -322,43 +321,6 @@ class CourseRepository {
     }
   }
 
-  /// Fetch comments by post ID (for lesson discussions)
-  /// Note: Comments are associated with posts, not lessons directly
-  /// You may need to find the postId from the lesson or create a post for each lesson
-  Future<List<Comment>> getCommentsByPostId({
-    required String postId,
-    int page = 1,
-    int limit = 20,
-  }) async {
-    try {
-      final response = await _dio.get(
-        '/api/comments',
-        queryParameters: {
-          'postId': postId,
-          'page': page,
-          'limit': limit,
-        },
-      );
-
-      final data = response.data;
-      if (data['success'] == true && data['data'] != null) {
-        final commentsData = data['data'] as List?;
-        if (commentsData != null) {
-          return commentsData
-              .map((item) => Comment.fromJson(item as Map<String, dynamic>))
-              .toList();
-        }
-      }
-      return [];
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        return [];
-      }
-      throw Exception('Failed to fetch comments: ${e.message}');
-    } catch (e) {
-      throw Exception('Failed to fetch comments: $e');
-    }
-  }
 }
 
 /// Response model for paginated course list

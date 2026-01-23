@@ -127,28 +127,31 @@ class _CourseProgressRingState extends State<CourseProgressRing>
               
               // Percentage text
               if (widget.showPercentage)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '$percentage',
-                      style: TextStyle(
-                        fontSize: widget.size * 0.25,
-                        fontWeight: AppTypography.black,
-                        color: progressColor,
-                        height: 1.0,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '$percentage',
+                        style: TextStyle(
+                          fontSize: widget.size * 0.25,
+                          fontWeight: AppTypography.black,
+                          color: progressColor,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '%',
-                      style: TextStyle(
-                        fontSize: widget.size * 0.12,
-                        fontWeight: AppTypography.bold,
-                        color: AppColors.textTertiary,
-                        height: 1.0,
+                      Text(
+                        '%',
+                        style: TextStyle(
+                          fontSize: widget.size * 0.12,
+                          fontWeight: AppTypography.bold,
+                          color: AppColors.textTertiary,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
             ],
           );
