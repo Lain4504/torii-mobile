@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../providers/my_learning_provider.dart';
-import '../widgets/course_card.dart';
+import '../widgets/enrolled_course_card.dart';
 
 class MyLearningPage extends ConsumerWidget {
   const MyLearningPage({super.key});
@@ -48,7 +48,7 @@ class MyLearningPage extends ConsumerWidget {
             ),
             
             SliverPadding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               sliver: SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,7 +123,7 @@ class MyLearningPage extends ConsumerWidget {
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -132,7 +132,7 @@ class MyLearningPage extends ConsumerWidget {
                         index: index,
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                          child: CourseCard(course: course),
+                          child: EnrolledCourseCard(course: course),
                         ),
                       );
                     },

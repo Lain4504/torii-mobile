@@ -109,8 +109,12 @@ class Course {
       return [];
     }
 
-    // Handle both instructorName and createdBy fields for backward compatibility
+    // Handle instructorName from multiple possible fields:
+    // - instructorName (standard)
+    // - instructor (from my-courses endpoint)
+    // - createdBy (backward compatibility)
     final instructorName = json['instructorName'] as String? ?? 
+                          json['instructor'] as String? ??
                           json['createdBy'] as String? ?? 
                           'Unknown Instructor';
     

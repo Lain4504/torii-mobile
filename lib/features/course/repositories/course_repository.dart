@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import '../models/course_model.dart';
 import '../models/curriculum_model.dart';
+import '../models/lesson_model.dart';
+import '../models/lesson_material_model.dart';
 
 /// Course Repository - Handles API calls for courses
 class CourseRepository {
@@ -50,10 +52,20 @@ class CourseRepository {
       if (response.data == null) return null;
       
       final data = response.data;
-      // Handle both direct data and wrapped response
-      final courseData = data is Map<String, dynamic> && data.containsKey('data')
-          ? data['data'] as Map<String, dynamic>
-          : data as Map<String, dynamic>;
+      // Handle response structure: { success: true, data: { course: {...} } }
+      Map<String, dynamic> courseData;
+      if (data is Map<String, dynamic> && data.containsKey('data')) {
+        final dataMap = data['data'] as Map<String, dynamic>?;
+        // Check if data contains 'course' key (backend returns { course: {...} })
+        if (dataMap != null && dataMap.containsKey('course')) {
+          courseData = dataMap['course'] as Map<String, dynamic>;
+        } else {
+          // Fallback: assume data is the course object itself
+          courseData = dataMap as Map<String, dynamic>;
+        }
+      } else {
+        courseData = data as Map<String, dynamic>;
+      }
       
       return Course.fromJson(courseData);
     } catch (e) {
@@ -68,10 +80,20 @@ class CourseRepository {
       if (response.data == null) return null;
       
       final data = response.data;
-      // Handle both direct data and wrapped response
-      final courseData = data is Map<String, dynamic> && data.containsKey('data')
-          ? data['data'] as Map<String, dynamic>
-          : data as Map<String, dynamic>;
+      // Handle response structure: { success: true, data: { course: {...} } }
+      Map<String, dynamic> courseData;
+      if (data is Map<String, dynamic> && data.containsKey('data')) {
+        final dataMap = data['data'] as Map<String, dynamic>?;
+        // Check if data contains 'course' key (backend returns { course: {...} })
+        if (dataMap != null && dataMap.containsKey('course')) {
+          courseData = dataMap['course'] as Map<String, dynamic>;
+        } else {
+          // Fallback: assume data is the course object itself
+          courseData = dataMap as Map<String, dynamic>;
+        }
+      } else {
+        courseData = data as Map<String, dynamic>;
+      }
       
       return Course.fromJson(courseData);
     } catch (e) {
@@ -87,10 +109,20 @@ class CourseRepository {
       if (response.statusCode == 200) {
         final data = response.data;
         
-        // Handle both direct data and wrapped response
-        final courseData = data is Map<String, dynamic> && data.containsKey('data')
-            ? data['data'] as Map<String, dynamic>
-            : data as Map<String, dynamic>;
+        // Handle response structure: { success: true, data: { course: {...} } }
+        Map<String, dynamic> courseData;
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          final dataMap = data['data'] as Map<String, dynamic>?;
+          // Check if data contains 'course' key (backend returns { course: {...} })
+          if (dataMap != null && dataMap.containsKey('course')) {
+            courseData = dataMap['course'] as Map<String, dynamic>;
+          } else {
+            // Fallback: assume data is the course object itself
+            courseData = dataMap as Map<String, dynamic>;
+          }
+        } else {
+          courseData = data as Map<String, dynamic>;
+        }
         
         return Course.fromJson(courseData);
       } else {
@@ -140,11 +172,32 @@ class CourseRepository {
       
       if (response.statusCode == 200) {
         final data = response.data;
-        final list = data is Map<String, dynamic> && data.containsKey('data')
-            ? data['data'] as List
-            : data as List;
+        
+        // Handle response structure: { success: true, data: { courses: [...] } }
+        List<dynamic> coursesList;
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          final dataMap = data['data'] as Map<String, dynamic>?;
+          if (dataMap != null && dataMap.containsKey('courses')) {
+            coursesList = dataMap['courses'] as List<dynamic>;
+          } else if (dataMap is List) {
+            // Fallback: data['data'] is directly a list
+            coursesList = dataMap as List<dynamic>;
+          } else {
+            coursesList = [];
+          }
+        } else if (data is List) {
+          // Fallback: response is directly a list
+          coursesList = data;
+        } else {
+          coursesList = [];
+        }
             
-        return list.map((item) => Course.fromJson(item)).toList();
+        return coursesList.map((item) {
+          final courseJson = item as Map<String, dynamic>;
+          // Ensure isEnrolled is true for courses from my-courses endpoint
+          courseJson['isEnrolled'] = true;
+          return Course.fromJson(courseJson);
+        }).toList();
       } else {
         throw Exception('Failed to load my courses');
       }
@@ -165,6 +218,109 @@ class CourseRepository {
       return {};
     }
   }
+
+  /// Get lesson details by ID
+  Future<Lesson> getLessonById(String lessonId) async {
+    try {
+      final response = await _dio.get('/api/lessons/$lessonId');
+      
+      if (response.statusCode == 200) {
+        final data = response.data;
+        
+        // Handle response structure: { success: true, data: { lesson: {...} } }
+        Map<String, dynamic> lessonData;
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          final dataMap = data['data'] as Map<String, dynamic>?;
+          if (dataMap != null && dataMap.containsKey('lesson')) {
+            lessonData = dataMap['lesson'] as Map<String, dynamic>;
+          } else {
+            // Fallback: assume data is the lesson object itself
+            lessonData = dataMap as Map<String, dynamic>;
+          }
+        } else {
+          lessonData = data as Map<String, dynamic>;
+        }
+        
+        return Lesson.fromJson(lessonData);
+      } else {
+        throw Exception('Failed to load lesson: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw Exception('Lesson not found');
+      }
+      throw Exception('Failed to load lesson: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to load lesson: $e');
+    }
+  }
+
+  /// Fetch lesson materials by lesson ID
+  Future<List<LessonMaterial>> getLessonMaterials(String lessonId) async {
+    try {
+      final response = await _dio.get(
+        '/api/lesson-materials/by-lesson/$lessonId',
+      );
+
+      final data = response.data;
+      
+      // Backend returns: { success: true, data: { materials: [...] } }
+      if (data != null && data['success'] == true && data['data'] != null) {
+        final dataValue = data['data'];
+        
+        // Try both 'materials' and direct array
+        List? materialsData;
+        
+        // Case 1: data is a Map with 'materials' key
+        if (dataValue is Map<String, dynamic>) {
+          if (dataValue.containsKey('materials')) {
+            materialsData = dataValue['materials'] as List?;
+          }
+        }
+        // Case 2: data is directly a List
+        else if (dataValue is List) {
+          materialsData = dataValue;
+        }
+        
+        if (materialsData != null && materialsData.isNotEmpty) {
+          final materials = <LessonMaterial>[];
+          
+          for (var i = 0; i < materialsData.length; i++) {
+            try {
+              final item = materialsData[i];
+              
+              if (item == null || item is! Map<String, dynamic>) {
+                continue;
+              }
+              
+              final material = LessonMaterial.fromJson(item);
+              materials.add(material);
+            } catch (_) {
+              // Continue with next item instead of failing completely
+            }
+          }
+          
+          return materials;
+        }
+      }
+      
+      return [];
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return [];
+      }
+      if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized: Please login to view materials');
+      }
+      if (e.response?.statusCode == 403) {
+        throw Exception('Access denied: You do not have permission to view these materials');
+      }
+      throw Exception('Failed to fetch lesson materials: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to fetch lesson materials: $e');
+    }
+  }
+
 }
 
 /// Response model for paginated course list

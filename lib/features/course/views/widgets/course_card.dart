@@ -31,9 +31,18 @@ class CourseCard extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () => context.push('/courses/${course.id}'),
+            onTap: () {
+              if (course.isEnrolled) {
+                // Navigate to lessons page if enrolled
+                context.push('/courses/${course.id}/lessons');
+              } else {
+                // Navigate to course detail page if not enrolled
+                context.push('/courses/${course.id}');
+              }
+            },
             borderRadius: BorderRadius.circular(AppRadius.xxl),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Premium Thumbnail - No padding to fill corners
@@ -43,6 +52,7 @@ class CourseCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Badge Row

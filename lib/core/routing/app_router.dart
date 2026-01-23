@@ -13,7 +13,9 @@ import 'package:torii_app/features/auth/views/pages/reset_password_page.dart';
 import 'package:torii_app/features/auth/views/pages/two_factor_verify_page.dart';
 import 'package:torii_app/features/course/views/pages/course_list_page.dart';
 import 'package:torii_app/features/course/views/pages/course_detail_page.dart';
-import 'package:torii_app/features/course/views/pages/payment_page.dart';
+import 'package:torii_app/features/course/views/pages/course_lessons_page.dart';
+import 'package:torii_app/features/payment/views/payment_screen.dart';
+import 'package:torii_app/features/payment/views/payos_webview_screen.dart';
 import 'package:torii_app/features/dashboard/views/pages/home_page.dart';
 import 'package:torii_app/features/dashboard/views/pages/dashboard_page.dart';
 import 'package:torii_app/features/course/views/pages/my_learning_page.dart';
@@ -130,6 +132,16 @@ final routerProvider = Provider<GoRouter>((ref) {
                       final courseId = state.pathParameters['id'] ?? '';
                       return CourseDetailPage(courseId: courseId);
                     },
+                    routes: [
+                      GoRoute(
+                        path: 'lessons',
+                        parentNavigatorKey: AppRouter.rootNavigatorKey,
+                        builder: (context, state) {
+                          final courseId = state.pathParameters['id'] ?? '';
+                          return CourseLessonsPage(courseId: courseId);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -303,7 +315,27 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/payment',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const PaymentPage(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return PaymentScreen(
+            courseId: extra['courseId'] as String? ?? '',
+            amount: (extra['amount'] as num?)?.toDouble() ?? 0.0,
+            courseTitle: extra['courseTitle'] as String?,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: 'webview',
+            parentNavigatorKey: AppRouter.rootNavigatorKey,
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>? ?? {};
+              return PayOSWebViewScreen(
+                checkoutUrl: extra['checkoutUrl'] as String? ?? '',
+                orderId: extra['orderId'] as String? ?? '',
+              );
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/search',
@@ -373,6 +405,7 @@ class AppRouter {
     '/flashcards/practice',
     '/payment',
     '/learning/:courseId/:lessonId',
+    '/courses/:id/lessons',
   ];
 
   static const publicRoutes = [

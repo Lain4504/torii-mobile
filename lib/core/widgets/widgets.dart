@@ -48,3 +48,9 @@ export 'inputs/zen_text_field.dart';
 
 // Background
 export 'zen_background.dart';
+
+// Payments
+export 'payments/payment_qr_card.dart';
+
+// Course
+export 'course/course_progress_ring.dart';
