@@ -3,8 +3,13 @@ import 'package:livekit_client/livekit_client.dart';
 
 class ParticipantTile extends StatefulWidget {
   final Participant participant;
+  final TrackSource? preferSource;
 
-  const ParticipantTile({super.key, required this.participant});
+  const ParticipantTile({
+    super.key,
+    required this.participant,
+    this.preferSource,
+  });
 
   @override
   State<ParticipantTile> createState() => _ParticipantTileState();
@@ -26,8 +31,14 @@ class _ParticipantTileState extends State<ParticipantTile> {
   }
 
   void _findVideoTrack() {
-    // Basic logic to find the first camera video track
-    _videoPublication = widget.participant.videoTrackPublications.values.where((p) => p.source == TrackSource.camera).firstOrNull ??
+    if (widget.preferSource != null) {
+      _videoPublication = widget.participant.videoTrackPublications.values
+          .where((p) => p.source == widget.preferSource)
+          .firstOrNull;
+    }
+    
+    // Fallback to camera or first available
+    _videoPublication ??= widget.participant.cameraTrack ?? 
         widget.participant.videoTrackPublications.values.firstOrNull;
   }
 

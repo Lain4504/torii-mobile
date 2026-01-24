@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,7 @@ class LiveKitService {
   // Event callbacks (will be set by the Controller/Notifier)
   Function(List<Participant>)? onParticipantsChanged;
   Function(Participant, TrackPublication)? onTrackSubscribed;
+  Function(Participant, TrackPublication)? onTrackUnsubscribed;
   Function(List<Participant>)? onActiveSpeakersChanged;
   Function(bool)? onConnectionStateChanged;
 
@@ -66,6 +68,9 @@ class LiveKitService {
       ..on<TrackSubscribedEvent>((event) {
         onTrackSubscribed?.call(event.participant, event.publication);
       })
+      ..on<TrackUnsubscribedEvent>((event) {
+        onTrackUnsubscribed?.call(event.participant, event.publication);
+      })
       ..on<ActiveSpeakersChangedEvent>((event) {
         onActiveSpeakersChanged?.call(event.speakers);
       });
@@ -95,5 +100,9 @@ class LiveKitService {
 
   Future<void> setScreenShareEnabled(bool enabled) async {
     await _room?.localParticipant.setScreenShareEnabled(enabled);
+  }
+
+  Future<void> setSpeakerphoneEnabled(bool enabled) async {
+    await Helper.setSpeakerphoneOn(enabled);
   }
 }

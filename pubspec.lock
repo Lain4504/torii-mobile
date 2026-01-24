@@ -57,6 +57,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.0"
+  base32:
+    dependency: transitive
+    description:
+      name: base32
+      sha256: "37548444aaee8bd5e91db442ce69ee3a79d3652ed47c1fa7568aa3bb9af0aea5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -209,6 +217,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.7"
+  cryptography:
+    dependency: transitive
+    description:
+      name: cryptography
+      sha256: "3eda3029d34ec9095a27a198ac9785630fe525c0eb6a49f3d575272f8e792ef0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.9.0"
   csslib:
     dependency: transitive
     description:
@@ -233,6 +249,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  dart_nats:
+    dependency: "direct main"
+    description:
+      name: dart_nats
+      sha256: "23fd3a93518ebcd23352b4fb8b63cb019df12e10b91b6cc9b77ec8c8b4dc4a5b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.9"
   dart_style:
     dependency: transitive
     description:
@@ -1338,22 +1362,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
-  web_socket:
-    dependency: transitive
-    description:
-      name: web_socket
-      sha256: "34d64019aa8e36bf9842ac014bb5d2f5586ca73df5e4d9bf5c936975cae6982c"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.1"
   web_socket_channel:
     dependency: transitive
     description:
       name: web_socket_channel
-      sha256: d645757fb0f4773d602444000a8131ff5d48c9e47adfe9772652dd1a4f2d45c8
+      sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.3"
+    version: "2.4.0"
   webrtc_interface:
     dependency: transitive
     description:

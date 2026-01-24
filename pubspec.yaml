@@ -64,6 +64,7 @@ dependencies:
   livekit_client: ^2.2.1
   permission_handler: ^11.3.1
   wakelock_plus: ^1.2.8
+  dart_nats: ^0.4.0
 
 
 

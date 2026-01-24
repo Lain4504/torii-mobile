@@ -38,6 +38,13 @@ class MeetingControls extends ConsumerWidget {
               onPressed: () => notifier.toggleScreenShare(),
               label: 'Share',
             ),
+            // Speaker Toggle
+            _ControlButton(
+              icon: state.isSpeakerphoneOn ? Icons.volume_up : Icons.phone_android,
+              color: state.isSpeakerphoneOn ? Colors.purple : Colors.grey,
+              onPressed: () => notifier.toggleSpeakerphone(),
+              label: 'Speaker',
+            ),
             // Leave Button
             _ControlButton(
               icon: Icons.call_end,

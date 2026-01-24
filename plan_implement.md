@@ -108,13 +108,14 @@ Mark tasks as `[x]` when completed.
     - [x] Match Web icons and behavior.
 
 ### Phase 3: Advanced Features Parity (As needed)
-- [ ] **Screen Share Viewing**:
-    - [ ] Handle `Track.Source.ScreenShare`.
-    - [ ] Logic to render Screen Share track prominently (Large view).
-- [ ] **Audio Handling**:
-    - [ ] Manage audio output switching (Speakerphone vs Earpiece).
-- [ ] **Chat (Basic)**:
-    - [ ] Implement `DataChannel` handling for chat messages if Web uses DataChannel or Socket (Check `HandleDataMessage.ts`).
+- [x] **Screen Share Viewing**:
+    - [x] Handle `Track.Source.ScreenShare`.
+    - [x] Logic to render Screen Share track prominently (Large view).
+- [x] **Audio Handling**:
+    - [x] Manage audio output switching (Speakerphone vs Earpiece).
+- [x] **Chat (Basic)**:
+    - [x] Implement NATS handling for chat messages.
+    - [x] [NEW] [chat_bottom_sheet.dart](file:///home/lain4504/SEP490/torii-mobile/lib/features/meet/presentation/widgets/chat_bottom_sheet.dart)
 
 ### Phase 4: Verification
 - [ ] **Connection Test**: Verify successful join with valid token.
@@ -129,10 +130,11 @@ Mark tasks as `[x]` when completed.
 | Web Source (`apps/meet/src/...`) | Flutter Target (`lib/features/meet/...`) |
 | :--- | :--- |
 | `helpers/livekit/ConnectLivekit.ts` | `data/datasources/livekit_service.dart` |
-| `store/slices/participantSlice.ts` | `presentation/providers/participant_provider.dart` |
-| `components/media-elements/videos/videoElm.tsx` | `presentation/widgets/video_tile.dart` |
+| `store/slices/participantSlice.ts` | `presentation/providers/meet_provider.dart` |
+| `components/media-elements/videos/videoElm.tsx` | `presentation/widgets/participant_tile.dart` |
 | `components/footer/index.tsx` | `presentation/widgets/meeting_controls.dart` |
 | `components/main-area/index.tsx` | `presentation/screens/meeting_screen.dart` |
+| `helpers/nats/ConnectNats.ts` | `data/datasources/nats_service.dart` |
 
 ## 5. Next Steps
 1.  Initialize **Phase 0**.
