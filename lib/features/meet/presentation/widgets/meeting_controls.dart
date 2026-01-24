@@ -11,8 +11,19 @@ class MeetingControls extends ConsumerWidget {
     final notifier = ref.read(meetControllerProvider.notifier);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      color: Colors.grey[900],
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A).withOpacity(0.95),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
       child: SafeArea(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -105,18 +116,26 @@ class _ControlButton extends StatelessWidget {
           onTap: onPressed,
           borderRadius: BorderRadius.circular(25),
           child: Container(
-            width: 50,
-            height: 50,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withOpacity(0.15),
               shape: BoxShape.circle,
-              border: Border.all(color: color, width: 2),
+              border: Border.all(color: color.withOpacity(0.4), width: 1.5),
             ),
             child: Icon(icon, color: color, size: 28),
           ),
         ),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 10)),
+        const SizedBox(height: 6),
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
       ],
     );
   }

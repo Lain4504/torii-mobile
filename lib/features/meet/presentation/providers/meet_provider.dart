@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:fixnum/fixnum.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/features/meet/data/datasources/livekit_service.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/data/datasources/nats_service.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 
 enum MeetStatus { initial, signaling, natsConnecting, natsConnected, mediaConnecting, connected, disconnected, error }
 
@@ -19,12 +20,13 @@ class MeetState {
   final String? userId;
   final String? roomId;
   final Participant? screenSharingParticipant;
-  final List<ChatMessage> messages;
+  final List<nats_msg.ChatMessage> messages;
   final bool isMicEnabled;
   final bool isCamEnabled;
   final bool isScreenSharingEnabled;
   final bool isSpeakerphoneOn;
   final bool isRecording;
+  final String? notification;
 
   MeetState({
     this.status = MeetStatus.initial,
@@ -41,6 +43,7 @@ class MeetState {
     this.isScreenSharingEnabled = false,
     this.isSpeakerphoneOn = true,
     this.isRecording = false,
+    this.notification,
   });
 
   MeetState copyWith({
@@ -52,13 +55,15 @@ class MeetState {
     String? userId,
     String? roomId,
     Participant? screenSharingParticipant,
-    List<ChatMessage>? messages,
+    List<nats_msg.ChatMessage>? messages,
     bool clearScreenSharing = false,
     bool? isMicEnabled,
     bool? isCamEnabled,
     bool? isScreenSharingEnabled,
     bool? isSpeakerphoneOn,
     bool? isRecording,
+    String? notification,
+    bool clearNotification = false,
   }) {
     return MeetState(
       status: status ?? this.status,
@@ -75,6 +80,7 @@ class MeetState {
       isScreenSharingEnabled: isScreenSharingEnabled ?? this.isScreenSharingEnabled,
       isSpeakerphoneOn: isSpeakerphoneOn ?? this.isSpeakerphoneOn,
       isRecording: isRecording ?? this.isRecording,
+      notification: clearNotification ? null : (notification ?? this.notification),
     );
   }
 }
@@ -102,13 +108,13 @@ class MeetNotifier extends StateNotifier<MeetState> {
     };
 
     _liveKitService.onTrackSubscribed = (participant, publication) {
-      if (publication.source == TrackSource.screenShare) {
+      if (publication.source == TrackSource.screenShareVideo) {
         state = state.copyWith(screenSharingParticipant: participant);
       }
     };
 
     _liveKitService.onTrackUnsubscribed = (participant, publication) {
-      if (publication.source == TrackSource.screenShare) {
+      if (publication.source == TrackSource.screenShareVideo) {
         if (state.screenSharingParticipant?.identity == participant.identity) {
           state = state.copyWith(clearScreenSharing: true);
         }
@@ -135,6 +141,11 @@ class MeetNotifier extends StateNotifier<MeetState> {
     return sorted;
   }
 
+  Future<void> joinMeetingWithToken(String token) async {
+    _apiService.setManualToken(token);
+    await joinMeeting();
+  }
+
   Future<void> joinMeeting() async {
     state = state.copyWith(status: MeetStatus.signaling, statusMessage: 'Verifying token...');
 
@@ -157,7 +168,7 @@ class MeetNotifier extends StateNotifier<MeetState> {
       // 2. Connect to NATS
       await _natsService.connect(
         urls: res.natsWsUrls.toList(),
-        token: _apiService.token, // Assuming MeetApiService exposes the token
+        token: _apiService.token ?? '',
       );
 
       state = state.copyWith(status: MeetStatus.natsConnected, statusMessage: 'Connected to signaling. Fetching room data...');
@@ -176,7 +187,7 @@ class MeetNotifier extends StateNotifier<MeetState> {
       // Subscribe to Chat
       await _natsService.subscribe(
         subject: '${res.roomId}:${natsSubjects.chat}',
-        onData: (data) => _handleChatMessage(ChatMessage.fromBuffer(data)),
+        onData: (data) => _handleChatMessage(nats_msg.ChatMessage.fromBuffer(data)),
       );
 
       // 4. Request Initial Data
@@ -193,9 +204,7 @@ class MeetNotifier extends StateNotifier<MeetState> {
   void _handleNatsSystemEvent(NatsMsgServerToClient payload) {
     switch (payload.event) {
       case NatsMsgServerToClientEvents.RES_INITIAL_DATA:
-        final initialData = NatsInitialData.fromBuffer(payload.binMsg); // Or msg if JSON
-        // Actually web uses binMsg for RES_INITIAL_DATA usually or based on how it's sent
-        // Let's assume JSON string for now as payload.msg if fromJsonString was used in web
+        // Assume initial data is JSON in msg or it's not needed directly if we just request more
         _updateRoomMetadata(payload.msg); 
 
         // After initial data, request participants and media server info
@@ -215,18 +224,27 @@ class MeetNotifier extends StateNotifier<MeetState> {
         break;
 
       case NatsMsgServerToClientEvents.RES_MEDIA_SERVER_DATA:
-        // Finally connect to LiveKit
-        final serverInfo = jsonDecode(payload.msg); // Assuming it's JSON string per Web code
+        final serverInfo = jsonDecode(payload.msg);
         _connectToLiveKit(serverInfo['url'], serverInfo['token']);
         break;
 
       case NatsMsgServerToClientEvents.SESSION_ENDED:
         leaveMeeting();
         state = state.copyWith(status: MeetStatus.disconnected, statusMessage: 'Session ended by server.');
+        showNotification('The meeting has been ended.');
+        break;
+
+      case NatsMsgServerToClientEvents.USER_JOINED:
+        // If it's not binary, we might need another way to get name.
+        // For now, let's just log or use a generic msg.
+        showNotification('Someone joined the meeting.');
+        break;
+
+      case NatsMsgServerToClientEvents.USER_OFFLINE:
+        showNotification('Someone left the meeting.');
         break;
         
       default:
-        // Handle other events like USER_JOINED, USER_DISCONNECTED if needed
         break;
     }
   }
@@ -241,8 +259,17 @@ class MeetNotifier extends StateNotifier<MeetState> {
     }
   }
 
-  void _handleChatMessage(ChatMessage msg) {
+  void _handleChatMessage(nats_msg.ChatMessage msg) {
     state = state.copyWith(messages: [...state.messages, msg]);
+  }
+
+  void showNotification(String msg) {
+    state = state.copyWith(notification: msg);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        state = state.copyWith(clearNotification: true);
+      }
+    });
   }
 
   void _updateRoomMetadata(String jsonStr) {
@@ -272,7 +299,7 @@ class MeetNotifier extends StateNotifier<MeetState> {
   void sendChatMessage(String text) {
     if (state.roomInfo == null) return;
     
-    final msg = ChatMessage(
+    final msg = nats_msg.ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       fromName: state.roomInfo!.userId, // Or get user name from localUser
       fromUserId: state.userId,
@@ -289,6 +316,7 @@ class MeetNotifier extends StateNotifier<MeetState> {
   Future<void> leaveMeeting() async {
     await _liveKitService.disconnect();
     await _natsService.disconnect();
+    _apiService.setManualToken(null);
     state = MeetState();
   }
 

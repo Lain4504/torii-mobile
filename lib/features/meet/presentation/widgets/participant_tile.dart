@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 class ParticipantTile extends StatefulWidget {
@@ -32,14 +33,16 @@ class _ParticipantTileState extends State<ParticipantTile> {
 
   void _findVideoTrack() {
     if (widget.preferSource != null) {
-      _videoPublication = widget.participant.videoTrackPublications.values
+      _videoPublication = widget.participant.videoTrackPublications
           .where((p) => p.source == widget.preferSource)
           .firstOrNull;
     }
     
     // Fallback to camera or first available
-    _videoPublication ??= widget.participant.cameraTrack ?? 
-        widget.participant.videoTrackPublications.values.firstOrNull;
+    _videoPublication ??= widget.participant.videoTrackPublications
+        .where((p) => p.source == TrackSource.camera)
+        .firstOrNull ?? 
+        widget.participant.videoTrackPublications.firstOrNull;
   }
 
   @override
@@ -58,7 +61,7 @@ class _ParticipantTileState extends State<ParticipantTile> {
         children: [
           // Video Layer
           if (track != null && track is VideoTrack && !isMuted)
-            VideoTrackRenderer(track as VideoTrack, fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover)
+            VideoTrackRenderer(track, fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover)
           else
             Center(
               child: CircleAvatar(

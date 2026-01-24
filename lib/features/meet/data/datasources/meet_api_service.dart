@@ -16,6 +16,7 @@ class MeetApiService {
   final TokenService _tokenService;
   late final Dio _dio;
   String? _currentToken;
+  String? _manualToken;
 
   MeetApiService(this._tokenService) {
     _dio = Dio(BaseOptions(
@@ -27,10 +28,15 @@ class MeetApiService {
     // Add interceptor for Authorization header
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await _tokenService.getAccessToken();
-        _currentToken = token;
-        if (token != null) {
-          options.headers['Authorization'] = token;
+        if (_manualToken != null) {
+          options.headers['Authorization'] = _manualToken;
+          _currentToken = _manualToken;
+        } else {
+          final token = await _tokenService.getAccessToken();
+          _currentToken = token;
+          if (token != null) {
+            options.headers['Authorization'] = token;
+          }
         }
         return handler.next(options);
       },
@@ -47,6 +53,10 @@ class MeetApiService {
   }
 
   String? get token => _currentToken;
+
+  void setManualToken(String? token) {
+    _manualToken = token;
+  }
 
   Future<VerifyTokenRes> verifyToken({bool isProduction = false}) async {
     try {

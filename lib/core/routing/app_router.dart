@@ -47,6 +47,8 @@ import 'package:torii_app/features/course/views/pages/wishlist_page.dart';
 import 'package:torii_app/features/instructor/views/pages/instructor_profile_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_list_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_detail_page.dart';
+import 'package:torii_app/features/meet/presentation/screens/meet_landing_screen.dart';
+import 'package:torii_app/features/meet/presentation/screens/meeting_screen.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -231,17 +233,36 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
-              // Use /flashcards/preview path for guest to avoid duplication errors if any, 
+              // Use /flashcards/preview path for guest to avoid duplication errors if any,
               // or just reuse /flashcards if router allows in different branches.
               GoRoute(
                 path: '/flashcards-preview',
                 builder: (context, state) => const FlashcardListPage(),
+              ),
+              GoRoute(
+                path: '/live-schedule',
+                builder: (context, state) => const LiveClassSchedulePage(),
+              ),
+            ],
+          ),
+
+          // Branch 5: Meet Explorer
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/meet',
+                builder: (context, state) => const MeetLandingScreen(),
               ),
             ],
           ),
         ],
       ),
       // Root Routes (Overlay)
+      GoRoute(
+        path: '/meeting',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const MeetingScreen(),
+      ),
       GoRoute(
         path: '/login',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
@@ -454,6 +475,8 @@ class AppRouter {
     '/flashcards-preview',
     '/settings',
     '/exams',
+    '/meet',
+    '/meeting',
   ];
 
   /// Helper to check if a route is public (supports parameters)

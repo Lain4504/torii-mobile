@@ -45,7 +45,34 @@ class MeetingScreen extends ConsumerWidget {
             ),
         ],
       ),
-      body: _buildBody(context, ref, meetState),
+      body: Stack(
+        children: [
+          _buildBody(context, ref, meetState),
+          if (meetState.notification != null)
+            Positioned(
+              top: 16,
+              left: 16,
+              right: 16,
+              child: AnimatedOpacity(
+                opacity: 1.0,
+                duration: const Duration(milliseconds: 300),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                  ),
+                  child: Text(
+                    meetState.notification!,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
       bottomNavigationBar: meetState.status == MeetStatus.connected
           ? const MeetingControls()
           : null,
@@ -113,7 +140,7 @@ class MeetingScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(8.0),
             child: ParticipantTile(
               participant: presenter,
-              preferSource: TrackSource.screenShare,
+              preferSource: TrackSource.screenShareVideo,
             ),
           ),
         ),

@@ -31,7 +31,7 @@ class LiveKitService {
         videoCodec: MeetConfig.videoCodec,
       ),
       defaultAudioPublishOptions: const AudioPublishOptions(
-        stopMicTrackOnMute: MeetConfig.stopMicTrackOnMute,
+        // stopMicTrackOnMute: MeetConfig.stopMicTrackOnMute,
       ),
     );
 
@@ -77,11 +77,16 @@ class LiveKitService {
   }
 
   void _notifyParticipants() {
-    if (_room == null) return;
+    onParticipantsChanged?.call(allParticipants);
+  }
+
+  List<Participant> get allParticipants {
+    if (_room == null) return [];
+    
     final allParticipants = <Participant>[];
     allParticipants.add(_room!.localParticipant);
     allParticipants.addAll(_room!.remoteParticipants.values);
-    onParticipantsChanged?.call(allParticipants);
+    return allParticipants;
   }
 
   Future<void> disconnect() async {

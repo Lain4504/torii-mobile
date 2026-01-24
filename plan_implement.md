@@ -117,11 +117,14 @@ Mark tasks as `[x]` when completed.
     - [x] Implement NATS handling for chat messages.
     - [x] [NEW] [chat_bottom_sheet.dart](file:///home/lain4504/SEP490/torii-mobile/lib/features/meet/presentation/widgets/chat_bottom_sheet.dart)
 
-### Phase 4: Verification
-- [ ] **Connection Test**: Verify successful join with valid token.
-- [ ] **AV Parity**: Verify Video/Audio transmission aligns with Web clients.
-- [ ] **State Sync**: Verify Join/Leave updates are instant.
-- [ ] **UI Polish**: Match spacing, colors, and icons with Web.
+### Phase 4: Polishing & Error Handling
+- [x] **Signaling Monitor**: Monitor NATS connectivity and show alerts.
+- [x] **Room Notifications**: Show Join/Leave/End status as toasts.
+- [x] **Visual Polish**: Premium Glassmorphism UI for controls.
+
+### Phase 5: Deployment & QA
+- [x] **Meet Explorer**: Always-on UI for manual `wajlc_token` testing.
+- [ ] **Release Build**: Verify on real Android/iOS physical device.
 
 ---
 

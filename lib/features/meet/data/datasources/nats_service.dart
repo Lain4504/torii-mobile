@@ -25,22 +25,32 @@ class NatsService {
   }) async {
     _client = nats.Client();
     
-    // Auth using token
-    final opts = nats.ConnectOptions(
-      token: token,
-      verbose: true,
-    );
+    // Auth using token in URL if ConnectOptions not avail
+    // or try passing token in connect if supported.
+    // Based on dart_nats 0.4.x, we may need to put token in URI
+    String finalUrl = urls.first;
+    if (!finalUrl.contains('@') && token.isNotEmpty) {
+      final uri = Uri.parse(finalUrl);
+      finalUrl = '${uri.scheme}://$token@${uri.host}:${uri.port}${uri.path}';
+    }
 
     try {
-      // Connect to first available URL
-      // Note: dart_nats connect takes a single URL, we might need to retry others if fails
-      final url = urls.first;
-      await _client!.connect(Uri.parse(url), options: opts);
+      final url = Uri.parse(finalUrl);
+      await _client!.connect(url);
+      
+      // Monitor status
+      _client!.statusStream.listen((status) {
+        final isConnected = status == nats.Status.connected;
+        onConnectionStatusChanged?.call(isConnected);
+        if (kDebugMode) {
+          print('NATS Status: $status');
+        }
+      });
       
       onConnectionStatusChanged?.call(true);
       
       if (kDebugMode) {
-        print('NATS connected to $url');
+        print('NATS connected to $finalUrl');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -53,18 +63,20 @@ class NatsService {
 
   Future<void> subscribe({
     required String subject,
-    required Function(Uint8Array) onData,
+    required Function(Uint8List) onData,
   }) async {
     if (_client == null) return;
     
-    final sub = _client!.subscribe(subject);
+    final sub = _client!.sub(subject);
     final subscription = sub.stream.listen((msg) {
-      onData(msg.byte as Uint8Array);
+      if (msg.byte != null) {
+        onData(Uint8List.fromList(msg.byte!));
+      }
     });
     _subscriptions.add(subscription);
   }
 
-  void sendMessage(String subject, Uint8Array data) {
+  void sendMessage(String subject, Uint8List data) {
     _client?.pub(subject, data);
   }
 
