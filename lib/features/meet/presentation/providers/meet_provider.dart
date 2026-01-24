@@ -239,10 +239,9 @@ class MeetNotifier extends StateNotifier<MeetState> {
         onData: (data) => _handleChatMessage(nats_msg.ChatMessage.fromBuffer(data)),
       );
 
-      // 4. Request Initial Data
       _natsService.sendMessageToSystemWorker(
-        subject: '${natsSubjects.systemJsWorker}.${res.roomId}.${res.userId}',
-        data: nats_msg.NatsMsgClientToServer(event: nats_msg.NatsMsgClientToServerEvents.REQ_INITIAL_DATA),
+        baseSubject: natsSubjects.systemJsWorker,
+        payload: nats_msg.NatsMsgClientToServer(event: nats_msg.NatsMsgClientToServerEvents.REQ_INITIAL_DATA).writeToBuffer(),
       );
 
     } catch (e) {
@@ -311,10 +310,10 @@ class MeetNotifier extends StateNotifier<MeetState> {
         statusMessage: 'Initial data received. Requesting media...',
       );
       
-      _natsService.setIdentity(state.roomId!, state.userId!);
+      final natsSubjects = state.roomInfo!.natsSubjects;
+      _natsService.setIdentity(state.roomId!, state.userId!, natsSubjects.systemJsWorker);
 
       // Subscribe to Chat and others now that we have initial data
-      final natsSubjects = state.roomInfo!.natsSubjects;
       _natsService.subscribe(
         subject: '${state.roomId}:${natsSubjects.chat}',
         onData: (data) => _handleChatMessage(nats_msg.ChatMessage.fromBuffer(data)),

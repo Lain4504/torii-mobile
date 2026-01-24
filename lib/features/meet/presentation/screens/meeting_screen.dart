@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -23,24 +24,43 @@ class MeetingScreen extends ConsumerWidget {
     final meetState = ref.watch(meetControllerProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF0F0F1A),
       appBar: AppBar(
-        title: Text(meetState.roomInfo?.roomId ?? 'Meeting'),
-        backgroundColor: Colors.grey[900],
+        title: Text(
+          meetState.roomInfo?.roomId ?? 'Meeting',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF1A1A26).withOpacity(0.8),
+        elevation: 0,
+        flexibleSpace: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
         foregroundColor: Colors.white,
         actions: [
           if (meetState.isRecording)
-            const Row(
-              children: [
-                Icon(Icons.fiber_manual_record, color: Colors.red, size: 16),
-                SizedBox(width: 4),
-                Text('REC', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
-                SizedBox(width: 8),
-              ],
+            Container(
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
+              ),
+              child: const Row(
+                children: [
+                   Icon(Icons.fiber_manual_record, color: Colors.redAccent, size: 12),
+                   SizedBox(width: 6),
+                   Text('REC', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 10)),
+                ],
+              ),
             ),
           if (meetState.status == MeetStatus.connected)
             IconButton(
-              icon: const Icon(Icons.chat),
+              icon: const Icon(Icons.chat_bubble_outline, size: 22),
               onPressed: () => _showChat(context),
             ),
         ],
@@ -50,23 +70,29 @@ class MeetingScreen extends ConsumerWidget {
           _buildBody(context, ref, meetState),
           if (meetState.notification != null)
             Positioned(
-              top: 16,
-              left: 16,
-              right: 16,
+              top: 24,
+              left: 32,
+              right: 32,
               child: AnimatedOpacity(
                 opacity: 1.0,
                 duration: const Duration(milliseconds: 300),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.blue.withOpacity(0.5)),
-                  ),
-                  child: Text(
-                    meetState.notification!,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    textAlign: TextAlign.center,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.blueAccent.withOpacity(0.3), width: 1),
+                      ),
+                      child: Text(
+                        meetState.notification!,
+                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
                 ),
               ),

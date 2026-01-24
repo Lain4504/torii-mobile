@@ -114,21 +114,31 @@ class NatsService {
 
   bool get isConnected => _client?.status == nats.Status.connected;
 
+  String? _jsWorkerSubject;
+
   void _sendPing() {
-    if (!isConnected || _roomId == null || _userId == null) return;
-    // We can use REQ_INITIAL_DATA as a ping or just a specific PING if available
-    // For now we follow Web app: REQ_INITIAL_DATA is requested only once.
-    // They have a specific PING event.
+    if (!isConnected || _jsWorkerSubject == null) return;
+    sendMessageToSystemWorker(
+      baseSubject: _jsWorkerSubject!,
+      payload: NatsMsgClientToServer(event: NatsMsgClientToServerEvents.PING).writeToBuffer(),
+    );
   }
 
   void _renewToken() {
-    if (!isConnected || _token == null) return;
-    // sendMessageToSystemWorker(REQ_RENEW_WAJLC_TOKEN)
+    if (!isConnected || _token == null || _jsWorkerSubject == null) return;
+    sendMessageToSystemWorker(
+      baseSubject: _jsWorkerSubject!,
+      payload: NatsMsgClientToServer(
+        event: NatsMsgClientToServerEvents.REQ_RENEW_WAJLC_TOKEN,
+        msg: _token!,
+      ).writeToBuffer(),
+    );
   }
 
-  void setIdentity(String roomId, String userId) {
+  void setIdentity(String roomId, String userId, String jsWorkerSubject) {
     _roomId = roomId;
     _userId = userId;
+    _jsWorkerSubject = jsWorkerSubject;
   }
 
   // Specialized send methods matching Web

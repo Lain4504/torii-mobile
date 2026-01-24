@@ -30,22 +30,37 @@ class MeetingControls extends ConsumerWidget {
           children: [
             // Mic Toggle
             _ControlButton(
-              icon: state.isMicEnabled ? Icons.mic : Icons.mic_off,
-              color: state.isMicEnabled ? Colors.green : Colors.red,
+              icon: (state.localMetadata?.lockSettings.lockMicrophone ?? false) && !(state.localUser?.isAdmin ?? false)
+                  ? Icons.mic_off
+                  : (state.isMicEnabled ? Icons.mic : Icons.mic_off),
+              color: (state.localMetadata?.lockSettings.lockMicrophone ?? false) && !(state.localUser?.isAdmin ?? false)
+                  ? Colors.grey
+                  : (state.isMicEnabled ? Colors.greenAccent : Colors.redAccent),
               onPressed: () => notifier.toggleMic(),
               label: 'Mic',
             ),
             // Cam Toggle
             _ControlButton(
-              icon: state.isCamEnabled ? Icons.videocam : Icons.videocam_off,
-              color: state.isCamEnabled ? Colors.blue : Colors.red,
+              icon: (state.localMetadata?.lockSettings.lockWebcam ?? false) && !(state.localUser?.isAdmin ?? false)
+                  ? Icons.videocam_off
+                  : (state.isCamEnabled ? Icons.videocam : Icons.videocam_off),
+              color: (state.localMetadata?.lockSettings.lockWebcam ?? false) && !(state.localUser?.isAdmin ?? false)
+                  ? Colors.grey
+                  : (state.isCamEnabled ? Colors.blueAccent : Colors.redAccent),
               onPressed: () => notifier.toggleCam(),
               label: 'Cam',
+            ),
+            // Hand Raise
+            _ControlButton(
+              icon: state.localMetadata?.raisedHand ?? false ? Icons.back_hand : Icons.back_hand_outlined,
+              color: state.localMetadata?.raisedHand ?? false ? Colors.yellowAccent : Colors.white70,
+              onPressed: () => notifier.toggleHandRaise(),
+              label: 'Hand',
             ),
             // Screen Share Toggle
             _ControlButton(
               icon: state.isScreenSharingEnabled ? Icons.stop_screen_share : Icons.screen_share,
-              color: state.isScreenSharingEnabled ? Colors.orange : Colors.grey,
+              color: state.isScreenSharingEnabled ? Colors.orangeAccent : Colors.white70,
               onPressed: () => notifier.toggleScreenShare(),
               label: 'Share',
             ),
