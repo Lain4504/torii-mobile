@@ -60,6 +60,11 @@ dependencies:
   
   # Firebase packages
   google_sign_in: ^6.2.1
+  # Meet dependencies
+  livekit_client: ^2.2.1
+  permission_handler: ^11.3.1
+  wakelock_plus: ^1.2.8
+
 
 
 dev_dependencies:

@@ -6,7 +6,7 @@ This document outlines the detailed plan to re-implement the Web frontend (`apps
 
 **Goal:** Build a Flutter frontend that behaves **IDENTICALLY** to the existing Web frontend.
 **Source of Truth:** Codebase at `torii-monorepo/apps/meet`.
-**Backend:** Existing API and LiveKit Server/Wrapper (PlugNMeet).
+**Backend:** TypeScript (NestJS) clone of plugNmeet-server.
 **Tech Stack:**
 - **Framework:** Flutter Stable
 - **WebRTC/Signaling:** `livekit_client` (Matches Web's `livekit-client` logic 1:1)
@@ -63,49 +63,49 @@ lib/
 Mark tasks as `[x]` when completed.
 
 ### Phase 0: Setup & Dependencies
-- [ ] **Add Dependencies** (`pubspec.yaml`):
-    - `livekit_client` (Wraps `flutter_webrtc`)
-    - `flutter_webrtc` (Explicit dependency if needed for platform specific tweaks)
-    - `permission_handler` (For Camera/Mic permissions)
-    - `wakelock_plus` (Keep screen on during meeting)
-- [ ] **Platform Configuration**:
-    - [ ] **Android**: Add Internet, Camera, Record Audio, Bluetooth permissions to `AndroidManifest.xml`.
-    - [ ] **iOS**: Add privacy keys (NSCameraUsageDescription, NSMicrophoneUsageDescription) to `Info.plist`.
-- [ ] **Config Setup**:
-    - [ ] Create `lib/features/meet/core/meet_config.dart` to hold server URLs (referenced from Web's `config.ts`).
+- [x] **Add Dependencies** (`pubspec.yaml`):
+    - [x] `livekit_client` (Wraps `flutter_webrtc`)
+    - [x] `flutter_webrtc` (Explicit dependency if needed for platform specific tweaks)
+    - [x] `permission_handler` (For Camera/Mic permissions)
+    - [x] `wakelock_plus` (Keep screen on during meeting)
+- [x] **Platform Configuration**:
+    - [x] **Android**: Add Internet, Camera, Record Audio, Bluetooth permissions to `AndroidManifest.xml`.
+    - [ ] **iOS**: Add privacy keys (NSCameraUsageDescription, NSMicrophoneUsageDescription) to `Info.plist`. (No iOS folder found in current workspace)
+- [x] **Config Setup**:
+    - [x] Create `lib/features/meet/core/meet_config.dart` to hold server URLs (referenced from Web's `config.ts`).
 
 ### Phase 1: Core Logic (Data & Domain)
-- [ ] **API Service**:
-    - [ ] Implement `MeetApiService` to handle REST calls (equivalent to `apps/meet/src/helpers/api/api-client.ts`).
-    - [ ] Implement `verifyToken` / `joinRoom` API call to fetch access token.
-- [ ] **LiveKit Service**:
-    - [ ] Create `LiveKitService` class.
-    - [ ] Implement `connect(url, token)` logic matching `ConnectLivekit.ts`.
-    - [ ] Implement Event Listeners (`onTrackSubscribed`, `onParticipantConnected`, `onActiveSpeakersChanged`).
-    - [ ] Implement `disconnect()`.
-- [ ] **State Management (Riverpod)**:
-    - [ ] Create `meetControllerProvider` to orchestrate connection flow.
-    - [ ] Create `participantsProvider` to map Web's `participantSlice` (List of remote participants).
-    - [ ] Create `localParticipantProvider` for local user state (mic/cam status).
-    - [ ] Create `activeSpeakersProvider` for sorting logic.
+- [x] **API Service**:
+    - [x] Implement `MeetApiService` to handle REST calls (equivalent to `apps/meet/src/helpers/api/api-client.ts`).
+    - [x] Implement `verifyToken` / `joinRoom` API call to fetch access token.
+- [x] **LiveKit Service**:
+    - [x] Create `LiveKitService` class.
+    - [x] Implement `connect(url, token)` logic matching `ConnectLivekit.ts`.
+    - [x] Implement Event Listeners (`onTrackSubscribed`, `onParticipantConnected`, `onActiveSpeakersChanged`).
+    - [x] Implement `disconnect()`.
+- [x] **State Management (Riverpod)**:
+    - [x] Create `meetControllerProvider` to orchestrate connection flow.
+    - [x] Create `participantsProvider` to map Web's `participantSlice` (List of remote participants).
+    - [x] Create `localParticipantProvider` for local user state (mic/cam status).
+    - [x] Create `activeSpeakersProvider` for sorting logic.
 
 ### Phase 2: Meeting UI Implementation
-- [ ] **Meeting Screen Skeleton**:
-    - [ ] Create `MeetingScreen` scaffold.
-    - [ ] Create `MeetingAppBar` (Room title, duration).
-- [ ] **Video Grid**:
-    - [ ] Implement `ParticipantTile` widget:
-        - [ ] Show Video (using `VideoTrackRenderer`).
-        - [ ] Show Fallback Avatar (when video is off).
-        - [ ] Show Mic Status indicator (muted/unmuted).
-        - [ ] Show Name tag.
-    - [ ] Implement `VideoGridView` logic:
-        - [ ] Responsive grid layout (similar to Web's `react-cool-virtual` or standard Grid).
-        - [ ] Handle Active Speaker sorting (Prominent speaker logic).
-- [ ] **Controls (Bottom Bar)**:
-    - [ ] Implement `MeetingControls` widget (Toggle Mic, Toggle Cam, End Call).
-    - [ ] Bind buttons to `LiveKitService` methods (publish/unpublish tracks).
-    - [ ] Match Web icons and behavior.
+- [x] **Meeting Screen Skeleton**:
+    - [x] Create `MeetingScreen` scaffold.
+    - [x] Create `MeetingAppBar` (Room title, duration).
+- [x] **Video Grid**:
+    - [x] Implement `ParticipantTile` widget:
+        - [x] Show Video (using `VideoTrackRenderer`).
+        - [x] Show Fallback Avatar (when video is off).
+        - [x] Show Mic Status indicator (muted/unmuted).
+        - [x] Show Name tag.
+    - [x] Implement `VideoGridView` logic:
+        - [x] Responsive grid layout (similar to Web's `react-cool-virtual` or standard Grid).
+        - [x] Handle Active Speaker sorting (Prominent speaker logic).
+- [x] **Controls (Bottom Bar)**:
+    - [x] Implement `MeetingControls` widget (Toggle Mic, Toggle Cam, End Call).
+    - [x] Bind buttons to `LiveKitService` methods (publish/unpublish tracks).
+    - [x] Match Web icons and behavior.
 
 ### Phase 3: Advanced Features Parity (As needed)
 - [ ] **Screen Share Viewing**:
