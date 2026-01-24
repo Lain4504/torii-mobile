@@ -18,6 +18,7 @@ class LiveKitService {
   Function(Participant, TrackPublication)? onTrackUnsubscribed;
   Function(List<Participant>)? onActiveSpeakersChanged;
   Function(bool)? onConnectionStateChanged;
+  Function(Participant, ConnectionQuality)? onConnectionQualityChanged;
 
   Room? get room => _room;
 
@@ -73,6 +74,9 @@ class LiveKitService {
       })
       ..on<ActiveSpeakersChangedEvent>((event) {
         onActiveSpeakersChanged?.call(event.speakers);
+      })
+      ..on<ParticipantConnectionQualityUpdatedEvent>((event) {
+        onConnectionQualityChanged?.call(event.participant, event.connectionQuality);
       });
   }
 
@@ -84,7 +88,10 @@ class LiveKitService {
     if (_room == null) return [];
     
     final allParticipants = <Participant>[];
-    allParticipants.add(_room!.localParticipant);
+    final local = _room!.localParticipant;
+    if (local != null) {
+      allParticipants.add(local);
+    }
     allParticipants.addAll(_room!.remoteParticipants.values);
     return allParticipants;
   }
@@ -96,15 +103,24 @@ class LiveKitService {
 
   // Media controls
   Future<void> setMicrophoneEnabled(bool enabled) async {
-    await _room?.localParticipant.setMicrophoneEnabled(enabled);
+    final local = _room?.localParticipant;
+    if (local != null) {
+      await local.setMicrophoneEnabled(enabled);
+    }
   }
 
   Future<void> setCameraEnabled(bool enabled) async {
-    await _room?.localParticipant.setCameraEnabled(enabled);
+    final local = _room?.localParticipant;
+    if (local != null) {
+      await local.setCameraEnabled(enabled);
+    }
   }
 
   Future<void> setScreenShareEnabled(bool enabled) async {
-    await _room?.localParticipant.setScreenShareEnabled(enabled);
+    final local = _room?.localParticipant;
+    if (local != null) {
+      await local.setScreenShareEnabled(enabled);
+    }
   }
 
   Future<void> setSpeakerphoneEnabled(bool enabled) async {

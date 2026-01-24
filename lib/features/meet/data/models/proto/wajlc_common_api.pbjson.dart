@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_common_api.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_common_api.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -25,9 +23,8 @@ const SwitchPresenterTask$json = {
 };
 
 /// Descriptor for `SwitchPresenterTask`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List switchPresenterTaskDescriptor =
-    $convert.base64Decode(
-        'ChNTd2l0Y2hQcmVzZW50ZXJUYXNrEgsKB1BST01PVEUQABIKCgZERU1PVEUQAQ==');
+final $typed_data.Uint8List switchPresenterTaskDescriptor = $convert.base64Decode(
+    'ChNTd2l0Y2hQcmVzZW50ZXJUYXNrEgsKB1BST01PVEUQABIKCgZERU1PVEUQAQ==');
 
 @$core.Deprecated('Use externalMediaPlayerTaskDescriptor instead')
 const ExternalMediaPlayerTask$json = {
@@ -39,10 +36,9 @@ const ExternalMediaPlayerTask$json = {
 };
 
 /// Descriptor for `ExternalMediaPlayerTask`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List externalMediaPlayerTaskDescriptor =
-    $convert.base64Decode(
-        'ChdFeHRlcm5hbE1lZGlhUGxheWVyVGFzaxISCg5TVEFSVF9QTEFZQkFDSxAAEhAKDEVORF9QTE'
-        'FZQkFDSxAB');
+final $typed_data.Uint8List externalMediaPlayerTaskDescriptor = $convert.base64Decode(
+    'ChdFeHRlcm5hbE1lZGlhUGxheWVyVGFzaxISCg5TVEFSVF9QTEFZQkFDSxAAEhAKDEVORF9QTE'
+    'FZQkFDSxAB');
 
 @$core.Deprecated('Use externalDisplayLinkTaskDescriptor instead')
 const ExternalDisplayLinkTask$json = {
@@ -54,10 +50,9 @@ const ExternalDisplayLinkTask$json = {
 };
 
 /// Descriptor for `ExternalDisplayLinkTask`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List externalDisplayLinkTaskDescriptor =
-    $convert.base64Decode(
-        'ChdFeHRlcm5hbERpc3BsYXlMaW5rVGFzaxIXChNTVEFSVF9FWFRFUk5BTF9MSU5LEAASFgoSU1'
-        'RPUF9FWFRFUk5BTF9MSU5LEAE=');
+final $typed_data.Uint8List externalDisplayLinkTaskDescriptor = $convert.base64Decode(
+    'ChdFeHRlcm5hbERpc3BsYXlMaW5rVGFzaxIXChNTVEFSVF9FWFRFUk5BTF9MSU5LEAASFgoSU1'
+    'RPUF9FWFRFUk5BTF9MSU5LEAE=');
 
 @$core.Deprecated('Use roomUploadedFileTypeDescriptor instead')
 const RoomUploadedFileType$json = {
@@ -95,15 +90,7 @@ final $typed_data.Uint8List commonResponseDescriptor = $convert.base64Decode(
 const VerifyTokenReq$json = {
   '1': 'VerifyTokenReq',
   '2': [
-    {
-      '1': 'is_production',
-      '3': 1,
-      '4': 1,
-      '5': 8,
-      '9': 0,
-      '10': 'isProduction',
-      '17': true
-    },
+    {'1': 'is_production', '3': 1, '4': 1, '5': 8, '9': 0, '10': 'isProduction', '17': true},
   ],
   '8': [
     {'1': '_is_production'},
@@ -122,61 +109,12 @@ const VerifyTokenRes$json = {
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
     {'1': 'nats_ws_urls', '3': 3, '4': 3, '5': 9, '10': 'natsWsUrls'},
-    {
-      '1': 'server_version',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'serverVersion',
-      '17': true
-    },
-    {
-      '1': 'room_id',
-      '3': 5,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'roomId',
-      '17': true
-    },
-    {
-      '1': 'user_id',
-      '3': 6,
-      '4': 1,
-      '5': 9,
-      '9': 2,
-      '10': 'userId',
-      '17': true
-    },
-    {
-      '1': 'nats_subjects',
-      '3': 7,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.NatsSubjects',
-      '9': 3,
-      '10': 'natsSubjects',
-      '17': true
-    },
-    {
-      '1': 'enabled_self_insert_encryption_key',
-      '3': 8,
-      '4': 1,
-      '5': 8,
-      '9': 4,
-      '10': 'enabledSelfInsertEncryptionKey',
-      '17': true
-    },
-    {
-      '1': 'is_cloud',
-      '3': 9,
-      '4': 1,
-      '5': 8,
-      '9': 5,
-      '10': 'isCloud',
-      '17': true
-    },
+    {'1': 'server_version', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'serverVersion', '17': true},
+    {'1': 'room_id', '3': 5, '4': 1, '5': 9, '9': 1, '10': 'roomId', '17': true},
+    {'1': 'user_id', '3': 6, '4': 1, '5': 9, '9': 2, '10': 'userId', '17': true},
+    {'1': 'nats_subjects', '3': 7, '4': 1, '5': 11, '6': '.wajlc.NatsSubjects', '9': 3, '10': 'natsSubjects', '17': true},
+    {'1': 'enabled_self_insert_encryption_key', '3': 8, '4': 1, '5': 8, '9': 4, '10': 'enabledSelfInsertEncryptionKey', '17': true},
+    {'1': 'is_cloud', '3': 9, '4': 1, '5': 8, '9': 5, '10': 'isCloud', '17': true},
   ],
   '8': [
     {'1': '_server_version'},
@@ -246,14 +184,7 @@ const DataMessageReq$json = {
     {'1': 'room_sid', '3': 2, '4': 1, '5': 9, '10': 'roomSid'},
     {'1': 'user_id', '3': 3, '4': 1, '5': 9, '10': 'userId'},
     {'1': 'user_sid', '3': 4, '4': 1, '5': 9, '10': 'userSid'},
-    {
-      '1': 'msg_body_type',
-      '3': 5,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.DataMsgBodyType',
-      '10': 'msgBodyType'
-    },
+    {'1': 'msg_body_type', '3': 5, '4': 1, '5': 14, '6': '.wajlc.DataMsgBodyType', '10': 'msgBodyType'},
     {'1': 'msg', '3': 6, '4': 1, '5': 9, '10': 'msg'},
     {'1': 'requested_user_id', '3': 7, '4': 1, '5': 9, '10': 'requestedUserId'},
     {'1': 'send_to', '3': 8, '4': 3, '5': 9, '10': 'sendTo'},
@@ -279,32 +210,16 @@ const RoomEndAPIReq$json = {
 };
 
 /// Descriptor for `RoomEndAPIReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List roomEndAPIReqDescriptor = $convert
-    .base64Decode('Cg1Sb29tRW5kQVBJUmVxEhcKB3Jvb21faWQYASABKAlSBnJvb21JZA==');
+final $typed_data.Uint8List roomEndAPIReqDescriptor = $convert.base64Decode(
+    'Cg1Sb29tRW5kQVBJUmVxEhcKB3Jvb21faWQYASABKAlSBnJvb21JZA==');
 
 @$core.Deprecated('Use changeVisibilityResDescriptor instead')
 const ChangeVisibilityRes$json = {
   '1': 'ChangeVisibilityRes',
   '2': [
     {'1': 'room_id', '3': 1, '4': 1, '5': 9, '10': 'roomId'},
-    {
-      '1': 'visible_notepad',
-      '3': 2,
-      '4': 1,
-      '5': 8,
-      '9': 0,
-      '10': 'visibleNotepad',
-      '17': true
-    },
-    {
-      '1': 'visible_white_board',
-      '3': 3,
-      '4': 1,
-      '5': 8,
-      '9': 1,
-      '10': 'visibleWhiteBoard',
-      '17': true
-    },
+    {'1': 'visible_notepad', '3': 2, '4': 1, '5': 8, '9': 0, '10': 'visibleNotepad', '17': true},
+    {'1': 'visible_white_board', '3': 3, '4': 1, '5': 8, '9': 1, '10': 'visibleWhiteBoard', '17': true},
   ],
   '8': [
     {'1': '_visible_notepad'},
@@ -323,14 +238,7 @@ final $typed_data.Uint8List changeVisibilityResDescriptor = $convert.base64Decod
 const SwitchPresenterReq$json = {
   '1': 'SwitchPresenterReq',
   '2': [
-    {
-      '1': 'task',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.SwitchPresenterTask',
-      '10': 'task'
-    },
+    {'1': 'task', '3': 1, '4': 1, '5': 14, '6': '.wajlc.SwitchPresenterTask', '10': 'task'},
     {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
     {'1': 'room_id', '3': 3, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'requested_user_id', '3': 4, '4': 1, '5': 9, '10': 'requestedUserId'},
@@ -347,24 +255,9 @@ final $typed_data.Uint8List switchPresenterReqDescriptor = $convert.base64Decode
 const ExternalMediaPlayerReq$json = {
   '1': 'ExternalMediaPlayerReq',
   '2': [
-    {
-      '1': 'task',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.ExternalMediaPlayerTask',
-      '10': 'task'
-    },
+    {'1': 'task', '3': 1, '4': 1, '5': 14, '6': '.wajlc.ExternalMediaPlayerTask', '10': 'task'},
     {'1': 'url', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'url', '17': true},
-    {
-      '1': 'seek_to',
-      '3': 3,
-      '4': 1,
-      '5': 1,
-      '9': 1,
-      '10': 'seekTo',
-      '17': true
-    },
+    {'1': 'seek_to', '3': 3, '4': 1, '5': 1, '9': 1, '10': 'seekTo', '17': true},
     {'1': 'room_id', '3': 4, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'user_id', '3': 5, '4': 1, '5': 9, '10': 'userId'},
   ],
@@ -385,14 +278,7 @@ final $typed_data.Uint8List externalMediaPlayerReqDescriptor = $convert.base64De
 const ExternalDisplayLinkReq$json = {
   '1': 'ExternalDisplayLinkReq',
   '2': [
-    {
-      '1': 'task',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.ExternalDisplayLinkTask',
-      '10': 'task'
-    },
+    {'1': 'task', '3': 1, '4': 1, '5': 14, '6': '.wajlc.ExternalDisplayLinkTask', '10': 'task'},
     {'1': 'url', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'url', '17': true},
     {'1': 'room_id', '3': 4, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'user_id', '3': 5, '4': 1, '5': 9, '10': 'userId'},
@@ -415,15 +301,7 @@ const CreateEtherpadSessionRes$json = {
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
     {'1': 'pad_id', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'padId', '17': true},
-    {
-      '1': 'readonly_pad_id',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'readonlyPadId',
-      '17': true
-    },
+    {'1': 'readonly_pad_id', '3': 4, '4': 1, '5': 9, '9': 1, '10': 'readonlyPadId', '17': true},
   ],
   '8': [
     {'1': '_pad_id'},
@@ -463,10 +341,9 @@ const ChangeEtherpadStatusReq$json = {
 };
 
 /// Descriptor for `ChangeEtherpadStatusReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List changeEtherpadStatusReqDescriptor =
-    $convert.base64Decode(
-        'ChdDaGFuZ2VFdGhlcnBhZFN0YXR1c1JlcRIXCgdyb29tX2lkGAEgASgJUgZyb29tSWQSGwoJaX'
-        'NfYWN0aXZlGAIgASgIUghpc0FjdGl2ZQ==');
+final $typed_data.Uint8List changeEtherpadStatusReqDescriptor = $convert.base64Decode(
+    'ChdDaGFuZ2VFdGhlcnBhZFN0YXR1c1JlcRIXCgdyb29tX2lkGAEgASgJUgZyb29tSWQSGwoJaX'
+    'NfYWN0aXZlGAIgASgIUghpc0FjdGl2ZQ==');
 
 @$core.Deprecated('Use approveWaitingUsersReqDescriptor instead')
 const ApproveWaitingUsersReq$json = {
@@ -478,10 +355,9 @@ const ApproveWaitingUsersReq$json = {
 };
 
 /// Descriptor for `ApproveWaitingUsersReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List approveWaitingUsersReqDescriptor =
-    $convert.base64Decode(
-        'ChZBcHByb3ZlV2FpdGluZ1VzZXJzUmVxEhcKB3Jvb21faWQYASABKAlSBnJvb21JZBIXCgd1c2'
-        'VyX2lkGAIgASgJUgZ1c2VySWQ=');
+final $typed_data.Uint8List approveWaitingUsersReqDescriptor = $convert.base64Decode(
+    'ChZBcHByb3ZlV2FpdGluZ1VzZXJzUmVxEhcKB3Jvb21faWQYASABKAlSBnJvb21JZBIXCgd1c2'
+    'VyX2lkGAIgASgJUgZ1c2VySWQ=');
 
 @$core.Deprecated('Use updateWaitingRoomMessageReqDescriptor instead')
 const UpdateWaitingRoomMessageReq$json = {
@@ -493,10 +369,9 @@ const UpdateWaitingRoomMessageReq$json = {
 };
 
 /// Descriptor for `UpdateWaitingRoomMessageReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List updateWaitingRoomMessageReqDescriptor =
-    $convert.base64Decode(
-        'ChtVcGRhdGVXYWl0aW5nUm9vbU1lc3NhZ2VSZXESFwoHcm9vbV9pZBgBIAEoCVIGcm9vbUlkEh'
-        'AKA21zZxgCIAEoCVIDbXNn');
+final $typed_data.Uint8List updateWaitingRoomMessageReqDescriptor = $convert.base64Decode(
+    'ChtVcGRhdGVXYWl0aW5nUm9vbU1lc3NhZ2VSZXESFwoHcm9vbV9pZBgBIAEoCVIGcm9vbUlkEh'
+    'AKA21zZxgCIAEoCVIDbXNn');
 
 @$core.Deprecated('Use updateUserLockSettingsReqDescriptor instead')
 const UpdateUserLockSettingsReq$json = {
@@ -525,23 +400,15 @@ const UploadBase64EncodedDataReq$json = {
     {'1': 'room_id', '3': 1, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'data', '3': 3, '4': 1, '5': 9, '10': 'data'},
     {'1': 'file_name', '3': 4, '4': 1, '5': 9, '10': 'fileName'},
-    {
-      '1': 'file_type',
-      '3': 5,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.RoomUploadedFileType',
-      '10': 'fileType'
-    },
+    {'1': 'file_type', '3': 5, '4': 1, '5': 14, '6': '.wajlc.RoomUploadedFileType', '10': 'fileType'},
   ],
 };
 
 /// Descriptor for `UploadBase64EncodedDataReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List uploadBase64EncodedDataReqDescriptor =
-    $convert.base64Decode(
-        'ChpVcGxvYWRCYXNlNjRFbmNvZGVkRGF0YVJlcRIXCgdyb29tX2lkGAEgASgJUgZyb29tSWQSEg'
-        'oEZGF0YRgDIAEoCVIEZGF0YRIbCglmaWxlX25hbWUYBCABKAlSCGZpbGVOYW1lEjgKCWZpbGVf'
-        'dHlwZRgFIAEoDjIbLndhamxjLlJvb21VcGxvYWRlZEZpbGVUeXBlUghmaWxlVHlwZQ==');
+final $typed_data.Uint8List uploadBase64EncodedDataReqDescriptor = $convert.base64Decode(
+    'ChpVcGxvYWRCYXNlNjRFbmNvZGVkRGF0YVJlcRIXCgdyb29tX2lkGAEgASgJUgZyb29tSWQSEg'
+    'oEZGF0YRgDIAEoCVIEZGF0YRIbCglmaWxlX25hbWUYBCABKAlSCGZpbGVOYW1lEjgKCWZpbGVf'
+    'dHlwZRgFIAEoDjIbLndhamxjLlJvb21VcGxvYWRlZEZpbGVUeXBlUghmaWxlVHlwZQ==');
 
 @$core.Deprecated('Use uploadBase64EncodedDataResDescriptor instead')
 const UploadBase64EncodedDataRes$json = {
@@ -569,35 +436,10 @@ const UploadedFileMergeReq$json = {
   '2': [
     {'1': 'room_sid', '3': 1, '4': 1, '5': 9, '10': 'roomSid'},
     {'1': 'room_id', '3': 2, '4': 1, '5': 9, '10': 'roomId'},
-    {
-      '1': 'file_type',
-      '3': 3,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.RoomUploadedFileType',
-      '10': 'fileType'
-    },
-    {
-      '1': 'resumable_identifier',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '10': 'resumableIdentifier'
-    },
-    {
-      '1': 'resumable_filename',
-      '3': 5,
-      '4': 1,
-      '5': 9,
-      '10': 'resumableFilename'
-    },
-    {
-      '1': 'resumable_total_chunks',
-      '3': 6,
-      '4': 1,
-      '5': 5,
-      '10': 'resumableTotalChunks'
-    },
+    {'1': 'file_type', '3': 3, '4': 1, '5': 14, '6': '.wajlc.RoomUploadedFileType', '10': 'fileType'},
+    {'1': 'resumable_identifier', '3': 4, '4': 1, '5': 9, '10': 'resumableIdentifier'},
+    {'1': 'resumable_filename', '3': 5, '4': 1, '5': 9, '10': 'resumableFilename'},
+    {'1': 'resumable_total_chunks', '3': 6, '4': 1, '5': 5, '10': 'resumableTotalChunks'},
   ],
 };
 
@@ -621,14 +463,7 @@ const UploadedFileRes$json = {
     {'1': 'file_name', '3': 5, '4': 1, '5': 9, '10': 'fileName'},
     {'1': 'file_extension', '3': 6, '4': 1, '5': 9, '10': 'fileExtension'},
     {'1': 'file_mime_type', '3': 7, '4': 1, '5': 9, '10': 'fileMimeType'},
-    {
-      '1': 'file_type',
-      '3': 8,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.RoomUploadedFileType',
-      '10': 'fileType'
-    },
+    {'1': 'file_type', '3': 8, '4': 1, '5': 14, '6': '.wajlc.RoomUploadedFileType', '10': 'fileType'},
   ],
 };
 
@@ -649,31 +484,10 @@ const RoomUploadedFileMetadata$json = {
     {'1': 'file_name', '3': 2, '4': 1, '5': 9, '10': 'fileName'},
     {'1': 'file_path', '3': 3, '4': 1, '5': 9, '10': 'filePath'},
     {'1': 'mime_type', '3': 4, '4': 1, '5': 9, '10': 'mimeType'},
-    {
-      '1': 'uploaded_by_user_id',
-      '3': 5,
-      '4': 1,
-      '5': 9,
-      '10': 'uploadedByUserId'
-    },
+    {'1': 'uploaded_by_user_id', '3': 5, '4': 1, '5': 9, '10': 'uploadedByUserId'},
     {'1': 'uploaded_by_name', '3': 6, '4': 1, '5': 9, '10': 'uploadedByName'},
-    {
-      '1': 'file_type',
-      '3': 7,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.RoomUploadedFileType',
-      '10': 'fileType'
-    },
-    {
-      '1': 'total_pages',
-      '3': 8,
-      '4': 1,
-      '5': 5,
-      '9': 0,
-      '10': 'totalPages',
-      '17': true
-    },
+    {'1': 'file_type', '3': 7, '4': 1, '5': 14, '6': '.wajlc.RoomUploadedFileType', '10': 'fileType'},
+    {'1': 'total_pages', '3': 8, '4': 1, '5': 5, '9': 0, '10': 'totalPages', '17': true},
   ],
   '8': [
     {'1': '_total_pages'},
@@ -695,14 +509,7 @@ const GetRoomUploadedFilesReq$json = {
   '1': 'GetRoomUploadedFilesReq',
   '2': [
     {'1': 'room_id', '3': 1, '4': 1, '5': 9, '10': 'roomId'},
-    {
-      '1': 'file_type',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.RoomUploadedFileType',
-      '10': 'fileType'
-    },
+    {'1': 'file_type', '3': 2, '4': 1, '5': 14, '6': '.wajlc.RoomUploadedFileType', '10': 'fileType'},
   ],
 };
 
@@ -717,14 +524,7 @@ const GetRoomUploadedFilesRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {
-      '1': 'files',
-      '3': 3,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.RoomUploadedFileMetadata',
-      '10': 'files'
-    },
+    {'1': 'files', '3': 3, '4': 3, '5': 11, '6': '.wajlc.RoomUploadedFileMetadata', '10': 'files'},
   ],
 };
 
@@ -733,3 +533,4 @@ final $typed_data.Uint8List getRoomUploadedFilesResDescriptor = $convert.base64D
     'ChdHZXRSb29tVXBsb2FkZWRGaWxlc1JlcxIWCgZzdGF0dXMYASABKAhSBnN0YXR1cxIQCgNtc2'
     'cYAiABKAlSA21zZxI1CgVmaWxlcxgDIAMoCzIfLndhamxjLlJvb21VcGxvYWRlZEZpbGVNZXRh'
     'ZGF0YVIFZmlsZXM=');
+

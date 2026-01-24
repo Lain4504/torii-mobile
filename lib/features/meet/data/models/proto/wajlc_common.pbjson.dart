@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_common.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_common.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -20,86 +18,15 @@ const CommonNotifyEvent$json = {
   '1': 'CommonNotifyEvent',
   '2': [
     {'1': 'event', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'event', '17': true},
-    {
-      '1': 'room',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.NotifyEventRoom',
-      '9': 1,
-      '10': 'room',
-      '17': true
-    },
-    {
-      '1': 'participant',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.ParticipantInfo',
-      '9': 2,
-      '10': 'participant',
-      '17': true
-    },
-    {
-      '1': 'recording_info',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RecordingInfoEvent',
-      '9': 3,
-      '10': 'recordingInfo',
-      '17': true
-    },
-    {
-      '1': 'speech_service',
-      '3': 5,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.SpeechServiceEvent',
-      '9': 4,
-      '10': 'speechService',
-      '17': true
-    },
-    {
-      '1': 'track',
-      '3': 6,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.TrackInfo',
-      '9': 5,
-      '10': 'track',
-      '17': true
-    },
-    {
-      '1': 'analytics',
-      '3': 7,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.AnalyticsEvent',
-      '9': 6,
-      '10': 'analytics',
-      '17': true
-    },
-    {
-      '1': 'room_artifact',
-      '3': 8,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactWebhookEvent',
-      '9': 7,
-      '10': 'roomArtifact',
-      '17': true
-    },
+    {'1': 'room', '3': 2, '4': 1, '5': 11, '6': '.wajlc.NotifyEventRoom', '9': 1, '10': 'room', '17': true},
+    {'1': 'participant', '3': 3, '4': 1, '5': 11, '6': '.livekit.ParticipantInfo', '9': 2, '10': 'participant', '17': true},
+    {'1': 'recording_info', '3': 4, '4': 1, '5': 11, '6': '.wajlc.RecordingInfoEvent', '9': 3, '10': 'recordingInfo', '17': true},
+    {'1': 'speech_service', '3': 5, '4': 1, '5': 11, '6': '.wajlc.SpeechServiceEvent', '9': 4, '10': 'speechService', '17': true},
+    {'1': 'track', '3': 6, '4': 1, '5': 11, '6': '.livekit.TrackInfo', '9': 5, '10': 'track', '17': true},
+    {'1': 'analytics', '3': 7, '4': 1, '5': 11, '6': '.wajlc.AnalyticsEvent', '9': 6, '10': 'analytics', '17': true},
+    {'1': 'room_artifact', '3': 8, '4': 1, '5': 11, '6': '.wajlc.RoomArtifactWebhookEvent', '9': 7, '10': 'roomArtifact', '17': true},
     {'1': 'id', '3': 9, '4': 1, '5': 9, '9': 8, '10': 'id', '17': true},
-    {
-      '1': 'created_at',
-      '3': 10,
-      '4': 1,
-      '5': 3,
-      '9': 9,
-      '10': 'createdAt',
-      '17': true
-    },
+    {'1': 'created_at', '3': 10, '4': 1, '5': 3, '9': 9, '10': 'createdAt', '17': true},
   ],
   '8': [
     {'1': '_event'},
@@ -136,68 +63,13 @@ const NotifyEventRoom$json = {
   '1': 'NotifyEventRoom',
   '2': [
     {'1': 'sid', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'sid', '17': true},
-    {
-      '1': 'room_id',
-      '3': 2,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'roomId',
-      '17': true
-    },
-    {
-      '1': 'empty_timeout',
-      '3': 3,
-      '4': 1,
-      '5': 13,
-      '9': 2,
-      '10': 'emptyTimeout',
-      '17': true
-    },
-    {
-      '1': 'max_participants',
-      '3': 4,
-      '4': 1,
-      '5': 13,
-      '9': 3,
-      '10': 'maxParticipants',
-      '17': true
-    },
-    {
-      '1': 'creation_time',
-      '3': 5,
-      '4': 1,
-      '5': 4,
-      '9': 4,
-      '10': 'creationTime',
-      '17': true
-    },
-    {
-      '1': 'enabled_codecs',
-      '3': 6,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.Codec',
-      '10': 'enabledCodecs'
-    },
-    {
-      '1': 'metadata',
-      '3': 7,
-      '4': 1,
-      '5': 9,
-      '9': 5,
-      '10': 'metadata',
-      '17': true
-    },
-    {
-      '1': 'num_participants',
-      '3': 8,
-      '4': 1,
-      '5': 13,
-      '9': 6,
-      '10': 'numParticipants',
-      '17': true
-    },
+    {'1': 'room_id', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'roomId', '17': true},
+    {'1': 'empty_timeout', '3': 3, '4': 1, '5': 13, '9': 2, '10': 'emptyTimeout', '17': true},
+    {'1': 'max_participants', '3': 4, '4': 1, '5': 13, '9': 3, '10': 'maxParticipants', '17': true},
+    {'1': 'creation_time', '3': 5, '4': 1, '5': 4, '9': 4, '10': 'creationTime', '17': true},
+    {'1': 'enabled_codecs', '3': 6, '4': 3, '5': 11, '6': '.livekit.Codec', '10': 'enabledCodecs'},
+    {'1': 'metadata', '3': 7, '4': 1, '5': 9, '9': 5, '10': 'metadata', '17': true},
+    {'1': 'num_participants', '3': 8, '4': 1, '5': 13, '9': 6, '10': 'numParticipants', '17': true},
   ],
   '8': [
     {'1': '_sid'},
@@ -229,24 +101,8 @@ const RecordingInfoEvent$json = {
     {'1': 'record_id', '3': 1, '4': 1, '5': 9, '10': 'recordId'},
     {'1': 'recorder_id', '3': 2, '4': 1, '5': 9, '10': 'recorderId'},
     {'1': 'recorder_msg', '3': 3, '4': 1, '5': 9, '10': 'recorderMsg'},
-    {
-      '1': 'file_path',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'filePath',
-      '17': true
-    },
-    {
-      '1': 'file_size',
-      '3': 5,
-      '4': 1,
-      '5': 2,
-      '9': 1,
-      '10': 'fileSize',
-      '17': true
-    },
+    {'1': 'file_path', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'filePath', '17': true},
+    {'1': 'file_size', '3': 5, '4': 1, '5': 2, '9': 1, '10': 'fileSize', '17': true},
   ],
   '8': [
     {'1': '_file_path'},
@@ -265,15 +121,7 @@ final $typed_data.Uint8List recordingInfoEventDescriptor = $convert.base64Decode
 const SpeechServiceEvent$json = {
   '1': 'SpeechServiceEvent',
   '2': [
-    {
-      '1': 'user_id',
-      '3': 3,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'userId',
-      '17': true
-    },
+    {'1': 'user_id', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'userId', '17': true},
     {'1': 'total_usage', '3': 4, '4': 1, '5': 3, '10': 'totalUsage'},
   ],
   '8': [
@@ -290,15 +138,7 @@ final $typed_data.Uint8List speechServiceEventDescriptor = $convert.base64Decode
 const AnalyticsEvent$json = {
   '1': 'AnalyticsEvent',
   '2': [
-    {
-      '1': 'file_id',
-      '3': 1,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'fileId',
-      '17': true
-    },
+    {'1': 'file_id', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'fileId', '17': true},
   ],
   '8': [
     {'1': '_file_id'},
@@ -309,3 +149,4 @@ const AnalyticsEvent$json = {
 final $typed_data.Uint8List analyticsEventDescriptor = $convert.base64Decode(
     'Cg5BbmFseXRpY3NFdmVudBIcCgdmaWxlX2lkGAEgASgJSABSBmZpbGVJZIgBAUIKCghfZmlsZV'
     '9pZA==');
+

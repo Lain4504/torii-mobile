@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_analytics.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_analytics.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -49,29 +47,13 @@ const AnalyticsEvents$json = {
     {'1': 'ANALYTICS_EVENT_ROOM_WHITEBOARD_FILES', '2': 13},
     {'1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_TRANSCRIPTION_STATUS', '2': 31},
     {'1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_TRANSCRIPTION_TOTAL_USAGE', '2': 32},
-    {
-      '1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_SYNTHESIZED_SPEECH_TOTAL_USAGE',
-      '2': 33
-    },
+    {'1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_SYNTHESIZED_SPEECH_TOTAL_USAGE', '2': 33},
     {'1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_CHAT_TRANSLATION_STATUS', '2': 34},
-    {
-      '1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_CHAT_TRANSLATION_TOTAL_USAGE',
-      '2': 35
-    },
+    {'1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_CHAT_TRANSLATION_TOTAL_USAGE', '2': 35},
     {'1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_AI_TEXT_CHAT_STATUS', '2': 36},
-    {
-      '1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_AI_TEXT_CHAT_INTERACTION_TOTAL_USAGE',
-      '2': 37
-    },
-    {
-      '1':
-          'ANALYTICS_EVENT_ROOM_INSIGHTS_AI_TEXT_CHAT_SUMMARIZATION_TOTAL_USAGE',
-      '2': 38
-    },
-    {
-      '1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_AI_MEETING_SUMMARIZATION_STATUS',
-      '2': 39
-    },
+    {'1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_AI_TEXT_CHAT_INTERACTION_TOTAL_USAGE', '2': 37},
+    {'1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_AI_TEXT_CHAT_SUMMARIZATION_TOTAL_USAGE', '2': 38},
+    {'1': 'ANALYTICS_EVENT_ROOM_INSIGHTS_AI_MEETING_SUMMARIZATION_STATUS', '2': 39},
     {'1': 'ANALYTICS_EVENT_USER_LEFT', '2': 14},
     {'1': 'ANALYTICS_EVENT_USER_MIC_STATUS', '2': 15},
     {'1': 'ANALYTICS_EVENT_USER_TALKED', '2': 16},
@@ -150,87 +132,17 @@ final $typed_data.Uint8List analyticsStatusDescriptor = $convert.base64Decode(
 const AnalyticsDataMsg$json = {
   '1': 'AnalyticsDataMsg',
   '2': [
-    {
-      '1': 'event_type',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.AnalyticsEventType',
-      '10': 'eventType'
-    },
-    {
-      '1': 'event_name',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.AnalyticsEvents',
-      '10': 'eventName'
-    },
+    {'1': 'event_type', '3': 1, '4': 1, '5': 14, '6': '.wajlc.AnalyticsEventType', '10': 'eventType'},
+    {'1': 'event_name', '3': 2, '4': 1, '5': 14, '6': '.wajlc.AnalyticsEvents', '10': 'eventName'},
     {'1': 'room_id', '3': 3, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'time', '3': 4, '4': 1, '5': 3, '10': 'time'},
-    {
-      '1': 'event_value_string',
-      '3': 5,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'eventValueString',
-      '17': true
-    },
-    {
-      '1': 'event_value_integer',
-      '3': 6,
-      '4': 1,
-      '5': 3,
-      '9': 1,
-      '10': 'eventValueInteger',
-      '17': true
-    },
-    {
-      '1': 'hset_value',
-      '3': 7,
-      '4': 1,
-      '5': 9,
-      '9': 2,
-      '10': 'hsetValue',
-      '17': true
-    },
-    {
-      '1': 'room_sid',
-      '3': 8,
-      '4': 1,
-      '5': 9,
-      '9': 3,
-      '10': 'roomSid',
-      '17': true
-    },
-    {
-      '1': 'user_id',
-      '3': 9,
-      '4': 1,
-      '5': 9,
-      '9': 4,
-      '10': 'userId',
-      '17': true
-    },
-    {
-      '1': 'user_name',
-      '3': 10,
-      '4': 1,
-      '5': 9,
-      '9': 5,
-      '10': 'userName',
-      '17': true
-    },
-    {
-      '1': 'extra_data',
-      '3': 11,
-      '4': 1,
-      '5': 9,
-      '9': 6,
-      '10': 'extraData',
-      '17': true
-    },
+    {'1': 'event_value_string', '3': 5, '4': 1, '5': 9, '9': 0, '10': 'eventValueString', '17': true},
+    {'1': 'event_value_integer', '3': 6, '4': 1, '5': 3, '9': 1, '10': 'eventValueInteger', '17': true},
+    {'1': 'hset_value', '3': 7, '4': 1, '5': 9, '9': 2, '10': 'hsetValue', '17': true},
+    {'1': 'room_sid', '3': 8, '4': 1, '5': 9, '9': 3, '10': 'roomSid', '17': true},
+    {'1': 'user_id', '3': 9, '4': 1, '5': 9, '9': 4, '10': 'userId', '17': true},
+    {'1': 'user_name', '3': 10, '4': 1, '5': 9, '9': 5, '10': 'userName', '17': true},
+    {'1': 'extra_data', '3': 11, '4': 1, '5': 9, '9': 6, '10': 'extraData', '17': true},
   ],
   '8': [
     {'1': '_event_value_string'},
@@ -277,14 +189,7 @@ const AnalyticsEventData$json = {
   '2': [
     {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
     {'1': 'total', '3': 2, '4': 1, '5': 13, '10': 'total'},
-    {
-      '1': 'values',
-      '3': 3,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.AnalyticsEventValue',
-      '10': 'values'
-    },
+    {'1': 'values', '3': 3, '4': 3, '5': 11, '6': '.wajlc.AnalyticsEventValue', '10': 'values'},
   ],
 };
 
@@ -305,14 +210,7 @@ const AnalyticsRoomInfo$json = {
     {'1': 'room_ended', '3': 5, '4': 1, '5': 3, '10': 'roomEnded'},
     {'1': 'room_duration', '3': 6, '4': 1, '5': 3, '10': 'roomDuration'},
     {'1': 'enabled_e2ee', '3': 7, '4': 1, '5': 8, '10': 'enabledE2ee'},
-    {
-      '1': 'events',
-      '3': 9,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.AnalyticsEventData',
-      '10': 'events'
-    },
+    {'1': 'events', '3': 9, '4': 3, '5': 11, '6': '.wajlc.AnalyticsEventData', '10': 'events'},
   ],
 };
 
@@ -332,32 +230,9 @@ const AnalyticsUserInfo$json = {
     {'1': 'user_id', '3': 1, '4': 1, '5': 9, '10': 'userId'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'is_admin', '3': 3, '4': 1, '5': 8, '10': 'isAdmin'},
-    {
-      '1': 'extra_data',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'extraData',
-      '17': true
-    },
-    {
-      '1': 'ex_user_id',
-      '3': 5,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'exUserId',
-      '17': true
-    },
-    {
-      '1': 'events',
-      '3': 6,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.AnalyticsEventData',
-      '10': 'events'
-    },
+    {'1': 'extra_data', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'extraData', '17': true},
+    {'1': 'ex_user_id', '3': 5, '4': 1, '5': 9, '9': 1, '10': 'exUserId', '17': true},
+    {'1': 'events', '3': 6, '4': 3, '5': 11, '6': '.wajlc.AnalyticsEventData', '10': 'events'},
   ],
   '8': [
     {'1': '_extra_data'},
@@ -377,22 +252,8 @@ final $typed_data.Uint8List analyticsUserInfoDescriptor = $convert.base64Decode(
 const AnalyticsResult$json = {
   '1': 'AnalyticsResult',
   '2': [
-    {
-      '1': 'room',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.AnalyticsRoomInfo',
-      '10': 'room'
-    },
-    {
-      '1': 'users',
-      '3': 2,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.AnalyticsUserInfo',
-      '10': 'users'
-    },
+    {'1': 'room', '3': 1, '4': 1, '5': 11, '6': '.wajlc.AnalyticsRoomInfo', '10': 'room'},
+    {'1': 'users', '3': 2, '4': 3, '5': 11, '6': '.wajlc.AnalyticsUserInfo', '10': 'users'},
   ],
 };
 
@@ -407,24 +268,8 @@ const AnalyticsRedisUserInfo$json = {
   '2': [
     {'1': 'name', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'name', '17': true},
     {'1': 'is_admin', '3': 2, '4': 1, '5': 8, '10': 'isAdmin'},
-    {
-      '1': 'extra_data',
-      '3': 3,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'extraData',
-      '17': true
-    },
-    {
-      '1': 'ex_user_id',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '9': 2,
-      '10': 'exUserId',
-      '17': true
-    },
+    {'1': 'extra_data', '3': 3, '4': 1, '5': 9, '9': 1, '10': 'extraData', '17': true},
+    {'1': 'ex_user_id', '3': 4, '4': 1, '5': 9, '9': 2, '10': 'exUserId', '17': true},
   ],
   '8': [
     {'1': '_name'},
@@ -439,3 +284,4 @@ final $typed_data.Uint8List analyticsRedisUserInfoDescriptor = $convert.base64De
     '9hZG1pbhgCIAEoCFIHaXNBZG1pbhIiCgpleHRyYV9kYXRhGAMgASgJSAFSCWV4dHJhRGF0YYgB'
     'ARIhCgpleF91c2VyX2lkGAQgASgJSAJSCGV4VXNlcklkiAEBQgcKBV9uYW1lQg0KC19leHRyYV'
     '9kYXRhQg0KC19leF91c2VyX2lk');
+

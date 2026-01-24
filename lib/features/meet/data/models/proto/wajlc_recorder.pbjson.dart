@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_recorder.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_recorder.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -62,39 +60,23 @@ const CloudRecordingVariants$json = {
 };
 
 /// Descriptor for `CloudRecordingVariants`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List cloudRecordingVariantsDescriptor =
-    $convert.base64Decode(
-        'ChZDbG91ZFJlY29yZGluZ1ZhcmlhbnRzEh8KG0ZVTExfU0NSRUVOX0NMT1VEX1JFQ09SRElORx'
-        'AAEh4KGk1FRElBX09OTFlfQ0xPVURfUkVDT1JESU5HEAE=');
+final $typed_data.Uint8List cloudRecordingVariantsDescriptor = $convert.base64Decode(
+    'ChZDbG91ZFJlY29yZGluZ1ZhcmlhbnRzEh8KG0ZVTExfU0NSRUVOX0NMT1VEX1JFQ09SRElORx'
+    'AAEh4KGk1FRElBX09OTFlfQ0xPVURfUkVDT1JESU5HEAE=');
 
 @$core.Deprecated('Use wajlcToRecorderDescriptor instead')
 const WajlcToRecorder$json = {
   '1': 'WajlcToRecorder',
   '2': [
     {'1': 'from', '3': 1, '4': 1, '5': 9, '10': 'from'},
-    {
-      '1': 'task',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.RecordingTasks',
-      '10': 'task'
-    },
+    {'1': 'task', '3': 2, '4': 1, '5': 14, '6': '.wajlc.RecordingTasks', '10': 'task'},
     {'1': 'room_table_id', '3': 3, '4': 1, '5': 3, '10': 'roomTableId'},
     {'1': 'room_id', '3': 4, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'room_sid', '3': 5, '4': 1, '5': 9, '10': 'roomSid'},
     {'1': 'recording_id', '3': 6, '4': 1, '5': 9, '10': 'recordingId'},
     {'1': 'recorder_id', '3': 7, '4': 1, '5': 9, '10': 'recorderId'},
     {'1': 'access_token', '3': 8, '4': 1, '5': 9, '10': 'accessToken'},
-    {
-      '1': 'rtmp_url',
-      '3': 9,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'rtmpUrl',
-      '17': true
-    },
+    {'1': 'rtmp_url', '3': 9, '4': 1, '5': 9, '9': 0, '10': 'rtmpUrl', '17': true},
   ],
   '8': [
     {'1': '_rtmp_url'},
@@ -115,14 +97,7 @@ const RecorderToWajlc$json = {
   '1': 'RecorderToWajlc',
   '2': [
     {'1': 'from', '3': 1, '4': 1, '5': 9, '10': 'from'},
-    {
-      '1': 'task',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.RecordingTasks',
-      '10': 'task'
-    },
+    {'1': 'task', '3': 2, '4': 1, '5': 14, '6': '.wajlc.RecordingTasks', '10': 'task'},
     {'1': 'status', '3': 3, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 4, '4': 1, '5': 9, '10': 'msg'},
     {'1': 'recording_id', '3': 5, '4': 1, '5': 9, '10': 'recordingId'},
@@ -132,16 +107,7 @@ const RecorderToWajlc$json = {
     {'1': 'recorder_id', '3': 8, '4': 1, '5': 9, '10': 'recorderId'},
     {'1': 'file_path', '3': 9, '4': 1, '5': 9, '10': 'filePath'},
     {'1': 'file_size', '3': 10, '4': 1, '5': 2, '10': 'fileSize'},
-    {
-      '1': 'recording_variant',
-      '3': 12,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.CloudRecordingVariants',
-      '9': 0,
-      '10': 'recordingVariant',
-      '17': true
-    },
+    {'1': 'recording_variant', '3': 12, '4': 1, '5': 14, '6': '.wajlc.CloudRecordingVariants', '9': 0, '10': 'recordingVariant', '17': true},
   ],
   '8': [
     {'1': '_recording_variant'},
@@ -170,14 +136,7 @@ const TranscodingTask$json = {
     {'1': 'file_name', '3': 5, '4': 1, '5': 9, '10': 'fileName'},
     {'1': 'room_table_id', '3': 6, '4': 1, '5': 3, '10': 'roomTableId'},
     {'1': 'recorder_id', '3': 7, '4': 1, '5': 9, '10': 'recorderId'},
-    {
-      '1': 'recording_variant',
-      '3': 8,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.CloudRecordingVariants',
-      '10': 'recordingVariant'
-    },
+    {'1': 'recording_variant', '3': 8, '4': 1, '5': 14, '6': '.wajlc.CloudRecordingVariants', '10': 'recordingVariant'},
   ],
 };
 
@@ -189,3 +148,4 @@ final $typed_data.Uint8List transcodingTaskDescriptor = $convert.base64Decode(
     'Jvb21fdGFibGVfaWQYBiABKANSC3Jvb21UYWJsZUlkEh8KC3JlY29yZGVyX2lkGAcgASgJUgpy'
     'ZWNvcmRlcklkEkoKEXJlY29yZGluZ192YXJpYW50GAggASgOMh0ud2FqbGMuQ2xvdWRSZWNvcm'
     'RpbmdWYXJpYW50c1IQcmVjb3JkaW5nVmFyaWFudA==');
+

@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_speech_services.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_speech_services.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -26,11 +24,10 @@ const SpeechServiceUserStatusTasks$json = {
 };
 
 /// Descriptor for `SpeechServiceUserStatusTasks`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List speechServiceUserStatusTasksDescriptor =
-    $convert.base64Decode(
-        'ChxTcGVlY2hTZXJ2aWNlVXNlclN0YXR1c1Rhc2tzEiIKHlNQRUVDSF9UT19URVhUX1NFU1NJT0'
-        '5fU1RBUlRFRBAAEiAKHFNQRUVDSF9UT19URVhUX1NFU1NJT05fRU5ERUQQARIeChpTUEVFQ0hf'
-        'VE9fVEVYVF9UT1RBTF9VU0FHRRAC');
+final $typed_data.Uint8List speechServiceUserStatusTasksDescriptor = $convert.base64Decode(
+    'ChxTcGVlY2hTZXJ2aWNlVXNlclN0YXR1c1Rhc2tzEiIKHlNQRUVDSF9UT19URVhUX1NFU1NJT0'
+    '5fU1RBUlRFRBAAEiAKHFNQRUVDSF9UT19URVhUX1NFU1NJT05fRU5ERUQQARIeChpTUEVFQ0hf'
+    'VE9fVEVYVF9UT1RBTF9VU0FHRRAC');
 
 @$core.Deprecated('Use speechToTextTranslationReqDescriptor instead')
 const SpeechToTextTranslationReq$json = {
@@ -38,43 +35,11 @@ const SpeechToTextTranslationReq$json = {
   '2': [
     {'1': 'room_id', '3': 1, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'is_enabled', '3': 3, '4': 1, '5': 8, '10': 'isEnabled'},
-    {
-      '1': 'allowed_speech_langs',
-      '3': 4,
-      '4': 3,
-      '5': 9,
-      '10': 'allowedSpeechLangs'
-    },
-    {
-      '1': 'allowed_speech_users',
-      '3': 5,
-      '4': 3,
-      '5': 9,
-      '10': 'allowedSpeechUsers'
-    },
-    {
-      '1': 'is_enabled_translation',
-      '3': 6,
-      '4': 1,
-      '5': 8,
-      '10': 'isEnabledTranslation'
-    },
-    {
-      '1': 'allowed_trans_langs',
-      '3': 7,
-      '4': 3,
-      '5': 9,
-      '10': 'allowedTransLangs'
-    },
-    {
-      '1': 'default_subtitle_lang',
-      '3': 8,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'defaultSubtitleLang',
-      '17': true
-    },
+    {'1': 'allowed_speech_langs', '3': 4, '4': 3, '5': 9, '10': 'allowedSpeechLangs'},
+    {'1': 'allowed_speech_users', '3': 5, '4': 3, '5': 9, '10': 'allowedSpeechUsers'},
+    {'1': 'is_enabled_translation', '3': 6, '4': 1, '5': 8, '10': 'isEnabledTranslation'},
+    {'1': 'allowed_trans_langs', '3': 7, '4': 3, '5': 9, '10': 'allowedTransLangs'},
+    {'1': 'default_subtitle_lang', '3': 8, '4': 1, '5': 9, '9': 0, '10': 'defaultSubtitleLang', '17': true},
   ],
   '8': [
     {'1': '_default_subtitle_lang'},
@@ -112,15 +77,7 @@ const GenerateAzureTokenRes$json = {
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
     {'1': 'token', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'token', '17': true},
-    {
-      '1': 'service_region',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'serviceRegion',
-      '17': true
-    },
+    {'1': 'service_region', '3': 4, '4': 1, '5': 9, '9': 1, '10': 'serviceRegion', '17': true},
     {'1': 'key_id', '3': 5, '4': 1, '5': 9, '9': 2, '10': 'keyId', '17': true},
     {'1': 'renew', '3': 6, '4': 1, '5': 8, '10': 'renew'},
   ],
@@ -164,14 +121,7 @@ const SpeechServiceUserStatusReq$json = {
     {'1': 'room_sid', '3': 2, '4': 1, '5': 9, '10': 'roomSid'},
     {'1': 'user_id', '3': 3, '4': 1, '5': 9, '10': 'userId'},
     {'1': 'key_id', '3': 4, '4': 1, '5': 9, '10': 'keyId'},
-    {
-      '1': 'task',
-      '3': 5,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.SpeechServiceUserStatusTasks',
-      '10': 'task'
-    },
+    {'1': 'task', '3': 5, '4': 1, '5': 14, '6': '.wajlc.SpeechServiceUserStatusTasks', '10': 'task'},
   ],
 };
 
@@ -181,3 +131,4 @@ final $typed_data.Uint8List speechServiceUserStatusReqDescriptor = $convert.base
     'oIcm9vbV9zaWQYAiABKAlSB3Jvb21TaWQSFwoHdXNlcl9pZBgDIAEoCVIGdXNlcklkEhUKBmtl'
     'eV9pZBgEIAEoCVIFa2V5SWQSNwoEdGFzaxgFIAEoDjIjLndhamxjLlNwZWVjaFNlcnZpY2VVc2'
     'VyU3RhdHVzVGFza3NSBHRhc2s=');
+

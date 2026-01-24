@@ -1,21 +1,19 @@
-// This is a generated file - do not edit.
 //
-// Generated from livekit_ingress.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: livekit_ingress.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'livekit_models.pbjson.dart' as $0;
+import 'livekit_models.pbjson.dart' as $2;
 
 @$core.Deprecated('Use ingressInputDescriptor instead')
 const IngressInput$json = {
@@ -42,10 +40,9 @@ const IngressAudioEncodingPreset$json = {
 };
 
 /// Descriptor for `IngressAudioEncodingPreset`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List ingressAudioEncodingPresetDescriptor =
-    $convert.base64Decode(
-        'ChpJbmdyZXNzQXVkaW9FbmNvZGluZ1ByZXNldBIWChJPUFVTX1NURVJFT185NktCUFMQABITCg'
-        '9PUFVTX01PTk9fNjRLQlMQAQ==');
+final $typed_data.Uint8List ingressAudioEncodingPresetDescriptor = $convert.base64Decode(
+    'ChpJbmdyZXNzQXVkaW9FbmNvZGluZ1ByZXNldBIWChJPUFVTX1NURVJFT185NktCUFMQABITCg'
+    '9PUFVTX01PTk9fNjRLQlMQAQ==');
 
 @$core.Deprecated('Use ingressVideoEncodingPresetDescriptor instead')
 const IngressVideoEncodingPreset$json = {
@@ -79,32 +76,13 @@ final $typed_data.Uint8List ingressVideoEncodingPresetDescriptor = $convert.base
 const CreateIngressRequest$json = {
   '1': 'CreateIngressRequest',
   '2': [
-    {
-      '1': 'input_type',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.IngressInput',
-      '10': 'inputType'
-    },
+    {'1': 'input_type', '3': 1, '4': 1, '5': 14, '6': '.livekit.IngressInput', '10': 'inputType'},
     {'1': 'url', '3': 9, '4': 1, '5': 9, '10': 'url'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'room_name', '3': 3, '4': 1, '5': 9, '10': 'roomName'},
-    {
-      '1': 'participant_identity',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '10': 'participantIdentity'
-    },
+    {'1': 'participant_identity', '3': 4, '4': 1, '5': 9, '10': 'participantIdentity'},
     {'1': 'participant_name', '3': 5, '4': 1, '5': 9, '10': 'participantName'},
-    {
-      '1': 'participant_metadata',
-      '3': 10,
-      '4': 1,
-      '5': 9,
-      '10': 'participantMetadata'
-    },
+    {'1': 'participant_metadata', '3': 10, '4': 1, '5': 9, '10': 'participantMetadata'},
     {
       '1': 'bypass_transcoding',
       '3': 8,
@@ -113,40 +91,10 @@ const CreateIngressRequest$json = {
       '8': {'3': true},
       '10': 'bypassTranscoding',
     },
-    {
-      '1': 'enable_transcoding',
-      '3': 11,
-      '4': 1,
-      '5': 8,
-      '9': 0,
-      '10': 'enableTranscoding',
-      '17': true
-    },
-    {
-      '1': 'audio',
-      '3': 6,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.IngressAudioOptions',
-      '10': 'audio'
-    },
-    {
-      '1': 'video',
-      '3': 7,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.IngressVideoOptions',
-      '10': 'video'
-    },
-    {
-      '1': 'enabled',
-      '3': 12,
-      '4': 1,
-      '5': 8,
-      '9': 1,
-      '10': 'enabled',
-      '17': true
-    },
+    {'1': 'enable_transcoding', '3': 11, '4': 1, '5': 8, '9': 0, '10': 'enableTranscoding', '17': true},
+    {'1': 'audio', '3': 6, '4': 1, '5': 11, '6': '.livekit.IngressAudioOptions', '10': 'audio'},
+    {'1': 'video', '3': 7, '4': 1, '5': 11, '6': '.livekit.IngressVideoOptions', '10': 'video'},
+    {'1': 'enabled', '3': 12, '4': 1, '5': 8, '9': 1, '10': 'enabled', '17': true},
   ],
   '8': [
     {'1': '_enable_transcoding'},
@@ -173,32 +121,9 @@ const IngressAudioOptions$json = {
   '1': 'IngressAudioOptions',
   '2': [
     {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
-    {
-      '1': 'source',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.TrackSource',
-      '10': 'source'
-    },
-    {
-      '1': 'preset',
-      '3': 3,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.IngressAudioEncodingPreset',
-      '9': 0,
-      '10': 'preset'
-    },
-    {
-      '1': 'options',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.IngressAudioEncodingOptions',
-      '9': 0,
-      '10': 'options'
-    },
+    {'1': 'source', '3': 2, '4': 1, '5': 14, '6': '.livekit.TrackSource', '10': 'source'},
+    {'1': 'preset', '3': 3, '4': 1, '5': 14, '6': '.livekit.IngressAudioEncodingPreset', '9': 0, '10': 'preset'},
+    {'1': 'options', '3': 4, '4': 1, '5': 11, '6': '.livekit.IngressAudioEncodingOptions', '9': 0, '10': 'options'},
   ],
   '8': [
     {'1': 'encoding_options'},
@@ -218,32 +143,9 @@ const IngressVideoOptions$json = {
   '1': 'IngressVideoOptions',
   '2': [
     {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
-    {
-      '1': 'source',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.TrackSource',
-      '10': 'source'
-    },
-    {
-      '1': 'preset',
-      '3': 3,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.IngressVideoEncodingPreset',
-      '9': 0,
-      '10': 'preset'
-    },
-    {
-      '1': 'options',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.IngressVideoEncodingOptions',
-      '9': 0,
-      '10': 'options'
-    },
+    {'1': 'source', '3': 2, '4': 1, '5': 14, '6': '.livekit.TrackSource', '10': 'source'},
+    {'1': 'preset', '3': 3, '4': 1, '5': 14, '6': '.livekit.IngressVideoEncodingPreset', '9': 0, '10': 'preset'},
+    {'1': 'options', '3': 4, '4': 1, '5': 11, '6': '.livekit.IngressVideoEncodingOptions', '9': 0, '10': 'options'},
   ],
   '8': [
     {'1': 'encoding_options'},
@@ -262,14 +164,7 @@ final $typed_data.Uint8List ingressVideoOptionsDescriptor = $convert.base64Decod
 const IngressAudioEncodingOptions$json = {
   '1': 'IngressAudioEncodingOptions',
   '2': [
-    {
-      '1': 'audio_codec',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.AudioCodec',
-      '10': 'audioCodec'
-    },
+    {'1': 'audio_codec', '3': 1, '4': 1, '5': 14, '6': '.livekit.AudioCodec', '10': 'audioCodec'},
     {'1': 'bitrate', '3': 2, '4': 1, '5': 13, '10': 'bitrate'},
     {'1': 'disable_dtx', '3': 3, '4': 1, '5': 8, '10': 'disableDtx'},
     {'1': 'channels', '3': 4, '4': 1, '5': 13, '10': 'channels'},
@@ -287,32 +182,17 @@ final $typed_data.Uint8List ingressAudioEncodingOptionsDescriptor = $convert.bas
 const IngressVideoEncodingOptions$json = {
   '1': 'IngressVideoEncodingOptions',
   '2': [
-    {
-      '1': 'video_codec',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.VideoCodec',
-      '10': 'videoCodec'
-    },
+    {'1': 'video_codec', '3': 1, '4': 1, '5': 14, '6': '.livekit.VideoCodec', '10': 'videoCodec'},
     {'1': 'frame_rate', '3': 2, '4': 1, '5': 1, '10': 'frameRate'},
-    {
-      '1': 'layers',
-      '3': 3,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.VideoLayer',
-      '10': 'layers'
-    },
+    {'1': 'layers', '3': 3, '4': 3, '5': 11, '6': '.livekit.VideoLayer', '10': 'layers'},
   ],
 };
 
 /// Descriptor for `IngressVideoEncodingOptions`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List ingressVideoEncodingOptionsDescriptor =
-    $convert.base64Decode(
-        'ChtJbmdyZXNzVmlkZW9FbmNvZGluZ09wdGlvbnMSNAoLdmlkZW9fY29kZWMYASABKA4yEy5saX'
-        'Zla2l0LlZpZGVvQ29kZWNSCnZpZGVvQ29kZWMSHQoKZnJhbWVfcmF0ZRgCIAEoAVIJZnJhbWVS'
-        'YXRlEisKBmxheWVycxgDIAMoCzITLmxpdmVraXQuVmlkZW9MYXllclIGbGF5ZXJz');
+final $typed_data.Uint8List ingressVideoEncodingOptionsDescriptor = $convert.base64Decode(
+    'ChtJbmdyZXNzVmlkZW9FbmNvZGluZ09wdGlvbnMSNAoLdmlkZW9fY29kZWMYASABKA4yEy5saX'
+    'Zla2l0LlZpZGVvQ29kZWNSCnZpZGVvQ29kZWMSHQoKZnJhbWVfcmF0ZRgCIAEoAVIJZnJhbWVS'
+    'YXRlEisKBmxheWVycxgDIAMoCzITLmxpdmVraXQuVmlkZW9MYXllclIGbGF5ZXJz');
 
 @$core.Deprecated('Use ingressInfoDescriptor instead')
 const IngressInfo$json = {
@@ -322,14 +202,7 @@ const IngressInfo$json = {
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'stream_key', '3': 3, '4': 1, '5': 9, '10': 'streamKey'},
     {'1': 'url', '3': 4, '4': 1, '5': 9, '10': 'url'},
-    {
-      '1': 'input_type',
-      '3': 5,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.IngressInput',
-      '10': 'inputType'
-    },
+    {'1': 'input_type', '3': 5, '4': 1, '5': 14, '6': '.livekit.IngressInput', '10': 'inputType'},
     {
       '1': 'bypass_transcoding',
       '3': 13,
@@ -338,65 +211,16 @@ const IngressInfo$json = {
       '8': {'3': true},
       '10': 'bypassTranscoding',
     },
-    {
-      '1': 'enable_transcoding',
-      '3': 15,
-      '4': 1,
-      '5': 8,
-      '9': 0,
-      '10': 'enableTranscoding',
-      '17': true
-    },
-    {
-      '1': 'audio',
-      '3': 6,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.IngressAudioOptions',
-      '10': 'audio'
-    },
-    {
-      '1': 'video',
-      '3': 7,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.IngressVideoOptions',
-      '10': 'video'
-    },
+    {'1': 'enable_transcoding', '3': 15, '4': 1, '5': 8, '9': 0, '10': 'enableTranscoding', '17': true},
+    {'1': 'audio', '3': 6, '4': 1, '5': 11, '6': '.livekit.IngressAudioOptions', '10': 'audio'},
+    {'1': 'video', '3': 7, '4': 1, '5': 11, '6': '.livekit.IngressVideoOptions', '10': 'video'},
     {'1': 'room_name', '3': 8, '4': 1, '5': 9, '10': 'roomName'},
-    {
-      '1': 'participant_identity',
-      '3': 9,
-      '4': 1,
-      '5': 9,
-      '10': 'participantIdentity'
-    },
+    {'1': 'participant_identity', '3': 9, '4': 1, '5': 9, '10': 'participantIdentity'},
     {'1': 'participant_name', '3': 10, '4': 1, '5': 9, '10': 'participantName'},
-    {
-      '1': 'participant_metadata',
-      '3': 14,
-      '4': 1,
-      '5': 9,
-      '10': 'participantMetadata'
-    },
+    {'1': 'participant_metadata', '3': 14, '4': 1, '5': 9, '10': 'participantMetadata'},
     {'1': 'reusable', '3': 11, '4': 1, '5': 8, '10': 'reusable'},
-    {
-      '1': 'state',
-      '3': 12,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.IngressState',
-      '10': 'state'
-    },
-    {
-      '1': 'enabled',
-      '3': 16,
-      '4': 1,
-      '5': 8,
-      '9': 1,
-      '10': 'enabled',
-      '17': true
-    },
+    {'1': 'state', '3': 12, '4': 1, '5': 11, '6': '.livekit.IngressState', '10': 'state'},
+    {'1': 'enabled', '3': 16, '4': 1, '5': 8, '9': 1, '10': 'enabled', '17': true},
   ],
   '8': [
     {'1': '_enable_transcoding'},
@@ -424,44 +248,16 @@ final $typed_data.Uint8List ingressInfoDescriptor = $convert.base64Decode(
 const IngressState$json = {
   '1': 'IngressState',
   '2': [
-    {
-      '1': 'status',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.IngressState.Status',
-      '10': 'status'
-    },
+    {'1': 'status', '3': 1, '4': 1, '5': 14, '6': '.livekit.IngressState.Status', '10': 'status'},
     {'1': 'error', '3': 2, '4': 1, '5': 9, '10': 'error'},
-    {
-      '1': 'video',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.InputVideoState',
-      '10': 'video'
-    },
-    {
-      '1': 'audio',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.InputAudioState',
-      '10': 'audio'
-    },
+    {'1': 'video', '3': 3, '4': 1, '5': 11, '6': '.livekit.InputVideoState', '10': 'video'},
+    {'1': 'audio', '3': 4, '4': 1, '5': 11, '6': '.livekit.InputAudioState', '10': 'audio'},
     {'1': 'room_id', '3': 5, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'started_at', '3': 7, '4': 1, '5': 3, '10': 'startedAt'},
     {'1': 'ended_at', '3': 8, '4': 1, '5': 3, '10': 'endedAt'},
     {'1': 'updated_at', '3': 10, '4': 1, '5': 3, '10': 'updatedAt'},
     {'1': 'resource_id', '3': 9, '4': 1, '5': 9, '10': 'resourceId'},
-    {
-      '1': 'tracks',
-      '3': 6,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.TrackInfo',
-      '10': 'tracks'
-    },
+    {'1': 'tracks', '3': 6, '4': 3, '5': 11, '6': '.livekit.TrackInfo', '10': 'tracks'},
   ],
   '4': [IngressState_Status$json],
 };
@@ -533,21 +329,9 @@ const UpdateIngressRequest$json = {
     {'1': 'ingress_id', '3': 1, '4': 1, '5': 9, '10': 'ingressId'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'room_name', '3': 3, '4': 1, '5': 9, '10': 'roomName'},
-    {
-      '1': 'participant_identity',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '10': 'participantIdentity'
-    },
+    {'1': 'participant_identity', '3': 4, '4': 1, '5': 9, '10': 'participantIdentity'},
     {'1': 'participant_name', '3': 5, '4': 1, '5': 9, '10': 'participantName'},
-    {
-      '1': 'participant_metadata',
-      '3': 9,
-      '4': 1,
-      '5': 9,
-      '10': 'participantMetadata'
-    },
+    {'1': 'participant_metadata', '3': 9, '4': 1, '5': 9, '10': 'participantMetadata'},
     {
       '1': 'bypass_transcoding',
       '3': 8,
@@ -558,40 +342,10 @@ const UpdateIngressRequest$json = {
       '10': 'bypassTranscoding',
       '17': true,
     },
-    {
-      '1': 'enable_transcoding',
-      '3': 10,
-      '4': 1,
-      '5': 8,
-      '9': 1,
-      '10': 'enableTranscoding',
-      '17': true
-    },
-    {
-      '1': 'audio',
-      '3': 6,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.IngressAudioOptions',
-      '10': 'audio'
-    },
-    {
-      '1': 'video',
-      '3': 7,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.IngressVideoOptions',
-      '10': 'video'
-    },
-    {
-      '1': 'enabled',
-      '3': 11,
-      '4': 1,
-      '5': 8,
-      '9': 2,
-      '10': 'enabled',
-      '17': true
-    },
+    {'1': 'enable_transcoding', '3': 10, '4': 1, '5': 8, '9': 1, '10': 'enableTranscoding', '17': true},
+    {'1': 'audio', '3': 6, '4': 1, '5': 11, '6': '.livekit.IngressAudioOptions', '10': 'audio'},
+    {'1': 'video', '3': 7, '4': 1, '5': 11, '6': '.livekit.IngressVideoOptions', '10': 'video'},
+    {'1': 'enabled', '3': 11, '4': 1, '5': 8, '9': 2, '10': 'enabled', '17': true},
   ],
   '8': [
     {'1': '_bypass_transcoding'},
@@ -631,14 +385,7 @@ final $typed_data.Uint8List listIngressRequestDescriptor = $convert.base64Decode
 const ListIngressResponse$json = {
   '1': 'ListIngressResponse',
   '2': [
-    {
-      '1': 'items',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.IngressInfo',
-      '10': 'items'
-    },
+    {'1': 'items', '3': 1, '4': 3, '5': 11, '6': '.livekit.IngressInfo', '10': 'items'},
   ],
 };
 
@@ -662,45 +409,28 @@ final $typed_data.Uint8List deleteIngressRequestDescriptor = $convert.base64Deco
 const $core.Map<$core.String, $core.dynamic> IngressServiceBase$json = {
   '1': 'Ingress',
   '2': [
-    {
-      '1': 'CreateIngress',
-      '2': '.livekit.CreateIngressRequest',
-      '3': '.livekit.IngressInfo'
-    },
-    {
-      '1': 'UpdateIngress',
-      '2': '.livekit.UpdateIngressRequest',
-      '3': '.livekit.IngressInfo'
-    },
-    {
-      '1': 'ListIngress',
-      '2': '.livekit.ListIngressRequest',
-      '3': '.livekit.ListIngressResponse'
-    },
-    {
-      '1': 'DeleteIngress',
-      '2': '.livekit.DeleteIngressRequest',
-      '3': '.livekit.IngressInfo'
-    },
+    {'1': 'CreateIngress', '2': '.livekit.CreateIngressRequest', '3': '.livekit.IngressInfo'},
+    {'1': 'UpdateIngress', '2': '.livekit.UpdateIngressRequest', '3': '.livekit.IngressInfo'},
+    {'1': 'ListIngress', '2': '.livekit.ListIngressRequest', '3': '.livekit.ListIngressResponse'},
+    {'1': 'DeleteIngress', '2': '.livekit.DeleteIngressRequest', '3': '.livekit.IngressInfo'},
   ],
 };
 
 @$core.Deprecated('Use ingressServiceDescriptor instead')
-const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>>
-    IngressServiceBase$messageJson = {
+const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> IngressServiceBase$messageJson = {
   '.livekit.CreateIngressRequest': CreateIngressRequest$json,
   '.livekit.IngressAudioOptions': IngressAudioOptions$json,
   '.livekit.IngressAudioEncodingOptions': IngressAudioEncodingOptions$json,
   '.livekit.IngressVideoOptions': IngressVideoOptions$json,
   '.livekit.IngressVideoEncodingOptions': IngressVideoEncodingOptions$json,
-  '.livekit.VideoLayer': $0.VideoLayer$json,
+  '.livekit.VideoLayer': $2.VideoLayer$json,
   '.livekit.IngressInfo': IngressInfo$json,
   '.livekit.IngressState': IngressState$json,
   '.livekit.InputVideoState': InputVideoState$json,
   '.livekit.InputAudioState': InputAudioState$json,
-  '.livekit.TrackInfo': $0.TrackInfo$json,
-  '.livekit.SimulcastCodecInfo': $0.SimulcastCodecInfo$json,
-  '.livekit.TimedVersion': $0.TimedVersion$json,
+  '.livekit.TrackInfo': $2.TrackInfo$json,
+  '.livekit.SimulcastCodecInfo': $2.SimulcastCodecInfo$json,
+  '.livekit.TimedVersion': $2.TimedVersion$json,
   '.livekit.UpdateIngressRequest': UpdateIngressRequest$json,
   '.livekit.ListIngressRequest': ListIngressRequest$json,
   '.livekit.ListIngressResponse': ListIngressResponse$json,
@@ -715,3 +445,4 @@ final $typed_data.Uint8List ingressServiceDescriptor = $convert.base64Decode(
     '5saXZla2l0Lkxpc3RJbmdyZXNzUmVxdWVzdBocLmxpdmVraXQuTGlzdEluZ3Jlc3NSZXNwb25z'
     'ZRJECg1EZWxldGVJbmdyZXNzEh0ubGl2ZWtpdC5EZWxldGVJbmdyZXNzUmVxdWVzdBoULmxpdm'
     'VraXQuSW5ncmVzc0luZm8=');
+

@@ -89,6 +89,34 @@ Mark tasks as `[x]` when completed.
     - [x] Create `localParticipantProvider` for local user state (mic/cam status).
     - [x] Create `activeSpeakersProvider` for sorting logic.
 
+### Phase 6: Web Logic Parity & Stabilization
+- [x] **NATS Lifecycle Alignment**:
+  - [x] Implement `PING` and `TOKEN_RENEW` intervals (1 min / 3 min).
+  - [x] Subscribe to `systemPrivate` and `systemPublic` *before* requesting `REQ_INITIAL_DATA`.
+  - [x] Support `systemJsWorker` subject pattern for all outgoing requests.
+- [x] **Advanced Signaling events**:
+  - [x] Handle `USER_METADATA_UPDATE` for profile changes.
+  - [x] Implement `DataChannel` subject for inter-client direct messages.
+  - [x] Send `ANALYTICS_EVENT_USER_CONNECTION_QUALITY` to NATS on LiveKit quality changes.
+- [x] **LiveKit Enhancement**:
+  - [x] Implement Participant Sorting logic (Active Speaker > Last Spoke > Join Time).
+  - [x] Configure `adaptiveStream` and `dynacast` in `LiveKitService`.
+  - [x] Handle `TrackStreamStateChanged` for better low-bandwidth UI.
+- [ ] **E2EE Support (Optional/Next Step)**:
+  - [ ] Research `livekit_client` E2EE support on Flutter (End-to-End Encryption).
+
+---
+
+## Technical Audit: Web vs Mobile Logic
+
+| Feature | Web App (ConnectNats/Livekit) | Flutter Mobile (Current) | Status |
+| :--- | :--- | :--- | :--- |
+| **NATS Subjects** | systemPrivate, systemPublic, jsWorker, chat, whiteboard, dataChannel | Full Parity | ✅ Done |
+| **Handshake** | System Sub -> REQ_INITIAL -> RES_MEDIA -> LK Conn | Full Parity (Async Flow) | ✅ Done |
+| **Keep-Alive** | Interval PING & Token Renew | Implemented (1m/3m) | ✅ Done |
+| **Telemetry** | Connection Quality Analytics to NATS | Implemented | ✅ Done |
+| **UI Sorting** | Speaker > Last Spoke > Join Time | Implemented | ✅ Done |
+
 ### Phase 2: Meeting UI Implementation
 - [x] **Meeting Screen Skeleton**:
     - [x] Create `MeetingScreen` scaffold.
@@ -122,9 +150,11 @@ Mark tasks as `[x]` when completed.
 - [x] **Room Notifications**: Show Join/Leave/End status as toasts.
 - [x] **Visual Polish**: Premium Glassmorphism UI for controls.
 
-### Phase 5: Deployment & QA
+### Phase 5: Deployment & Stabilization
 - [x] **Meet Explorer**: Always-on UI for manual `wajlc_token` testing.
-- [ ] **Release Build**: Verify on real Android/iOS physical device.
+- [x] **SDK Stabilization**: Resolved Protobuf (3.x/4.x) and LiveKit (2.6.x) incompatibilities.
+- [x] **Build Verification**: Verified 0 errors via `flutter analyze`.
+- [ ] **Physical Device QA**: Verify WebRTC performance on real hardware.
 
 ---
 

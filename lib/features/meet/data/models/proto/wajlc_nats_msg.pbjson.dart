@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_nats_msg.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_nats_msg.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -88,11 +86,10 @@ const NatsSystemNotificationTypes$json = {
 };
 
 /// Descriptor for `NatsSystemNotificationTypes`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List natsSystemNotificationTypesDescriptor =
-    $convert.base64Decode(
-        'ChtOYXRzU3lzdGVtTm90aWZpY2F0aW9uVHlwZXMSIQodTkFUU19TWVNURU1fTk9USUZJQ0FUSU'
-        '9OX0lORk8QABIkCiBOQVRTX1NZU1RFTV9OT1RJRklDQVRJT05fV0FSTklORxABEiIKHk5BVFNf'
-        'U1lTVEVNX05PVElGSUNBVElPTl9FUlJPUhAC');
+final $typed_data.Uint8List natsSystemNotificationTypesDescriptor = $convert.base64Decode(
+    'ChtOYXRzU3lzdGVtTm90aWZpY2F0aW9uVHlwZXMSIQodTkFUU19TWVNURU1fTk9USUZJQ0FUSU'
+    '9OX0lORk8QABIkCiBOQVRTX1NZU1RFTV9OT1RJRklDQVRJT05fV0FSTklORxABEiIKHk5BVFNf'
+    'U1lTVEVNX05PVElGSUNBVElPTl9FUlJPUhAC');
 
 @$core.Deprecated('Use natsSubjectsDescriptor instead')
 const NatsSubjects$json = {
@@ -121,14 +118,7 @@ const NatsMsgServerToClient$json = {
   '1': 'NatsMsgServerToClient',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    {
-      '1': 'event',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.NatsMsgServerToClientEvents',
-      '10': 'event'
-    },
+    {'1': 'event', '3': 2, '4': 1, '5': 14, '6': '.wajlc.NatsMsgServerToClientEvents', '10': 'event'},
     {'1': 'msg', '3': 3, '4': 1, '5': 9, '10': 'msg'},
   ],
 };
@@ -144,14 +134,7 @@ const NatsMsgClientToServer$json = {
   '1': 'NatsMsgClientToServer',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    {
-      '1': 'event',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.NatsMsgClientToServerEvents',
-      '10': 'event'
-    },
+    {'1': 'event', '3': 2, '4': 1, '5': 14, '6': '.wajlc.NatsMsgClientToServerEvents', '10': 'event'},
     {'1': 'msg', '3': 3, '4': 1, '5': 9, '10': 'msg'},
     {'1': 'bin_msg', '3': 4, '4': 1, '5': 12, '10': 'binMsg'},
   ],
@@ -231,30 +214,9 @@ final $typed_data.Uint8List mediaServerConnInfoDescriptor = $convert.base64Decod
 const NatsInitialData$json = {
   '1': 'NatsInitialData',
   '2': [
-    {
-      '1': 'room',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.NatsKvRoomInfo',
-      '10': 'room'
-    },
-    {
-      '1': 'local_user',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.NatsKvUserInfo',
-      '10': 'localUser'
-    },
-    {
-      '1': 'media_server_info',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.MediaServerConnInfo',
-      '10': 'mediaServerInfo'
-    },
+    {'1': 'room', '3': 1, '4': 1, '5': 11, '6': '.wajlc.NatsKvRoomInfo', '10': 'room'},
+    {'1': 'local_user', '3': 2, '4': 1, '5': 11, '6': '.wajlc.NatsKvUserInfo', '10': 'localUser'},
+    {'1': 'media_server_info', '3': 3, '4': 1, '5': 11, '6': '.wajlc.MediaServerConnInfo', '10': 'mediaServerInfo'},
   ],
 };
 
@@ -270,14 +232,7 @@ const NatsSystemNotification$json = {
   '1': 'NatsSystemNotification',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    {
-      '1': 'type',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.NatsSystemNotificationTypes',
-      '10': 'type'
-    },
+    {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.wajlc.NatsSystemNotificationTypes', '10': 'type'},
     {'1': 'msg', '3': 3, '4': 1, '5': 9, '10': 'msg'},
     {'1': 'sent_at', '3': 4, '4': 1, '5': 3, '10': 'sentAt'},
     {'1': 'with_sound', '3': 5, '4': 1, '5': 8, '10': 'withSound'},
@@ -301,10 +256,9 @@ const NatsUserMetadataUpdate$json = {
 };
 
 /// Descriptor for `NatsUserMetadataUpdate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List natsUserMetadataUpdateDescriptor =
-    $convert.base64Decode(
-        'ChZOYXRzVXNlck1ldGFkYXRhVXBkYXRlEhcKB3VzZXJfaWQYASABKAlSBnVzZXJJZBIaCghtZX'
-        'RhZGF0YRgCIAEoCVIIbWV0YWRhdGE=');
+final $typed_data.Uint8List natsUserMetadataUpdateDescriptor = $convert.base64Decode(
+    'ChZOYXRzVXNlck1ldGFkYXRhVXBkYXRlEhcKB3VzZXJfaWQYASABKAlSBnVzZXJJZBIaCghtZX'
+    'RhZGF0YRgCIAEoCVIIbWV0YWRhdGE=');
 
 @$core.Deprecated('Use chatMessageDescriptor instead')
 const ChatMessage$json = {
@@ -314,35 +268,12 @@ const ChatMessage$json = {
     {'1': 'from_name', '3': 2, '4': 1, '5': 9, '10': 'fromName'},
     {'1': 'from_user_id', '3': 3, '4': 1, '5': 9, '10': 'fromUserId'},
     {'1': 'sent_at', '3': 4, '4': 1, '5': 3, '10': 'sentAt'},
-    {
-      '1': 'to_user_id',
-      '3': 5,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'toUserId',
-      '17': true
-    },
+    {'1': 'to_user_id', '3': 5, '4': 1, '5': 9, '9': 0, '10': 'toUserId', '17': true},
     {'1': 'is_private', '3': 6, '4': 1, '5': 8, '10': 'isPrivate'},
     {'1': 'message', '3': 7, '4': 1, '5': 9, '10': 'message'},
     {'1': 'from_admin', '3': 8, '4': 1, '5': 8, '10': 'fromAdmin'},
-    {
-      '1': 'source_lang',
-      '3': 9,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'sourceLang',
-      '17': true
-    },
-    {
-      '1': 'translations',
-      '3': 10,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.ChatMessage.TranslationsEntry',
-      '10': 'translations'
-    },
+    {'1': 'source_lang', '3': 9, '4': 1, '5': 9, '9': 1, '10': 'sourceLang', '17': true},
+    {'1': 'translations', '3': 10, '4': 3, '5': 11, '6': '.wajlc.ChatMessage.TranslationsEntry', '10': 'translations'},
   ],
   '3': [ChatMessage_TranslationsEntry$json],
   '8': [
@@ -372,3 +303,4 @@ final $typed_data.Uint8List chatMessageDescriptor = $convert.base64Decode(
     'RW50cnlSDHRyYW5zbGF0aW9ucxo/ChFUcmFuc2xhdGlvbnNFbnRyeRIQCgNrZXkYASABKAlSA2'
     'tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgBQg0KC190b191c2VyX2lkQg4KDF9zb3VyY2Vf'
     'bGFuZw==');
+

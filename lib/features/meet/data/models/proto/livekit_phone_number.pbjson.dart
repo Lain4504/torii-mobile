@@ -1,24 +1,20 @@
-// This is a generated file - do not edit.
 //
-// Generated from livekit_phone_number.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: livekit_phone_number.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'package:protobuf/well_known_types/google/protobuf/timestamp.pbjson.dart'
-    as $1;
-
-import 'livekit_models.pbjson.dart' as $0;
+import 'google/protobuf/timestamp.pbjson.dart' as $0;
+import 'livekit_models.pbjson.dart' as $2;
 
 @$core.Deprecated('Use phoneNumberStatusDescriptor instead')
 const PhoneNumberStatus$json = {
@@ -61,26 +57,9 @@ const SearchPhoneNumbersRequest$json = {
   '1': 'SearchPhoneNumbersRequest',
   '2': [
     {'1': 'country_code', '3': 1, '4': 1, '5': 9, '10': 'countryCode'},
-    {
-      '1': 'area_code',
-      '3': 2,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'areaCode',
-      '17': true
-    },
+    {'1': 'area_code', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'areaCode', '17': true},
     {'1': 'limit', '3': 3, '4': 1, '5': 5, '9': 1, '10': 'limit', '17': true},
-    {
-      '1': 'page_token',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.TokenPagination',
-      '9': 2,
-      '10': 'pageToken',
-      '17': true
-    },
+    {'1': 'page_token', '3': 4, '4': 1, '5': 11, '6': '.livekit.TokenPagination', '9': 2, '10': 'pageToken', '17': true},
   ],
   '8': [
     {'1': '_area_code'},
@@ -101,46 +80,23 @@ final $typed_data.Uint8List searchPhoneNumbersRequestDescriptor = $convert.base6
 const SearchPhoneNumbersResponse$json = {
   '1': 'SearchPhoneNumbersResponse',
   '2': [
-    {
-      '1': 'items',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.PhoneNumber',
-      '10': 'items'
-    },
-    {
-      '1': 'next_page_token',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.TokenPagination',
-      '10': 'nextPageToken'
-    },
+    {'1': 'items', '3': 1, '4': 3, '5': 11, '6': '.livekit.PhoneNumber', '10': 'items'},
+    {'1': 'next_page_token', '3': 2, '4': 1, '5': 11, '6': '.livekit.TokenPagination', '10': 'nextPageToken'},
   ],
 };
 
 /// Descriptor for `SearchPhoneNumbersResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List searchPhoneNumbersResponseDescriptor =
-    $convert.base64Decode(
-        'ChpTZWFyY2hQaG9uZU51bWJlcnNSZXNwb25zZRIqCgVpdGVtcxgBIAMoCzIULmxpdmVraXQuUG'
-        'hvbmVOdW1iZXJSBWl0ZW1zEkAKD25leHRfcGFnZV90b2tlbhgCIAEoCzIYLmxpdmVraXQuVG9r'
-        'ZW5QYWdpbmF0aW9uUg1uZXh0UGFnZVRva2Vu');
+final $typed_data.Uint8List searchPhoneNumbersResponseDescriptor = $convert.base64Decode(
+    'ChpTZWFyY2hQaG9uZU51bWJlcnNSZXNwb25zZRIqCgVpdGVtcxgBIAMoCzIULmxpdmVraXQuUG'
+    'hvbmVOdW1iZXJSBWl0ZW1zEkAKD25leHRfcGFnZV90b2tlbhgCIAEoCzIYLmxpdmVraXQuVG9r'
+    'ZW5QYWdpbmF0aW9uUg1uZXh0UGFnZVRva2Vu');
 
 @$core.Deprecated('Use purchasePhoneNumberRequestDescriptor instead')
 const PurchasePhoneNumberRequest$json = {
   '1': 'PurchasePhoneNumberRequest',
   '2': [
     {'1': 'phone_numbers', '3': 1, '4': 3, '5': 9, '10': 'phoneNumbers'},
-    {
-      '1': 'sip_dispatch_rule_id',
-      '3': 2,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'sipDispatchRuleId',
-      '17': true
-    },
+    {'1': 'sip_dispatch_rule_id', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'sipDispatchRuleId', '17': true},
   ],
   '8': [
     {'1': '_sip_dispatch_rule_id'},
@@ -148,65 +104,32 @@ const PurchasePhoneNumberRequest$json = {
 };
 
 /// Descriptor for `PurchasePhoneNumberRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List purchasePhoneNumberRequestDescriptor =
-    $convert.base64Decode(
-        'ChpQdXJjaGFzZVBob25lTnVtYmVyUmVxdWVzdBIjCg1waG9uZV9udW1iZXJzGAEgAygJUgxwaG'
-        '9uZU51bWJlcnMSNAoUc2lwX2Rpc3BhdGNoX3J1bGVfaWQYAiABKAlIAFIRc2lwRGlzcGF0Y2hS'
-        'dWxlSWSIAQFCFwoVX3NpcF9kaXNwYXRjaF9ydWxlX2lk');
+final $typed_data.Uint8List purchasePhoneNumberRequestDescriptor = $convert.base64Decode(
+    'ChpQdXJjaGFzZVBob25lTnVtYmVyUmVxdWVzdBIjCg1waG9uZV9udW1iZXJzGAEgAygJUgxwaG'
+    '9uZU51bWJlcnMSNAoUc2lwX2Rpc3BhdGNoX3J1bGVfaWQYAiABKAlIAFIRc2lwRGlzcGF0Y2hS'
+    'dWxlSWSIAQFCFwoVX3NpcF9kaXNwYXRjaF9ydWxlX2lk');
 
 @$core.Deprecated('Use purchasePhoneNumberResponseDescriptor instead')
 const PurchasePhoneNumberResponse$json = {
   '1': 'PurchasePhoneNumberResponse',
   '2': [
-    {
-      '1': 'phone_numbers',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.PhoneNumber',
-      '10': 'phoneNumbers'
-    },
+    {'1': 'phone_numbers', '3': 1, '4': 3, '5': 11, '6': '.livekit.PhoneNumber', '10': 'phoneNumbers'},
   ],
 };
 
 /// Descriptor for `PurchasePhoneNumberResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List purchasePhoneNumberResponseDescriptor =
-    $convert.base64Decode(
-        'ChtQdXJjaGFzZVBob25lTnVtYmVyUmVzcG9uc2USOQoNcGhvbmVfbnVtYmVycxgBIAMoCzIULm'
-        'xpdmVraXQuUGhvbmVOdW1iZXJSDHBob25lTnVtYmVycw==');
+final $typed_data.Uint8List purchasePhoneNumberResponseDescriptor = $convert.base64Decode(
+    'ChtQdXJjaGFzZVBob25lTnVtYmVyUmVzcG9uc2USOQoNcGhvbmVfbnVtYmVycxgBIAMoCzIULm'
+    'xpdmVraXQuUGhvbmVOdW1iZXJSDHBob25lTnVtYmVycw==');
 
 @$core.Deprecated('Use listPhoneNumbersRequestDescriptor instead')
 const ListPhoneNumbersRequest$json = {
   '1': 'ListPhoneNumbersRequest',
   '2': [
     {'1': 'limit', '3': 1, '4': 1, '5': 5, '9': 0, '10': 'limit', '17': true},
-    {
-      '1': 'statuses',
-      '3': 2,
-      '4': 3,
-      '5': 14,
-      '6': '.livekit.PhoneNumberStatus',
-      '10': 'statuses'
-    },
-    {
-      '1': 'page_token',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.TokenPagination',
-      '9': 1,
-      '10': 'pageToken',
-      '17': true
-    },
-    {
-      '1': 'sip_dispatch_rule_id',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '9': 2,
-      '10': 'sipDispatchRuleId',
-      '17': true
-    },
+    {'1': 'statuses', '3': 2, '4': 3, '5': 14, '6': '.livekit.PhoneNumberStatus', '10': 'statuses'},
+    {'1': 'page_token', '3': 3, '4': 1, '5': 11, '6': '.livekit.TokenPagination', '9': 1, '10': 'pageToken', '17': true},
+    {'1': 'sip_dispatch_rule_id', '3': 4, '4': 1, '5': 9, '9': 2, '10': 'sipDispatchRuleId', '17': true},
   ],
   '8': [
     {'1': '_limit'},
@@ -227,22 +150,8 @@ final $typed_data.Uint8List listPhoneNumbersRequestDescriptor = $convert.base64D
 const ListPhoneNumbersResponse$json = {
   '1': 'ListPhoneNumbersResponse',
   '2': [
-    {
-      '1': 'items',
-      '3': 1,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.PhoneNumber',
-      '10': 'items'
-    },
-    {
-      '1': 'next_page_token',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.TokenPagination',
-      '10': 'nextPageToken'
-    },
+    {'1': 'items', '3': 1, '4': 3, '5': 11, '6': '.livekit.PhoneNumber', '10': 'items'},
+    {'1': 'next_page_token', '3': 2, '4': 1, '5': 11, '6': '.livekit.TokenPagination', '10': 'nextPageToken'},
     {'1': 'total_count', '3': 3, '4': 1, '5': 5, '10': 'totalCount'},
     {'1': 'offline_count', '3': 4, '4': 1, '5': 5, '10': 'offlineCount'},
   ],
@@ -260,15 +169,7 @@ const GetPhoneNumberRequest$json = {
   '1': 'GetPhoneNumberRequest',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'id', '17': true},
-    {
-      '1': 'phone_number',
-      '3': 2,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'phoneNumber',
-      '17': true
-    },
+    {'1': 'phone_number', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'phoneNumber', '17': true},
   ],
   '8': [
     {'1': '_id'},
@@ -285,46 +186,22 @@ final $typed_data.Uint8List getPhoneNumberRequestDescriptor = $convert.base64Dec
 const GetPhoneNumberResponse$json = {
   '1': 'GetPhoneNumberResponse',
   '2': [
-    {
-      '1': 'phone_number',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.PhoneNumber',
-      '10': 'phoneNumber'
-    },
+    {'1': 'phone_number', '3': 1, '4': 1, '5': 11, '6': '.livekit.PhoneNumber', '10': 'phoneNumber'},
   ],
 };
 
 /// Descriptor for `GetPhoneNumberResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getPhoneNumberResponseDescriptor =
-    $convert.base64Decode(
-        'ChZHZXRQaG9uZU51bWJlclJlc3BvbnNlEjcKDHBob25lX251bWJlchgBIAEoCzIULmxpdmVraX'
-        'QuUGhvbmVOdW1iZXJSC3Bob25lTnVtYmVy');
+final $typed_data.Uint8List getPhoneNumberResponseDescriptor = $convert.base64Decode(
+    'ChZHZXRQaG9uZU51bWJlclJlc3BvbnNlEjcKDHBob25lX251bWJlchgBIAEoCzIULmxpdmVraX'
+    'QuUGhvbmVOdW1iZXJSC3Bob25lTnVtYmVy');
 
 @$core.Deprecated('Use updatePhoneNumberRequestDescriptor instead')
 const UpdatePhoneNumberRequest$json = {
   '1': 'UpdatePhoneNumberRequest',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'id', '17': true},
-    {
-      '1': 'phone_number',
-      '3': 2,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'phoneNumber',
-      '17': true
-    },
-    {
-      '1': 'sip_dispatch_rule_id',
-      '3': 3,
-      '4': 1,
-      '5': 9,
-      '9': 2,
-      '10': 'sipDispatchRuleId',
-      '17': true
-    },
+    {'1': 'phone_number', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'phoneNumber', '17': true},
+    {'1': 'sip_dispatch_rule_id', '3': 3, '4': 1, '5': 9, '9': 2, '10': 'sipDispatchRuleId', '17': true},
   ],
   '8': [
     {'1': '_id'},
@@ -344,22 +221,14 @@ final $typed_data.Uint8List updatePhoneNumberRequestDescriptor = $convert.base64
 const UpdatePhoneNumberResponse$json = {
   '1': 'UpdatePhoneNumberResponse',
   '2': [
-    {
-      '1': 'phone_number',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.livekit.PhoneNumber',
-      '10': 'phoneNumber'
-    },
+    {'1': 'phone_number', '3': 1, '4': 1, '5': 11, '6': '.livekit.PhoneNumber', '10': 'phoneNumber'},
   ],
 };
 
 /// Descriptor for `UpdatePhoneNumberResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List updatePhoneNumberResponseDescriptor =
-    $convert.base64Decode(
-        'ChlVcGRhdGVQaG9uZU51bWJlclJlc3BvbnNlEjcKDHBob25lX251bWJlchgBIAEoCzIULmxpdm'
-        'VraXQuUGhvbmVOdW1iZXJSC3Bob25lTnVtYmVy');
+final $typed_data.Uint8List updatePhoneNumberResponseDescriptor = $convert.base64Decode(
+    'ChlVcGRhdGVQaG9uZU51bWJlclJlc3BvbnNlEjcKDHBob25lX251bWJlchgBIAEoCzIULmxpdm'
+    'VraXQuUGhvbmVOdW1iZXJSC3Bob25lTnVtYmVy');
 
 @$core.Deprecated('Use releasePhoneNumbersRequestDescriptor instead')
 const ReleasePhoneNumbersRequest$json = {
@@ -371,10 +240,9 @@ const ReleasePhoneNumbersRequest$json = {
 };
 
 /// Descriptor for `ReleasePhoneNumbersRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List releasePhoneNumbersRequestDescriptor =
-    $convert.base64Decode(
-        'ChpSZWxlYXNlUGhvbmVOdW1iZXJzUmVxdWVzdBIQCgNpZHMYASADKAlSA2lkcxIjCg1waG9uZV'
-        '9udW1iZXJzGAIgAygJUgxwaG9uZU51bWJlcnM=');
+final $typed_data.Uint8List releasePhoneNumbersRequestDescriptor = $convert.base64Decode(
+    'ChpSZWxlYXNlUGhvbmVOdW1iZXJzUmVxdWVzdBIQCgNpZHMYASADKAlSA2lkcxIjCg1waG9uZV'
+    '9udW1iZXJzGAIgAygJUgxwaG9uZU51bWJlcnM=');
 
 @$core.Deprecated('Use releasePhoneNumbersResponseDescriptor instead')
 const ReleasePhoneNumbersResponse$json = {
@@ -382,8 +250,8 @@ const ReleasePhoneNumbersResponse$json = {
 };
 
 /// Descriptor for `ReleasePhoneNumbersResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List releasePhoneNumbersResponseDescriptor =
-    $convert.base64Decode('ChtSZWxlYXNlUGhvbmVOdW1iZXJzUmVzcG9uc2U=');
+final $typed_data.Uint8List releasePhoneNumbersResponseDescriptor = $convert.base64Decode(
+    'ChtSZWxlYXNlUGhvbmVOdW1iZXJzUmVzcG9uc2U=');
 
 @$core.Deprecated('Use phoneNumberDescriptor instead')
 const PhoneNumber$json = {
@@ -393,58 +261,16 @@ const PhoneNumber$json = {
     {'1': 'e164_format', '3': 2, '4': 1, '5': 9, '10': 'e164Format'},
     {'1': 'country_code', '3': 3, '4': 1, '5': 9, '10': 'countryCode'},
     {'1': 'area_code', '3': 4, '4': 1, '5': 9, '10': 'areaCode'},
-    {
-      '1': 'number_type',
-      '3': 5,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.PhoneNumberType',
-      '10': 'numberType'
-    },
+    {'1': 'number_type', '3': 5, '4': 1, '5': 14, '6': '.livekit.PhoneNumberType', '10': 'numberType'},
     {'1': 'locality', '3': 6, '4': 1, '5': 9, '10': 'locality'},
     {'1': 'region', '3': 7, '4': 1, '5': 9, '10': 'region'},
     {'1': 'spam_score', '3': 8, '4': 1, '5': 1, '10': 'spamScore'},
-    {
-      '1': 'created_at',
-      '3': 9,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'createdAt'
-    },
-    {
-      '1': 'updated_at',
-      '3': 10,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'updatedAt'
-    },
+    {'1': 'created_at', '3': 9, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
+    {'1': 'updated_at', '3': 10, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'updatedAt'},
     {'1': 'capabilities', '3': 11, '4': 3, '5': 9, '10': 'capabilities'},
-    {
-      '1': 'status',
-      '3': 12,
-      '4': 1,
-      '5': 14,
-      '6': '.livekit.PhoneNumberStatus',
-      '10': 'status'
-    },
-    {
-      '1': 'assigned_at',
-      '3': 13,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'assignedAt'
-    },
-    {
-      '1': 'released_at',
-      '3': 14,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'releasedAt'
-    },
+    {'1': 'status', '3': 12, '4': 1, '5': 14, '6': '.livekit.PhoneNumberStatus', '10': 'status'},
+    {'1': 'assigned_at', '3': 13, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'assignedAt'},
+    {'1': 'released_at', '3': 14, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'releasedAt'},
     {
       '1': 'sip_dispatch_rule_id',
       '3': 15,
@@ -453,13 +279,7 @@ const PhoneNumber$json = {
       '8': {'3': true},
       '10': 'sipDispatchRuleId',
     },
-    {
-      '1': 'sip_dispatch_rule_ids',
-      '3': 16,
-      '4': 3,
-      '5': 9,
-      '10': 'sipDispatchRuleIds'
-    },
+    {'1': 'sip_dispatch_rule_ids', '3': 16, '4': 3, '5': 9, '10': 'sipDispatchRuleIds'},
   ],
 };
 
@@ -482,53 +302,22 @@ final $typed_data.Uint8List phoneNumberDescriptor = $convert.base64Decode(
 const $core.Map<$core.String, $core.dynamic> PhoneNumberServiceBase$json = {
   '1': 'PhoneNumberService',
   '2': [
-    {
-      '1': 'SearchPhoneNumbers',
-      '2': '.livekit.SearchPhoneNumbersRequest',
-      '3': '.livekit.SearchPhoneNumbersResponse',
-      '4': {}
-    },
-    {
-      '1': 'PurchasePhoneNumber',
-      '2': '.livekit.PurchasePhoneNumberRequest',
-      '3': '.livekit.PurchasePhoneNumberResponse',
-      '4': {}
-    },
-    {
-      '1': 'ListPhoneNumbers',
-      '2': '.livekit.ListPhoneNumbersRequest',
-      '3': '.livekit.ListPhoneNumbersResponse',
-      '4': {}
-    },
-    {
-      '1': 'GetPhoneNumber',
-      '2': '.livekit.GetPhoneNumberRequest',
-      '3': '.livekit.GetPhoneNumberResponse',
-      '4': {}
-    },
-    {
-      '1': 'UpdatePhoneNumber',
-      '2': '.livekit.UpdatePhoneNumberRequest',
-      '3': '.livekit.UpdatePhoneNumberResponse',
-      '4': {}
-    },
-    {
-      '1': 'ReleasePhoneNumbers',
-      '2': '.livekit.ReleasePhoneNumbersRequest',
-      '3': '.livekit.ReleasePhoneNumbersResponse',
-      '4': {}
-    },
+    {'1': 'SearchPhoneNumbers', '2': '.livekit.SearchPhoneNumbersRequest', '3': '.livekit.SearchPhoneNumbersResponse', '4': {}},
+    {'1': 'PurchasePhoneNumber', '2': '.livekit.PurchasePhoneNumberRequest', '3': '.livekit.PurchasePhoneNumberResponse', '4': {}},
+    {'1': 'ListPhoneNumbers', '2': '.livekit.ListPhoneNumbersRequest', '3': '.livekit.ListPhoneNumbersResponse', '4': {}},
+    {'1': 'GetPhoneNumber', '2': '.livekit.GetPhoneNumberRequest', '3': '.livekit.GetPhoneNumberResponse', '4': {}},
+    {'1': 'UpdatePhoneNumber', '2': '.livekit.UpdatePhoneNumberRequest', '3': '.livekit.UpdatePhoneNumberResponse', '4': {}},
+    {'1': 'ReleasePhoneNumbers', '2': '.livekit.ReleasePhoneNumbersRequest', '3': '.livekit.ReleasePhoneNumbersResponse', '4': {}},
   ],
 };
 
 @$core.Deprecated('Use phoneNumberServiceDescriptor instead')
-const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>>
-    PhoneNumberServiceBase$messageJson = {
+const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> PhoneNumberServiceBase$messageJson = {
   '.livekit.SearchPhoneNumbersRequest': SearchPhoneNumbersRequest$json,
-  '.livekit.TokenPagination': $0.TokenPagination$json,
+  '.livekit.TokenPagination': $2.TokenPagination$json,
   '.livekit.SearchPhoneNumbersResponse': SearchPhoneNumbersResponse$json,
   '.livekit.PhoneNumber': PhoneNumber$json,
-  '.google.protobuf.Timestamp': $1.Timestamp$json,
+  '.google.protobuf.Timestamp': $0.Timestamp$json,
   '.livekit.PurchasePhoneNumberRequest': PurchasePhoneNumberRequest$json,
   '.livekit.PurchasePhoneNumberResponse': PurchasePhoneNumberResponse$json,
   '.livekit.ListPhoneNumbersRequest': ListPhoneNumbersRequest$json,
@@ -554,3 +343,4 @@ final $typed_data.Uint8List phoneNumberServiceDescriptor = $convert.base64Decode
     'cXVlc3QaIi5saXZla2l0LlVwZGF0ZVBob25lTnVtYmVyUmVzcG9uc2UiABJiChNSZWxlYXNlUG'
     'hvbmVOdW1iZXJzEiMubGl2ZWtpdC5SZWxlYXNlUGhvbmVOdW1iZXJzUmVxdWVzdBokLmxpdmVr'
     'aXQuUmVsZWFzZVBob25lTnVtYmVyc1Jlc3BvbnNlIgA=');
+

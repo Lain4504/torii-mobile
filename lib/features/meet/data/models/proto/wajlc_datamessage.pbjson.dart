@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_datamessage.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_datamessage.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -69,24 +67,9 @@ const DataChannelMessage$json = {
   '1': 'DataChannelMessage',
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
-    {
-      '1': 'type',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.DataMsgBodyType',
-      '10': 'type'
-    },
+    {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.wajlc.DataMsgBodyType', '10': 'type'},
     {'1': 'from_user_id', '3': 3, '4': 1, '5': 9, '10': 'fromUserId'},
-    {
-      '1': 'to_user_id',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'toUserId',
-      '17': true
-    },
+    {'1': 'to_user_id', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'toUserId', '17': true},
     {'1': 'message', '3': 5, '4': 1, '5': 9, '10': 'message'},
   ],
   '8': [
@@ -100,3 +83,4 @@ final $typed_data.Uint8List dataChannelMessageDescriptor = $convert.base64Decode
     'psYy5EYXRhTXNnQm9keVR5cGVSBHR5cGUSIAoMZnJvbV91c2VyX2lkGAMgASgJUgpmcm9tVXNl'
     'cklkEiEKCnRvX3VzZXJfaWQYBCABKAlIAFIIdG9Vc2VySWSIAQESGAoHbWVzc2FnZRgFIAEoCV'
     'IHbWVzc2FnZUINCgtfdG9fdXNlcl9pZA==');
+

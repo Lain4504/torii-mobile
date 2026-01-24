@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_room_artifacts.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_room_artifacts.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -66,10 +64,9 @@ const RoomArtifactProviderJobInfo$json = {
 };
 
 /// Descriptor for `RoomArtifactProviderJobInfo`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List roomArtifactProviderJobInfoDescriptor =
-    $convert.base64Decode(
-        'ChtSb29tQXJ0aWZhY3RQcm92aWRlckpvYkluZm8SFQoGam9iX2lkGAEgASgJUgVqb2JJZBIbCg'
-        'lmaWxlX25hbWUYAiABKAlSCGZpbGVOYW1l');
+final $typed_data.Uint8List roomArtifactProviderJobInfoDescriptor = $convert.base64Decode(
+    'ChtSb29tQXJ0aWZhY3RQcm92aWRlckpvYkluZm8SFQoGam9iX2lkGAEgASgJUgVqb2JJZBIbCg'
+    'lmaWxlX25hbWUYAiABKAlSCGZpbGVOYW1l');
 
 @$core.Deprecated('Use roomArtifactUserInfoDescriptor instead')
 const RoomArtifactUserInfo$json = {
@@ -93,49 +90,12 @@ const RoomArtifactTokenUsage$json = {
   '1': 'RoomArtifactTokenUsage',
   '2': [
     {'1': 'prompt_tokens', '3': 1, '4': 1, '5': 13, '10': 'promptTokens'},
-    {
-      '1': 'completion_tokens',
-      '3': 2,
-      '4': 1,
-      '5': 13,
-      '10': 'completionTokens'
-    },
+    {'1': 'completion_tokens', '3': 2, '4': 1, '5': 13, '10': 'completionTokens'},
     {'1': 'total_tokens', '3': 3, '4': 1, '5': 13, '10': 'totalTokens'},
-    {
-      '1': 'breakdown',
-      '3': 4,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactTokenUsage.BreakdownEntry',
-      '10': 'breakdown'
-    },
-    {
-      '1': 'prompt_tokens_estimated_cost',
-      '3': 5,
-      '4': 1,
-      '5': 1,
-      '9': 0,
-      '10': 'promptTokensEstimatedCost',
-      '17': true
-    },
-    {
-      '1': 'completion_tokens_estimated_cost',
-      '3': 6,
-      '4': 1,
-      '5': 1,
-      '9': 1,
-      '10': 'completionTokensEstimatedCost',
-      '17': true
-    },
-    {
-      '1': 'total_tokens_estimated_cost',
-      '3': 7,
-      '4': 1,
-      '5': 1,
-      '9': 2,
-      '10': 'totalTokensEstimatedCost',
-      '17': true
-    },
+    {'1': 'breakdown', '3': 4, '4': 3, '5': 11, '6': '.wajlc.RoomArtifactTokenUsage.BreakdownEntry', '10': 'breakdown'},
+    {'1': 'prompt_tokens_estimated_cost', '3': 5, '4': 1, '5': 1, '9': 0, '10': 'promptTokensEstimatedCost', '17': true},
+    {'1': 'completion_tokens_estimated_cost', '3': 6, '4': 1, '5': 1, '9': 1, '10': 'completionTokensEstimatedCost', '17': true},
+    {'1': 'total_tokens_estimated_cost', '3': 7, '4': 1, '5': 1, '9': 2, '10': 'totalTokensEstimatedCost', '17': true},
   ],
   '3': [RoomArtifactTokenUsage_BreakdownEntry$json],
   '8': [
@@ -174,23 +134,8 @@ const RoomArtifactDurationUsage$json = {
   '1': 'RoomArtifactDurationUsage',
   '2': [
     {'1': 'duration_sec', '3': 1, '4': 1, '5': 13, '10': 'durationSec'},
-    {
-      '1': 'breakdown',
-      '3': 2,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactDurationUsage.BreakdownEntry',
-      '10': 'breakdown'
-    },
-    {
-      '1': 'duration_sec_estimated_cost',
-      '3': 3,
-      '4': 1,
-      '5': 1,
-      '9': 0,
-      '10': 'durationSecEstimatedCost',
-      '17': true
-    },
+    {'1': 'breakdown', '3': 2, '4': 3, '5': 11, '6': '.wajlc.RoomArtifactDurationUsage.BreakdownEntry', '10': 'breakdown'},
+    {'1': 'duration_sec_estimated_cost', '3': 3, '4': 1, '5': 1, '9': 0, '10': 'durationSecEstimatedCost', '17': true},
   ],
   '3': [RoomArtifactDurationUsage_BreakdownEntry$json],
   '8': [
@@ -222,23 +167,8 @@ const RoomArtifactCharacterCountUsage$json = {
   '1': 'RoomArtifactCharacterCountUsage',
   '2': [
     {'1': 'total_characters', '3': 1, '4': 1, '5': 13, '10': 'totalCharacters'},
-    {
-      '1': 'breakdown',
-      '3': 2,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactCharacterCountUsage.BreakdownEntry',
-      '10': 'breakdown'
-    },
-    {
-      '1': 'total_characters_estimated_cost',
-      '3': 3,
-      '4': 1,
-      '5': 1,
-      '9': 0,
-      '10': 'totalCharactersEstimatedCost',
-      '17': true
-    },
+    {'1': 'breakdown', '3': 2, '4': 3, '5': 11, '6': '.wajlc.RoomArtifactCharacterCountUsage.BreakdownEntry', '10': 'breakdown'},
+    {'1': 'total_characters_estimated_cost', '3': 3, '4': 1, '5': 1, '9': 0, '10': 'totalCharactersEstimatedCost', '17': true},
   ],
   '3': [RoomArtifactCharacterCountUsage_BreakdownEntry$json],
   '8': [
@@ -270,66 +200,13 @@ final $typed_data.Uint8List roomArtifactCharacterCountUsageDescriptor = $convert
 const RoomArtifactMetadata$json = {
   '1': 'RoomArtifactMetadata',
   '2': [
-    {
-      '1': 'user_info',
-      '3': 1,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactUserInfo',
-      '10': 'userInfo'
-    },
-    {
-      '1': 'provider_job_info',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactProviderJobInfo',
-      '10': 'providerJobInfo'
-    },
-    {
-      '1': 'file_info',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactFileInfo',
-      '10': 'fileInfo'
-    },
-    {
-      '1': 'token_usage',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactTokenUsage',
-      '9': 0,
-      '10': 'tokenUsage'
-    },
-    {
-      '1': 'duration_usage',
-      '3': 5,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactDurationUsage',
-      '9': 0,
-      '10': 'durationUsage'
-    },
-    {
-      '1': 'character_count_usage',
-      '3': 6,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactCharacterCountUsage',
-      '9': 0,
-      '10': 'characterCountUsage'
-    },
-    {
-      '1': 'reference_artifact_id',
-      '3': 10,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'referenceArtifactId',
-      '17': true
-    },
+    {'1': 'user_info', '3': 1, '4': 1, '5': 11, '6': '.wajlc.RoomArtifactUserInfo', '10': 'userInfo'},
+    {'1': 'provider_job_info', '3': 2, '4': 1, '5': 11, '6': '.wajlc.RoomArtifactProviderJobInfo', '10': 'providerJobInfo'},
+    {'1': 'file_info', '3': 3, '4': 1, '5': 11, '6': '.wajlc.RoomArtifactFileInfo', '10': 'fileInfo'},
+    {'1': 'token_usage', '3': 4, '4': 1, '5': 11, '6': '.wajlc.RoomArtifactTokenUsage', '9': 0, '10': 'tokenUsage'},
+    {'1': 'duration_usage', '3': 5, '4': 1, '5': 11, '6': '.wajlc.RoomArtifactDurationUsage', '9': 0, '10': 'durationUsage'},
+    {'1': 'character_count_usage', '3': 6, '4': 1, '5': 11, '6': '.wajlc.RoomArtifactCharacterCountUsage', '9': 0, '10': 'characterCountUsage'},
+    {'1': 'reference_artifact_id', '3': 10, '4': 1, '5': 9, '9': 1, '10': 'referenceArtifactId', '17': true},
   ],
   '8': [
     {'1': 'usage_details'},
@@ -354,23 +231,9 @@ final $typed_data.Uint8List roomArtifactMetadataDescriptor = $convert.base64Deco
 const RoomArtifactWebhookEvent$json = {
   '1': 'RoomArtifactWebhookEvent',
   '2': [
-    {
-      '1': 'type',
-      '3': 1,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.RoomArtifactType',
-      '10': 'type'
-    },
+    {'1': 'type', '3': 1, '4': 1, '5': 14, '6': '.wajlc.RoomArtifactType', '10': 'type'},
     {'1': 'artifact_id', '3': 2, '4': 1, '5': 9, '10': 'artifactId'},
-    {
-      '1': 'metadata',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomArtifactMetadata',
-      '10': 'metadata'
-    },
+    {'1': 'metadata', '3': 3, '4': 1, '5': 11, '6': '.wajlc.RoomArtifactMetadata', '10': 'metadata'},
   ],
 };
 
@@ -379,3 +242,4 @@ final $typed_data.Uint8List roomArtifactWebhookEventDescriptor = $convert.base64
     'ChhSb29tQXJ0aWZhY3RXZWJob29rRXZlbnQSKwoEdHlwZRgBIAEoDjIXLndhamxjLlJvb21Bcn'
     'RpZmFjdFR5cGVSBHR5cGUSHwoLYXJ0aWZhY3RfaWQYAiABKAlSCmFydGlmYWN0SWQSNwoIbWV0'
     'YWRhdGEYAyABKAsyGy53YWpsYy5Sb29tQXJ0aWZhY3RNZXRhZGF0YVIIbWV0YWRhdGE=');
+

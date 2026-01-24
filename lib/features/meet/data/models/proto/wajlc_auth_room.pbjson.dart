@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_auth_room.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_auth_room.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -34,24 +32,8 @@ const ActiveRoomInfoRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {
-      '1': 'room_info',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.ActiveRoomInfo',
-      '9': 0,
-      '10': 'roomInfo',
-      '17': true
-    },
-    {
-      '1': 'participants_info',
-      '3': 4,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.ParticipantInfo',
-      '10': 'participantsInfo'
-    },
+    {'1': 'room_info', '3': 3, '4': 1, '5': 11, '6': '.wajlc.ActiveRoomInfo', '9': 0, '10': 'roomInfo', '17': true},
+    {'1': 'participants_info', '3': 4, '4': 3, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participantsInfo'},
   ],
   '8': [
     {'1': '_room_info'},
@@ -72,13 +54,7 @@ const ActiveRoomInfo$json = {
     {'1': 'room_title', '3': 1, '4': 1, '5': 9, '10': 'roomTitle'},
     {'1': 'room_id', '3': 2, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'sid', '3': 3, '4': 1, '5': 9, '10': 'sid'},
-    {
-      '1': 'joined_participants',
-      '3': 4,
-      '4': 1,
-      '5': 3,
-      '10': 'joinedParticipants'
-    },
+    {'1': 'joined_participants', '3': 4, '4': 1, '5': 3, '10': 'joinedParticipants'},
     {'1': 'is_running', '3': 5, '4': 1, '5': 5, '10': 'isRunning'},
     {'1': 'is_recording', '3': 6, '4': 1, '5': 5, '10': 'isRecording'},
     {'1': 'is_active_rtmp', '3': 7, '4': 1, '5': 5, '10': 'isActiveRtmp'},
@@ -157,24 +133,8 @@ final $typed_data.Uint8List isRoomActiveResDescriptor = $convert.base64Decode(
 const ActiveRoomWithParticipant$json = {
   '1': 'ActiveRoomWithParticipant',
   '2': [
-    {
-      '1': 'room_info',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.ActiveRoomInfo',
-      '9': 0,
-      '10': 'roomInfo',
-      '17': true
-    },
-    {
-      '1': 'participants_info',
-      '3': 4,
-      '4': 3,
-      '5': 11,
-      '6': '.livekit.ParticipantInfo',
-      '10': 'participantsInfo'
-    },
+    {'1': 'room_info', '3': 3, '4': 1, '5': 11, '6': '.wajlc.ActiveRoomInfo', '9': 0, '10': 'roomInfo', '17': true},
+    {'1': 'participants_info', '3': 4, '4': 3, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participantsInfo'},
   ],
   '8': [
     {'1': '_room_info'},
@@ -194,14 +154,7 @@ const GetActiveRoomInfoRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {
-      '1': 'room',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.ActiveRoomWithParticipant',
-      '10': 'room'
-    },
+    {'1': 'room', '3': 3, '4': 1, '5': 11, '6': '.wajlc.ActiveRoomWithParticipant', '10': 'room'},
   ],
 };
 
@@ -217,14 +170,7 @@ const GetActiveRoomsInfoRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {
-      '1': 'rooms',
-      '3': 3,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.ActiveRoomWithParticipant',
-      '10': 'rooms'
-    },
+    {'1': 'rooms', '3': 3, '4': 3, '5': 11, '6': '.wajlc.ActiveRoomWithParticipant', '10': 'rooms'},
   ],
 };
 
@@ -241,25 +187,11 @@ const PastRoomInfo$json = {
     {'1': 'room_title', '3': 1, '4': 1, '5': 9, '10': 'roomTitle'},
     {'1': 'room_id', '3': 2, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'room_sid', '3': 3, '4': 1, '5': 9, '10': 'roomSid'},
-    {
-      '1': 'joined_participants',
-      '3': 4,
-      '4': 1,
-      '5': 3,
-      '10': 'joinedParticipants'
-    },
+    {'1': 'joined_participants', '3': 4, '4': 1, '5': 3, '10': 'joinedParticipants'},
     {'1': 'webhook_url', '3': 5, '4': 1, '5': 9, '10': 'webhookUrl'},
     {'1': 'created', '3': 6, '4': 1, '5': 9, '10': 'created'},
     {'1': 'ended', '3': 7, '4': 1, '5': 9, '10': 'ended'},
-    {
-      '1': 'analytics_file_id',
-      '3': 8,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'analyticsFileId',
-      '17': true
-    },
+    {'1': 'analytics_file_id', '3': 8, '4': 1, '5': 9, '9': 0, '10': 'analyticsFileId', '17': true},
   ],
   '8': [
     {'1': '_analytics_file_id'},
@@ -300,14 +232,7 @@ const FetchPastRoomsResult$json = {
     {'1': 'from', '3': 2, '4': 1, '5': 13, '10': 'from'},
     {'1': 'limit', '3': 3, '4': 1, '5': 13, '10': 'limit'},
     {'1': 'order_by', '3': 4, '4': 1, '5': 9, '10': 'orderBy'},
-    {
-      '1': 'rooms_list',
-      '3': 5,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.PastRoomInfo',
-      '10': 'roomsList'
-    },
+    {'1': 'rooms_list', '3': 5, '4': 3, '5': 11, '6': '.wajlc.PastRoomInfo', '10': 'roomsList'},
   ],
 };
 
@@ -324,14 +249,7 @@ const FetchPastRoomsRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {
-      '1': 'result',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.FetchPastRoomsResult',
-      '10': 'result'
-    },
+    {'1': 'result', '3': 3, '4': 1, '5': 11, '6': '.wajlc.FetchPastRoomsResult', '10': 'result'},
   ],
 };
 
@@ -373,3 +291,4 @@ final $typed_data.Uint8List getClientFilesResDescriptor = $convert.base64Decode(
     'ChFHZXRDbGllbnRGaWxlc1JlcxIWCgZzdGF0dXMYASABKAhSBnN0YXR1cxIQCgNtc2cYAiABKA'
     'lSA21zZxIUCgNjc3MYAyADKAlCAhgBUgNjc3MSEgoCanMYBCADKAlCAhgBUgJqcxIbCgljc3Nf'
     'ZmlsZXMYBSADKAlSCGNzc0ZpbGVzEhkKCGpzX2ZpbGVzGAYgAygJUgdqc0ZpbGVz');
+

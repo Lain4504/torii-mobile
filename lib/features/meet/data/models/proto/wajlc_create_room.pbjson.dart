@@ -1,15 +1,13 @@
-// This is a generated file - do not edit.
 //
-// Generated from wajlc_create_room.proto.
-
-// @dart = 3.3
+//  Generated code. Do not modify.
+//  source: wajlc_create_room.proto
+//
+// @dart = 2.12
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names
-// ignore_for_file: curly_braces_in_flow_control_structures
-// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
-// ignore_for_file: unused_import
+// ignore_for_file: constant_identifier_names, library_prefixes
+// ignore_for_file: non_constant_identifier_names, prefer_final_fields
+// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -20,35 +18,9 @@ const CreateRoomReq$json = {
   '1': 'CreateRoomReq',
   '2': [
     {'1': 'room_id', '3': 1, '4': 1, '5': 9, '8': {}, '10': 'roomId'},
-    {
-      '1': 'empty_timeout',
-      '3': 2,
-      '4': 1,
-      '5': 13,
-      '8': {},
-      '9': 0,
-      '10': 'emptyTimeout',
-      '17': true
-    },
-    {
-      '1': 'max_participants',
-      '3': 3,
-      '4': 1,
-      '5': 13,
-      '8': {},
-      '9': 1,
-      '10': 'maxParticipants',
-      '17': true
-    },
-    {
-      '1': 'metadata',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomMetadata',
-      '8': {},
-      '10': 'metadata'
-    },
+    {'1': 'empty_timeout', '3': 2, '4': 1, '5': 13, '8': {}, '9': 0, '10': 'emptyTimeout', '17': true},
+    {'1': 'max_participants', '3': 3, '4': 1, '5': 13, '8': {}, '9': 1, '10': 'maxParticipants', '17': true},
+    {'1': 'metadata', '3': 4, '4': 1, '5': 11, '6': '.wajlc.RoomMetadata', '8': {}, '10': 'metadata'},
   ],
   '8': [
     {'1': '_empty_timeout'},
@@ -71,104 +43,19 @@ const RoomMetadata$json = {
   '1': 'RoomMetadata',
   '2': [
     {'1': 'room_title', '3': 1, '4': 1, '5': 9, '8': {}, '10': 'roomTitle'},
-    {
-      '1': 'welcome_message',
-      '3': 2,
-      '4': 1,
-      '5': 9,
-      '9': 0,
-      '10': 'welcomeMessage',
-      '17': true
-    },
+    {'1': 'welcome_message', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'welcomeMessage', '17': true},
     {'1': 'is_recording', '3': 3, '4': 1, '5': 8, '8': {}, '10': 'isRecording'},
-    {
-      '1': 'is_active_rtmp',
-      '3': 4,
-      '4': 1,
-      '5': 8,
-      '8': {},
-      '10': 'isActiveRtmp'
-    },
-    {
-      '1': 'parent_room_id',
-      '3': 5,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '10': 'parentRoomId'
-    },
-    {
-      '1': 'is_breakout_room',
-      '3': 6,
-      '4': 1,
-      '5': 8,
-      '8': {},
-      '10': 'isBreakoutRoom'
-    },
-    {
-      '1': 'webhook_url',
-      '3': 7,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 1,
-      '10': 'webhookUrl',
-      '17': true
-    },
+    {'1': 'is_active_rtmp', '3': 4, '4': 1, '5': 8, '8': {}, '10': 'isActiveRtmp'},
+    {'1': 'parent_room_id', '3': 5, '4': 1, '5': 9, '8': {}, '10': 'parentRoomId'},
+    {'1': 'is_breakout_room', '3': 6, '4': 1, '5': 8, '8': {}, '10': 'isBreakoutRoom'},
+    {'1': 'webhook_url', '3': 7, '4': 1, '5': 9, '8': {}, '9': 1, '10': 'webhookUrl', '17': true},
     {'1': 'started_at', '3': 8, '4': 1, '5': 4, '8': {}, '10': 'startedAt'},
-    {
-      '1': 'logout_url',
-      '3': 9,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 2,
-      '10': 'logoutUrl',
-      '17': true
-    },
-    {
-      '1': 'room_features',
-      '3': 10,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RoomCreateFeatures',
-      '8': {},
-      '10': 'roomFeatures'
-    },
-    {
-      '1': 'default_lock_settings',
-      '3': 11,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.LockSettings',
-      '10': 'defaultLockSettings'
-    },
-    {
-      '1': 'copyright_conf',
-      '3': 12,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.CopyrightConf',
-      '10': 'copyrightConf'
-    },
-    {
-      '1': 'metadata_id',
-      '3': 13,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 3,
-      '10': 'metadataId',
-      '17': true
-    },
-    {
-      '1': 'extra_data',
-      '3': 14,
-      '4': 3,
-      '5': 11,
-      '6': '.wajlc.RoomMetadata.ExtraDataEntry',
-      '10': 'extraData'
-    },
+    {'1': 'logout_url', '3': 9, '4': 1, '5': 9, '8': {}, '9': 2, '10': 'logoutUrl', '17': true},
+    {'1': 'room_features', '3': 10, '4': 1, '5': 11, '6': '.wajlc.RoomCreateFeatures', '8': {}, '10': 'roomFeatures'},
+    {'1': 'default_lock_settings', '3': 11, '4': 1, '5': 11, '6': '.wajlc.LockSettings', '10': 'defaultLockSettings'},
+    {'1': 'copyright_conf', '3': 12, '4': 1, '5': 11, '6': '.wajlc.CopyrightConf', '10': 'copyrightConf'},
+    {'1': 'metadata_id', '3': 13, '4': 1, '5': 9, '8': {}, '9': 3, '10': 'metadataId', '17': true},
+    {'1': 'extra_data', '3': 14, '4': 3, '5': 11, '6': '.wajlc.RoomMetadata.ExtraDataEntry', '10': 'extraData'},
   ],
   '3': [RoomMetadata_ExtraDataEntry$json],
   '8': [
@@ -217,35 +104,11 @@ const RoomCreateFeatures$json = {
   '2': [
     {'1': 'allow_webcams', '3': 1, '4': 1, '5': 8, '10': 'allowWebcams'},
     {'1': 'mute_on_start', '3': 2, '4': 1, '5': 8, '10': 'muteOnStart'},
-    {
-      '1': 'allow_screen_share',
-      '3': 3,
-      '4': 1,
-      '5': 8,
-      '10': 'allowScreenShare'
-    },
+    {'1': 'allow_screen_share', '3': 3, '4': 1, '5': 8, '10': 'allowScreenShare'},
     {'1': 'allow_rtmp', '3': 4, '4': 1, '5': 8, '10': 'allowRtmp'},
-    {
-      '1': 'allow_view_other_webcams',
-      '3': 5,
-      '4': 1,
-      '5': 8,
-      '10': 'allowViewOtherWebcams'
-    },
-    {
-      '1': 'allow_view_other_users_list',
-      '3': 6,
-      '4': 1,
-      '5': 8,
-      '10': 'allowViewOtherUsersList'
-    },
-    {
-      '1': 'admin_only_webcams',
-      '3': 7,
-      '4': 1,
-      '5': 8,
-      '10': 'adminOnlyWebcams'
-    },
+    {'1': 'allow_view_other_webcams', '3': 5, '4': 1, '5': 8, '10': 'allowViewOtherWebcams'},
+    {'1': 'allow_view_other_users_list', '3': 6, '4': 1, '5': 8, '10': 'allowViewOtherUsersList'},
+    {'1': 'admin_only_webcams', '3': 7, '4': 1, '5': 8, '10': 'adminOnlyWebcams'},
     {
       '1': 'allow_polls',
       '3': 8,
@@ -256,115 +119,20 @@ const RoomCreateFeatures$json = {
       '10': 'allowPolls',
       '17': true,
     },
-    {
-      '1': 'room_duration',
-      '3': 9,
-      '4': 1,
-      '5': 4,
-      '9': 1,
-      '10': 'roomDuration',
-      '17': true
-    },
+    {'1': 'room_duration', '3': 9, '4': 1, '5': 4, '9': 1, '10': 'roomDuration', '17': true},
     {'1': 'enable_analytics', '3': 10, '4': 1, '5': 8, '10': 'enableAnalytics'},
-    {
-      '1': 'allow_virtual_bg',
-      '3': 11,
-      '4': 1,
-      '5': 8,
-      '9': 2,
-      '10': 'allowVirtualBg',
-      '17': true
-    },
-    {
-      '1': 'allow_raise_hand',
-      '3': 12,
-      '4': 1,
-      '5': 8,
-      '9': 3,
-      '10': 'allowRaiseHand',
-      '17': true
-    },
-    {
-      '1': 'auto_gen_user_id',
-      '3': 13,
-      '4': 1,
-      '5': 8,
-      '9': 4,
-      '10': 'autoGenUserId',
-      '17': true
-    },
-    {
-      '1': 'recording_features',
-      '3': 14,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.RecordingFeatures',
-      '10': 'recordingFeatures'
-    },
-    {
-      '1': 'chat_features',
-      '3': 15,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.ChatFeatures',
-      '10': 'chatFeatures'
-    },
-    {
-      '1': 'shared_note_pad_features',
-      '3': 16,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.SharedNotePadFeatures',
-      '10': 'sharedNotePadFeatures'
-    },
-    {
-      '1': 'whiteboard_features',
-      '3': 17,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.WhiteboardFeatures',
-      '10': 'whiteboardFeatures'
-    },
-    {
-      '1': 'external_media_player_features',
-      '3': 18,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.ExternalMediaPlayerFeatures',
-      '10': 'externalMediaPlayerFeatures'
-    },
-    {
-      '1': 'waiting_room_features',
-      '3': 19,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.WaitingRoomFeatures',
-      '10': 'waitingRoomFeatures'
-    },
-    {
-      '1': 'breakout_room_features',
-      '3': 20,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.BreakoutRoomFeatures',
-      '10': 'breakoutRoomFeatures'
-    },
-    {
-      '1': 'display_external_link_features',
-      '3': 21,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.DisplayExternalLinkFeatures',
-      '10': 'displayExternalLinkFeatures'
-    },
-    {
-      '1': 'ingress_features',
-      '3': 22,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.IngressFeatures',
-      '10': 'ingressFeatures'
-    },
+    {'1': 'allow_virtual_bg', '3': 11, '4': 1, '5': 8, '9': 2, '10': 'allowVirtualBg', '17': true},
+    {'1': 'allow_raise_hand', '3': 12, '4': 1, '5': 8, '9': 3, '10': 'allowRaiseHand', '17': true},
+    {'1': 'auto_gen_user_id', '3': 13, '4': 1, '5': 8, '9': 4, '10': 'autoGenUserId', '17': true},
+    {'1': 'recording_features', '3': 14, '4': 1, '5': 11, '6': '.wajlc.RecordingFeatures', '10': 'recordingFeatures'},
+    {'1': 'chat_features', '3': 15, '4': 1, '5': 11, '6': '.wajlc.ChatFeatures', '10': 'chatFeatures'},
+    {'1': 'shared_note_pad_features', '3': 16, '4': 1, '5': 11, '6': '.wajlc.SharedNotePadFeatures', '10': 'sharedNotePadFeatures'},
+    {'1': 'whiteboard_features', '3': 17, '4': 1, '5': 11, '6': '.wajlc.WhiteboardFeatures', '10': 'whiteboardFeatures'},
+    {'1': 'external_media_player_features', '3': 18, '4': 1, '5': 11, '6': '.wajlc.ExternalMediaPlayerFeatures', '10': 'externalMediaPlayerFeatures'},
+    {'1': 'waiting_room_features', '3': 19, '4': 1, '5': 11, '6': '.wajlc.WaitingRoomFeatures', '10': 'waitingRoomFeatures'},
+    {'1': 'breakout_room_features', '3': 20, '4': 1, '5': 11, '6': '.wajlc.BreakoutRoomFeatures', '10': 'breakoutRoomFeatures'},
+    {'1': 'display_external_link_features', '3': 21, '4': 1, '5': 11, '6': '.wajlc.DisplayExternalLinkFeatures', '10': 'displayExternalLinkFeatures'},
+    {'1': 'ingress_features', '3': 22, '4': 1, '5': 11, '6': '.wajlc.IngressFeatures', '10': 'ingressFeatures'},
     {
       '1': 'speech_to_text_translation_features',
       '3': 23,
@@ -374,30 +142,9 @@ const RoomCreateFeatures$json = {
       '8': {'3': true},
       '10': 'speechToTextTranslationFeatures',
     },
-    {
-      '1': 'end_to_end_encryption_features',
-      '3': 24,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.EndToEndEncryptionFeatures',
-      '10': 'endToEndEncryptionFeatures'
-    },
-    {
-      '1': 'polls_features',
-      '3': 25,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.PollsFeatures',
-      '10': 'pollsFeatures'
-    },
-    {
-      '1': 'insights_features',
-      '3': 26,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.InsightsFeatures',
-      '10': 'insightsFeatures'
-    },
+    {'1': 'end_to_end_encryption_features', '3': 24, '4': 1, '5': 11, '6': '.wajlc.EndToEndEncryptionFeatures', '10': 'endToEndEncryptionFeatures'},
+    {'1': 'polls_features', '3': 25, '4': 1, '5': 11, '6': '.wajlc.PollsFeatures', '10': 'pollsFeatures'},
+    {'1': 'insights_features', '3': 26, '4': 1, '5': 11, '6': '.wajlc.InsightsFeatures', '10': 'insightsFeatures'},
   ],
   '8': [
     {'1': '_allow_polls'},
@@ -469,29 +216,9 @@ const ChatFeatures$json = {
       '17': true,
     },
     {'1': 'is_allow', '3': 5, '4': 1, '5': 8, '10': 'isAllow'},
-    {
-      '1': 'is_allow_file_upload',
-      '3': 6,
-      '4': 1,
-      '5': 8,
-      '10': 'isAllowFileUpload'
-    },
-    {
-      '1': 'allowed_file_types',
-      '3': 3,
-      '4': 3,
-      '5': 9,
-      '10': 'allowedFileTypes'
-    },
-    {
-      '1': 'max_file_size',
-      '3': 4,
-      '4': 1,
-      '5': 4,
-      '9': 2,
-      '10': 'maxFileSize',
-      '17': true
-    },
+    {'1': 'is_allow_file_upload', '3': 6, '4': 1, '5': 8, '10': 'isAllowFileUpload'},
+    {'1': 'allowed_file_types', '3': 3, '4': 3, '5': 9, '10': 'allowedFileTypes'},
+    {'1': 'max_file_size', '3': 4, '4': 1, '5': 4, '9': 2, '10': 'maxFileSize', '17': true},
   ],
   '8': [
     {'1': '_allow_chat'},
@@ -529,14 +256,7 @@ const SharedNotePadFeatures$json = {
     {'1': 'node_id', '3': 4, '4': 1, '5': 9, '8': {}, '10': 'nodeId'},
     {'1': 'host', '3': 5, '4': 1, '5': 9, '8': {}, '10': 'host'},
     {'1': 'note_pad_id', '3': 6, '4': 1, '5': 9, '8': {}, '10': 'notePadId'},
-    {
-      '1': 'read_only_pad_id',
-      '3': 7,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '10': 'readOnlyPadId'
-    },
+    {'1': 'read_only_pad_id', '3': 7, '4': 1, '5': 9, '8': {}, '10': 'readOnlyPadId'},
   ],
   '8': [
     {'1': '_allowed_shared_note_pad'},
@@ -575,37 +295,12 @@ const WhiteboardFeatures$json = {
     },
     {'1': 'is_allow', '3': 9, '4': 1, '5': 8, '10': 'isAllow'},
     {'1': 'visible', '3': 2, '4': 1, '5': 8, '8': {}, '10': 'visible'},
-    {
-      '1': 'preload_file',
-      '3': 3,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 1,
-      '10': 'preloadFile',
-      '17': true
-    },
-    {
-      '1': 'whiteboard_file_id',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '10': 'whiteboardFileId'
-    },
+    {'1': 'preload_file', '3': 3, '4': 1, '5': 9, '8': {}, '9': 1, '10': 'preloadFile', '17': true},
+    {'1': 'whiteboard_file_id', '3': 4, '4': 1, '5': 9, '8': {}, '10': 'whiteboardFileId'},
     {'1': 'file_name', '3': 5, '4': 1, '5': 9, '8': {}, '10': 'fileName'},
     {'1': 'file_path', '3': 6, '4': 1, '5': 9, '8': {}, '10': 'filePath'},
     {'1': 'total_pages', '3': 7, '4': 1, '5': 13, '10': 'totalPages'},
-    {
-      '1': 'max_allowed_file_size',
-      '3': 8,
-      '4': 1,
-      '5': 4,
-      '8': {},
-      '9': 2,
-      '10': 'maxAllowedFileSize',
-      '17': true
-    },
+    {'1': 'max_allowed_file_size', '3': 8, '4': 1, '5': 4, '8': {}, '9': 2, '10': 'maxAllowedFileSize', '17': true},
   ],
   '8': [
     {'1': '_allowed_whiteboard'},
@@ -647,26 +342,8 @@ const ExternalMediaPlayerFeatures$json = {
     },
     {'1': 'is_allow', '3': 5, '4': 1, '5': 8, '10': 'isAllow'},
     {'1': 'is_active', '3': 2, '4': 1, '5': 8, '8': {}, '10': 'isActive'},
-    {
-      '1': 'shared_by',
-      '3': 3,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 1,
-      '10': 'sharedBy',
-      '17': true
-    },
-    {
-      '1': 'url',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 2,
-      '10': 'url',
-      '17': true
-    },
+    {'1': 'shared_by', '3': 3, '4': 1, '5': 9, '8': {}, '9': 1, '10': 'sharedBy', '17': true},
+    {'1': 'url', '3': 4, '4': 1, '5': 9, '8': {}, '9': 2, '10': 'url', '17': true},
   ],
   '8': [
     {'1': '_allowed_external_media_player'},
@@ -706,13 +383,7 @@ const BreakoutRoomFeatures$json = {
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
     {'1': 'is_active', '3': 2, '4': 1, '5': 8, '8': {}, '10': 'isActive'},
-    {
-      '1': 'allowed_number_rooms',
-      '3': 3,
-      '4': 1,
-      '5': 13,
-      '10': 'allowedNumberRooms'
-    },
+    {'1': 'allowed_number_rooms', '3': 3, '4': 1, '5': 13, '10': 'allowedNumberRooms'},
   ],
 };
 
@@ -729,15 +400,7 @@ const DisplayExternalLinkFeatures$json = {
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
     {'1': 'is_active', '3': 2, '4': 1, '5': 8, '8': {}, '10': 'isActive'},
     {'1': 'link', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'link', '17': true},
-    {
-      '1': 'shared_by',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '9': 1,
-      '10': 'sharedBy',
-      '17': true
-    },
+    {'1': 'shared_by', '3': 4, '4': 1, '5': 9, '9': 1, '10': 'sharedBy', '17': true},
   ],
   '8': [
     {'1': '_link'},
@@ -758,21 +421,9 @@ const RecordingFeatures$json = {
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
     {'1': 'is_allow_cloud', '3': 2, '4': 1, '5': 8, '10': 'isAllowCloud'},
-    {
-      '1': 'enable_auto_cloud_recording',
-      '3': 3,
-      '4': 1,
-      '5': 8,
-      '10': 'enableAutoCloudRecording'
-    },
+    {'1': 'enable_auto_cloud_recording', '3': 3, '4': 1, '5': 8, '10': 'enableAutoCloudRecording'},
     {'1': 'is_allow_local', '3': 4, '4': 1, '5': 8, '10': 'isAllowLocal'},
-    {
-      '1': 'only_record_admin_webcams',
-      '3': 5,
-      '4': 1,
-      '5': 8,
-      '10': 'onlyRecordAdminWebcams'
-    },
+    {'1': 'only_record_admin_webcams', '3': 5, '4': 1, '5': 8, '10': 'onlyRecordAdminWebcams'},
   ],
 };
 
@@ -789,14 +440,7 @@ const IngressFeatures$json = {
   '1': 'IngressFeatures',
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
-    {
-      '1': 'input_type',
-      '3': 2,
-      '4': 1,
-      '5': 14,
-      '6': '.wajlc.IngressInput',
-      '10': 'inputType'
-    },
+    {'1': 'input_type', '3': 2, '4': 1, '5': 14, '6': '.wajlc.IngressInput', '10': 'inputType'},
     {'1': 'url', '3': 3, '4': 1, '5': 9, '8': {}, '10': 'url'},
     {'1': 'stream_key', '3': 4, '4': 1, '5': 9, '8': {}, '10': 'streamKey'},
   ],
@@ -816,63 +460,14 @@ const SpeechToTextTranslationFeatures$json = {
   '1': 'SpeechToTextTranslationFeatures',
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
-    {
-      '1': 'is_allow_translation',
-      '3': 2,
-      '4': 1,
-      '5': 8,
-      '10': 'isAllowTranslation'
-    },
+    {'1': 'is_allow_translation', '3': 2, '4': 1, '5': 8, '10': 'isAllowTranslation'},
     {'1': 'is_enabled', '3': 3, '4': 1, '5': 8, '8': {}, '10': 'isEnabled'},
-    {
-      '1': 'is_enabled_translation',
-      '3': 4,
-      '4': 1,
-      '5': 8,
-      '8': {},
-      '10': 'isEnabledTranslation'
-    },
-    {
-      '1': 'max_num_tran_langs_allow_selecting',
-      '3': 11,
-      '4': 1,
-      '5': 5,
-      '10': 'maxNumTranLangsAllowSelecting'
-    },
-    {
-      '1': 'allowed_speech_langs',
-      '3': 7,
-      '4': 3,
-      '5': 9,
-      '8': {},
-      '10': 'allowedSpeechLangs'
-    },
-    {
-      '1': 'allowed_speech_users',
-      '3': 8,
-      '4': 3,
-      '5': 9,
-      '8': {},
-      '10': 'allowedSpeechUsers'
-    },
-    {
-      '1': 'allowed_trans_langs',
-      '3': 9,
-      '4': 3,
-      '5': 9,
-      '8': {},
-      '10': 'allowedTransLangs'
-    },
-    {
-      '1': 'default_subtitle_lang',
-      '3': 10,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 0,
-      '10': 'defaultSubtitleLang',
-      '17': true
-    },
+    {'1': 'is_enabled_translation', '3': 4, '4': 1, '5': 8, '8': {}, '10': 'isEnabledTranslation'},
+    {'1': 'max_num_tran_langs_allow_selecting', '3': 11, '4': 1, '5': 5, '10': 'maxNumTranLangsAllowSelecting'},
+    {'1': 'allowed_speech_langs', '3': 7, '4': 3, '5': 9, '8': {}, '10': 'allowedSpeechLangs'},
+    {'1': 'allowed_speech_users', '3': 8, '4': 3, '5': 9, '8': {}, '10': 'allowedSpeechUsers'},
+    {'1': 'allowed_trans_langs', '3': 9, '4': 3, '5': 9, '8': {}, '10': 'allowedTransLangs'},
+    {'1': 'default_subtitle_lang', '3': 10, '4': 1, '5': 9, '8': {}, '9': 0, '10': 'defaultSubtitleLang', '17': true},
   ],
   '8': [
     {'1': '_default_subtitle_lang'},
@@ -899,37 +494,10 @@ const EndToEndEncryptionFeatures$json = {
   '1': 'EndToEndEncryptionFeatures',
   '2': [
     {'1': 'is_enabled', '3': 1, '4': 1, '5': 8, '10': 'isEnabled'},
-    {
-      '1': 'included_chat_messages',
-      '3': 2,
-      '4': 1,
-      '5': 8,
-      '10': 'includedChatMessages'
-    },
-    {
-      '1': 'included_whiteboard',
-      '3': 3,
-      '4': 1,
-      '5': 8,
-      '10': 'includedWhiteboard'
-    },
-    {
-      '1': 'enabled_self_insert_encryption_key',
-      '3': 5,
-      '4': 1,
-      '5': 8,
-      '10': 'enabledSelfInsertEncryptionKey'
-    },
-    {
-      '1': 'encryption_key',
-      '3': 4,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 0,
-      '10': 'encryptionKey',
-      '17': true
-    },
+    {'1': 'included_chat_messages', '3': 2, '4': 1, '5': 8, '10': 'includedChatMessages'},
+    {'1': 'included_whiteboard', '3': 3, '4': 1, '5': 8, '10': 'includedWhiteboard'},
+    {'1': 'enabled_self_insert_encryption_key', '3': 5, '4': 1, '5': 8, '10': 'enabledSelfInsertEncryptionKey'},
+    {'1': 'encryption_key', '3': 4, '4': 1, '5': 9, '8': {}, '9': 0, '10': 'encryptionKey', '17': true},
   ],
   '8': [
     {'1': '_encryption_key'},
@@ -966,36 +534,9 @@ const InsightsFeatures$json = {
   '1': 'InsightsFeatures',
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
-    {
-      '1': 'transcription_features',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.InsightsTranscriptionFeatures',
-      '9': 0,
-      '10': 'transcriptionFeatures',
-      '17': true
-    },
-    {
-      '1': 'chat_translation_features',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.InsightsChatTranslationFeatures',
-      '9': 1,
-      '10': 'chatTranslationFeatures',
-      '17': true
-    },
-    {
-      '1': 'ai_features',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.InsightsAIFeatures',
-      '9': 2,
-      '10': 'aiFeatures',
-      '17': true
-    },
+    {'1': 'transcription_features', '3': 2, '4': 1, '5': 11, '6': '.wajlc.InsightsTranscriptionFeatures', '9': 0, '10': 'transcriptionFeatures', '17': true},
+    {'1': 'chat_translation_features', '3': 3, '4': 1, '5': 11, '6': '.wajlc.InsightsChatTranslationFeatures', '9': 1, '10': 'chatTranslationFeatures', '17': true},
+    {'1': 'ai_features', '3': 4, '4': 1, '5': 11, '6': '.wajlc.InsightsAIFeatures', '9': 2, '10': 'aiFeatures', '17': true},
   ],
   '8': [
     {'1': '_transcription_features'},
@@ -1019,79 +560,16 @@ const InsightsTranscriptionFeatures$json = {
   '1': 'InsightsTranscriptionFeatures',
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
-    {
-      '1': 'is_allow_translation',
-      '3': 2,
-      '4': 1,
-      '5': 8,
-      '10': 'isAllowTranslation'
-    },
-    {
-      '1': 'is_allow_speech_synthesis',
-      '3': 3,
-      '4': 1,
-      '5': 8,
-      '10': 'isAllowSpeechSynthesis'
-    },
+    {'1': 'is_allow_translation', '3': 2, '4': 1, '5': 8, '10': 'isAllowTranslation'},
+    {'1': 'is_allow_speech_synthesis', '3': 3, '4': 1, '5': 8, '10': 'isAllowSpeechSynthesis'},
     {'1': 'is_enabled', '3': 4, '4': 1, '5': 8, '8': {}, '10': 'isEnabled'},
-    {
-      '1': 'allowed_spoken_langs',
-      '3': 5,
-      '4': 3,
-      '5': 9,
-      '8': {},
-      '10': 'allowedSpokenLangs'
-    },
-    {
-      '1': 'allowed_speech_users',
-      '3': 6,
-      '4': 3,
-      '5': 9,
-      '8': {},
-      '10': 'allowedSpeechUsers'
-    },
-    {
-      '1': 'is_enabled_translation',
-      '3': 7,
-      '4': 1,
-      '5': 8,
-      '8': {},
-      '10': 'isEnabledTranslation'
-    },
-    {
-      '1': 'max_selected_trans_langs',
-      '3': 8,
-      '4': 1,
-      '5': 5,
-      '8': {},
-      '10': 'maxSelectedTransLangs'
-    },
-    {
-      '1': 'allowed_trans_langs',
-      '3': 9,
-      '4': 3,
-      '5': 9,
-      '8': {},
-      '10': 'allowedTransLangs'
-    },
-    {
-      '1': 'default_subtitle_lang',
-      '3': 10,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 0,
-      '10': 'defaultSubtitleLang',
-      '17': true
-    },
-    {
-      '1': 'is_enabled_speech_synthesis',
-      '3': 11,
-      '4': 1,
-      '5': 8,
-      '8': {},
-      '10': 'isEnabledSpeechSynthesis'
-    },
+    {'1': 'allowed_spoken_langs', '3': 5, '4': 3, '5': 9, '8': {}, '10': 'allowedSpokenLangs'},
+    {'1': 'allowed_speech_users', '3': 6, '4': 3, '5': 9, '8': {}, '10': 'allowedSpeechUsers'},
+    {'1': 'is_enabled_translation', '3': 7, '4': 1, '5': 8, '8': {}, '10': 'isEnabledTranslation'},
+    {'1': 'max_selected_trans_langs', '3': 8, '4': 1, '5': 5, '8': {}, '10': 'maxSelectedTransLangs'},
+    {'1': 'allowed_trans_langs', '3': 9, '4': 3, '5': 9, '8': {}, '10': 'allowedTransLangs'},
+    {'1': 'default_subtitle_lang', '3': 10, '4': 1, '5': 9, '8': {}, '9': 0, '10': 'defaultSubtitleLang', '17': true},
+    {'1': 'is_enabled_speech_synthesis', '3': 11, '4': 1, '5': 8, '8': {}, '10': 'isEnabledSpeechSynthesis'},
   ],
   '8': [
     {'1': '_default_subtitle_lang'},
@@ -1122,32 +600,9 @@ const InsightsChatTranslationFeatures$json = {
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
     {'1': 'is_enabled', '3': 2, '4': 1, '5': 8, '8': {}, '10': 'isEnabled'},
-    {
-      '1': 'allowed_trans_langs',
-      '3': 3,
-      '4': 3,
-      '5': 9,
-      '8': {},
-      '10': 'allowedTransLangs'
-    },
-    {
-      '1': 'max_selected_trans_langs',
-      '3': 4,
-      '4': 1,
-      '5': 5,
-      '8': {},
-      '10': 'maxSelectedTransLangs'
-    },
-    {
-      '1': 'default_lang',
-      '3': 5,
-      '4': 1,
-      '5': 9,
-      '8': {},
-      '9': 0,
-      '10': 'defaultLang',
-      '17': true
-    },
+    {'1': 'allowed_trans_langs', '3': 3, '4': 3, '5': 9, '8': {}, '10': 'allowedTransLangs'},
+    {'1': 'max_selected_trans_langs', '3': 4, '4': 1, '5': 5, '8': {}, '10': 'maxSelectedTransLangs'},
+    {'1': 'default_lang', '3': 5, '4': 1, '5': 9, '8': {}, '9': 0, '10': 'defaultLang', '17': true},
   ],
   '8': [
     {'1': '_default_lang'},
@@ -1169,26 +624,8 @@ const InsightsAIFeatures$json = {
   '1': 'InsightsAIFeatures',
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
-    {
-      '1': 'ai_text_chat_features',
-      '3': 2,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.InsightsAITextChatFeatures',
-      '9': 0,
-      '10': 'aiTextChatFeatures',
-      '17': true
-    },
-    {
-      '1': 'meeting_summarization_features',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.InsightsAIMeetingSummarizationFeatures',
-      '9': 1,
-      '10': 'meetingSummarizationFeatures',
-      '17': true
-    },
+    {'1': 'ai_text_chat_features', '3': 2, '4': 1, '5': 11, '6': '.wajlc.InsightsAITextChatFeatures', '9': 0, '10': 'aiTextChatFeatures', '17': true},
+    {'1': 'meeting_summarization_features', '3': 3, '4': 1, '5': 11, '6': '.wajlc.InsightsAIMeetingSummarizationFeatures', '9': 1, '10': 'meetingSummarizationFeatures', '17': true},
   ],
   '8': [
     {'1': '_ai_text_chat_features'},
@@ -1211,22 +648,8 @@ const InsightsAITextChatFeatures$json = {
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
     {'1': 'is_enabled', '3': 2, '4': 1, '5': 8, '8': {}, '10': 'isEnabled'},
-    {
-      '1': 'is_allowed_everyone',
-      '3': 3,
-      '4': 1,
-      '5': 8,
-      '8': {},
-      '10': 'isAllowedEveryone'
-    },
-    {
-      '1': 'allowed_user_ids',
-      '3': 4,
-      '4': 3,
-      '5': 9,
-      '8': {},
-      '10': 'allowedUserIds'
-    },
+    {'1': 'is_allowed_everyone', '3': 3, '4': 1, '5': 8, '8': {}, '10': 'isAllowedEveryone'},
+    {'1': 'allowed_user_ids', '3': 4, '4': 3, '5': 9, '8': {}, '10': 'allowedUserIds'},
   ],
 };
 
@@ -1237,29 +660,21 @@ final $typed_data.Uint8List insightsAITextChatFeaturesDescriptor = $convert.base
     'dmVyeW9uZRgDIAEoCEIHukgEagIIAFIRaXNBbGxvd2VkRXZlcnlvbmUSMgoQYWxsb3dlZF91c2'
     'VyX2lkcxgEIAMoCUIIukgFkgECEABSDmFsbG93ZWRVc2VySWRz');
 
-@$core
-    .Deprecated('Use insightsAIMeetingSummarizationFeaturesDescriptor instead')
+@$core.Deprecated('Use insightsAIMeetingSummarizationFeaturesDescriptor instead')
 const InsightsAIMeetingSummarizationFeatures$json = {
   '1': 'InsightsAIMeetingSummarizationFeatures',
   '2': [
     {'1': 'is_allow', '3': 1, '4': 1, '5': 8, '10': 'isAllow'},
-    {
-      '1': 'summarization_prompt',
-      '3': 2,
-      '4': 1,
-      '5': 9,
-      '10': 'summarizationPrompt'
-    },
+    {'1': 'summarization_prompt', '3': 2, '4': 1, '5': 9, '10': 'summarizationPrompt'},
     {'1': 'is_enabled', '3': 3, '4': 1, '5': 8, '8': {}, '10': 'isEnabled'},
   ],
 };
 
 /// Descriptor for `InsightsAIMeetingSummarizationFeatures`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List insightsAIMeetingSummarizationFeaturesDescriptor =
-    $convert.base64Decode(
-        'CiZJbnNpZ2h0c0FJTWVldGluZ1N1bW1hcml6YXRpb25GZWF0dXJlcxIZCghpc19hbGxvdxgBIA'
-        'EoCFIHaXNBbGxvdxIxChRzdW1tYXJpemF0aW9uX3Byb21wdBgCIAEoCVITc3VtbWFyaXphdGlv'
-        'blByb21wdBImCgppc19lbmFibGVkGAMgASgIQge6SARqAggAUglpc0VuYWJsZWQ=');
+final $typed_data.Uint8List insightsAIMeetingSummarizationFeaturesDescriptor = $convert.base64Decode(
+    'CiZJbnNpZ2h0c0FJTWVldGluZ1N1bW1hcml6YXRpb25GZWF0dXJlcxIZCghpc19hbGxvdxgBIA'
+    'EoCFIHaXNBbGxvdxIxChRzdW1tYXJpemF0aW9uX3Byb21wdBgCIAEoCVITc3VtbWFyaXphdGlv'
+    'blByb21wdBImCgppc19lbmFibGVkGAMgASgIQge6SARqAggAUglpc0VuYWJsZWQ=');
 
 @$core.Deprecated('Use copyrightConfDescriptor instead')
 const CopyrightConf$json = {
@@ -1281,14 +696,7 @@ const CreateRoomRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {
-      '1': 'room_info',
-      '3': 3,
-      '4': 1,
-      '5': 11,
-      '6': '.wajlc.ActiveRoomInfo',
-      '10': 'roomInfo'
-    },
+    {'1': 'room_info', '3': 3, '4': 1, '5': 11, '6': '.wajlc.ActiveRoomInfo', '10': 'roomInfo'},
   ],
 };
 
@@ -1296,3 +704,4 @@ const CreateRoomRes$json = {
 final $typed_data.Uint8List createRoomResDescriptor = $convert.base64Decode(
     'Cg1DcmVhdGVSb29tUmVzEhYKBnN0YXR1cxgBIAEoCFIGc3RhdHVzEhAKA21zZxgCIAEoCVIDbX'
     'NnEjIKCXJvb21faW5mbxgDIAEoCzIVLndhamxjLkFjdGl2ZVJvb21JbmZvUghyb29tSW5mbw==');
+

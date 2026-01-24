@@ -15,6 +15,15 @@ class NatsService {
   nats.Client? _client;
   final List<StreamSubscription> _subscriptions = [];
   
+  Timer? _tokenRenewTimer;
+  Timer? _pingTimer;
+  String? _token;
+  String? _roomId;
+  String? _userId;
+
+  static const _pingInterval = Duration(minutes: 1);
+  static const _renewInterval = Duration(minutes: 3);
+
   // Event callbacks
   Function(NatsMsgServerToClient)? onSystemEvent;
   Function(bool)? onConnectionStatusChanged;
@@ -25,9 +34,9 @@ class NatsService {
   }) async {
     _client = nats.Client();
     
-    // Auth using token in URL if ConnectOptions not avail
-    // or try passing token in connect if supported.
-    // Based on dart_nats 0.4.x, we may need to put token in URI
+    _token = token;
+    
+    // Auth using token in URL
     String finalUrl = urls.first;
     if (!finalUrl.contains('@') && token.isNotEmpty) {
       final uri = Uri.parse(finalUrl);
@@ -36,12 +45,13 @@ class NatsService {
 
     try {
       final url = Uri.parse(finalUrl);
-      await _client!.connect(url);
+      await _client?.connect(url, retry: true, retryCount: -1);
+      _startKeepAlive();
       
       // Monitor status
       _client!.statusStream.listen((status) {
-        final isConnected = status == nats.Status.connected;
-        onConnectionStatusChanged?.call(isConnected);
+        final connected = status == nats.Status.connected;
+        onConnectionStatusChanged?.call(connected);
         if (kDebugMode) {
           print('NATS Status: $status');
         }
@@ -76,8 +86,8 @@ class NatsService {
     _subscriptions.add(subscription);
   }
 
-  void sendMessage(String subject, Uint8List data) {
-    _client?.pub(subject, data);
+  void sendMessage(String subject, List<int> data) {
+    _client?.pub(subject, Uint8List.fromList(data));
   }
 
   Future<void> disconnect() async {
@@ -85,16 +95,49 @@ class NatsService {
       await sub.cancel();
     }
     _subscriptions.clear();
+    _stopKeepAlive();
     _client?.close();
     _client = null;
     onConnectionStatusChanged?.call(false);
   }
 
+  void _startKeepAlive() {
+    _stopKeepAlive();
+    _pingTimer = Timer.periodic(_pingInterval, (_) => _sendPing());
+    _tokenRenewTimer = Timer.periodic(_renewInterval, (_) => _renewToken());
+  }
+
+  void _stopKeepAlive() {
+    _pingTimer?.cancel();
+    _tokenRenewTimer?.cancel();
+  }
+
+  bool get isConnected => _client?.status == nats.Status.connected;
+
+  void _sendPing() {
+    if (!isConnected || _roomId == null || _userId == null) return;
+    // We can use REQ_INITIAL_DATA as a ping or just a specific PING if available
+    // For now we follow Web app: REQ_INITIAL_DATA is requested only once.
+    // They have a specific PING event.
+  }
+
+  void _renewToken() {
+    if (!isConnected || _token == null) return;
+    // sendMessageToSystemWorker(REQ_RENEW_WAJLC_TOKEN)
+  }
+
+  void setIdentity(String roomId, String userId) {
+    _roomId = roomId;
+    _userId = userId;
+  }
+
   // Specialized send methods matching Web
   void sendMessageToSystemWorker({
-    required String subject,
-    required NatsMsgClientToServer data,
+    required String baseSubject,
+    required List<int> payload,
   }) {
-    sendMessage(subject, data.writeToBuffer());
+    if (_roomId == null || _userId == null) return;
+    final targetSubject = '$baseSubject.$_roomId.$_userId';
+    sendMessage(targetSubject, payload);
   }
 }
