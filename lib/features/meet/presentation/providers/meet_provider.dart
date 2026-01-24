@@ -195,6 +195,54 @@ class MeetNotifier extends StateNotifier<MeetState> {
     await joinMeeting();
   }
 
+  Future<void> joinRoomById({
+    required String roomId,
+    required String name,
+    bool isAdmin = false,
+  }) async {
+    state = state.copyWith(
+      status: MeetStatus.signaling, 
+      statusMessage: 'Checking room status...',
+      roomId: roomId,
+    );
+    
+    try {
+      // 1. Check if active
+      final isActive = await _apiService.isRoomActive(roomId);
+      
+      if (!isActive) {
+        state = state.copyWith(statusMessage: 'Creating room...');
+        final created = await _apiService.createRoom(roomId);
+        if (!created) {
+          state = state.copyWith(status: MeetStatus.error, errorMessage: 'Failed to create room');
+          return;
+        }
+      }
+      
+      // 2. Get token
+      state = state.copyWith(statusMessage: 'Retrieving join token...');
+      final userId = 'u-${DateTime.now().millisecondsSinceEpoch % 100000}';
+      final token = await _apiService.getJoinToken(
+        roomId: roomId,
+        name: name,
+        userId: userId,
+        isAdmin: isAdmin,
+      );
+      
+      if (token == null) {
+        state = state.copyWith(status: MeetStatus.error, errorMessage: 'Failed to get join token');
+        return;
+      }
+      
+      // 3. Join with token
+      await joinMeetingWithToken(token);
+      
+    } catch (e) {
+      if (kDebugMode) print('joinRoomById error: $e');
+      state = state.copyWith(status: MeetStatus.error, errorMessage: e.toString());
+    }
+  }
+
   Future<void> joinMeeting() async {
     state = state.copyWith(status: MeetStatus.signaling, statusMessage: 'Verifying token...');
 
@@ -222,8 +270,10 @@ class MeetNotifier extends StateNotifier<MeetState> {
 
       state = state.copyWith(status: MeetStatus.natsConnected, statusMessage: 'Connected to signaling. Fetching room data...');
 
-      // 3. Subscribe to subjects
+      // 3. Set identity and subscribe to subjects
       final natsSubjects = res.natsSubjects;
+      _natsService.setIdentity(res.roomId, res.userId, natsSubjects.systemJsWorker);
+      
       await _natsService.subscribe(
         subject: natsSubjects.systemPublic,
         onData: (data) => _handleNatsSystemEvent(nats_msg.NatsMsgServerToClient.fromBuffer(data)),

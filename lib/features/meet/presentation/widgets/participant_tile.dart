@@ -73,7 +73,7 @@ class _ParticipantTileState extends State<ParticipantTile> {
         children: [
           // Video Layer
           if (track != null && track is VideoTrack && !isMuted)
-            VideoTrackRenderer(track, fit: RTCVideoViewObjectFit.RTCVideoViewObjectFitCover)
+            VideoTrackRenderer(track, fit: VideoViewFit.cover)
           else
             Container(
               decoration: const BoxDecoration(

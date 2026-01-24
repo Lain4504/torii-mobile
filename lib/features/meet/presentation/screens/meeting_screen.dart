@@ -6,6 +6,7 @@ import 'package:torii_app/features/meet/presentation/providers/meet_provider.dar
 import 'package:torii_app/features/meet/presentation/widgets/chat_bottom_sheet.dart';
 import 'package:torii_app/features/meet/presentation/widgets/meeting_controls.dart';
 import 'package:torii_app/features/meet/presentation/widgets/participant_tile.dart';
+import 'package:torii_app/features/meet/presentation/widgets/join_meet_form.dart';
 
 class MeetingScreen extends ConsumerWidget {
   const MeetingScreen({super.key});
@@ -25,46 +26,47 @@ class MeetingScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F1A),
-      appBar: AppBar(
-        title: Text(
-          meetState.roomInfo?.roomId ?? 'Meeting',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 0.5),
-        ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF1A1A26).withOpacity(0.8),
-        elevation: 0,
-        flexibleSpace: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-        foregroundColor: Colors.white,
-        actions: [
-          if (meetState.isRecording)
-            Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.redAccent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
-              ),
-              child: const Row(
-                children: [
-                   Icon(Icons.fiber_manual_record, color: Colors.redAccent, size: 12),
-                   SizedBox(width: 6),
-                   Text('REC', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 10)),
-                ],
+      appBar: meetState.status == MeetStatus.connected 
+        ? AppBar(
+            title: Text(
+              meetState.roomInfo?.roomId ?? 'Meeting',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+            ),
+            centerTitle: true,
+            backgroundColor: const Color(0xFF1A1A26).withOpacity(0.8),
+            elevation: 0,
+            flexibleSpace: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(color: Colors.transparent),
               ),
             ),
-          if (meetState.status == MeetStatus.connected)
-            IconButton(
-              icon: const Icon(Icons.chat_bubble_outline, size: 22),
-              onPressed: () => _showChat(context),
-            ),
-        ],
-      ),
+            foregroundColor: Colors.white,
+            actions: [
+              if (meetState.isRecording)
+                Container(
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
+                  ),
+                  child: const Row(
+                    children: [
+                       Icon(Icons.fiber_manual_record, color: Colors.redAccent, size: 12),
+                       SizedBox(width: 6),
+                       Text('REC', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 10)),
+                    ],
+                  ),
+                ),
+              IconButton(
+                icon: const Icon(Icons.chat_bubble_outline, size: 22),
+                onPressed: () => _showChat(context),
+              ),
+            ],
+          )
+        : null, // Hide appbar on Join screen
       body: Stack(
         children: [
           _buildBody(context, ref, meetState),
@@ -108,12 +110,7 @@ class MeetingScreen extends ConsumerWidget {
   Widget _buildBody(BuildContext context, WidgetRef ref, MeetState state) {
     switch (state.status) {
       case MeetStatus.initial:
-        return Center(
-          child: ElevatedButton(
-            onPressed: () => ref.read(meetControllerProvider.notifier).joinMeeting(),
-            child: const Text('Join Meeting'),
-          ),
-        );
+        return const JoinMeetForm();
       case MeetStatus.signaling:
       case MeetStatus.natsConnecting:
       case MeetStatus.natsConnected:

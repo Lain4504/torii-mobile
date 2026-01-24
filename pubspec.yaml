@@ -46,6 +46,7 @@ dependencies:
   path_provider: ^2.1.0
   path: ^1.9.0
   pretty_dio_logger: ^1.4.0  # HTTP logging interceptor (như OkHttp LoggingInterceptor)
+  device_info_plus: ^12.2.0
   intl: ^0.20.2
   flutter_native_splash: ^2.4.7
   qr_flutter: ^4.1.0
@@ -61,12 +62,13 @@ dependencies:
   # Firebase packages
   google_sign_in: ^6.2.1
   # Meet dependencies
-  livekit_client: ^2.2.1
+  livekit_client: ^2.6.1
   permission_handler: ^11.3.1
   wakelock_plus: ^1.2.8
   dart_nats: ^0.4.0
   fixnum: ^1.1.0
-  flutter_webrtc: ^0.14.2
+  flutter_webrtc: ^1.2.1
+  crypto: ^3.0.6
 
 
 

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,9 +20,13 @@ class MeetApiService {
   String? _currentToken;
   String? _manualToken;
 
+  // These should ideally come from a secure config/env
+  static const String _apiKey = 'wajlc'; 
+  static const String _apiSecret = 'zumyyYWqv7KR2kUqvYdq4z4sXg7XTBD2ljT6';
+
   MeetApiService(this._tokenService) {
     _dio = Dio(BaseOptions(
-      baseUrl: '${AppConfig.apiBaseUrl}/api',
+      baseUrl: AppConfig.apiBaseUrl,
       contentType: 'application/protobuf',
       responseType: ResponseType.bytes,
     ));
@@ -62,28 +68,107 @@ class MeetApiService {
     try {
       final req = VerifyTokenReq(isProduction: isProduction);
       final response = await _dio.post(
-        '/verifyToken',
+        '/api/verifyToken',
         data: req.writeToBuffer(),
       );
 
       return VerifyTokenRes.fromBuffer(response.data as List<int>);
     } on DioException catch (e) {
-      // Return a failed response or rethrow
-      return VerifyTokenRes(
-        status: false,
-        msg: e.message ?? 'Unknown error',
-      );
+      return VerifyTokenRes(status: false, msg: e.message ?? 'Unknown error');
     } catch (e) {
-      return VerifyTokenRes(
-        status: false,
-        msg: e.toString(),
-      );
+      return VerifyTokenRes(status: false, msg: e.toString());
     }
   }
 
-  // Add more API methods as needed (muteAll, endMeeting, etc.)
-  // These usually follow the same pattern: 
-  // 1. Create Proto request
-  // 2. POST to endpoint
-  // 3. Decode Proto response
+  // --- Auth & Room Management (JSON based to match Web) ---
+
+  Future<String> _getHashSignature(String message) async {
+    final key = utf8.encode(_apiSecret);
+    final bytes = utf8.encode(message);
+    final hmacSha256 = Hmac(sha256, key);
+    final digest = hmacSha256.convert(bytes);
+    return digest.toString();
+  }
+
+  Future<Map<String, dynamic>> _sendAuthRequest(String method, Map<String, dynamic> body) async {
+    final jsonBody = jsonEncode(body);
+    final signature = await _getHashSignature(jsonBody);
+
+    final response = await _dio.post(
+      '/auth/$method',
+      data: jsonBody,
+      options: Options(
+        contentType: 'application/json',
+        responseType: ResponseType.json,
+        headers: {
+          'API-KEY': _apiKey,
+          'HASH-SIGNATURE': signature,
+        },
+      ),
+    );
+
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<bool> isRoomActive(String roomId) async {
+    try {
+      final data = await _sendAuthRequest('room/isRoomActive', {'room_id': roomId});
+      return data['is_active'] == true;
+    } catch (e) {
+      if (kDebugMode) print('isRoomActive error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> createRoom(String roomId) async {
+    try {
+      // Simplified default room info matching Web (helper/roomConfig.ts)
+      final body = {
+        'roomId': roomId,
+        'emptyTimeout': 7200,
+        'metadata': {
+          'roomTitle': 'Mobile Meeting',
+          'welcomeMessage': 'Welcome from Torii Mobile!',
+          'roomFeatures': {
+            'allowWebcams': true,
+            'muteOnStart': false,
+            'allowScreenShare': true,
+            'allowRaiseHand': true,
+            'chatFeatures': {'isAllow': true},
+          }
+        }
+      };
+      final data = await _sendAuthRequest('room/create', body);
+      return data['status'] == true;
+    } catch (e) {
+      if (kDebugMode) print('createRoom error: $e');
+      return false;
+    }
+  }
+
+  Future<String?> getJoinToken({
+    required String roomId,
+    required String name,
+    required String userId,
+    bool isAdmin = false,
+  }) async {
+    try {
+      final body = {
+        'room_id': roomId,
+        'user_info': {
+          'is_admin': isAdmin,
+          'name': name,
+          'user_id': userId,
+        }
+      };
+      final data = await _sendAuthRequest('room/getJoinToken', body);
+      if (data['status'] == true) {
+        return data['token'] as String?;
+      }
+      return null;
+    } catch (e) {
+      if (kDebugMode) print('getJoinToken error: $e');
+      return null;
+    }
+  }
 }

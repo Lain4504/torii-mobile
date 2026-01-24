@@ -103,6 +103,8 @@ class NatsService {
 
   void _startKeepAlive() {
     _stopKeepAlive();
+    // Send immediate ping to satisfy handshake
+    _sendPing();
     _pingTimer = Timer.periodic(_pingInterval, (_) => _sendPing());
     _tokenRenewTimer = Timer.periodic(_renewInterval, (_) => _renewToken());
   }
