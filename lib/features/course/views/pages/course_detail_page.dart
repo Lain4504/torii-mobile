@@ -8,6 +8,8 @@ import '../../providers/course_providers.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/providers/auth_providers.dart';
+import '../../../review/views/review_icon_button.dart';
+import '../../../review/providers/review_provider.dart';
 
 /// Course Detail Page - Premium Zen UI Rebuild
 class CourseDetailPage extends ConsumerWidget {
@@ -33,7 +35,11 @@ class CourseDetailPage extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  size: 48,
+                  color: AppColors.error,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   state.error!,
@@ -44,7 +50,9 @@ class CourseDetailPage extends ConsumerWidget {
                 ZenButton(
                   text: 'TRY AGAIN',
                   onPressed: () {
-                    ref.read(courseDetailProvider(courseId).notifier).loadCourseDetail(courseId);
+                    ref
+                        .read(courseDetailProvider(courseId).notifier)
+                        .loadCourseDetail(courseId);
                   },
                 ),
               ],
@@ -68,11 +76,21 @@ class CourseDetailPage extends ConsumerWidget {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            _buildHeader(context, isDark, course, state.isWishlisted, state.isTogglingWishlist, ref),
+            _buildHeader(
+              context,
+              isDark,
+              course,
+              state.isWishlisted,
+              state.isTogglingWishlist,
+              ref,
+            ),
 
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xl,
+                  vertical: AppSpacing.lg,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -96,17 +114,23 @@ class CourseDetailPage extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: AppSpacing.xl),
-                    
+
                     EntryAnimation(
                       delay: const Duration(milliseconds: 200),
-                      child: _buildStatsRow(theme, isDark, course, state.curriculum),
+                      child: _buildStatsRow(
+                        theme,
+                        isDark,
+                        course,
+                        state.curriculum,
+                      ),
                     ),
 
                     const SizedBox(height: AppSpacing.xxl),
 
-                    if (course.description != null && course.description!.isNotEmpty) ...[
+                    if (course.description != null &&
+                        course.description!.isNotEmpty) ...[
                       EntryAnimation(
                         delay: const Duration(milliseconds: 300),
                         child: Column(
@@ -148,21 +172,34 @@ class CourseDetailPage extends ConsumerWidget {
                       child: _buildSectionTitle('Course Content'),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    
+
                     if (state.isLoadingCurriculum)
                       const Center(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
-                          child: ZenLoading(text: 'Syncing curriculum blocks...'),
+                          padding: EdgeInsets.symmetric(
+                            vertical: AppSpacing.xxxl,
+                          ),
+                          child: ZenLoading(
+                            text: 'Syncing curriculum blocks...',
+                          ),
                         ),
                       )
-                    else if (state.curriculum != null && state.curriculum!.modules.isNotEmpty)
+                    else if (state.curriculum != null &&
+                        state.curriculum!.modules.isNotEmpty)
                       ...state.curriculum!.modules.expand((module) {
-                        final moduleIndex = state.curriculum!.modules.indexOf(module) + 1;
+                        final moduleIndex =
+                            state.curriculum!.modules.indexOf(module) + 1;
                         return [
-                          _buildModuleHeader(context, theme, isDark, module, moduleIndex),
+                          _buildModuleHeader(
+                            context,
+                            theme,
+                            isDark,
+                            module,
+                            moduleIndex,
+                          ),
                           ...module.lessons.map((lesson) {
-                            final lessonIndex = module.lessons.indexOf(lesson) + 1;
+                            final lessonIndex =
+                                module.lessons.indexOf(lesson) + 1;
                             return _buildCurriculumItem(
                               context,
                               '$moduleIndex.$lessonIndex',
@@ -184,7 +221,7 @@ class CourseDetailPage extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    
+
                     const SizedBox(height: 120),
                   ],
                 ),
@@ -226,7 +263,11 @@ class CourseDetailPage extends ConsumerWidget {
           ],
         ),
         child: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.textPrimary),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 18,
+            color: AppColors.textPrimary,
+          ),
           onPressed: () => context.pop(),
         ),
       ),
@@ -247,29 +288,50 @@ class CourseDetailPage extends ConsumerWidget {
           ),
           child: IconButton(
             icon: isTogglingWishlist
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : Icon(
-                    isWishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                    isWishlisted
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
                     size: 20,
-                    color: isWishlisted ? AppColors.error : AppColors.textPrimary,
+                    color: isWishlisted
+                        ? AppColors.error
+                        : AppColors.textPrimary,
                   ),
             onPressed: isTogglingWishlist
                 ? null
                 : () async {
-                    final result = await ref.read(courseDetailProvider(course.id).notifier).toggleWishlist();
+                    final result = await ref
+                        .read(courseDetailProvider(course.id).notifier)
+                        .toggleWishlist();
                     if (context.mounted && result != null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(result
-                              ? 'Đã thêm vào yêu thích'
-                              : 'Đã xóa khỏi yêu thích'),
+                          content: Text(
+                            result
+                                ? 'Đã thêm vào yêu thích'
+                                : 'Đã xóa khỏi yêu thích',
+                          ),
                           duration: const Duration(seconds: 2),
-                          backgroundColor: result ? AppColors.success : AppColors.textSecondary,
+                          backgroundColor: result
+                              ? AppColors.success
+                              : AppColors.textSecondary,
                         ),
                       );
                     }
                   },
           ),
+        ),
+        const SizedBox(width: 12),
+        ReviewIconButton(
+          entityId: course.id,
+          type: ReviewType.course,
+          entityTitle: course.title,
+          isDark: isDark,
         ),
         const SizedBox(width: 12),
         Container(
@@ -288,7 +350,11 @@ class CourseDetailPage extends ConsumerWidget {
             ],
           ),
           child: IconButton(
-            icon: const Icon(Icons.share_rounded, size: 20, color: AppColors.textPrimary),
+            icon: const Icon(
+              Icons.share_rounded,
+              size: 20,
+              color: AppColors.textPrimary,
+            ),
             onPressed: () {},
           ),
         ),
@@ -303,7 +369,18 @@ class CourseDetailPage extends ConsumerWidget {
                   ? Image.network(course.thumbnailUrl!, fit: BoxFit.cover)
                   : Container(color: AppColors.grey200),
             ),
-            Container(decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.black.withValues(alpha: 0.3), Colors.transparent], begin: Alignment.bottomCenter, end: Alignment.center))),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.black.withValues(alpha: 0.3),
+                    Colors.transparent,
+                  ],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.center,
+                ),
+              ),
+            ),
             if (course.previewVideoUrl != null)
               Center(
                 child: Container(
@@ -312,14 +389,21 @@ class CourseDetailPage extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      width: 2,
+                    ),
                   ),
                   child: ClipOval(
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () {},
-                        child: const Icon(Icons.play_arrow_rounded, size: 48, color: Colors.white),
+                        child: const Icon(
+                          Icons.play_arrow_rounded,
+                          size: 48,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -334,12 +418,24 @@ class CourseDetailPage extends ConsumerWidget {
   Widget _buildMetaBadges(Course course) {
     return Row(
       children: [
-        _buildBadge(course.levelLabel, AppColors.primarySurface, AppColors.primary),
+        _buildBadge(
+          course.levelLabel,
+          AppColors.primarySurface,
+          AppColors.primary,
+        ),
         const SizedBox(width: 8),
-        _buildBadge(course.typeLabel, AppColors.accentSurface, AppColors.accentDark),
+        _buildBadge(
+          course.typeLabel,
+          AppColors.accentSurface,
+          AppColors.accentDark,
+        ),
         if (course.isEnrolled) ...[
           const SizedBox(width: 8),
-          _buildBadge('SYNCHRONIZED', AppColors.successLight, AppColors.successDark),
+          _buildBadge(
+            'SYNCHRONIZED',
+            AppColors.successLight,
+            AppColors.successDark,
+          ),
         ],
       ],
     );
@@ -349,13 +445,18 @@ class CourseDetailPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: bg.withValues(alpha: 0.1), 
+        color: bg.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.full),
         border: Border.all(color: textCol.withValues(alpha: 0.2)),
       ),
       child: Text(
         text.toUpperCase(),
-        style: TextStyle(color: textCol, fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 2.0),
+        style: TextStyle(
+          color: textCol,
+          fontSize: 9,
+          fontWeight: AppTypography.black,
+          letterSpacing: 2.0,
+        ),
       ),
     );
   }
@@ -365,12 +466,23 @@ class CourseDetailPage extends ConsumerWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary.withValues(alpha: 0.1))),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+          ),
           child: CircleAvatar(
             radius: 16,
             backgroundColor: AppColors.primarySurface,
-            backgroundImage: course.instructorAvatarUrl.isNotEmpty ? NetworkImage(course.instructorAvatarUrl) : null,
-            child: course.instructorAvatarUrl.isEmpty ? const Icon(Icons.person_rounded, size: 16, color: AppColors.primary) : null,
+            backgroundImage: course.instructorAvatarUrl.isNotEmpty
+                ? NetworkImage(course.instructorAvatarUrl)
+                : null,
+            child: course.instructorAvatarUrl.isEmpty
+                ? const Icon(
+                    Icons.person_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  )
+                : null,
           ),
         ),
         const SizedBox(width: 12),
@@ -378,8 +490,18 @@ class CourseDetailPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(course.instructorName, style: theme.textTheme.titleSmall?.copyWith(fontWeight: AppTypography.bold)),
-              Text('Principal Instructor', style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary)),
+              Text(
+                course.instructorName,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: AppTypography.bold,
+                ),
+              ),
+              Text(
+                'Principal Instructor',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.textTertiary,
+                ),
+              ),
             ],
           ),
         ),
@@ -387,17 +509,38 @@ class CourseDetailPage extends ConsumerWidget {
           children: [
             const Icon(Icons.star_rounded, size: 18, color: AppColors.accent),
             const SizedBox(width: 4),
-            Text(course.rating.toStringAsFixed(1), style: theme.textTheme.titleSmall?.copyWith(fontWeight: AppTypography.black)),
-            Text(' (${course.reviewCount})', style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary)),
+            Text(
+              course.rating.toStringAsFixed(1),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: AppTypography.black,
+              ),
+            ),
+            Text(
+              ' (${course.reviewCount})',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.textTertiary,
+              ),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildStatsRow(ThemeData theme, bool isDark, Course course, Curriculum? curriculum) {
-    String duration = curriculum?.totalDurationLabel ?? (course.durationWeeks != null ? '${course.durationWeeks} weeks' : 'N/A');
-    String studentCount = course.enrolledCount >= 1000 ? '${(course.enrolledCount / 1000).toStringAsFixed(1)}k' : course.enrolledCount.toString();
+  Widget _buildStatsRow(
+    ThemeData theme,
+    bool isDark,
+    Course course,
+    Curriculum? curriculum,
+  ) {
+    String duration =
+        curriculum?.totalDurationLabel ??
+        (course.durationWeeks != null
+            ? '${course.durationWeeks} weeks'
+            : 'N/A');
+    String studentCount = course.enrolledCount >= 1000
+        ? '${(course.enrolledCount / 1000).toStringAsFixed(1)}k'
+        : course.enrolledCount.toString();
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24),
@@ -417,7 +560,11 @@ class CourseDetailPage extends ConsumerWidget {
         children: [
           _buildStatItem(Icons.timer_rounded, duration, 'HOURS'),
           _buildVerticalDivider(),
-          _buildStatItem(Icons.layers_rounded, course.totalLessons.toString(), 'LESSONS'),
+          _buildStatItem(
+            Icons.layers_rounded,
+            course.totalLessons.toString(),
+            'LESSONS',
+          ),
           _buildVerticalDivider(),
           _buildStatItem(Icons.group_rounded, studentCount, 'STUDENTS'),
         ],
@@ -431,23 +578,54 @@ class CourseDetailPage extends ConsumerWidget {
         children: [
           Icon(icon, size: 20, color: AppColors.primary.withValues(alpha: 0.7)),
           const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontWeight: AppTypography.black, fontSize: 16, letterSpacing: -0.5)),
-          Text(label, style: const TextStyle(fontSize: 9, fontWeight: AppTypography.black, letterSpacing: 1.5, color: AppColors.textTertiary)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: AppTypography.black,
+              fontSize: 16,
+              letterSpacing: -0.5,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: AppTypography.black,
+              letterSpacing: 1.5,
+              color: AppColors.textTertiary,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildVerticalDivider() => Container(width: 1, height: 30, color: AppColors.grey300.withValues(alpha: 0.5));
+  Widget _buildVerticalDivider() => Container(
+    width: 1,
+    height: 30,
+    color: AppColors.grey300.withValues(alpha: 0.5),
+  );
 
   Widget _buildSectionTitle(String title) {
     return Row(
       children: [
-        Container(width: 4, height: 16, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
+        Container(
+          width: 4,
+          height: 16,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
         const SizedBox(width: 12),
         Text(
           title.toUpperCase(),
-          style: const TextStyle(fontSize: 12, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textPrimary),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: AppTypography.black,
+            letterSpacing: 2.0,
+            color: AppColors.textPrimary,
+          ),
         ),
       ],
     );
@@ -455,35 +633,80 @@ class CourseDetailPage extends ConsumerWidget {
 
   Widget _buildLearningPoints(ThemeData theme, Course course) {
     return Column(
-      children: course.learningOutcomes.map((point) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.check_circle_rounded, size: 18, color: AppColors.success),
-            const SizedBox(width: 12),
-            Expanded(child: Text(point, style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15, color: AppColors.textSecondary))),
-          ],
-        ),
-      )).toList(),
+      children: course.learningOutcomes
+          .map(
+            (point) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    size: 18,
+                    color: AppColors.success,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      point,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontSize: 15,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 
-  Widget _buildModuleHeader(BuildContext context, ThemeData theme, bool isDark, Module module, int index) {
+  Widget _buildModuleHeader(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+    Module module,
+    int index,
+  ) {
     return Container(
       margin: const EdgeInsets.only(top: 16, bottom: 8),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.primarySurface.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: AppColors.primarySurface.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         children: [
-          Text('M$index', style: const TextStyle(fontWeight: AppTypography.black, color: AppColors.primary, fontSize: 18)),
+          Text(
+            'M$index',
+            style: const TextStyle(
+              fontWeight: AppTypography.black,
+              color: AppColors.primary,
+              fontSize: 18,
+            ),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(module.title, style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 16)),
-                if (module.durationLabel.isNotEmpty) Text(module.durationLabel, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                Text(
+                  module.title,
+                  style: const TextStyle(
+                    fontWeight: AppTypography.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                if (module.durationLabel.isNotEmpty)
+                  Text(
+                    module.durationLabel,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -492,7 +715,13 @@ class CourseDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCurriculumItem(BuildContext context, String num, String title, String duration, {bool isFree = false}) {
+  Widget _buildCurriculumItem(
+    BuildContext context,
+    String num,
+    String title,
+    String duration, {
+    bool isFree = false,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -510,38 +739,81 @@ class CourseDetailPage extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Text(num, style: const TextStyle(fontWeight: AppTypography.black, color: AppColors.textTertiary, fontSize: 12)),
+          Text(
+            num,
+            style: const TextStyle(
+              fontWeight: AppTypography.black,
+              color: AppColors.textTertiary,
+              fontSize: 12,
+            ),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: AppTypography.semiBold, fontSize: 14)),
-                Text(duration, style: const TextStyle(fontSize: 11, color: AppColors.textTertiary, fontWeight: AppTypography.medium)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: AppTypography.semiBold,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  duration,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textTertiary,
+                    fontWeight: AppTypography.medium,
+                  ),
+                ),
               ],
             ),
           ),
-          if (isFree) _buildBadge('PREVIEW', AppColors.successLight, AppColors.successDark)
-          else const Icon(Icons.lock_outline_rounded, size: 18, color: AppColors.textTertiary),
+          if (isFree)
+            _buildBadge(
+              'PREVIEW',
+              AppColors.successLight,
+              AppColors.successDark,
+            )
+          else
+            const Icon(
+              Icons.lock_outline_rounded,
+              size: 18,
+              color: AppColors.textTertiary,
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildBottomBar(BuildContext context, ThemeData theme, bool isDark, Course course, WidgetRef ref) {
+  Widget _buildBottomBar(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+    Course course,
+    WidgetRef ref,
+  ) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, MediaQuery.of(context).padding.bottom + 20),
-      decoration: const BoxDecoration(
-        color: Colors.transparent,
+      padding: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        MediaQuery.of(context).padding.bottom + 20,
       ),
+      decoration: const BoxDecoration(color: Colors.transparent),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
           // Glassmorphic effect
           gradient: LinearGradient(
             colors: [
-              (isDark ? AppColors.surfaceVariantDark : Colors.white).withValues(alpha: 0.95),
-              (isDark ? AppColors.surfaceVariantDark : Colors.white).withValues(alpha: 0.98),
+              (isDark ? AppColors.surfaceVariantDark : Colors.white).withValues(
+                alpha: 0.95,
+              ),
+              (isDark ? AppColors.surfaceVariantDark : Colors.white).withValues(
+                alpha: 0.98,
+              ),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -561,7 +833,8 @@ class CourseDetailPage extends ConsumerWidget {
               ),
           ],
           border: Border.all(
-            color: (isDark ? AppColors.borderDark : AppColors.primary).withValues(alpha: 0.12),
+            color: (isDark ? AppColors.borderDark : AppColors.primary)
+                .withValues(alpha: 0.12),
             width: 1.5,
           ),
         ),
@@ -597,7 +870,9 @@ class CourseDetailPage extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: AppTypography.black,
-                              color: isDark ? AppColors.primaryLight : AppColors.primary,
+                              color: isDark
+                                  ? AppColors.primaryLight
+                                  : AppColors.primary,
                             ),
                           ),
                           if (course.hasDiscount) ...[
@@ -629,14 +904,17 @@ class CourseDetailPage extends ConsumerWidget {
                     } else {
                       // Check if user is authenticated
                       final authState = ref.read(authNotifierProvider);
-                      final isAuthenticated = authState.asData?.value.isAuthenticated ?? false;
-                      
+                      final isAuthenticated =
+                          authState.asData?.value.isAuthenticated ?? false;
+
                       if (!isAuthenticated) {
                         // Show message and navigate to login
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Vui lòng đăng nhập để đăng ký khóa học'),
+                              content: Text(
+                                'Vui lòng đăng nhập để đăng ký khóa học',
+                              ),
                               duration: Duration(seconds: 2),
                             ),
                           );
@@ -644,7 +922,7 @@ class CourseDetailPage extends ConsumerWidget {
                         }
                         return;
                       }
-                      
+
                       // Navigate to payment screen
                       final result = await context.push<bool>(
                         '/payment',
@@ -654,10 +932,12 @@ class CourseDetailPage extends ConsumerWidget {
                           'courseTitle': course.title,
                         },
                       );
-                      
+
                       // If payment successful, refresh course detail
                       if (result == true) {
-                        ref.read(courseDetailProvider(course.id).notifier).loadCourseDetail(course.id);
+                        ref
+                            .read(courseDetailProvider(course.id).notifier)
+                            .loadCourseDetail(course.id);
                       }
                     }
                   },
