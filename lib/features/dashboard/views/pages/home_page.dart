@@ -166,19 +166,30 @@ class _HomePageState extends ConsumerState<HomePage> {
           icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
           onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
         ),
+        _HeaderIconButton(
+          icon: Icons.search_rounded,
+          onPressed: () => context.push('/search'),
+        ),
         // Access Profile
         if (user == null)
           Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.md),
-            child: TextButton(
-              onPressed: () => context.go('/login'),
-              child: Text(
-                AppLocalizations.of(context)!.signIn.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: AppTypography.black,
-                  letterSpacing: 1.0,
-                  color: AppColors.primary,
+            padding: const EdgeInsets.only(right: AppSpacing.lg),
+            child: Center(
+              child: TextButton(
+                onPressed: () => context.push('/login'),
+                style: TextButton.styleFrom(
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
+                ),
+                child: const Text(
+                  'SIGN IN',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: AppTypography.black,
+                    letterSpacing: 1.0,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ),

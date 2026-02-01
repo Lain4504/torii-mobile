@@ -5,6 +5,7 @@ import 'package:torii_app/services/auth/token_service.dart';
 import 'package:torii_app/services/auth/user_service.dart';
 import 'package:torii_app/data/api/api_client.dart';
 import 'package:torii_app/data/database/app_database.dart';
+import 'package:torii_app/data/models/auth_model.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/repositories/auth_repository.dart';
 import 'package:torii_app/features/auth/repositories/token_storage.dart';
@@ -80,35 +81,41 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncValue.loading();
     try {
       final (result, data, error) = await _repository.login(email, password);
-
-      if (result == AuthResult.success && data != null) {
-        // Save tokens only on success
-        if (data.accessToken != null) {
-           // If refreshToken is managed by Cookie (null in body), we save empty string or keep logic consistent
-           await _repository.tokenStorage.saveTokens(data.accessToken!, data.refreshToken ?? '');
-        }
-        await _userService.saveUserProfile(data.user);
-        
-        // Clear flashcard cache from previous account
-        try {
-          ref.invalidate(flashcardDecksProvider);
-        } catch (_) {
-          // Ignore if provider doesn't exist yet
-        }
-        
-        state = AsyncValue.data(AuthState.authenticated(data.user));
-      } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {
-        // Do NOT clear existing tokens yet (if any), just transition to pending2FA
-        // The data.tempToken is all we need for the next step
-        state = AsyncValue.data(AuthState.pending2FA(data.tempToken!));
-      } else {
-        // Login failed -> NOW we clear tokens to ensure clean state
-        await _repository.tokenStorage.clear();
-        state = AsyncValue.data(AuthState.unauthenticated(error: error));
-      }
+      await _handleAuthResult(result, data, error);
     } catch (e) {
       await _repository.tokenStorage.clear();
       state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+
+  Future<void> googleLogin(String idToken) async {
+    state = const AsyncValue.loading();
+    try {
+      final (result, data, error) = await _repository.googleLogin(idToken);
+      await _handleAuthResult(result, data, error);
+    } catch (e) {
+      await _repository.tokenStorage.clear();
+      state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+
+  Future<void> _handleAuthResult(AuthResult result, AuthData? data, String? error) async {
+    if (result == AuthResult.success && data != null) {
+      if (data.accessToken != null) {
+        await _repository.tokenStorage.saveTokens(data.accessToken!, data.refreshToken ?? '');
+      }
+      await _userService.saveUserProfile(data.user);
+
+      try {
+        ref.invalidate(flashcardDecksProvider);
+      } catch (_) {}
+
+      state = AsyncValue.data(AuthState.authenticated(data.user));
+    } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {
+      state = AsyncValue.data(AuthState.pending2FA(data.tempToken!));
+    } else {
+      await _repository.tokenStorage.clear();
+      state = AsyncValue.data(AuthState.unauthenticated(error: error));
     }
   }
 

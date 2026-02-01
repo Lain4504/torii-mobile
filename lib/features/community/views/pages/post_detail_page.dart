@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 import 'package:torii_app/features/community/providers/post_providers.dart';
@@ -181,7 +183,22 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             child: IconButton(
               icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
               onPressed: () {
-                // TODO: Implement send logic
+                final authState = ref.read(authNotifierProvider);
+                final isAuthenticated = authState.asData?.value.isAuthenticated ?? false;
+
+                if (!isAuthenticated) {
+                  context.push('/login?redirect=${Uri.encodeComponent(GoRouterState.of(context).uri.toString())}');
+                  return;
+                }
+
+                if (_commentController.text.trim().isEmpty) return;
+
+                // Call repository directly and invalidate provider
+                ref.read(postRepositoryProvider).addComment(
+                  widget.postId,
+                  _commentController.text,
+                ).then((_) => ref.invalidate(postCommentsProvider(widget.postId)));
+                
                 _commentController.clear();
               },
             ),

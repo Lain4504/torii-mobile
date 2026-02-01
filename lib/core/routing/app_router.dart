@@ -77,7 +77,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isVerifying2FA = matchedLocation == '/auth/verify-2fa';
       
       if (status == AuthStatus.unauthenticated) {
-        if (AppRouter.publicRoutes.contains(matchedLocation)) {
+        if (AppRouter.isPublicRoute(matchedLocation)) {
            return null;
         }
         return '/login';
@@ -148,9 +148,13 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           
-          // Branch 1: Community / Exams
+          // Branch 1: Live (Member) / Community (Guest)
           StatefulShellBranch(
             routes: [
+              GoRoute(
+                path: '/live-schedule',
+                builder: (context, state) => const LiveClassSchedulePage(),
+              ),
               GoRoute(
                 path: '/community',
                 builder: (context, state) => const PostListPage(),
@@ -165,11 +169,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
-
-              GoRoute(
-                path: '/flashcards',
-                builder: (context, state) => const FlashcardListPage(),
-              ),
             ],
           ),
 
@@ -183,12 +182,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Branch 3: Notifications / Flashcards
+          // Branch 3: Flashcards (Member) / Exams (Guest)
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/notifications',
-                builder: (context, state) => const NotificationsPage(),
+                path: '/flashcards',
+                builder: (context, state) => const FlashcardListPage(),
               ),
               GoRoute(
                 path: '/exams',
@@ -197,7 +196,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Branch 4: Settings / Live Schedule
+          // Branch 4: Profile (Member) / Preview (Guest)
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -214,10 +213,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
+              // Use /flashcards/preview path for guest to avoid duplication errors if any, 
+              // or just reuse /flashcards if router allows in different branches.
               GoRoute(
-                  path: '/live-schedule',
-                  builder: (context, state) => const LiveClassSchedulePage(),
-                ),
+                path: '/flashcards-preview',
+                builder: (context, state) => const FlashcardListPage(),
+              ),
             ],
           ),
         ],
@@ -348,6 +349,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const DownloadsPage(),
       ),
       GoRoute(
+        path: '/notifications',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const NotificationsPage(),
+      ),
+      GoRoute(
         path: '/achievements',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const AchievementsPage(),
@@ -394,7 +400,6 @@ class AppRouter {
 
   static const protectedRoutes = [
     '/my-learning',
-    '/settings',
     '/settings/profile/edit',
     '/settings/security',
     '/achievements',
@@ -418,7 +423,33 @@ class AppRouter {
     '/auth/verify-otp',
     '/auth/reset-password',
     '/auth/verify-2fa',
+    '/achievements',
+    '/community',
+    '/search',
+    '/flashcards',
+    '/flashcards-preview',
+    '/settings',
+    '/exams',
   ];
+
+  /// Helper to check if a route is public (supports parameters)
+  static bool isPublicRoute(String location) {
+    // 1. Check exact matches
+    if (publicRoutes.contains(location)) return true;
+
+    // 2. Check pattern/prefix matches
+    final publicPrefixes = [
+      '/courses/',
+      '/community/',
+      '/instructor/',
+    ];
+
+    for (final prefix in publicPrefixes) {
+      if (location.startsWith(prefix)) return true;
+    }
+
+    return false;
+  }
 }
 
 class RootScreenWrapper extends ConsumerWidget {

@@ -22,6 +22,7 @@ class AuthService {
           'password': password,
           'displayName': displayName,
         },
+        options: Options(headers: {'x-platform': 'mobile'}),
       );
       return ApiResponse.fromJson(response.data, (json) => AuthData.fromJson(json));
     } on DioException catch (e) {
@@ -29,7 +30,7 @@ class AuthService {
     }
   }
 
-  /// 1.2 Login
+  /// 1.2 Login with email/password
   Future<ApiResponse<AuthData>> login({
     required String email,
     required String password,
@@ -41,6 +42,20 @@ class AuthService {
           'email': email,
           'password': password,
         },
+        options: Options(headers: {'x-platform': 'mobile'}),
+      );
+      return ApiResponse.fromJson(response.data, (json) => AuthData.fromJson(json));
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  /// 1.2.1 Google Login
+  Future<ApiResponse<AuthData>> googleLogin(String idToken) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/google',
+        data: {'idToken': idToken},
         options: Options(headers: {'x-platform': 'mobile'}),
       );
       return ApiResponse.fromJson(response.data, (json) => AuthData.fromJson(json));

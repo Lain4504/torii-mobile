@@ -902,24 +902,12 @@ class CourseDetailPage extends ConsumerWidget {
                       // Navigate to course content
                       context.push('/courses/${course.id}/lessons');
                     } else {
-                      // Check if user is authenticated
                       final authState = ref.read(authNotifierProvider);
                       final isAuthenticated =
                           authState.asData?.value.isAuthenticated ?? false;
 
                       if (!isAuthenticated) {
-                        // Show message and navigate to login
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Vui lòng đăng nhập để đăng ký khóa học',
-                              ),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                          context.push('/login');
-                        }
+                        context.push('/login?redirect=${Uri.encodeComponent(GoRouterState.of(context).uri.toString())}');
                         return;
                       }
 

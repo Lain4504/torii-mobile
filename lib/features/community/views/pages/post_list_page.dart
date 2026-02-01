@@ -6,6 +6,7 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 import 'package:torii_app/features/community/providers/post_providers.dart';
 import 'package:torii_app/features/community/models/post_model.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class PostListPage extends ConsumerWidget {
   const PostListPage({super.key});
@@ -40,7 +41,14 @@ class PostListPage extends ConsumerWidget {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.add_box_outlined, color: AppColors.primary),
-                  onPressed: () {},
+                  onPressed: () {
+                    final authState = ref.read(authStateProvider);
+                    if (authState.value?.isAuthenticated != true) {
+                      context.push('/login?redirect=${Uri.encodeComponent(GoRouterState.of(context).uri.toString())}');
+                      return;
+                    }
+                    // TODO: Navigate to create post page
+                  },
                 ),
               ],
             ),
