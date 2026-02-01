@@ -2,6 +2,7 @@
 import 'package:torii_app/features/auth/repositories/token_storage.dart';
 import 'package:torii_app/services/auth/auth_service.dart';
 import 'package:torii_app/data/models/auth_model.dart';
+import 'package:torii_app/core/models/api_response.dart';
 
 enum AuthResult { success, requires2FA, failure }
 
@@ -13,24 +14,27 @@ class AuthRepository {
 
   Future<(AuthResult, AuthData?, String?)> login(String email, String password) async {
     final response = await authService.login(email: email, password: password);
+    return _handleAuthResponse(response);
+  }
 
+  Future<(AuthResult, AuthData?, String?)> googleLogin(String idToken) async {
+    final response = await authService.googleLogin(idToken);
+    return _handleAuthResponse(response);
+  }
+
+  Future<(AuthResult, AuthData?, String?)> _handleAuthResponse(ApiResponse<AuthData> response) async {
     if (response.success && response.data != null) {
       final data = response.data!;
       if (data.requiresTwoFactor) {
-        // If 2FA is required, we usually get a temp token, not full access tokens yet.
-        // But if the backend returns valid tokens immediately (rare), we save them.
-        // Assuming standard flow: tempToken is used for next step.
-        // We do NOT save access tokens yet if they are not verified.
         return (AuthResult.requires2FA, data, null);
       } else {
-        // Login success
         if (data.accessToken != null && data.refreshToken != null) {
           await tokenStorage.saveTokens(data.accessToken!, data.refreshToken!);
           return (AuthResult.success, data, null);
         }
       }
     }
-    return (AuthResult.failure, null, response.message ?? 'Login failed');
+    return (AuthResult.failure, null, response.message ?? 'Authentication failed');
   }
 
   Future<AuthData?> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/core/config/app_config.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/localization/l10n/app_localizations.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
@@ -21,6 +23,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscureText = true;
+  String? _googleError;
 
   @override
   void dispose() {
@@ -38,11 +41,38 @@ class _LoginPageState extends ConsumerState<LoginPage> {
    );
   }
 
+  Future<void> _loginWithGoogle() async {
+    try {
+      setState(() => _googleError = null);
+      final googleSignIn = GoogleSignIn(
+        serverClientId: AppConfig.googleServerClientId,
+      );
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) return;
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+
+      if (idToken != null) {
+        await ref.read(authStateProvider.notifier).googleLogin(idToken);
+      } else {
+        debugPrint('Google Login: idToken is null');
+      }
+    } catch (e) {
+      debugPrint('Google Login Error: $e');
+      setState(() {
+        _googleError = e.toString().contains('10') 
+            ? 'Cấu hình Google không khớp (Lỗi 10). Vui lòng kiểm tra mã SHA-1.' 
+            : 'Lỗi đăng nhập Google: $e';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final asyncAuth = ref.watch(authStateProvider);
     final isLoading = asyncAuth.isLoading;
-    final errorMessage = asyncAuth.error?.toString(); // or extract from value if needed
+    final errorMessage = _googleError ?? asyncAuth.error?.toString();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -300,9 +330,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _SocialLoginButton(icon: Icons.g_mobiledata_rounded, onPressed: () {}),
-            const SizedBox(width: AppSpacing.lg),
-            _SocialLoginButton(icon: Icons.apple_rounded, onPressed: () {}),
+            _SocialLoginButton(
+              icon: Icons.g_mobiledata_rounded, 
+              onPressed: _loginWithGoogle
+            ),
           ],
         ),
       ],

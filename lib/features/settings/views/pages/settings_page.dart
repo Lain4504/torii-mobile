@@ -148,26 +148,19 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Widget _buildProfileSection(BuildContext context, WidgetRef ref) {
-    final asyncAuth = ref.read(authStateProvider);
+    final asyncAuth = ref.watch(authStateProvider);
     final isAuthenticated = asyncAuth.asData?.value.isAuthenticated ?? false;
-    if (!isAuthenticated) return const SizedBox.shrink();
     final user = asyncAuth.asData?.value.user;
-
-    // The following lines seem to be for TextEditingControllers, which are not declared in this class.
-    // If they are meant to be class members, they need to be declared.
-    // For now, I'll comment them out to maintain syntactic correctness.
-    // _nameController = TextEditingController(text: user?.displayName ?? '');
-    // _emailController = TextEditingController(text: user?.email ?? '');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'PROFILE_CONFIG',
-          style: TextStyle(
-            fontSize: 10, 
-            fontWeight: AppTypography.black, 
-            letterSpacing: 3.0, 
+        Text(
+          isAuthenticated ? 'PROFILE_CONFIG' : 'GET_STARTED',
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: AppTypography.black,
+            letterSpacing: 3.0,
             color: AppColors.textTertiary,
           ),
         ),
@@ -179,38 +172,75 @@ class SettingsPage extends ConsumerWidget {
             borderRadius: BorderRadius.circular(AppRadius.xxl),
             border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
           ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: AppColors.primarySurface,
-                child: Text(
-                  (user != null && user.displayName.isNotEmpty) ? user.displayName[0].toUpperCase() : 'U',
-                  style: const TextStyle(color: AppColors.primary, fontWeight: AppTypography.black, fontSize: 24),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: isAuthenticated
+              ? Row(
                   children: [
-                    Text(user?.displayName ?? 'User', style: const TextStyle(fontSize: 18, fontWeight: AppTypography.extraBold)),
-                    Text(user?.email ?? '', style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: AppColors.primarySurface,
+                      child: Text(
+                        (user != null && user.displayName.isNotEmpty) ? user.displayName[0].toUpperCase() : 'U',
+                        style: const TextStyle(color: AppColors.primary, fontWeight: AppTypography.black, fontSize: 24),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(user?.displayName ?? 'User', style: const TextStyle(fontSize: 18, fontWeight: AppTypography.extraBold)),
+                          Text(user?.email ?? '', style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => context.push('/settings/profile/edit'),
+                      icon: const Icon(Icons.edit_note_rounded, color: AppColors.primary),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Ready to start?', style: TextStyle(fontSize: 16, fontWeight: AppTypography.extraBold)),
+                          Text('Join Torii to track your progress', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                        ],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/login'),
+                      style: TextButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
+                      ),
+                      child: const Text('LOG IN', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0)),
+                    ),
                   ],
                 ),
-              ),
-              IconButton(
-                onPressed: () => context.push('/settings/profile/edit'),
-                icon: const Icon(Icons.edit_note_rounded, color: AppColors.primary),
-              ),
-            ],
-          ),
         ),
       ],
     );
   }
 
   Widget _buildDangerZone(BuildContext context, WidgetRef ref) {
+    final asyncAuth = ref.read(authStateProvider);
+    final isAuthenticated = asyncAuth.asData?.value.isAuthenticated ?? false;
+    if (!isAuthenticated) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

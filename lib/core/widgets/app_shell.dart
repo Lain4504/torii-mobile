@@ -101,17 +101,17 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.auto_stories_outlined,
                       activeIcon: Icons.auto_stories_rounded,
-                      label: 'Learning', // TODO: Localize
+                      label: 'Learning',
                       isSelected: activeIndex == 0,
                       onTap: () => onTap('/my-learning'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.style_outlined,
-                      activeIcon: Icons.style_rounded,
-                      label: 'Flashcards', // TODO: Localize
+                      icon: Icons.video_call_outlined,
+                      activeIcon: Icons.video_call_rounded,
+                      label: 'Live',
                       isSelected: activeIndex == 1,
-                      onTap: () => onTap('/flashcards'),
+                      onTap: () => onTap('/live-schedule'),
                       isDark: isDark,
                     ),
                   ]
@@ -125,11 +125,11 @@ class _BottomNavBar extends StatelessWidget {
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.style_outlined,
-                      activeIcon: Icons.style_rounded,
-                      label: AppLocalizations.of(context)?.cards ?? 'Cards',
+                      icon: Icons.forum_outlined,
+                      activeIcon: Icons.forum_rounded,
+                      label: 'Community',
                       isSelected: activeIndex == 1,
-                      onTap: () => onTap('/flashcards'),
+                      onTap: () => onTap('/community'),
                       isDark: isDark,
                     ),
                   ],
@@ -146,17 +146,17 @@ class _BottomNavBar extends StatelessWidget {
               children: isAuthenticated
                 ? [
                     _NavBarItem(
-                      icon: Icons.notifications_none_rounded,
-                      activeIcon: Icons.notifications_rounded,
-                      label: 'Notifs', // TODO: Localize
+                      icon: Icons.style_outlined,
+                      activeIcon: Icons.style_rounded,
+                      label: 'Cards',
                       isSelected: activeIndex == 3,
-                      onTap: () => onTap('/notifications'),
+                      onTap: () => onTap('/flashcards'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
-                      label: 'Profile', // TODO: Localize
+                      label: 'Profile',
                       isSelected: activeIndex == 4,
                       onTap: () => onTap('/settings'),
                       isDark: isDark,
@@ -166,17 +166,17 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.quiz_outlined,
                       activeIcon: Icons.quiz_rounded,
-                      label: AppLocalizations.of(context)?.exams ?? 'Exams',
+                      label: 'Exams',
                       isSelected: activeIndex == 3,
                       onTap: () => onTap('/exams'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.video_call_outlined,
-                      activeIcon: Icons.video_call_rounded,
-                      label: AppLocalizations.of(context)?.live ?? 'Live',
+                      icon: Icons.auto_awesome_motion_rounded,
+                      activeIcon: Icons.auto_awesome_motion_rounded,
+                      label: 'Học thử',
                       isSelected: activeIndex == 4,
-                      onTap: () => onTap('/live-schedule'),
+                      onTap: () => onTap('/flashcards-preview'),
                       isDark: isDark,
                     ),
                   ],
