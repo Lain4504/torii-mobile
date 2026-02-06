@@ -66,6 +66,10 @@ class SettingsPage extends ConsumerWidget {
                     // Profile Section
                     _buildProfileSection(context, ref),
                     const SizedBox(height: AppSpacing.xxxl),
+
+                    // Payment Section
+                    _buildPaymentSection(context),
+                    const SizedBox(height: AppSpacing.xxxl),
       
                     // Security Section
                     _buildSecuritySection(context, ref),
@@ -89,6 +93,65 @@ class SettingsPage extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPaymentSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'PAYMENTS',
+          style: TextStyle(
+            fontSize: 10, 
+            fontWeight: AppTypography.black, 
+            letterSpacing: 3.0, 
+            color: AppColors.textTertiary,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.push('/payment/history'),
+              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 20),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Order History', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                          Text('View your exam and course purchases', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary.withValues(alpha: 0.5)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

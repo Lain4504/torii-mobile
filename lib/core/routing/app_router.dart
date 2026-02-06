@@ -16,6 +16,7 @@ import 'package:torii_app/features/course/views/pages/course_detail_page.dart';
 import 'package:torii_app/features/course/views/pages/course_lessons_page.dart';
 import 'package:torii_app/features/payment/views/payment_screen.dart';
 import 'package:torii_app/features/payment/views/payos_webview_screen.dart';
+import 'package:torii_app/features/payment/views/order_history_screen.dart';
 import 'package:torii_app/features/dashboard/views/pages/home_page.dart';
 import 'package:torii_app/features/dashboard/views/pages/dashboard_page.dart';
 import 'package:torii_app/features/course/views/pages/my_learning_page.dart';
@@ -356,6 +357,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
+        path: '/payment/history',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const OrderHistoryScreen(),
+      ),
+      GoRoute(
         path: '/search',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const SearchPage(),
@@ -426,6 +432,7 @@ class AppRouter {
     '/exams/take',
     '/flashcards/practice',
     '/payment',
+    '/payment/history',
     '/learning/:courseId/:lessonId',
     '/courses/:id/lessons',
   ];
