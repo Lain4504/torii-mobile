@@ -10,6 +10,7 @@ import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/repositories/auth_repository.dart';
 import 'package:torii_app/features/auth/repositories/token_storage.dart';
 import 'package:torii_app/features/flashcard/providers/flashcard_providers.dart';
+import 'package:torii_app/features/ticket/providers/ticket_providers.dart';
 
 // --- DATA LAYER ---
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
@@ -108,6 +109,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
       try {
         ref.invalidate(flashcardDecksProvider);
+        ref.invalidate(ticketListProvider);
       } catch (_) {}
 
       state = AsyncValue.data(AuthState.authenticated(data.user));
@@ -229,6 +231,11 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       await _repository.logout();
     } catch (_) {}
     await _userService.clearUserProfile();
+    try {
+      ref.invalidate(flashcardDecksProvider);
+      ref.invalidate(ticketListProvider);
+      ref.invalidate(apiClientProvider);
+    } catch (_) {}
     state = AsyncValue.data(AuthState.unauthenticated());
   }
 }
