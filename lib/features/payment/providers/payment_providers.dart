@@ -149,3 +149,79 @@ class PaymentNotifier extends Notifier<PaymentState> {
 final paymentProvider = NotifierProvider<PaymentNotifier, PaymentState>(
   PaymentNotifier.new,
 );
+
+/// Order List State
+class OrderListState {
+  final List<Order> orders;
+  final bool isLoading;
+  final String? error;
+  final int page;
+  final bool hasMore;
+
+  const OrderListState({
+    this.orders = const [],
+    this.isLoading = false,
+    this.error,
+    this.page = 1,
+    this.hasMore = true,
+  });
+
+  OrderListState copyWith({
+    List<Order>? orders,
+    bool? isLoading,
+    String? error,
+    int? page,
+    bool? hasMore,
+  }) {
+    return OrderListState(
+      orders: orders ?? this.orders,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      page: page ?? this.page,
+      hasMore: hasMore ?? this.hasMore,
+    );
+  }
+}
+
+/// Order List Notifier
+class OrderListNotifier extends Notifier<OrderListState> {
+  @override
+  OrderListState build() {
+    return const OrderListState();
+  }
+
+  Future<void> loadOrders({bool refresh = false}) async {
+    if (state.isLoading) return;
+    
+    if (refresh) {
+      state = const OrderListState(isLoading: true);
+    } else {
+      state = state.copyWith(isLoading: true, error: null);
+    }
+
+    try {
+      final repository = ref.read(paymentRepositoryProvider);
+      final newOrders = await repository.getMyOrders(
+        page: refresh ? 1 : state.page,
+        limit: 20,
+      );
+
+      state = state.copyWith(
+        orders: refresh ? newOrders : [...state.orders, ...newOrders],
+        isLoading: false,
+        page: (refresh ? 1 : state.page) + 1,
+        hasMore: newOrders.length >= 20,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+}
+
+/// Order List Provider
+final orderListProvider = NotifierProvider<OrderListNotifier, OrderListState>(
+  OrderListNotifier.new,
+);
