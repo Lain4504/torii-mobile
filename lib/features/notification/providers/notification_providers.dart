@@ -8,13 +8,13 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService(apiClient);
 });
 
-final notificationUnreadCountProvider = FutureProvider<int>((ref) async {
+final notificationUnreadCountProvider = FutureProvider.autoDispose<int>((ref) async {
   final service = ref.watch(notificationServiceProvider);
   final response = await service.getUnreadCount();
   return response.data ?? 0;
 });
 
-class NotificationListNotifier extends AsyncNotifier<List<NotificationModel>> {
+class NotificationListNotifier extends AutoDisposeAsyncNotifier<List<NotificationModel>> {
   late NotificationService _service;
   int _currentPage = 1;
   bool _hasMore = true;
@@ -22,7 +22,8 @@ class NotificationListNotifier extends AsyncNotifier<List<NotificationModel>> {
   @override
   Future<List<NotificationModel>> build() async {
     _service = ref.watch(notificationServiceProvider);
-    return _fetchNotifications();
+    // Always refresh on build to ensure up-to-date list when page is opened
+    return _fetchNotifications(refresh: true);
   }
 
   Future<List<NotificationModel>> _fetchNotifications({bool refresh = false}) async {
@@ -109,4 +110,4 @@ class NotificationListNotifier extends AsyncNotifier<List<NotificationModel>> {
   }
 }
 
-final notificationListProvider = AsyncNotifierProvider<NotificationListNotifier, List<NotificationModel>>(NotificationListNotifier.new);
+final notificationListProvider = AsyncNotifierProvider.autoDispose<NotificationListNotifier, List<NotificationModel>>(NotificationListNotifier.new);

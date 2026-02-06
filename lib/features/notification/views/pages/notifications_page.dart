@@ -126,28 +126,50 @@ class _NotificationItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final IconData icon;
     final Color iconColor;
+    final Color backgroundColor;
 
     switch (notification.type) {
       case NotificationType.course:
-        icon = Icons.celebration_rounded;
-        iconColor = AppColors.accent;
+        icon = Icons.school_rounded;
+        iconColor = const Color(0xFF4361EE); // Bright Blue
+        backgroundColor = const Color(0xFFE8EBFF);
         break;
       case NotificationType.liveClass:
-        icon = Icons.video_camera_front_rounded;
-        iconColor = AppColors.primary;
+        icon = Icons.videocam_rounded;
+        iconColor = const Color(0xFFFF4D6D); // Pink/Red
+        backgroundColor = const Color(0xFFFFEDF0);
         break;
       case NotificationType.payment:
       case NotificationType.orderSuccess:
-        icon = Icons.account_balance_wallet_rounded;
-        iconColor = Colors.green;
+        icon = Icons.receipt_long_rounded;
+        iconColor = const Color(0xFF2EC4B6); // Teal/Green
+        backgroundColor = const Color(0xFFEAF9F7);
+        break;
+      case NotificationType.orderStatusUpdate:
+        icon = Icons.local_shipping_rounded;
+        iconColor = const Color(0xFFFF9F1C); // Orange
+        backgroundColor = const Color(0xFFFFF5E6);
+        break;
+      case NotificationType.achievement:
+        icon = Icons.emoji_events_rounded;
+        iconColor = const Color(0xFFFFBF00); // Admin/Gold
+        backgroundColor = const Color(0xFFFFF9E6);
+        break;
+      case NotificationType.reminder:
+        icon = Icons.alarm_rounded;
+        iconColor = const Color(0xFF9D4EDD); // Purple
+        backgroundColor = const Color(0xFFF5EAFC);
         break;
       case NotificationType.commentReply:
-        icon = Icons.forum_rounded;
-        iconColor = Colors.blue;
+        icon = Icons.chat_bubble_rounded;
+        iconColor = const Color(0xFF3A86FF); // Blue
+        backgroundColor = const Color(0xFFEBF3FF);
         break;
+      case NotificationType.system:
       default:
         icon = Icons.notifications_rounded;
-        iconColor = AppColors.textTertiary;
+        iconColor = AppColors.textSecondary;
+        backgroundColor = AppColors.grey200.withValues(alpha: 0.5);
     }
 
     final String timeAgo = _formatTime(notification.createdAt);
@@ -158,8 +180,11 @@ class _NotificationItem extends ConsumerWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        color: AppColors.error,
-        child: const Icon(Icons.delete_outline, color: Colors.white),
+        decoration: BoxDecoration(
+          color: AppColors.error.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+        ),
+        child: const Icon(Icons.delete_outline, color: AppColors.error),
       ),
       onDismissed: (_) {
         ref.read(notificationListProvider.notifier).delete(notification.id);
@@ -170,13 +195,14 @@ class _NotificationItem extends ConsumerWidget {
             ref.read(notificationListProvider.notifier).markAsRead(notification.id);
           }
         },
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: notification.isRead ? Colors.white.withValues(alpha: 0.6) : Colors.white,
+            color: notification.isRead ? Colors.transparent : Colors.white,
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
-              color: !notification.isRead ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
+              color: !notification.isRead ? AppColors.primary.withValues(alpha: 0.05) : Colors.transparent,
               width: 1,
             ),
             boxShadow: [
@@ -194,7 +220,7 @@ class _NotificationItem extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
+                  color: backgroundColor,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: iconColor, size: 20),
@@ -206,6 +232,7 @@ class _NotificationItem extends ConsumerWidget {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Text(
@@ -213,12 +240,14 @@ class _NotificationItem extends ConsumerWidget {
                             style: TextStyle(
                               fontWeight: !notification.isRead ? AppTypography.bold : AppTypography.medium,
                               fontSize: 14,
-                              color: AppColors.textPrimary,
+                              color: !notification.isRead ? AppColors.textPrimary : AppColors.textSecondary,
+                              height: 1.2,
                             ),
                           ),
                         ),
                         if (!notification.isRead)
                           Container(
+                            margin: const EdgeInsets.only(left: 8, top: 4),
                             width: 8,
                             height: 8,
                             decoration: const BoxDecoration(
@@ -228,12 +257,12 @@ class _NotificationItem extends ConsumerWidget {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       notification.message,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: notification.isRead ? AppColors.textTertiary : AppColors.textSecondary,
                         height: 1.4,
                       ),
                     ),
@@ -241,7 +270,7 @@ class _NotificationItem extends ConsumerWidget {
                     Text(
                       timeAgo,
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textTertiary,
                       ),

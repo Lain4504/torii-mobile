@@ -70,7 +70,7 @@ class NotificationModel {
       title: json['title'] ?? '',
       message: json['message'] ?? '',
       type: NotificationType.fromString(json['notificationType'] ?? 'system'),
-      metadata: json['metadata'],
+      metadata: json['metadata'] ?? json['data'],
       isRead: json['isRead'] ?? false,
       readAt: json['readAt'] != null ? DateTime.parse(json['readAt']) : null,
       sentVia: List<String>.from(json['sentVia'] ?? []),

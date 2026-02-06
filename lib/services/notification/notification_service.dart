@@ -39,7 +39,11 @@ class NotificationService {
             list = json['data'] as List;
           }
           
-          return list?.map((e) => NotificationModel.fromJson(e)).toList() ?? [];
+          
+          
+          
+          final parsedList = list?.map((e) => NotificationModel.fromJson(e)).toList() ?? [];
+          return parsedList;
         },
       );
     } on DioException catch (e) {
