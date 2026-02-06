@@ -70,6 +70,10 @@ class SettingsPage extends ConsumerWidget {
                     // Security Section
                     _buildSecuritySection(context, ref),
                     const SizedBox(height: AppSpacing.xxxl),
+
+                    // Support Section
+                    _buildSupportSection(context, ref),
+                    const SizedBox(height: AppSpacing.xxxl),
                     
                     // Language Section
                     _buildLanguageSection(context, ref, currentLocale, l10n, theme),
@@ -361,6 +365,65 @@ class SettingsPage extends ConsumerWidget {
                   },
                 ),
               ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSupportSection(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'SUPPORT',
+          style: TextStyle(
+            fontSize: 10, 
+            fontWeight: AppTypography.black, 
+            letterSpacing: 3.0, 
+            color: AppColors.textTertiary,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.push('/settings/tickets'),
+              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.confirmation_number_outlined, color: Colors.blue, size: 20),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('My Tickets', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                          Text('Manage support requests and refunds', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary.withValues(alpha: 0.5)),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

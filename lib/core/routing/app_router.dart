@@ -44,6 +44,8 @@ import 'package:torii_app/features/offline/views/pages/downloads_page.dart';
 import 'package:torii_app/features/gamification/views/pages/achievements_page.dart';
 import 'package:torii_app/features/course/views/pages/wishlist_page.dart';
 import 'package:torii_app/features/instructor/views/pages/instructor_profile_page.dart';
+import 'package:torii_app/features/ticket/views/pages/ticket_list_page.dart';
+import 'package:torii_app/features/ticket/views/pages/ticket_detail_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -210,6 +212,21 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'security',
                     builder: (context, state) => const SecuritySettingsPage(),
+                  ),
+                  GoRoute(
+                    path: 'tickets',
+                    parentNavigatorKey: AppRouter.rootNavigatorKey,
+                    builder: (context, state) => const TicketListPage(),
+                    routes: [
+                      GoRoute(
+                        path: ':id',
+                        parentNavigatorKey: AppRouter.rootNavigatorKey,
+                        builder: (context, state) {
+                          final id = state.pathParameters['id'] ?? '';
+                          return TicketDetailPage(ticketId: id);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
