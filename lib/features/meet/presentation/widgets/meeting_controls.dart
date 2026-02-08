@@ -57,13 +57,6 @@ class MeetingControls extends ConsumerWidget {
               onPressed: () => notifier.toggleHandRaise(),
               label: 'Hand',
             ),
-            // Screen Share Toggle
-            _ControlButton(
-              icon: state.isScreenSharingEnabled ? Icons.stop_screen_share : Icons.screen_share,
-              color: state.isScreenSharingEnabled ? Colors.orangeAccent : Colors.white70,
-              onPressed: () => notifier.toggleScreenShare(),
-              label: 'Share',
-            ),
             // Speaker Toggle
             _ControlButton(
               icon: state.isSpeakerphoneOn ? Icons.volume_up : Icons.phone_android,

@@ -44,6 +44,7 @@ class LiveKitService {
 
     try {
       await _room!.connect(url, token);
+      _notifyParticipants();
       if (kDebugMode) {
         print('Connected to LiveKit room: ${_room!.name}');
       }

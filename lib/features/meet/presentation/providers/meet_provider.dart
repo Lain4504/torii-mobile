@@ -12,7 +12,7 @@ import 'package:torii_app/features/meet/data/models/proto/wajlc_analytics.pb.dar
 import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart' as data_msg;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_gen_token.pb.dart' as gen_token;
 
-enum MeetStatus { initial, signaling, natsConnecting, natsConnected, mediaConnecting, connected, disconnected, error }
+enum MeetStatus { initial, signaling, natsConnecting, natsConnected, deviceSetup, mediaConnecting, connected, disconnected, error }
 
 class MeetState {
   final MeetStatus status;
@@ -151,7 +151,7 @@ class MeetNotifier extends StateNotifier<MeetState> {
     };
     
     _liveKitService.onConnectionQualityChanged = (participant, quality) {
-      if (participant.identity == state.userId) {
+      if (_isLocalLiveKitIdentity(participant.identity)) {
         _sendAnalytics(
           analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_CONNECTION_QUALITY,
           valueString: quality.toString(),
@@ -173,6 +173,12 @@ class MeetNotifier extends StateNotifier<MeetState> {
     };
   }
 
+  /// True if this LiveKit identity is the local user (server uses userId_mobile for mobile).
+  bool _isLocalLiveKitIdentity(String identity) {
+    if (state.userId == null) return false;
+    return identity == state.userId || identity == '${state.userId}_mobile';
+  }
+
   List<Participant> _sortParticipants(List<Participant> participants) {
     final sorted = List<Participant>.from(participants);
     sorted.sort((a, b) {
@@ -188,9 +194,11 @@ class MeetNotifier extends StateNotifier<MeetState> {
         return bSpoke.compareTo(aSpoke);
       }
       
-      // 3. Joined At (if available via NATS metadata)
-      final aJoined = state.remoteParticipantsMap[a.identity]?.joinedAt ?? Int64(0);
-      final bJoined = state.remoteParticipantsMap[b.identity]?.joinedAt ?? Int64(0);
+      // 3. Joined At (if available via NATS metadata; key is logical userId)
+      final aKey = a.identity.endsWith('_mobile') ? a.identity.replaceFirst('_mobile', '') : a.identity;
+      final bKey = b.identity.endsWith('_mobile') ? b.identity.replaceFirst('_mobile', '') : b.identity;
+      final aJoined = state.remoteParticipantsMap[aKey]?.joinedAt ?? Int64(0);
+      final bJoined = state.remoteParticipantsMap[bKey]?.joinedAt ?? Int64(0);
       if (aJoined != bJoined) {
         return aJoined.compareTo(bJoined);
       }
@@ -352,6 +360,10 @@ class MeetNotifier extends StateNotifier<MeetState> {
         _handleResMediaServerData(payload.msg);
         break;
 
+      case nats_msg.NatsMsgServerToClientEvents.RES_JOINED_USERS_LIST:
+        _handleResJoinedUsersList(payload.msg);
+        break;
+
       case nats_msg.NatsMsgServerToClientEvents.USER_JOINED:
         _handleUserJoined(payload.msg);
         break;
@@ -423,7 +435,8 @@ class MeetNotifier extends StateNotifier<MeetState> {
         roomMetadata: initialData.room,
         localUser: initialData.localUser,
         localMetadata: localMeta,
-        statusMessage: 'Initial data received. Requesting media...',
+        status: MeetStatus.deviceSetup,
+        statusMessage: 'Setup your camera and microphone',
       );
       
       final natsSubjects = state.roomInfo!.natsSubjects;
@@ -444,12 +457,6 @@ class MeetNotifier extends StateNotifier<MeetState> {
         onData: (data) => _handleWhiteboardMessage(data_msg.DataChannelMessage.fromBuffer(data)),
       );
 
-      // Request Media Server Data
-      _natsService.sendMessageToSystemWorker(
-        baseSubject: natsSubjects.systemJsWorker,
-        payload: nats_msg.NatsMsgClientToServer(event: nats_msg.NatsMsgClientToServerEvents.REQ_MEDIA_SERVER_DATA).writeToBuffer(),
-      );
-      
       // Request Joined Users
       _natsService.sendMessageToSystemWorker(
         baseSubject: natsSubjects.systemJsWorker,
@@ -472,6 +479,31 @@ class MeetNotifier extends StateNotifier<MeetState> {
       if (kDebugMode) print('Room Metadata Updated: $metadata');
     } catch (e) {
       if (kDebugMode) print('Error parsing room metadata string: $e');
+    }
+  }
+
+  void _handleResJoinedUsersList(String jsonStr) {
+    try {
+      final list = jsonDecode(jsonStr) as List<dynamic>;
+      final newRemote = <String, nats_msg.NatsKvUserInfo>{};
+      final newMeta = <String, gen_token.UserMetadata>{};
+      for (final item in list) {
+        final map = item as Map<String, dynamic>;
+        final user = nats_msg.NatsKvUserInfo.create()
+          ..mergeFromProto3Json(_snakeToCamelMap(Map<String, dynamic>.from(map)));
+        newRemote[user.userId] = user;
+        final metaStr = user.metadata;
+        newMeta[user.userId] = metaStr.isEmpty
+            ? gen_token.UserMetadata.create()
+            : gen_token.UserMetadata.create()
+              ..mergeFromProto3Json(_snakeToCamelMap(jsonDecode(metaStr) as Map<String, dynamic>));
+      }
+      state = state.copyWith(
+        remoteParticipantsMap: newRemote,
+        participantsMetadata: newMeta,
+      );
+    } catch (e) {
+      if (kDebugMode) print('Error parsing joined users list: $e');
     }
   }
 
@@ -536,18 +568,36 @@ class MeetNotifier extends StateNotifier<MeetState> {
      try {
        final map = jsonDecode(jsonStr) as Map<String, dynamic>;
        final user = nats_msg.NatsKvUserInfo.create()..mergeFromProto3Json(_snakeToCamelMap(map));
-       final newMap = Map<String, nats_msg.NatsKvUserInfo>.from(state.remoteParticipantsMap);
-       newMap.remove(user.userId);
-       state = state.copyWith(remoteParticipantsMap: newMap);
+       final newRemote = Map<String, nats_msg.NatsKvUserInfo>.from(state.remoteParticipantsMap);
+       newRemote.remove(user.userId);
+       final newMeta = Map<String, gen_token.UserMetadata>.from(state.participantsMetadata);
+       newMeta.remove(user.userId);
+       state = state.copyWith(remoteParticipantsMap: newRemote, participantsMetadata: newMeta);
        showNotification('${user.name} left');
      } catch (e) {}
   }
 
-  Future<void> _connectToLiveKit(String url, String token) async {
+  /// Call when user taps Join on device setup screen. Requests media server token and connects to LiveKit.
+  void startMediaConnection() {
+    if (state.status != MeetStatus.deviceSetup || state.roomInfo == null || state.roomId == null || state.userId == null) return;
     state = state.copyWith(status: MeetStatus.mediaConnecting, statusMessage: 'Connecting to media server...');
+    final natsSubjects = state.roomInfo!.natsSubjects;
+    _natsService.sendMessageToSystemWorker(
+      baseSubject: natsSubjects.systemJsWorker,
+      payload: nats_msg.NatsMsgClientToServer(event: nats_msg.NatsMsgClientToServerEvents.REQ_MEDIA_SERVER_DATA).writeToBuffer(),
+    );
+  }
+
+  Future<void> _connectToLiveKit(String url, String token) async {
     try {
       await _liveKitService.connect(url, token);
-      state = state.copyWith(status: MeetStatus.connected, statusMessage: 'Connected');
+      await _liveKitService.setMicrophoneEnabled(state.isMicEnabled);
+      await _liveKitService.setCameraEnabled(state.isCamEnabled);
+      state = state.copyWith(
+        status: MeetStatus.connected,
+        statusMessage: 'Connected',
+        participants: _sortParticipants(_liveKitService.allParticipants),
+      );
     } catch (e) {
       state = state.copyWith(status: MeetStatus.error, errorMessage: 'Media Server Connection Failed: $e');
     }
@@ -646,39 +696,41 @@ class MeetNotifier extends StateNotifier<MeetState> {
     state = MeetState();
   }
 
-  // Media toggles
+  // Media toggles (in deviceSetup only state is updated; when connected, LiveKit is updated)
   Future<void> toggleMic() async {
     final locked = state.localMetadata?.lockSettings.lockMicrophone ?? false;
-    if (locked && !state.localUser!.isAdmin) {
+    if (locked && !(state.localUser?.isAdmin ?? false)) {
       showNotification('Microphone is locked by administrator');
       return;
     }
 
     final newStatus = !state.isMicEnabled;
-    await _liveKitService.setMicrophoneEnabled(newStatus);
+    if (state.status == MeetStatus.connected) {
+      await _liveKitService.setMicrophoneEnabled(newStatus);
+      _sendAnalytics(
+        analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_MIC_STATUS,
+        valueString: newStatus ? 'unmuted' : 'muted',
+      );
+    }
     state = state.copyWith(isMicEnabled: newStatus);
-    
-    _sendAnalytics(
-      analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_MIC_STATUS,
-      valueString: newStatus ? 'unmuted' : 'muted',
-    );
   }
 
   Future<void> toggleCam() async {
     final locked = state.localMetadata?.lockSettings.lockWebcam ?? false;
-    if (locked && !state.localUser!.isAdmin) {
+    if (locked && !(state.localUser?.isAdmin ?? false)) {
       showNotification('Webcam is locked by administrator');
       return;
     }
 
     final newStatus = !state.isCamEnabled;
-    await _liveKitService.setCameraEnabled(newStatus);
+    if (state.status == MeetStatus.connected) {
+      await _liveKitService.setCameraEnabled(newStatus);
+      _sendAnalytics(
+        analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_WEBCAM_STATUS,
+        valueString: newStatus ? 'unmuted' : 'muted',
+      );
+    }
     state = state.copyWith(isCamEnabled: newStatus);
-
-    _sendAnalytics(
-      analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_WEBCAM_STATUS,
-      valueString: newStatus ? 'unmuted' : 'muted',
-    );
   }
 
   Future<void> toggleScreenShare() async {

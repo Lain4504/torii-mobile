@@ -160,6 +160,9 @@ class MeetApiService {
           'is_admin': isAdmin,
           'name': name,
           'user_id': userId,
+          'user_metadata': {
+            'extra_data': {'client': 'mobile'},
+          },
         }
       };
       final data = await _sendAuthRequest('room/getJoinToken', body);

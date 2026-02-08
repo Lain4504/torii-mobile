@@ -11,19 +11,24 @@ class MeetLandingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(meetControllerProvider);
 
-    // Listen for connection success to navigate to full-screen meeting
+    // After NATS is connected we show device setup on meeting screen (do not return to landing)
     ref.listen<MeetState>(meetControllerProvider, (previous, next) {
-      if (next.status == MeetStatus.connected &&
-          (previous == null || previous.status != MeetStatus.connected)) {
+      final wasNotYetInMeeting = previous == null ||
+          (previous.status != MeetStatus.deviceSetup &&
+              previous.status != MeetStatus.mediaConnecting &&
+              previous.status != MeetStatus.connected);
+      if (wasNotYetInMeeting &&
+          (next.status == MeetStatus.deviceSetup ||
+              next.status == MeetStatus.mediaConnecting ||
+              next.status == MeetStatus.connected)) {
         context.push('/meeting');
       }
     });
 
-    // Show full-screen loading when connecting so user sees progress
+    // Show full-screen loading only while connecting to NATS (before device setup)
     final isConnecting = state.status == MeetStatus.signaling ||
         state.status == MeetStatus.natsConnecting ||
-        state.status == MeetStatus.natsConnected ||
-        state.status == MeetStatus.mediaConnecting;
+        state.status == MeetStatus.natsConnected;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F1A),
