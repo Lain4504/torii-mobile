@@ -1,3 +1,9 @@
+// NATS signaling for Meet.
+// Backend publishes system events (RES_INITIAL_DATA, etc.) via JetStream only (js.publish()). Web
+// uses a JetStream consumer; dart_nats supports NATS 2.0+ and JetStream transport but has limited
+// JetStream API—core subscribe does not receive js.publish() messages. To receive stream events:
+// use dart_nats to interact with $JS subjects (e.g. pull via $JS.API.CONSUMER.MSG.NEXT or push
+// consumer delivering to an inbox we subscribe to). Server must be run with -js (JetStream enabled).
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -28,26 +34,45 @@ class NatsService {
   Function(NatsMsgServerToClient)? onSystemEvent;
   Function(bool)? onConnectionStatusChanged;
 
+  static const Duration _connectTimeout = Duration(seconds: 15);
+
   Future<void> connect({
     required List<String> urls,
     required String token,
   }) async {
+    if (urls.isEmpty) {
+      throw Exception('NATS URLs list is empty');
+    }
+
     _client = nats.Client();
-    
     _token = token;
-    
-    // Auth using token in URL
-    String finalUrl = urls.first;
-    if (!finalUrl.contains('@') && token.isNotEmpty) {
-      final uri = Uri.parse(finalUrl);
-      finalUrl = '${uri.scheme}://$token@${uri.host}:${uri.port}${uri.path}';
+
+    // Server auth callout reads token from connect_opts.token (see nats-auth-callout.service).
+    // Web uses tokenAuthenticator(); dart_nats must pass token via ConnectOption(authToken:).
+    var uri = Uri.parse(urls.first);
+    if (uri.port == 0 || uri.port > 65535) {
+      final port = uri.scheme == 'wss' || uri.scheme == 'https' ? 443 : 80;
+      uri = uri.replace(port: port);
+    }
+    if (kDebugMode) {
+      print('NATS connecting to ${uri.scheme}://${uri.host}:${uri.port}${uri.path} (token in connect options)');
     }
 
     try {
-      final url = Uri.parse(finalUrl);
-      await _client?.connect(url, retry: true, retryCount: -1);
+      await _client!
+          .connect(
+            uri,
+            connectOption: nats.ConnectOption(authToken: token),
+            retry: true,
+            retryCount: -1,
+          )
+          .timeout(_connectTimeout, onTimeout: () {
+        _client?.close();
+        _client = null;
+        throw TimeoutException('NATS connection timed out after ${_connectTimeout.inSeconds}s');
+      });
       _startKeepAlive();
-      
+
       // Monitor status
       _client!.statusStream.listen((status) {
         final connected = status == nats.Status.connected;
@@ -56,16 +81,18 @@ class NatsService {
           print('NATS Status: $status');
         }
       });
-      
+
       onConnectionStatusChanged?.call(true);
-      
+
       if (kDebugMode) {
-        print('NATS connected to $finalUrl');
+        print('NATS connected');
       }
     } catch (e) {
       if (kDebugMode) {
         print('NATS connection failed: $e');
       }
+      _client?.close();
+      _client = null;
       onConnectionStatusChanged?.call(false);
       rethrow;
     }
@@ -91,6 +118,7 @@ class NatsService {
   }
 
   Future<void> disconnect() async {
+    _stopJetStreamPull();
     for (var sub in _subscriptions) {
       await sub.cancel();
     }
@@ -99,6 +127,57 @@ class NatsService {
     _client?.close();
     _client = null;
     onConnectionStatusChanged?.call(false);
+  }
+
+  // ---------------------------------------------------------------------------
+  // JetStream pull consumer (same stream/consumer as web: roomId_userId)
+  // ---------------------------------------------------------------------------
+  static const String _jsPrefix = r'$JS.API.CONSUMER.MSG.NEXT';
+  Timer? _jetStreamPullTimer;
+  static const Duration _pullInterval = Duration(milliseconds: 400);
+  static const Duration _pullRequestTimeout = Duration(seconds: 2);
+
+  /// Starts a pull loop for the given stream/consumer. Server creates consumer
+  /// with durable_name = roomId_userId; we pull from $JS.API.CONSUMER.MSG.NEXT.<stream>.<consumer>.
+  void startJetStreamPull({
+    required String streamName,
+    required String consumerName,
+    required Function(NatsMsgServerToClient) onMessage,
+  }) {
+    _stopJetStreamPull();
+    if (_client == null || streamName.isEmpty || consumerName.isEmpty) return;
+    final subject = '$_jsPrefix.$streamName.$consumerName';
+    final body = utf8.encode('{"batch":1}');
+    if (kDebugMode) {
+      print('NATS JetStream pull started: $subject');
+    }
+    _jetStreamPullTimer = Timer.periodic(_pullInterval, (_) async {
+      if (_client == null || !isConnected) return;
+      try {
+        final reply = await _client!
+            .request(subject, Uint8List.fromList(body))
+            .timeout(_pullRequestTimeout);
+        final raw = reply.byte ?? reply.string?.codeUnits;
+        if (raw == null || raw.isEmpty) return;
+        // JetStream may return "no messages" JSON; only parse as protobuf if it looks like our message
+        try {
+          final msg = NatsMsgServerToClient.fromBuffer(Uint8List.fromList(raw));
+          onMessage(msg);
+        } catch (_) {
+          // Ignore parse errors (e.g. no-messages response or non-proto payload)
+        }
+        // Ack: dart_nats may not expose reply subject for ack; server may redeliver after ack_wait
+      } on TimeoutException {
+        // No message available within timeout; skip
+      } catch (e) {
+        if (kDebugMode) print('JetStream pull error: $e');
+      }
+    });
+  }
+
+  void _stopJetStreamPull() {
+    _jetStreamPullTimer?.cancel();
+    _jetStreamPullTimer = null;
   }
 
   void _startKeepAlive() {

@@ -94,6 +94,7 @@ Mark tasks as `[x]` when completed.
   - [x] Implement `PING` and `TOKEN_RENEW` intervals (1 min / 3 min).
   - [x] Subscribe to `systemPrivate` and `systemPublic` *before* requesting `REQ_INITIAL_DATA`.
   - [x] Support `systemJsWorker` subject pattern for all outgoing requests.
+- [x] **NATS JetStream pull (implemented):** Mobile now uses **JetStream pull** when `VerifyTokenRes.roomStreamName` is set. `NatsService.startJetStreamPull(streamName, consumerName, onMessage)` sends requests to `$JS.API.CONSUMER.MSG.NEXT.<stream>.<consumer>` (consumer name `roomId_userId` as on server). System events (RES_INITIAL_DATA, etc.) are received and dispatched to `_handleNatsSystemEvent`. If `roomStreamName` is empty, fallback to core subscribe. Chat/DataChannel/Whiteboard subjects aligned with web: `subject.roomId` (e.g. `chat.room01`).
 - [x] **Advanced Signaling events**:
   - [x] Handle `USER_METADATA_UPDATE` for profile changes.
   - [x] Implement `DataChannel` subject for inter-client direct messages.

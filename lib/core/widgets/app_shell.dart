@@ -180,9 +180,6 @@ class _BottomNavBar extends StatelessWidget {
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.auto_awesome_motion_rounded,
-                      activeIcon: Icons.auto_awesome_motion_rounded,
-                      label: 'Học thử',
                       icon: Icons.video_call_outlined,
                       activeIcon: Icons.video_call_rounded,
                       label: 'Meet',

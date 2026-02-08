@@ -161,6 +161,16 @@ class MeetNotifier extends StateNotifier<MeetState> {
     
     // NATS event handling
     _natsService.onSystemEvent = _handleNatsSystemEvent;
+    _natsService.onConnectionStatusChanged = (connected) {
+      if (!connected && state.status == MeetStatus.natsConnected) {
+        // Backend publishes system events (RES_INITIAL_DATA, etc.) via JetStream; web uses JS consumer.
+        // dart_nats uses core NATS only, so we may not receive those messages and connection can close.
+        state = state.copyWith(
+          status: MeetStatus.error,
+          errorMessage: 'Signaling connection closed. (Web uses JetStream; mobile uses core NATS.)',
+        );
+      }
+    };
   }
 
   List<Participant> _sortParticipants(List<Participant> participants) {
@@ -249,8 +259,17 @@ class MeetNotifier extends StateNotifier<MeetState> {
     try {
       // 1. Verify Token
       final res = await _apiService.verifyToken();
+      if (kDebugMode) {
+        print('Meet: verifyToken OK roomId=${res.roomId} userId=${res.userId} natsUrls=${res.natsWsUrls.length}');
+      }
       if (!res.status) {
         state = state.copyWith(status: MeetStatus.error, errorMessage: res.msg);
+        return;
+      }
+
+      final natsUrlList = res.natsWsUrls.toList();
+      if (natsUrlList.isEmpty) {
+        state = state.copyWith(status: MeetStatus.error, errorMessage: 'No NATS URL from server');
         return;
       }
 
@@ -263,38 +282,56 @@ class MeetNotifier extends StateNotifier<MeetState> {
       );
 
       // 2. Connect to NATS
+      if (kDebugMode) print('Meet: connecting to NATS...');
       await _natsService.connect(
-        urls: res.natsWsUrls.toList(),
+        urls: natsUrlList,
         token: _apiService.token ?? '',
       );
+      if (kDebugMode) print('Meet: NATS connected, subscribing...');
 
       state = state.copyWith(status: MeetStatus.natsConnected, statusMessage: 'Connected to signaling. Fetching room data...');
 
-      // 3. Set identity and subscribe to subjects
+      // 3. Set identity; receive system events via JetStream (like web) or core subscribe
       final natsSubjects = res.natsSubjects;
       _natsService.setIdentity(res.roomId, res.userId, natsSubjects.systemJsWorker);
-      
-      await _natsService.subscribe(
-        subject: natsSubjects.systemPublic,
-        onData: (data) => _handleNatsSystemEvent(nats_msg.NatsMsgServerToClient.fromBuffer(data)),
-      );
-      await _natsService.subscribe(
-        subject: natsSubjects.systemPrivate,
-        onData: (data) => _handleNatsSystemEvent(nats_msg.NatsMsgServerToClient.fromBuffer(data)),
-      );
 
-      // Subscribe to Chat
-      await _natsService.subscribe(
-        subject: '${res.roomId}:${natsSubjects.chat}',
-        onData: (data) => _handleChatMessage(nats_msg.ChatMessage.fromBuffer(data)),
-      );
+      final streamName = res.roomStreamName;
+      if (streamName.isNotEmpty) {
+        // JetStream pull: same consumer as web (roomId_userId). Server creates it; we pull from $JS.API.CONSUMER.MSG.NEXT.
+        final consumerName = '${res.roomId}_${res.userId}';
+        _natsService.startJetStreamPull(
+          streamName: streamName,
+          consumerName: consumerName,
+          onMessage: _handleNatsSystemEvent,
+        );
+        if (kDebugMode) print('Meet: JetStream pull started $streamName / $consumerName');
+      } else {
+        // Fallback: core subscribe (won't receive js.publish() messages; kept for older servers)
+        final systemPublicSubject = '${natsSubjects.systemPublic}.${res.roomId}.>';
+        final systemPrivateSubject = '${natsSubjects.systemPrivate}.${res.roomId}.${res.userId}.>';
+        await _natsService.subscribe(
+          subject: systemPublicSubject,
+          onData: (data) => _handleNatsSystemEvent(nats_msg.NatsMsgServerToClient.fromBuffer(data)),
+        );
+        await _natsService.subscribe(
+          subject: systemPrivateSubject,
+          onData: (data) => _handleNatsSystemEvent(nats_msg.NatsMsgServerToClient.fromBuffer(data)),
+        );
+      }
+
+      // Chat/dataChannel/whiteboard are subscribed once in _handleResInitialData after initial data is received
 
       _natsService.sendMessageToSystemWorker(
         baseSubject: natsSubjects.systemJsWorker,
         payload: nats_msg.NatsMsgClientToServer(event: nats_msg.NatsMsgClientToServerEvents.REQ_INITIAL_DATA).writeToBuffer(),
       );
+      if (kDebugMode) print('Meet: REQ_INITIAL_DATA sent, waiting for RES_INITIAL_DATA...');
 
-    } catch (e) {
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('Meet: joinMeeting error: $e');
+        print('Meet: stack: $st');
+      }
       state = state.copyWith(status: MeetStatus.error, errorMessage: e.toString());
     }
   }
@@ -348,10 +385,39 @@ class MeetNotifier extends StateNotifier<MeetState> {
     }
   }
 
+  /// Recursively converts snake_case keys to camelCase so Dart's mergeFromProto3Json
+  /// can parse server JSON (Buf uses useProtoFieldName / snake_case).
+  static Map<String, dynamic> _snakeToCamelMap(Map<String, dynamic> map) {
+    return map.map((key, value) {
+      final newKey = key.replaceAllMapped(
+        RegExp(r'_([a-z])'),
+        (m) => m.group(1)!.toUpperCase(),
+      );
+      if (value is Map<String, dynamic>) {
+        return MapEntry(newKey, _snakeToCamelMap(value));
+      }
+      if (value is List) {
+        return MapEntry(
+          newKey,
+          value.map((e) => e is Map<String, dynamic> ? _snakeToCamelMap(e) : e).toList(),
+        );
+      }
+      return MapEntry(newKey, value);
+    });
+  }
+
   void _handleResInitialData(String jsonStr) {
     try {
-      final initialData = nats_msg.NatsInitialData.fromJson(jsonStr);
-      final localMeta = gen_token.UserMetadata.fromJson(initialData.localUser.metadata);
+      // Server sends Proto3 JSON with snake_case (useProtoFieldName); Dart expects camelCase.
+      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final camelMap = _snakeToCamelMap(map);
+      final initialData = nats_msg.NatsInitialData.create()..mergeFromProto3Json(camelMap);
+      // localUser.metadata is a JSON string (snake_case from server); parse with Proto3 JSON.
+      final metaStr = initialData.localUser.metadata;
+      final localMeta = metaStr.isEmpty
+          ? gen_token.UserMetadata.create()
+          : gen_token.UserMetadata.create()
+            ..mergeFromProto3Json(_snakeToCamelMap(jsonDecode(metaStr) as Map<String, dynamic>));
       
       state = state.copyWith(
         roomMetadata: initialData.room,
@@ -363,19 +429,18 @@ class MeetNotifier extends StateNotifier<MeetState> {
       final natsSubjects = state.roomInfo!.natsSubjects;
       _natsService.setIdentity(state.roomId!, state.userId!, natsSubjects.systemJsWorker);
 
-      // Subscribe to Chat and others now that we have initial data
+      // Subscribe to Chat, DataChannel, Whiteboard (subject format matches web: subject.roomId)
+      final roomId = state.roomId!;
       _natsService.subscribe(
-        subject: '${state.roomId}:${natsSubjects.chat}',
+        subject: '${natsSubjects.chat}.$roomId',
         onData: (data) => _handleChatMessage(nats_msg.ChatMessage.fromBuffer(data)),
       );
-
       _natsService.subscribe(
-        subject: '${state.roomId}:${natsSubjects.dataChannel}',
+        subject: '${natsSubjects.dataChannel}.$roomId',
         onData: (data) => _handleDataChannelMessage(data_msg.DataChannelMessage.fromBuffer(data)),
       );
-
       _natsService.subscribe(
-        subject: '${state.roomId}:${natsSubjects.whiteboard}',
+        subject: '${natsSubjects.whiteboard}.$roomId',
         onData: (data) => _handleWhiteboardMessage(data_msg.DataChannelMessage.fromBuffer(data)),
       );
 
@@ -412,7 +477,9 @@ class MeetNotifier extends StateNotifier<MeetState> {
 
   void _handleResMediaServerData(String jsonStr) {
     try {
-      final mediaInfo = nats_msg.MediaServerConnInfo.fromJson(jsonStr);
+      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final mediaInfo = nats_msg.MediaServerConnInfo.create()
+        ..mergeFromProto3Json(_snakeToCamelMap(map));
       _connectToLiveKit(mediaInfo.url, mediaInfo.token);
     } catch (e) {
       if (kDebugMode) print('Error parsing media server info: $e');
@@ -421,12 +488,17 @@ class MeetNotifier extends StateNotifier<MeetState> {
 
   void _handleUserJoined(String jsonStr) {
      try {
-       final user = nats_msg.NatsKvUserInfo.fromJson(jsonStr);
+       final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+       final user = nats_msg.NatsKvUserInfo.create()..mergeFromProto3Json(_snakeToCamelMap(map));
        final newMap = Map<String, nats_msg.NatsKvUserInfo>.from(state.remoteParticipantsMap);
        newMap[user.userId] = user;
-       
+
        final metaMap = Map<String, gen_token.UserMetadata>.from(state.participantsMetadata);
-       metaMap[user.userId] = gen_token.UserMetadata.fromJson(user.metadata);
+       final metaStr = user.metadata;
+       metaMap[user.userId] = metaStr.isEmpty
+           ? gen_token.UserMetadata.create()
+           : gen_token.UserMetadata.create()
+             ..mergeFromProto3Json(_snakeToCamelMap(jsonDecode(metaStr) as Map<String, dynamic>));
 
        state = state.copyWith(
          remoteParticipantsMap: newMap,
@@ -438,9 +510,14 @@ class MeetNotifier extends StateNotifier<MeetState> {
 
   void _handleUserMetadataUpdate(String jsonStr) {
     try {
-      final update = nats_msg.NatsUserMetadataUpdate.fromJson(jsonStr);
-      final meta = gen_token.UserMetadata.fromJson(update.metadata);
-      
+      final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+      final update = nats_msg.NatsUserMetadataUpdate.create()..mergeFromProto3Json(_snakeToCamelMap(map));
+      final metaStr = update.metadata;
+      final meta = metaStr.isEmpty
+          ? gen_token.UserMetadata.create()
+          : gen_token.UserMetadata.create()
+            ..mergeFromProto3Json(_snakeToCamelMap(jsonDecode(metaStr) as Map<String, dynamic>));
+
       if (update.userId == state.userId) {
         state = state.copyWith(localMetadata: meta);
       } else {
@@ -448,7 +525,7 @@ class MeetNotifier extends StateNotifier<MeetState> {
         metaMap[update.userId] = meta;
         state = state.copyWith(participantsMetadata: metaMap);
       }
-      
+
       if (kDebugMode) print('Metadata Updated for ${update.userId}: Raised Hand=${meta.raisedHand}');
     } catch (e) {
        if (kDebugMode) print('Error parsing metadata update: $e');
@@ -457,7 +534,8 @@ class MeetNotifier extends StateNotifier<MeetState> {
 
   void _handleUserOffline(String jsonStr) {
      try {
-       final user = nats_msg.NatsKvUserInfo.fromJson(jsonStr);
+       final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+       final user = nats_msg.NatsKvUserInfo.create()..mergeFromProto3Json(_snakeToCamelMap(map));
        final newMap = Map<String, nats_msg.NatsKvUserInfo>.from(state.remoteParticipantsMap);
        newMap.remove(user.userId);
        state = state.copyWith(remoteParticipantsMap: newMap);
@@ -543,18 +621,20 @@ class MeetNotifier extends StateNotifier<MeetState> {
   }
 
   void sendChatMessage(String text) {
-    if (state.roomInfo == null) return;
-    
+    if (state.roomInfo == null || state.userId == null) return;
+
+    final displayName = state.localUser?.name ?? state.userId ?? '';
+
     final msg = nats_msg.ChatMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      fromName: state.roomInfo!.userId, // Or get user name from localUser
-      fromUserId: state.userId,
+      fromName: displayName,
+      fromUserId: state.userId!,
       sentAt: Int64(DateTime.now().millisecondsSinceEpoch),
       message: text,
     );
 
     _natsService.sendMessage(
-      '${state.roomId}:${state.roomInfo!.natsSubjects.chat}',
+      '${state.roomInfo!.natsSubjects.chat}.${state.roomId}',
       msg.writeToBuffer(),
     );
   }

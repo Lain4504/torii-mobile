@@ -20,9 +20,8 @@ class MeetApiService {
   String? _currentToken;
   String? _manualToken;
 
-  // These should ideally come from a secure config/env
-  static const String _apiKey = 'wajlc'; 
-  static const String _apiSecret = 'zumyyYWqv7KR2kUqvYdq4z4sXg7XTBD2ljT6';
+  /// Web client sends raw JWT; set true if gateway/proxy expect "Bearer <token>".
+  static const bool _useBearerPrefix = false;
 
   MeetApiService(this._tokenService) {
     _dio = Dio(BaseOptions(
@@ -31,18 +30,19 @@ class MeetApiService {
       responseType: ResponseType.bytes,
     ));
 
-    // Add interceptor for Authorization header
+    // Add interceptor for Authorization header (JWT from getJoinToken for verifyToken; raw token by default like web)
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
+        String? token;
         if (_manualToken != null) {
-          options.headers['Authorization'] = _manualToken;
+          token = _manualToken;
           _currentToken = _manualToken;
         } else {
-          final token = await _tokenService.getAccessToken();
+          token = await _tokenService.getAccessToken();
           _currentToken = token;
-          if (token != null) {
-            options.headers['Authorization'] = token;
-          }
+        }
+        if (token != null) {
+          options.headers['Authorization'] = _useBearerPrefix ? 'Bearer $token' : token;
         }
         return handler.next(options);
       },
@@ -83,13 +83,14 @@ class MeetApiService {
   // --- Auth & Room Management (JSON based to match Web) ---
 
   Future<String> _getHashSignature(String message) async {
-    final key = utf8.encode(_apiSecret);
+    final key = utf8.encode(AppConfig.meetApiSecret);
     final bytes = utf8.encode(message);
     final hmacSha256 = Hmac(sha256, key);
     final digest = hmacSha256.convert(bytes);
     return digest.toString();
   }
 
+  /// Auth room endpoints expect JSON with snake_case keys (room_id, user_info) per gateway proto parsing.
   Future<Map<String, dynamic>> _sendAuthRequest(String method, Map<String, dynamic> body) async {
     final jsonBody = jsonEncode(body);
     final signature = await _getHashSignature(jsonBody);
@@ -101,7 +102,7 @@ class MeetApiService {
         contentType: 'application/json',
         responseType: ResponseType.json,
         headers: {
-          'API-KEY': _apiKey,
+          'API-KEY': AppConfig.meetApiKey,
           'HASH-SIGNATURE': signature,
         },
       ),
