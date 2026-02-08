@@ -2,111 +2,110 @@ import 'package:flutter/material.dart';
 
 /// Torii Mobile Design System
 /// 
-/// A minimalist, zen-inspired design system for Japanese language learning.
-/// Based on principles of "Ma" (negative space), "Wabi-sabi" (beauty in simplicity),
-/// and the traditional aesthetic of Japanese gardens.
+/// Updated to match Torii Web (Monorepo) Design System.
+/// Based on Shadcn UI / OKLCH palette.
 
 // ============================================================================
-// COLORS - Zen Minimalist Palette
+// COLORS - Torii Web Palette
 // ============================================================================
 
 class AppColors {
   AppColors._();
 
-  // Primary - Ruri-kon (Lapis Indigo)
-  static const Color primary = Color(0xFF2B4C7E);
-  static const Color primaryLight = Color(0xFF4A6DA1);
-  static const Color primaryDark = Color(0xFF1B3254);
-  static const Color primarySurface = Color(0xFFF0F4FA);
+  // Primary - Cyan/Teal (from Web: oklch(0.75 0.12 195))
+  static const Color primary = Color(0xFF2BC5C5);
+  static const Color primaryLight = Color(0xFF4EDCDC); // Estimated lighter
+  static const Color primaryDark = Color(0xFF00A5A5); // Dark mode primary
+  static const Color primarySurface = Color(0xFFEDF7F7); // Secondary/Accent from web
   
-  // Accent - Yanagi (Willow Green)
-  static const Color accent = Color(0xFF8B9D83);
-  static const Color accentLight = Color(0xFFAAB8A5);
-  static const Color accentDark = Color(0xFF6B7B64);
-  static const Color accentSurface = Color(0xFFF4F6F3);
+  // Secondary / Accent (from Web: oklch(0.97 0.01 195))
+  static const Color accent = Color(0xFFEDF7F7);
+  static const Color accentLight = Color(0xFFF4FBFB);
+  static const Color accentDark = Color(0xFF2A807F); // Secondary foreground
+  static const Color accentSurface = Color(0xFFF6F8FB);
   
-  // Second Accent - Sakura Dust (Subtle Detail)
-  static const Color detail = Color(0xFFD4B5B0);
-  static const Color detailLight = Color(0xFFE5D2CF);
-  static const Color detailSurface = Color(0xFFFAF6F5);
+  // Detail / Muted (from Web: oklch(0.97 0 0))
+  static const Color detail = Color(0xFFF4F4F4);
+  static const Color detailLight = Color(0xFFFAFAFA);
+  static const Color detailSurface = Color(0xFFF4F4F4);
   
-  // Semantic Colors - Muted & Calm
-  static const Color success = Color(0xFF6B8E6B);
-  static const Color successLight = Color(0xFFF0F4F0);
-  static const Color successDark = Color(0xFF4A634A);
+  // Semantic Colors
+  static const Color success = Color(0xFF2BC5C5); // Using primary for success/brand
+  static const Color successLight = Color(0xFFEDF7F7);
+  static const Color successDark = Color(0xFF00A5A5);
   
-  static const Color error = Color(0xFFBC6C6C);
-  static const Color errorLight = Color(0xFFF9F1F1);
-  static const Color errorDark = Color(0xFF8C4F4F);
+  static const Color error = Color(0xFFE8565F); // Destructive
+  static const Color errorLight = Color(0xFFFEECEE);
+  static const Color errorDark = Color(0xFFB8463B);
   
-  static const Color warning = Color(0xFFD4A373);
+  static const Color warning = Color(0xFFD4A373); // Kept from original for now
   static const Color warningLight = Color(0xFFFAF3EB);
   static const Color warningDark = Color(0xFF9E7A56);
   
-  static const Color info = Color(0xFF7B9AAD);
-  static const Color infoLight = Color(0xFFF1F5F7);
-  static const Color infoDark = Color(0xFF5A7281);
+  static const Color info = Color(0xFF2BC5C5);
+  static const Color infoLight = Color(0xFFEDF7F7);
+  static const Color infoDark = Color(0xFF00A5A5);
 
-  // Neutral - Sumi-iro (Ink)
+  // Neutral
   static const Color white = Color(0xFFFFFFFF);
-  static const Color black = Color(0xFF1E293B);
+  static const Color black = Color(0xFF0E141C); // Foreground
   
-  // Grey Scale - Refined Slate
-  static const Color grey50 = Color(0xFFF8FAFC);
-  static const Color grey100 = Color(0xFFF1F5F9);
-  static const Color grey200 = Color(0xFFE2E8F0);
-  static const Color grey300 = Color(0xFFCBD5E1);
-  static const Color grey400 = Color(0xFF94A3B8);
-  static const Color grey500 = Color(0xFF64748B);
-  static const Color grey600 = Color(0xFF475569);
-  static const Color grey700 = Color(0xFF334155);
-  static const Color grey800 = Color(0xFF1E293B);
-  static const Color grey900 = Color(0xFF0F172A);
+  // Grey Scale (Mapped from Web borders/inputs)
+  static const Color grey50 = Color(0xFFF6F8FB); // Background
+  static const Color grey100 = Color(0xFFF1F1F1); // Input
+  static const Color grey200 = Color(0xFFDEDDDD); // Border
+  static const Color grey300 = Color(0xFFDEDDDD);
+  static const Color grey400 = Color(0xFFA0A8B4); // Dark Foreground
+  static const Color grey500 = Color(0xFF6E7177); // Muted Foreground
+  static const Color grey600 = Color(0xFF596374);
+  static const Color grey700 = Color(0xFF313A4A); // Dark Border
+  static const Color grey800 = Color(0xFF191F28); // Dark Input
+  static const Color grey900 = Color(0xFF0E141C); // Dark Card
 
-  // Light Mode Backgrounds - Gofun-iro (Shell White)
-  static const Color background = Color(0xFFFAF9F6); 
-  static const Color surface = white;
-  static const Color surfaceVariant = grey50;
-  static const Color surfaceElevated = white;
+  // Light Mode Backgrounds
+  static const Color background = Color(0xFFF6F8FB); 
+  static const Color surface = Color(0xFFFFFFFF); // Card
+  static const Color surfaceVariant = Color(0xFFEDF7F7);
+  static const Color surfaceElevated = Color(0xFFFFFFFF);
 
   // Light Mode Text
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF475569);
-  static const Color textTertiary = Color(0xFF94A3B8);
-  static const Color textOnPrimary = white;
-  static const Color textOnAccent = white;
+  static const Color textPrimary = Color(0xFF0E141C); // Foreground
+  static const Color textSecondary = Color(0xFF6E7177); // Muted Foreground
+  static const Color textTertiary = Color(0xFFA0A8B4);
+  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  static const Color textOnAccent = Color(0xFF2A807F); // Secondary Foreground
 
-  // Dark Mode Backgrounds - Kuro-tsurubami (Deep Charcoal)
-  static const Color backgroundDark = Color(0xFF0F172A);
-  static const Color surfaceDark = Color(0xFF1E293B);
-  static const Color surfaceVariantDark = Color(0xFF334155);
-  static const Color surfaceElevatedDark = Color(0xFF334155);
+  // Dark Mode Backgrounds
+  static const Color backgroundDark = Color(0xFF191F28);
+  static const Color surfaceDark = Color(0xFF0E141C); // Card Dark
+  static const Color surfaceVariantDark = Color(0xFF252E3D); // Muted Dark
+  static const Color surfaceElevatedDark = Color(0xFF192130); // Secondary Dark
 
   // Dark Mode Text
-  static const Color textPrimaryDark = Color(0xFFF8FAFC);
-  static const Color textSecondaryDark = Color(0xFFCBD5E1);
-  static const Color textTertiaryDark = Color(0xFF64748B);
+  static const Color textPrimaryDark = Color(0xFFA0A8B4); // Foreground Dark
+  static const Color textSecondaryDark = Color(0xFF596374); // Muted Foreground Dark
+  static const Color textTertiaryDark = Color(0xFF596374);
 
   // Borders
-  static const Color borderLight = Color(0xFFE2E8F0);
-  static const Color borderDark = Color(0xFF334155);
+  static const Color borderLight = Color(0xFFDEDDDD);
+  static const Color borderDark = Color(0xFF313A4A);
 
-  // Gradients - Zen Ambient Glow
+  // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF2B4C7E), Color(0xFF4A6DA1)],
+    colors: [Color(0xFF2BC5C5), Color(0xFF4EDCDC)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
   
   static const LinearGradient zenGradient = LinearGradient(
-    colors: [Color(0xFFFAF9F6), Color(0xFFF0F4FA)],
+    colors: [Color(0xFFF6F8FB), Color(0xFFFFFFFF)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
   // Glass Effects
   static Color glassLight = white.withValues(alpha: 0.8);
-  static Color glassDark = Color(0xFF0F172A).withValues(alpha: 0.8);
+  static Color glassDark = Color(0xFF0E141C).withValues(alpha: 0.8);
 }
 
 // ============================================================================
