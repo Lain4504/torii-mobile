@@ -72,6 +72,22 @@ flutter run
 
 ---
 
+## Proto (Meet protocol)
+Proto được đồng bộ từ `torii-monorepo/packages/protocol/proto` để gen code Dart dùng cho Meet (NATS, LiveKit, auth).
+
+```bash
+# 1. Đồng bộ toàn bộ .proto từ monorepo (wajlc_*, livekit_*, buf/, logger/)
+./scripts/sync_proto_from_monorepo.sh
+
+# 2. Gen code Dart (cần protoc + protoc_plugin 22.5.0)
+./scripts/generate_proto.sh
+```
+
+Nếu repo monorepo không nằm cạnh torii-mobile, set biến môi trường:
+`TORII_MONOREPO_PROTO_DIR=/đường/dẫn/tới/torii-monorepo/packages/protocol/proto`
+
+---
+
 ## 🔐 Authentication Config
 *   **Transport:** JSON Body (via `x-platform: mobile` header).
 *   **Storage:** 

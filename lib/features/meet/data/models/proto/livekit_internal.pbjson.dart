@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_internal.proto
-//
-// @dart = 2.12
+// Generated from livekit_internal.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -71,9 +72,30 @@ const Node$json = {
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     {'1': 'ip', '3': 2, '4': 1, '5': 9, '10': 'ip'},
     {'1': 'num_cpus', '3': 3, '4': 1, '5': 13, '10': 'numCpus'},
-    {'1': 'stats', '3': 4, '4': 1, '5': 11, '6': '.livekit.NodeStats', '10': 'stats'},
-    {'1': 'type', '3': 5, '4': 1, '5': 14, '6': '.livekit.NodeType', '10': 'type'},
-    {'1': 'state', '3': 6, '4': 1, '5': 14, '6': '.livekit.NodeState', '10': 'state'},
+    {
+      '1': 'stats',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.NodeStats',
+      '10': 'stats'
+    },
+    {
+      '1': 'type',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.NodeType',
+      '10': 'type'
+    },
+    {
+      '1': 'state',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.NodeState',
+      '10': 'state'
+    },
     {'1': 'region', '3': 7, '4': 1, '5': 9, '10': 'region'},
   ],
 };
@@ -95,7 +117,13 @@ const NodeStats$json = {
     {'1': 'num_clients', '3': 4, '4': 1, '5': 5, '10': 'numClients'},
     {'1': 'num_tracks_in', '3': 5, '4': 1, '5': 5, '10': 'numTracksIn'},
     {'1': 'num_tracks_out', '3': 6, '4': 1, '5': 5, '10': 'numTracksOut'},
-    {'1': 'num_track_publish_attempts', '3': 36, '4': 1, '5': 5, '10': 'numTrackPublishAttempts'},
+    {
+      '1': 'num_track_publish_attempts',
+      '3': 36,
+      '4': 1,
+      '5': 5,
+      '10': 'numTrackPublishAttempts'
+    },
     {
       '1': 'track_publish_attempts_per_sec',
       '3': 37,
@@ -104,7 +132,13 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'trackPublishAttemptsPerSec',
     },
-    {'1': 'num_track_publish_success', '3': 38, '4': 1, '5': 5, '10': 'numTrackPublishSuccess'},
+    {
+      '1': 'num_track_publish_success',
+      '3': 38,
+      '4': 1,
+      '5': 5,
+      '10': 'numTrackPublishSuccess'
+    },
     {
       '1': 'track_publish_success_per_sec',
       '3': 39,
@@ -113,8 +147,20 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'trackPublishSuccessPerSec',
     },
-    {'1': 'num_track_publish_cancels', '3': 51, '4': 1, '5': 5, '10': 'numTrackPublishCancels'},
-    {'1': 'num_track_subscribe_attempts', '3': 40, '4': 1, '5': 5, '10': 'numTrackSubscribeAttempts'},
+    {
+      '1': 'num_track_publish_cancels',
+      '3': 51,
+      '4': 1,
+      '5': 5,
+      '10': 'numTrackPublishCancels'
+    },
+    {
+      '1': 'num_track_subscribe_attempts',
+      '3': 40,
+      '4': 1,
+      '5': 5,
+      '10': 'numTrackSubscribeAttempts'
+    },
     {
       '1': 'track_subscribe_attempts_per_sec',
       '3': 41,
@@ -123,7 +169,13 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'trackSubscribeAttemptsPerSec',
     },
-    {'1': 'num_track_subscribe_success', '3': 42, '4': 1, '5': 5, '10': 'numTrackSubscribeSuccess'},
+    {
+      '1': 'num_track_subscribe_success',
+      '3': 42,
+      '4': 1,
+      '5': 5,
+      '10': 'numTrackSubscribeSuccess'
+    },
     {
       '1': 'track_subscribe_success_per_sec',
       '3': 43,
@@ -132,7 +184,13 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'trackSubscribeSuccessPerSec',
     },
-    {'1': 'num_track_subscribe_cancels', '3': 52, '4': 1, '5': 5, '10': 'numTrackSubscribeCancels'},
+    {
+      '1': 'num_track_subscribe_cancels',
+      '3': 52,
+      '4': 1,
+      '5': 5,
+      '10': 'numTrackSubscribeCancels'
+    },
     {'1': 'bytes_in', '3': 7, '4': 1, '5': 4, '10': 'bytesIn'},
     {'1': 'bytes_out', '3': 8, '4': 1, '5': 4, '10': 'bytesOut'},
     {'1': 'packets_in', '3': 9, '4': 1, '5': 4, '10': 'packetsIn'},
@@ -154,7 +212,13 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'bytesOutPerSec',
     },
-    {'1': 'packets_in_per_sec', '3': 14, '4': 1, '5': 2, '10': 'packetsInPerSec'},
+    {
+      '1': 'packets_in_per_sec',
+      '3': 14,
+      '4': 1,
+      '5': 2,
+      '10': 'packetsInPerSec'
+    },
     {
       '1': 'packets_out_per_sec',
       '3': 15,
@@ -172,9 +236,27 @@ const NodeStats$json = {
       '10': 'nackPerSec',
     },
     {'1': 'num_cpus', '3': 17, '4': 1, '5': 13, '10': 'numCpus'},
-    {'1': 'load_avg_last1min', '3': 18, '4': 1, '5': 2, '10': 'loadAvgLast1min'},
-    {'1': 'load_avg_last5min', '3': 19, '4': 1, '5': 2, '10': 'loadAvgLast5min'},
-    {'1': 'load_avg_last15min', '3': 20, '4': 1, '5': 2, '10': 'loadAvgLast15min'},
+    {
+      '1': 'load_avg_last1min',
+      '3': 18,
+      '4': 1,
+      '5': 2,
+      '10': 'loadAvgLast1min'
+    },
+    {
+      '1': 'load_avg_last5min',
+      '3': 19,
+      '4': 1,
+      '5': 2,
+      '10': 'loadAvgLast5min'
+    },
+    {
+      '1': 'load_avg_last15min',
+      '3': 20,
+      '4': 1,
+      '5': 2,
+      '10': 'loadAvgLast15min'
+    },
     {'1': 'cpu_load', '3': 21, '4': 1, '5': 2, '10': 'cpuLoad'},
     {
       '1': 'memory_load',
@@ -187,7 +269,13 @@ const NodeStats$json = {
     {'1': 'memory_total', '3': 34, '4': 1, '5': 4, '10': 'memoryTotal'},
     {'1': 'memory_used', '3': 35, '4': 1, '5': 4, '10': 'memoryUsed'},
     {'1': 'sys_packets_out', '3': 28, '4': 1, '5': 13, '10': 'sysPacketsOut'},
-    {'1': 'sys_packets_dropped', '3': 29, '4': 1, '5': 13, '10': 'sysPacketsDropped'},
+    {
+      '1': 'sys_packets_dropped',
+      '3': 29,
+      '4': 1,
+      '5': 13,
+      '10': 'sysPacketsDropped'
+    },
     {
       '1': 'sys_packets_out_per_sec',
       '3': 30,
@@ -212,8 +300,20 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'sysPacketsDroppedPctPerSec',
     },
-    {'1': 'retransmit_bytes_out', '3': 22, '4': 1, '5': 4, '10': 'retransmitBytesOut'},
-    {'1': 'retransmit_packets_out', '3': 23, '4': 1, '5': 4, '10': 'retransmitPacketsOut'},
+    {
+      '1': 'retransmit_bytes_out',
+      '3': 22,
+      '4': 1,
+      '5': 4,
+      '10': 'retransmitBytesOut'
+    },
+    {
+      '1': 'retransmit_packets_out',
+      '3': 23,
+      '4': 1,
+      '5': 4,
+      '10': 'retransmitPacketsOut'
+    },
     {
       '1': 'retransmit_bytes_out_per_sec',
       '3': 24,
@@ -230,7 +330,13 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'retransmitPacketsOutPerSec',
     },
-    {'1': 'participant_signal_connected', '3': 26, '4': 1, '5': 4, '10': 'participantSignalConnected'},
+    {
+      '1': 'participant_signal_connected',
+      '3': 26,
+      '4': 1,
+      '5': 4,
+      '10': 'participantSignalConnected'
+    },
     {
       '1': 'participant_signal_connected_per_sec',
       '3': 27,
@@ -239,7 +345,13 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'participantSignalConnectedPerSec',
     },
-    {'1': 'participant_rtc_connected', '3': 44, '4': 1, '5': 4, '10': 'participantRtcConnected'},
+    {
+      '1': 'participant_rtc_connected',
+      '3': 44,
+      '4': 1,
+      '5': 4,
+      '10': 'participantRtcConnected'
+    },
     {
       '1': 'participant_rtc_connected_per_sec',
       '3': 45,
@@ -248,7 +360,13 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'participantRtcConnectedPerSec',
     },
-    {'1': 'participant_rtc_init', '3': 46, '4': 1, '5': 4, '10': 'participantRtcInit'},
+    {
+      '1': 'participant_rtc_init',
+      '3': 46,
+      '4': 1,
+      '5': 4,
+      '10': 'participantRtcInit'
+    },
     {
       '1': 'participant_rtc_init_per_sec',
       '3': 47,
@@ -257,10 +375,23 @@ const NodeStats$json = {
       '8': {'3': true},
       '10': 'participantRtcInitPerSec',
     },
-    {'1': 'participant_rtc_canceled', '3': 53, '4': 1, '5': 4, '10': 'participantRtcCanceled'},
+    {
+      '1': 'participant_rtc_canceled',
+      '3': 53,
+      '4': 1,
+      '5': 4,
+      '10': 'participantRtcCanceled'
+    },
     {'1': 'forward_latency', '3': 48, '4': 1, '5': 13, '10': 'forwardLatency'},
     {'1': 'forward_jitter', '3': 49, '4': 1, '5': 13, '10': 'forwardJitter'},
-    {'1': 'rates', '3': 50, '4': 3, '5': 11, '6': '.livekit.NodeStatsRate', '10': 'rates'},
+    {
+      '1': 'rates',
+      '3': 50,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.NodeStatsRate',
+      '10': 'rates'
+    },
   ],
 };
 
@@ -322,25 +453,103 @@ const NodeStatsRate$json = {
     {'1': 'started_at', '3': 1, '4': 1, '5': 3, '10': 'startedAt'},
     {'1': 'ended_at', '3': 2, '4': 1, '5': 3, '10': 'endedAt'},
     {'1': 'duration', '3': 3, '4': 1, '5': 3, '10': 'duration'},
-    {'1': 'track_publish_attempts', '3': 4, '4': 1, '5': 2, '10': 'trackPublishAttempts'},
-    {'1': 'track_publish_success', '3': 5, '4': 1, '5': 2, '10': 'trackPublishSuccess'},
-    {'1': 'track_publish_cancels', '3': 24, '4': 1, '5': 2, '10': 'trackPublishCancels'},
-    {'1': 'track_subscribe_attempts', '3': 6, '4': 1, '5': 2, '10': 'trackSubscribeAttempts'},
-    {'1': 'track_subscribe_success', '3': 7, '4': 1, '5': 2, '10': 'trackSubscribeSuccess'},
-    {'1': 'track_subscribe_cancels', '3': 25, '4': 1, '5': 2, '10': 'trackSubscribeCancels'},
+    {
+      '1': 'track_publish_attempts',
+      '3': 4,
+      '4': 1,
+      '5': 2,
+      '10': 'trackPublishAttempts'
+    },
+    {
+      '1': 'track_publish_success',
+      '3': 5,
+      '4': 1,
+      '5': 2,
+      '10': 'trackPublishSuccess'
+    },
+    {
+      '1': 'track_publish_cancels',
+      '3': 24,
+      '4': 1,
+      '5': 2,
+      '10': 'trackPublishCancels'
+    },
+    {
+      '1': 'track_subscribe_attempts',
+      '3': 6,
+      '4': 1,
+      '5': 2,
+      '10': 'trackSubscribeAttempts'
+    },
+    {
+      '1': 'track_subscribe_success',
+      '3': 7,
+      '4': 1,
+      '5': 2,
+      '10': 'trackSubscribeSuccess'
+    },
+    {
+      '1': 'track_subscribe_cancels',
+      '3': 25,
+      '4': 1,
+      '5': 2,
+      '10': 'trackSubscribeCancels'
+    },
     {'1': 'bytes_in', '3': 8, '4': 1, '5': 2, '10': 'bytesIn'},
     {'1': 'bytes_out', '3': 9, '4': 1, '5': 2, '10': 'bytesOut'},
     {'1': 'packets_in', '3': 10, '4': 1, '5': 2, '10': 'packetsIn'},
     {'1': 'packets_out', '3': 11, '4': 1, '5': 2, '10': 'packetsOut'},
     {'1': 'nack_total', '3': 12, '4': 1, '5': 2, '10': 'nackTotal'},
     {'1': 'sys_packets_out', '3': 13, '4': 1, '5': 2, '10': 'sysPacketsOut'},
-    {'1': 'sys_packets_dropped', '3': 14, '4': 1, '5': 2, '10': 'sysPacketsDropped'},
-    {'1': 'retransmit_bytes_out', '3': 15, '4': 1, '5': 2, '10': 'retransmitBytesOut'},
-    {'1': 'retransmit_packets_out', '3': 16, '4': 1, '5': 2, '10': 'retransmitPacketsOut'},
-    {'1': 'participant_signal_connected', '3': 17, '4': 1, '5': 2, '10': 'participantSignalConnected'},
-    {'1': 'participant_rtc_connected', '3': 18, '4': 1, '5': 2, '10': 'participantRtcConnected'},
-    {'1': 'participant_rtc_init', '3': 19, '4': 1, '5': 2, '10': 'participantRtcInit'},
-    {'1': 'participant_rtc_canceled', '3': 26, '4': 1, '5': 2, '10': 'participantRtcCanceled'},
+    {
+      '1': 'sys_packets_dropped',
+      '3': 14,
+      '4': 1,
+      '5': 2,
+      '10': 'sysPacketsDropped'
+    },
+    {
+      '1': 'retransmit_bytes_out',
+      '3': 15,
+      '4': 1,
+      '5': 2,
+      '10': 'retransmitBytesOut'
+    },
+    {
+      '1': 'retransmit_packets_out',
+      '3': 16,
+      '4': 1,
+      '5': 2,
+      '10': 'retransmitPacketsOut'
+    },
+    {
+      '1': 'participant_signal_connected',
+      '3': 17,
+      '4': 1,
+      '5': 2,
+      '10': 'participantSignalConnected'
+    },
+    {
+      '1': 'participant_rtc_connected',
+      '3': 18,
+      '4': 1,
+      '5': 2,
+      '10': 'participantRtcConnected'
+    },
+    {
+      '1': 'participant_rtc_init',
+      '3': 19,
+      '4': 1,
+      '5': 2,
+      '10': 'participantRtcInit'
+    },
+    {
+      '1': 'participant_rtc_canceled',
+      '3': 26,
+      '4': 1,
+      '5': 2,
+      '10': 'participantRtcCanceled'
+    },
     {'1': 'cpu_load', '3': 20, '4': 1, '5': 2, '10': 'cpuLoad'},
     {'1': 'memory_load', '3': 21, '4': 1, '5': 2, '10': 'memoryLoad'},
     {'1': 'memory_used', '3': 22, '4': 1, '5': 2, '10': 'memoryUsed'},
@@ -389,7 +598,14 @@ const StartSession$json = {
       '8': {'3': true},
       '10': 'hidden',
     },
-    {'1': 'client', '3': 11, '4': 1, '5': 11, '6': '.livekit.ClientInfo', '10': 'client'},
+    {
+      '1': 'client',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ClientInfo',
+      '10': 'client'
+    },
     {
       '1': 'recorder',
       '3': 12,
@@ -402,14 +618,63 @@ const StartSession$json = {
     {'1': 'grants_json', '3': 14, '4': 1, '5': 9, '10': 'grantsJson'},
     {'1': 'adaptive_stream', '3': 15, '4': 1, '5': 8, '10': 'adaptiveStream'},
     {'1': 'participant_id', '3': 16, '4': 1, '5': 9, '10': 'participantId'},
-    {'1': 'reconnect_reason', '3': 17, '4': 1, '5': 14, '6': '.livekit.ReconnectReason', '10': 'reconnectReason'},
-    {'1': 'subscriber_allow_pause', '3': 18, '4': 1, '5': 8, '9': 0, '10': 'subscriberAllowPause', '17': true},
+    {
+      '1': 'reconnect_reason',
+      '3': 17,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ReconnectReason',
+      '10': 'reconnectReason'
+    },
+    {
+      '1': 'subscriber_allow_pause',
+      '3': 18,
+      '4': 1,
+      '5': 8,
+      '9': 0,
+      '10': 'subscriberAllowPause',
+      '17': true
+    },
     {'1': 'disable_ice_lite', '3': 19, '4': 1, '5': 8, '10': 'disableIceLite'},
-    {'1': 'create_room', '3': 20, '4': 1, '5': 11, '6': '.livekit.CreateRoomRequest', '10': 'createRoom'},
-    {'1': 'add_track_requests', '3': 21, '4': 3, '5': 11, '6': '.livekit.AddTrackRequest', '10': 'addTrackRequests'},
-    {'1': 'publisher_offer', '3': 22, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '10': 'publisherOffer'},
-    {'1': 'sync_state', '3': 23, '4': 1, '5': 11, '6': '.livekit.SyncState', '10': 'syncState'},
-    {'1': 'use_single_peer_connection', '3': 24, '4': 1, '5': 8, '10': 'useSinglePeerConnection'},
+    {
+      '1': 'create_room',
+      '3': 20,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.CreateRoomRequest',
+      '10': 'createRoom'
+    },
+    {
+      '1': 'add_track_requests',
+      '3': 21,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AddTrackRequest',
+      '10': 'addTrackRequests'
+    },
+    {
+      '1': 'publisher_offer',
+      '3': 22,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '10': 'publisherOffer'
+    },
+    {
+      '1': 'sync_state',
+      '3': 23,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SyncState',
+      '10': 'syncState'
+    },
+    {
+      '1': 'use_single_peer_connection',
+      '3': 24,
+      '4': 1,
+      '5': 8,
+      '10': 'useSinglePeerConnection'
+    },
   ],
   '8': [
     {'1': '_subscriber_allow_pause'},
@@ -440,10 +705,38 @@ final $typed_data.Uint8List startSessionDescriptor = $convert.base64Decode(
 const RoomInternal$json = {
   '1': 'RoomInternal',
   '2': [
-    {'1': 'track_egress', '3': 1, '4': 1, '5': 11, '6': '.livekit.AutoTrackEgress', '10': 'trackEgress'},
-    {'1': 'participant_egress', '3': 2, '4': 1, '5': 11, '6': '.livekit.AutoParticipantEgress', '10': 'participantEgress'},
-    {'1': 'playout_delay', '3': 3, '4': 1, '5': 11, '6': '.livekit.PlayoutDelay', '10': 'playoutDelay'},
-    {'1': 'agent_dispatches', '3': 5, '4': 3, '5': 11, '6': '.livekit.RoomAgentDispatch', '10': 'agentDispatches'},
+    {
+      '1': 'track_egress',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AutoTrackEgress',
+      '10': 'trackEgress'
+    },
+    {
+      '1': 'participant_egress',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AutoParticipantEgress',
+      '10': 'participantEgress'
+    },
+    {
+      '1': 'playout_delay',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.PlayoutDelay',
+      '10': 'playoutDelay'
+    },
+    {
+      '1': 'agent_dispatches',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.RoomAgentDispatch',
+      '10': 'agentDispatches'
+    },
     {'1': 'sync_streams', '3': 4, '4': 1, '5': 8, '10': 'syncStreams'},
     {'1': 'replay_enabled', '3': 6, '4': 1, '5': 8, '10': 'replayEnabled'},
   ],
@@ -463,8 +756,22 @@ final $typed_data.Uint8List roomInternalDescriptor = $convert.base64Decode(
 const ICEConfig$json = {
   '1': 'ICEConfig',
   '2': [
-    {'1': 'preference_subscriber', '3': 1, '4': 1, '5': 14, '6': '.livekit.ICECandidateType', '10': 'preferenceSubscriber'},
-    {'1': 'preference_publisher', '3': 2, '4': 1, '5': 14, '6': '.livekit.ICECandidateType', '10': 'preferencePublisher'},
+    {
+      '1': 'preference_subscriber',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ICECandidateType',
+      '10': 'preferenceSubscriber'
+    },
+    {
+      '1': 'preference_publisher',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ICECandidateType',
+      '10': 'preferencePublisher'
+    },
   ],
 };
 
@@ -474,4 +781,3 @@ final $typed_data.Uint8List iCEConfigDescriptor = $convert.base64Decode(
     'VDYW5kaWRhdGVUeXBlUhRwcmVmZXJlbmNlU3Vic2NyaWJlchJMChRwcmVmZXJlbmNlX3B1Ymxp'
     'c2hlchgCIAEoDjIZLmxpdmVraXQuSUNFQ2FuZGlkYXRlVHlwZVITcHJlZmVyZW5jZVB1Ymxpc2'
     'hlcg==');
-

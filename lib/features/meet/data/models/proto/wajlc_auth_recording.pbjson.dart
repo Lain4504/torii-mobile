@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: wajlc_auth_recording.proto
-//
-// @dart = 2.12
+// Generated from wajlc_auth_recording.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -18,7 +19,15 @@ const FetchRecordingsReq$json = {
   '1': 'FetchRecordingsReq',
   '2': [
     {'1': 'room_ids', '3': 1, '4': 3, '5': 9, '10': 'roomIds'},
-    {'1': 'room_sid', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'roomSid', '17': true},
+    {
+      '1': 'room_sid',
+      '3': 2,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'roomSid',
+      '17': true
+    },
     {'1': 'from', '3': 3, '4': 1, '5': 13, '10': 'from'},
     {'1': 'limit', '3': 4, '4': 1, '5': 13, '10': 'limit'},
     {'1': 'order_by', '3': 5, '4': 1, '5': 9, '10': 'orderBy'},
@@ -44,8 +53,23 @@ const RecordingInfo$json = {
     {'1': 'file_path', '3': 4, '4': 1, '5': 9, '10': 'filePath'},
     {'1': 'file_size', '3': 5, '4': 1, '5': 2, '10': 'fileSize'},
     {'1': 'creation_time', '3': 6, '4': 1, '5': 3, '10': 'creationTime'},
-    {'1': 'room_creation_time', '3': 7, '4': 1, '5': 3, '10': 'roomCreationTime'},
-    {'1': 'metadata', '3': 8, '4': 1, '5': 11, '6': '.wajlc.RecordingMetadata', '9': 0, '10': 'metadata', '17': true},
+    {
+      '1': 'room_creation_time',
+      '3': 7,
+      '4': 1,
+      '5': 3,
+      '10': 'roomCreationTime'
+    },
+    {
+      '1': 'metadata',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.RecordingMetadata',
+      '9': 0,
+      '10': 'metadata',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_metadata'},
@@ -69,7 +93,14 @@ const FetchRecordingsResult$json = {
     {'1': 'from', '3': 2, '4': 1, '5': 13, '10': 'from'},
     {'1': 'limit', '3': 3, '4': 1, '5': 13, '10': 'limit'},
     {'1': 'order_by', '3': 4, '4': 1, '5': 9, '10': 'orderBy'},
-    {'1': 'recordings_list', '3': 5, '4': 3, '5': 11, '6': '.wajlc.RecordingInfo', '10': 'recordingsList'},
+    {
+      '1': 'recordings_list',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.RecordingInfo',
+      '10': 'recordingsList'
+    },
   ],
 };
 
@@ -86,7 +117,14 @@ const FetchRecordingsRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {'1': 'result', '3': 3, '4': 1, '5': 11, '6': '.wajlc.FetchRecordingsResult', '10': 'result'},
+    {
+      '1': 'result',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.FetchRecordingsResult',
+      '10': 'result'
+    },
   ],
 };
 
@@ -115,8 +153,22 @@ const RecordingInfoRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {'1': 'recording_info', '3': 3, '4': 1, '5': 11, '6': '.wajlc.RecordingInfo', '10': 'recordingInfo'},
-    {'1': 'room_info', '3': 4, '4': 1, '5': 11, '6': '.wajlc.PastRoomInfo', '10': 'roomInfo'},
+    {
+      '1': 'recording_info',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.RecordingInfo',
+      '10': 'recordingInfo'
+    },
+    {
+      '1': 'room_info',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.PastRoomInfo',
+      '10': 'roomInfo'
+    },
   ],
 };
 
@@ -190,15 +242,23 @@ const UpdateRecordingMetadataReq$json = {
   '1': 'UpdateRecordingMetadataReq',
   '2': [
     {'1': 'record_id', '3': 1, '4': 1, '5': 9, '8': {}, '10': 'recordId'},
-    {'1': 'metadata', '3': 2, '4': 1, '5': 11, '6': '.wajlc.RecordingMetadata', '10': 'metadata'},
+    {
+      '1': 'metadata',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.RecordingMetadata',
+      '10': 'metadata'
+    },
   ],
 };
 
 /// Descriptor for `UpdateRecordingMetadataReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List updateRecordingMetadataReqDescriptor = $convert.base64Decode(
-    'ChpVcGRhdGVSZWNvcmRpbmdNZXRhZGF0YVJlcRIjCglyZWNvcmRfaWQYASABKAlCBrpIA8gBAV'
-    'IIcmVjb3JkSWQSNAoIbWV0YWRhdGEYAiABKAsyGC53YWpsYy5SZWNvcmRpbmdNZXRhZGF0YVII'
-    'bWV0YWRhdGE=');
+final $typed_data.Uint8List updateRecordingMetadataReqDescriptor =
+    $convert.base64Decode(
+        'ChpVcGRhdGVSZWNvcmRpbmdNZXRhZGF0YVJlcRIjCglyZWNvcmRfaWQYASABKAlCBrpIA8gBAV'
+        'IIcmVjb3JkSWQSNAoIbWV0YWRhdGEYAiABKAsyGC53YWpsYy5SZWNvcmRpbmdNZXRhZGF0YVII'
+        'bWV0YWRhdGE=');
 
 @$core.Deprecated('Use updateRecordingMetadataResDescriptor instead')
 const UpdateRecordingMetadataRes$json = {
@@ -210,7 +270,7 @@ const UpdateRecordingMetadataRes$json = {
 };
 
 /// Descriptor for `UpdateRecordingMetadataRes`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List updateRecordingMetadataResDescriptor = $convert.base64Decode(
-    'ChpVcGRhdGVSZWNvcmRpbmdNZXRhZGF0YVJlcxIWCgZzdGF0dXMYASABKAhSBnN0YXR1cxIQCg'
-    'Ntc2cYAiABKAlSA21zZw==');
-
+final $typed_data.Uint8List updateRecordingMetadataResDescriptor =
+    $convert.base64Decode(
+        'ChpVcGRhdGVSZWNvcmRpbmdNZXRhZGF0YVJlcxIWCgZzdGF0dXMYASABKAhSBnN0YXR1cxIQCg'
+        'Ntc2cYAiABKAlSA21zZw==');

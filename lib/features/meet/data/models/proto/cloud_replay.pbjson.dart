@@ -1,27 +1,35 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: cloud_replay.proto
-//
-// @dart = 2.12
+// Generated from cloud_replay.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'google/protobuf/empty.pbjson.dart' as $3;
-import 'livekit_models.pbjson.dart' as $2;
+import 'google/protobuf/empty.pbjson.dart' as $1;
+import 'livekit_models.pbjson.dart' as $0;
 
 @$core.Deprecated('Use listReplaysRequestDescriptor instead')
 const ListReplaysRequest$json = {
   '1': 'ListReplaysRequest',
   '2': [
     {'1': 'room_name', '3': 1, '4': 1, '5': 9, '10': 'roomName'},
-    {'1': 'page_token', '3': 2, '4': 1, '5': 11, '6': '.livekit.TokenPagination', '10': 'pageToken'},
+    {
+      '1': 'page_token',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TokenPagination',
+      '10': 'pageToken'
+    },
   ],
 };
 
@@ -34,8 +42,22 @@ final $typed_data.Uint8List listReplaysRequestDescriptor = $convert.base64Decode
 const ListReplaysResponse$json = {
   '1': 'ListReplaysResponse',
   '2': [
-    {'1': 'replays', '3': 1, '4': 3, '5': 11, '6': '.replay.ReplayInfo', '10': 'replays'},
-    {'1': 'next_page_token', '3': 2, '4': 1, '5': 11, '6': '.livekit.TokenPagination', '10': 'nextPageToken'},
+    {
+      '1': 'replays',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.replay.ReplayInfo',
+      '10': 'replays'
+    },
+    {
+      '1': 'next_page_token',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TokenPagination',
+      '10': 'nextPageToken'
+    },
   ],
 };
 
@@ -71,8 +93,9 @@ const DeleteReplayRequest$json = {
 };
 
 /// Descriptor for `DeleteReplayRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List deleteReplayRequestDescriptor = $convert.base64Decode(
-    'ChNEZWxldGVSZXBsYXlSZXF1ZXN0EhsKCXJlcGxheV9pZBgBIAEoCVIIcmVwbGF5SWQ=');
+final $typed_data.Uint8List deleteReplayRequestDescriptor =
+    $convert.base64Decode(
+        'ChNEZWxldGVSZXBsYXlSZXF1ZXN0EhsKCXJlcGxheV9pZBgBIAEoCVIIcmVwbGF5SWQ=');
 
 @$core.Deprecated('Use playbackRequestDescriptor instead')
 const PlaybackRequest$json = {
@@ -132,22 +155,39 @@ final $typed_data.Uint8List closePlaybackRequestDescriptor = $convert.base64Deco
 const $core.Map<$core.String, $core.dynamic> ReplayServiceBase$json = {
   '1': 'Replay',
   '2': [
-    {'1': 'ListReplays', '2': '.replay.ListReplaysRequest', '3': '.replay.ListReplaysResponse'},
-    {'1': 'DeleteReplay', '2': '.replay.DeleteReplayRequest', '3': '.google.protobuf.Empty'},
-    {'1': 'Playback', '2': '.replay.PlaybackRequest', '3': '.replay.PlaybackResponse'},
+    {
+      '1': 'ListReplays',
+      '2': '.replay.ListReplaysRequest',
+      '3': '.replay.ListReplaysResponse'
+    },
+    {
+      '1': 'DeleteReplay',
+      '2': '.replay.DeleteReplayRequest',
+      '3': '.google.protobuf.Empty'
+    },
+    {
+      '1': 'Playback',
+      '2': '.replay.PlaybackRequest',
+      '3': '.replay.PlaybackResponse'
+    },
     {'1': 'Seek', '2': '.replay.SeekRequest', '3': '.google.protobuf.Empty'},
-    {'1': 'Close', '2': '.replay.ClosePlaybackRequest', '3': '.google.protobuf.Empty'},
+    {
+      '1': 'Close',
+      '2': '.replay.ClosePlaybackRequest',
+      '3': '.google.protobuf.Empty'
+    },
   ],
 };
 
 @$core.Deprecated('Use replayServiceDescriptor instead')
-const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> ReplayServiceBase$messageJson = {
+const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>>
+    ReplayServiceBase$messageJson = {
   '.replay.ListReplaysRequest': ListReplaysRequest$json,
-  '.livekit.TokenPagination': $2.TokenPagination$json,
+  '.livekit.TokenPagination': $0.TokenPagination$json,
   '.replay.ListReplaysResponse': ListReplaysResponse$json,
   '.replay.ReplayInfo': ReplayInfo$json,
   '.replay.DeleteReplayRequest': DeleteReplayRequest$json,
-  '.google.protobuf.Empty': $3.Empty$json,
+  '.google.protobuf.Empty': $1.Empty$json,
   '.replay.PlaybackRequest': PlaybackRequest$json,
   '.replay.PlaybackResponse': PlaybackResponse$json,
   '.replay.SeekRequest': SeekRequest$json,
@@ -162,4 +202,3 @@ final $typed_data.Uint8List replayServiceDescriptor = $convert.base64Decode(
     'BsYXkuUGxheWJhY2tSZXF1ZXN0GhgucmVwbGF5LlBsYXliYWNrUmVzcG9uc2USMwoEU2VlaxIT'
     'LnJlcGxheS5TZWVrUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eRI9CgVDbG9zZRIcLn'
     'JlcGxheS5DbG9zZVBsYXliYWNrUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eQ==');
-

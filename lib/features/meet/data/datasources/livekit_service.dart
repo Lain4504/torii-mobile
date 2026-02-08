@@ -19,6 +19,8 @@ class LiveKitService {
   Function(List<Participant>)? onActiveSpeakersChanged;
   Function(bool)? onConnectionStateChanged;
   Function(Participant, ConnectionQuality)? onConnectionQualityChanged;
+  VoidCallback? onReconnecting;
+  VoidCallback? onReconnected;
 
   Room? get room => _room;
 
@@ -58,6 +60,12 @@ class LiveKitService {
 
   void _setupListeners(EventsListener<RoomEvent> listener) {
     listener
+      ..on<RoomReconnectingEvent>((_) {
+        onReconnecting?.call();
+      })
+      ..on<RoomReconnectedEvent>((_) {
+        onReconnected?.call();
+      })
       ..on<RoomDisconnectedEvent>((event) {
         onConnectionStateChanged?.call(false);
       })

@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: wajlc_insights.proto
-//
-// @dart = 2.12
+// Generated from wajlc_insights.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -81,21 +82,60 @@ const InsightsSupportedLangInfo$json = {
 };
 
 /// Descriptor for `InsightsSupportedLangInfo`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List insightsSupportedLangInfoDescriptor = $convert.base64Decode(
-    'ChlJbnNpZ2h0c1N1cHBvcnRlZExhbmdJbmZvEhIKBGNvZGUYASABKAlSBGNvZGUSEgoEbmFtZR'
-    'gCIAEoCVIEbmFtZRIWCgZsb2NhbGUYAyABKAlSBmxvY2FsZQ==');
+final $typed_data.Uint8List insightsSupportedLangInfoDescriptor =
+    $convert.base64Decode(
+        'ChlJbnNpZ2h0c1N1cHBvcnRlZExhbmdJbmZvEhIKBGNvZGUYASABKAlSBGNvZGUSEgoEbmFtZR'
+        'gCIAEoCVIEbmFtZRIWCgZsb2NhbGUYAyABKAlSBmxvY2FsZQ==');
 
 @$core.Deprecated('Use insightsTranscriptionConfigReqDescriptor instead')
 const InsightsTranscriptionConfigReq$json = {
   '1': 'InsightsTranscriptionConfigReq',
   '2': [
     {'1': 'is_enabled', '3': 1, '4': 1, '5': 8, '10': 'isEnabled'},
-    {'1': 'allowed_spoken_langs', '3': 2, '4': 3, '5': 9, '10': 'allowedSpokenLangs'},
-    {'1': 'allowed_speech_users', '3': 3, '4': 3, '5': 9, '10': 'allowedSpeechUsers'},
-    {'1': 'is_enabled_translation', '3': 4, '4': 1, '5': 8, '10': 'isEnabledTranslation'},
-    {'1': 'allowed_trans_langs', '3': 5, '4': 3, '5': 9, '10': 'allowedTransLangs'},
-    {'1': 'default_subtitle_lang', '3': 6, '4': 1, '5': 9, '9': 0, '10': 'defaultSubtitleLang', '17': true},
-    {'1': 'is_enabled_speech_synthesis', '3': 7, '4': 1, '5': 8, '10': 'isEnabledSpeechSynthesis'},
+    {
+      '1': 'allowed_spoken_langs',
+      '3': 2,
+      '4': 3,
+      '5': 9,
+      '10': 'allowedSpokenLangs'
+    },
+    {
+      '1': 'allowed_speech_users',
+      '3': 3,
+      '4': 3,
+      '5': 9,
+      '10': 'allowedSpeechUsers'
+    },
+    {
+      '1': 'is_enabled_translation',
+      '3': 4,
+      '4': 1,
+      '5': 8,
+      '10': 'isEnabledTranslation'
+    },
+    {
+      '1': 'allowed_trans_langs',
+      '3': 5,
+      '4': 3,
+      '5': 9,
+      '10': 'allowedTransLangs'
+    },
+    {
+      '1': 'default_subtitle_lang',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'defaultSubtitleLang',
+      '17': true
+    },
+    {
+      '1': 'is_enabled_speech_synthesis',
+      '3': 7,
+      '4': 1,
+      '5': 8,
+      '10': 'isEnabledSpeechSynthesis'
+    },
   ],
   '8': [
     {'1': '_default_subtitle_lang'},
@@ -117,9 +157,30 @@ final $typed_data.Uint8List insightsTranscriptionConfigReqDescriptor = $convert.
 const InsightsTranscriptionUserSessionReq$json = {
   '1': 'InsightsTranscriptionUserSessionReq',
   '2': [
-    {'1': 'action', '3': 1, '4': 1, '5': 14, '6': '.wajlc.InsightsUserSessionAction', '10': 'action'},
-    {'1': 'spoken_lang', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'spokenLang', '17': true},
-    {'1': 'allowed_transcription_storage', '3': 3, '4': 1, '5': 8, '10': 'allowedTranscriptionStorage'},
+    {
+      '1': 'action',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.wajlc.InsightsUserSessionAction',
+      '10': 'action'
+    },
+    {
+      '1': 'spoken_lang',
+      '3': 2,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'spokenLang',
+      '17': true
+    },
+    {
+      '1': 'allowed_transcription_storage',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '10': 'allowedTranscriptionStorage'
+    },
   ],
   '8': [
     {'1': '_spoken_lang'},
@@ -127,11 +188,12 @@ const InsightsTranscriptionUserSessionReq$json = {
 };
 
 /// Descriptor for `InsightsTranscriptionUserSessionReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List insightsTranscriptionUserSessionReqDescriptor = $convert.base64Decode(
-    'CiNJbnNpZ2h0c1RyYW5zY3JpcHRpb25Vc2VyU2Vzc2lvblJlcRI4CgZhY3Rpb24YASABKA4yIC'
-    '53YWpsYy5JbnNpZ2h0c1VzZXJTZXNzaW9uQWN0aW9uUgZhY3Rpb24SJAoLc3Bva2VuX2xhbmcY'
-    'AiABKAlIAFIKc3Bva2VuTGFuZ4gBARJCCh1hbGxvd2VkX3RyYW5zY3JpcHRpb25fc3RvcmFnZR'
-    'gDIAEoCFIbYWxsb3dlZFRyYW5zY3JpcHRpb25TdG9yYWdlQg4KDF9zcG9rZW5fbGFuZw==');
+final $typed_data.Uint8List insightsTranscriptionUserSessionReqDescriptor =
+    $convert.base64Decode(
+        'CiNJbnNpZ2h0c1RyYW5zY3JpcHRpb25Vc2VyU2Vzc2lvblJlcRI4CgZhY3Rpb24YASABKA4yIC'
+        '53YWpsYy5JbnNpZ2h0c1VzZXJTZXNzaW9uQWN0aW9uUgZhY3Rpb24SJAoLc3Bva2VuX2xhbmcY'
+        'AiABKAlIAFIKc3Bva2VuTGFuZ4gBARJCCh1hbGxvd2VkX3RyYW5zY3JpcHRpb25fc3RvcmFnZR'
+        'gDIAEoCFIbYWxsb3dlZFRyYW5zY3JpcHRpb25TdG9yYWdlQg4KDF9zcG9rZW5fbGFuZw==');
 
 @$core.Deprecated('Use insightsTranscriptionResultDescriptor instead')
 const InsightsTranscriptionResult$json = {
@@ -142,8 +204,21 @@ const InsightsTranscriptionResult$json = {
     {'1': 'lang', '3': 3, '4': 1, '5': 9, '10': 'lang'},
     {'1': 'text', '3': 4, '4': 1, '5': 9, '10': 'text'},
     {'1': 'is_partial', '3': 5, '4': 1, '5': 8, '10': 'isPartial'},
-    {'1': 'allowed_transcription_storage', '3': 6, '4': 1, '5': 8, '10': 'allowedTranscriptionStorage'},
-    {'1': 'translations', '3': 7, '4': 3, '5': 11, '6': '.wajlc.InsightsTranscriptionResult.TranslationsEntry', '10': 'translations'},
+    {
+      '1': 'allowed_transcription_storage',
+      '3': 6,
+      '4': 1,
+      '5': 8,
+      '10': 'allowedTranscriptionStorage'
+    },
+    {
+      '1': 'translations',
+      '3': 7,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.InsightsTranscriptionResult.TranslationsEntry',
+      '10': 'translations'
+    },
   ],
   '3': [InsightsTranscriptionResult_TranslationsEntry$json],
 };
@@ -174,8 +249,22 @@ const InsightsChatTranslationConfigReq$json = {
   '1': 'InsightsChatTranslationConfigReq',
   '2': [
     {'1': 'is_enabled', '3': 1, '4': 1, '5': 8, '10': 'isEnabled'},
-    {'1': 'allowed_trans_langs', '3': 5, '4': 3, '5': 9, '10': 'allowedTransLangs'},
-    {'1': 'default_lang', '3': 6, '4': 1, '5': 9, '9': 0, '10': 'defaultLang', '17': true},
+    {
+      '1': 'allowed_trans_langs',
+      '3': 5,
+      '4': 3,
+      '5': 9,
+      '10': 'allowedTransLangs'
+    },
+    {
+      '1': 'default_lang',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'defaultLang',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_default_lang'},
@@ -183,11 +272,12 @@ const InsightsChatTranslationConfigReq$json = {
 };
 
 /// Descriptor for `InsightsChatTranslationConfigReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List insightsChatTranslationConfigReqDescriptor = $convert.base64Decode(
-    'CiBJbnNpZ2h0c0NoYXRUcmFuc2xhdGlvbkNvbmZpZ1JlcRIdCgppc19lbmFibGVkGAEgASgIUg'
-    'lpc0VuYWJsZWQSLgoTYWxsb3dlZF90cmFuc19sYW5ncxgFIAMoCVIRYWxsb3dlZFRyYW5zTGFu'
-    'Z3MSJgoMZGVmYXVsdF9sYW5nGAYgASgJSABSC2RlZmF1bHRMYW5niAEBQg8KDV9kZWZhdWx0X2'
-    'xhbmc=');
+final $typed_data.Uint8List insightsChatTranslationConfigReqDescriptor =
+    $convert.base64Decode(
+        'CiBJbnNpZ2h0c0NoYXRUcmFuc2xhdGlvbkNvbmZpZ1JlcRIdCgppc19lbmFibGVkGAEgASgIUg'
+        'lpc0VuYWJsZWQSLgoTYWxsb3dlZF90cmFuc19sYW5ncxgFIAMoCVIRYWxsb3dlZFRyYW5zTGFu'
+        'Z3MSJgoMZGVmYXVsdF9sYW5nGAYgASgJSABSC2RlZmF1bHRMYW5niAEBQg8KDV9kZWZhdWx0X2'
+        'xhbmc=');
 
 @$core.Deprecated('Use insightsTranslateTextReqDescriptor instead')
 const InsightsTranslateTextReq$json = {
@@ -211,7 +301,14 @@ const InsightsTextTranslationResult$json = {
   '2': [
     {'1': 'source_text', '3': 1, '4': 1, '5': 9, '10': 'sourceText'},
     {'1': 'source_lang', '3': 2, '4': 1, '5': 9, '10': 'sourceLang'},
-    {'1': 'translations', '3': 3, '4': 3, '5': 11, '6': '.wajlc.InsightsTextTranslationResult.TranslationsEntry', '10': 'translations'},
+    {
+      '1': 'translations',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.InsightsTextTranslationResult.TranslationsEntry',
+      '10': 'translations'
+    },
   ],
   '3': [InsightsTextTranslationResult_TranslationsEntry$json],
 };
@@ -240,7 +337,16 @@ const InsightsTranslateTextRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {'1': 'result', '3': 3, '4': 1, '5': 11, '6': '.wajlc.InsightsTextTranslationResult', '9': 0, '10': 'result', '17': true},
+    {
+      '1': 'result',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.InsightsTextTranslationResult',
+      '9': 0,
+      '10': 'result',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_result'},
@@ -257,14 +363,22 @@ final $typed_data.Uint8List insightsTranslateTextResDescriptor = $convert.base64
 const InsightsGetSupportedLanguagesReq$json = {
   '1': 'InsightsGetSupportedLanguagesReq',
   '2': [
-    {'1': 'service_type', '3': 1, '4': 1, '5': 14, '6': '.wajlc.InsightsServiceType', '10': 'serviceType'},
+    {
+      '1': 'service_type',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.wajlc.InsightsServiceType',
+      '10': 'serviceType'
+    },
   ],
 };
 
 /// Descriptor for `InsightsGetSupportedLanguagesReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List insightsGetSupportedLanguagesReqDescriptor = $convert.base64Decode(
-    'CiBJbnNpZ2h0c0dldFN1cHBvcnRlZExhbmd1YWdlc1JlcRI9CgxzZXJ2aWNlX3R5cGUYASABKA'
-    '4yGi53YWpsYy5JbnNpZ2h0c1NlcnZpY2VUeXBlUgtzZXJ2aWNlVHlwZQ==');
+final $typed_data.Uint8List insightsGetSupportedLanguagesReqDescriptor =
+    $convert.base64Decode(
+        'CiBJbnNpZ2h0c0dldFN1cHBvcnRlZExhbmd1YWdlc1JlcRI9CgxzZXJ2aWNlX3R5cGUYASABKA'
+        '4yGi53YWpsYy5JbnNpZ2h0c1NlcnZpY2VUeXBlUgtzZXJ2aWNlVHlwZQ==');
 
 @$core.Deprecated('Use insightsGetSupportedLanguagesResDescriptor instead')
 const InsightsGetSupportedLanguagesRes$json = {
@@ -272,15 +386,23 @@ const InsightsGetSupportedLanguagesRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {'1': 'languages', '3': 3, '4': 3, '5': 11, '6': '.wajlc.InsightsSupportedLangInfo', '10': 'languages'},
+    {
+      '1': 'languages',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.InsightsSupportedLangInfo',
+      '10': 'languages'
+    },
   ],
 };
 
 /// Descriptor for `InsightsGetSupportedLanguagesRes`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List insightsGetSupportedLanguagesResDescriptor = $convert.base64Decode(
-    'CiBJbnNpZ2h0c0dldFN1cHBvcnRlZExhbmd1YWdlc1JlcxIWCgZzdGF0dXMYASABKAhSBnN0YX'
-    'R1cxIQCgNtc2cYAiABKAlSA21zZxI+CglsYW5ndWFnZXMYAyADKAsyIC53YWpsYy5JbnNpZ2h0'
-    'c1N1cHBvcnRlZExhbmdJbmZvUglsYW5ndWFnZXM=');
+final $typed_data.Uint8List insightsGetSupportedLanguagesResDescriptor =
+    $convert.base64Decode(
+        'CiBJbnNpZ2h0c0dldFN1cHBvcnRlZExhbmd1YWdlc1JlcxIWCgZzdGF0dXMYASABKAhSBnN0YX'
+        'R1cxIQCgNtc2cYAiABKAlSA21zZxI+CglsYW5ndWFnZXMYAyADKAsyIC53YWpsYy5JbnNpZ2h0'
+        'c1N1cHBvcnRlZExhbmdJbmZvUglsYW5ndWFnZXM=');
 
 @$core.Deprecated('Use insightsGetUserStatusResDescriptor instead')
 const InsightsGetUserStatusRes$json = {
@@ -288,10 +410,33 @@ const InsightsGetUserStatusRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {'1': 'service_type', '3': 3, '4': 1, '5': 14, '6': '.wajlc.InsightsServiceType', '10': 'serviceType'},
+    {
+      '1': 'service_type',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.wajlc.InsightsServiceType',
+      '10': 'serviceType'
+    },
     {'1': 'is_active', '3': 4, '4': 1, '5': 8, '10': 'isActive'},
-    {'1': 'spoken_lang', '3': 5, '4': 1, '5': 9, '9': 0, '10': 'spokenLang', '17': true},
-    {'1': 'allowed_transcription_storage', '3': 6, '4': 1, '5': 8, '9': 1, '10': 'allowedTranscriptionStorage', '17': true},
+    {
+      '1': 'spoken_lang',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'spokenLang',
+      '17': true
+    },
+    {
+      '1': 'allowed_transcription_storage',
+      '3': 6,
+      '4': 1,
+      '5': 8,
+      '9': 1,
+      '10': 'allowedTranscriptionStorage',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_spoken_lang'},
@@ -312,9 +457,24 @@ final $typed_data.Uint8List insightsGetUserStatusResDescriptor = $convert.base64
 const InsightsAITextChatContent$json = {
   '1': 'InsightsAITextChatContent',
   '2': [
-    {'1': 'role', '3': 1, '4': 1, '5': 14, '6': '.wajlc.InsightsAITextChatRole', '10': 'role'},
+    {
+      '1': 'role',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.wajlc.InsightsAITextChatRole',
+      '10': 'role'
+    },
     {'1': 'text', '3': 2, '4': 1, '5': 9, '10': 'text'},
-    {'1': 'stream_id', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'streamId', '17': true},
+    {
+      '1': 'stream_id',
+      '3': 3,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'streamId',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_stream_id'},
@@ -335,7 +495,13 @@ const InsightsAITextChatStreamResult$json = {
     {'1': 'text', '3': 2, '4': 1, '5': 9, '10': 'text'},
     {'1': 'is_last_chunk', '3': 3, '4': 1, '5': 8, '10': 'isLastChunk'},
     {'1': 'prompt_tokens', '3': 4, '4': 1, '5': 13, '10': 'promptTokens'},
-    {'1': 'completion_tokens', '3': 5, '4': 1, '5': 13, '10': 'completionTokens'},
+    {
+      '1': 'completion_tokens',
+      '3': 5,
+      '4': 1,
+      '5': 13,
+      '10': 'completionTokens'
+    },
     {'1': 'total_tokens', '3': 6, '4': 1, '5': 13, '10': 'totalTokens'},
     {'1': 'created_at', '3': 7, '4': 1, '5': 9, '10': 'createdAt'},
   ],
@@ -354,29 +520,43 @@ const InsightsAITextChatConfigReq$json = {
   '1': 'InsightsAITextChatConfigReq',
   '2': [
     {'1': 'is_enabled', '3': 1, '4': 1, '5': 8, '10': 'isEnabled'},
-    {'1': 'is_allowed_everyone', '3': 3, '4': 1, '5': 8, '10': 'isAllowedEveryone'},
+    {
+      '1': 'is_allowed_everyone',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '10': 'isAllowedEveryone'
+    },
     {'1': 'allowed_user_ids', '3': 4, '4': 3, '5': 9, '10': 'allowedUserIds'},
   ],
 };
 
 /// Descriptor for `InsightsAITextChatConfigReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List insightsAITextChatConfigReqDescriptor = $convert.base64Decode(
-    'ChtJbnNpZ2h0c0FJVGV4dENoYXRDb25maWdSZXESHQoKaXNfZW5hYmxlZBgBIAEoCFIJaXNFbm'
-    'FibGVkEi4KE2lzX2FsbG93ZWRfZXZlcnlvbmUYAyABKAhSEWlzQWxsb3dlZEV2ZXJ5b25lEigK'
-    'EGFsbG93ZWRfdXNlcl9pZHMYBCADKAlSDmFsbG93ZWRVc2VySWRz');
+final $typed_data.Uint8List insightsAITextChatConfigReqDescriptor =
+    $convert.base64Decode(
+        'ChtJbnNpZ2h0c0FJVGV4dENoYXRDb25maWdSZXESHQoKaXNfZW5hYmxlZBgBIAEoCFIJaXNFbm'
+        'FibGVkEi4KE2lzX2FsbG93ZWRfZXZlcnlvbmUYAyABKAhSEWlzQWxsb3dlZEV2ZXJ5b25lEigK'
+        'EGFsbG93ZWRfdXNlcl9pZHMYBCADKAlSDmFsbG93ZWRVc2VySWRz');
 
-@$core.Deprecated('Use insightsAIMeetingSummarizationConfigReqDescriptor instead')
+@$core
+    .Deprecated('Use insightsAIMeetingSummarizationConfigReqDescriptor instead')
 const InsightsAIMeetingSummarizationConfigReq$json = {
   '1': 'InsightsAIMeetingSummarizationConfigReq',
   '2': [
     {'1': 'is_enabled', '3': 1, '4': 1, '5': 8, '10': 'isEnabled'},
-    {'1': 'summarization_prompt', '3': 3, '4': 1, '5': 9, '10': 'summarizationPrompt'},
+    {
+      '1': 'summarization_prompt',
+      '3': 3,
+      '4': 1,
+      '5': 9,
+      '10': 'summarizationPrompt'
+    },
   ],
 };
 
 /// Descriptor for `InsightsAIMeetingSummarizationConfigReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List insightsAIMeetingSummarizationConfigReqDescriptor = $convert.base64Decode(
-    'CidJbnNpZ2h0c0FJTWVldGluZ1N1bW1hcml6YXRpb25Db25maWdSZXESHQoKaXNfZW5hYmxlZB'
-    'gBIAEoCFIJaXNFbmFibGVkEjEKFHN1bW1hcml6YXRpb25fcHJvbXB0GAMgASgJUhNzdW1tYXJp'
-    'emF0aW9uUHJvbXB0');
-
+final $typed_data.Uint8List insightsAIMeetingSummarizationConfigReqDescriptor =
+    $convert.base64Decode(
+        'CidJbnNpZ2h0c0FJTWVldGluZ1N1bW1hcml6YXRpb25Db25maWdSZXESHQoKaXNfZW5hYmxlZB'
+        'gBIAEoCFIJaXNFbmFibGVkEjEKFHN1bW1hcml6YXRpb25fcHJvbXB0GAMgASgJUhNzdW1tYXJp'
+        'emF0aW9uUHJvbXB0');

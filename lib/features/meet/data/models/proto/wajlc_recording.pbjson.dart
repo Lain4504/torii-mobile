@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: wajlc_recording.proto
-//
-// @dart = 2.12
+// Generated from wajlc_recording.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -17,13 +18,45 @@ import 'dart:typed_data' as $typed_data;
 const RecordingReq$json = {
   '1': 'RecordingReq',
   '2': [
-    {'1': 'task', '3': 1, '4': 1, '5': 14, '6': '.wajlc.RecordingTasks', '10': 'task'},
+    {
+      '1': 'task',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.wajlc.RecordingTasks',
+      '10': 'task'
+    },
     {'1': 'room_id', '3': 2, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'room_table_id', '3': 3, '4': 1, '5': 3, '10': 'roomTableId'},
     {'1': 'sid', '3': 4, '4': 1, '5': 9, '10': 'sid'},
-    {'1': 'rtmp_url', '3': 5, '4': 1, '5': 9, '9': 0, '10': 'rtmpUrl', '17': true},
-    {'1': 'custom_design', '3': 6, '4': 1, '5': 9, '9': 1, '10': 'customDesign', '17': true},
-    {'1': 'recording_variant', '3': 7, '4': 1, '5': 14, '6': '.wajlc.CloudRecordingVariants', '9': 2, '10': 'recordingVariant', '17': true},
+    {
+      '1': 'rtmp_url',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'rtmpUrl',
+      '17': true
+    },
+    {
+      '1': 'custom_design',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '9': 1,
+      '10': 'customDesign',
+      '17': true
+    },
+    {
+      '1': 'recording_variant',
+      '3': 7,
+      '4': 1,
+      '5': 14,
+      '6': '.wajlc.CloudRecordingVariants',
+      '9': 2,
+      '10': 'recordingVariant',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_rtmp_url'},
@@ -50,7 +83,13 @@ const RecordingInfoFile$json = {
     {'1': 'room_id', '3': 2, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'room_title', '3': 3, '4': 1, '5': 9, '10': 'roomTitle'},
     {'1': 'room_sid', '3': 4, '4': 1, '5': 9, '10': 'roomSid'},
-    {'1': 'room_creation_time', '3': 5, '4': 1, '5': 3, '10': 'roomCreationTime'},
+    {
+      '1': 'room_creation_time',
+      '3': 5,
+      '4': 1,
+      '5': 3,
+      '10': 'roomCreationTime'
+    },
     {'1': 'room_ended', '3': 6, '4': 1, '5': 3, '10': 'roomEnded'},
     {'1': 'recording_id', '3': 7, '4': 1, '5': 9, '10': 'recordingId'},
     {'1': 'recorder_id', '3': 8, '4': 1, '5': 9, '10': 'recorderId'},
@@ -89,11 +128,36 @@ const RecordingMetadata$json = {
   '1': 'RecordingMetadata',
   '2': [
     {'1': 'title', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'title', '17': true},
-    {'1': 'description', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'description', '17': true},
-    {'1': 'subtitles', '3': 3, '4': 3, '5': 11, '6': '.wajlc.RecordingMetadata.SubtitlesEntry', '10': 'subtitles'},
-    {'1': 'extra_data', '3': 4, '4': 3, '5': 11, '6': '.wajlc.RecordingMetadata.ExtraDataEntry', '10': 'extraData'},
+    {
+      '1': 'description',
+      '3': 2,
+      '4': 1,
+      '5': 9,
+      '9': 1,
+      '10': 'description',
+      '17': true
+    },
+    {
+      '1': 'subtitles',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.RecordingMetadata.SubtitlesEntry',
+      '10': 'subtitles'
+    },
+    {
+      '1': 'extra_data',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.RecordingMetadata.ExtraDataEntry',
+      '10': 'extraData'
+    },
   ],
-  '3': [RecordingMetadata_SubtitlesEntry$json, RecordingMetadata_ExtraDataEntry$json],
+  '3': [
+    RecordingMetadata_SubtitlesEntry$json,
+    RecordingMetadata_ExtraDataEntry$json
+  ],
   '8': [
     {'1': '_title'},
     {'1': '_description'},
@@ -105,7 +169,14 @@ const RecordingMetadata_SubtitlesEntry$json = {
   '1': 'SubtitlesEntry',
   '2': [
     {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
-    {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.wajlc.RecordingSubtitle', '10': 'value'},
+    {
+      '1': 'value',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.RecordingSubtitle',
+      '10': 'value'
+    },
   ],
   '7': {'7': true},
 };
@@ -130,4 +201,3 @@ final $typed_data.Uint8List recordingMetadataDescriptor = $convert.base64Decode(
     'gLMhgud2FqbGMuUmVjb3JkaW5nU3VidGl0bGVSBXZhbHVlOgI4ARo8Cg5FeHRyYURhdGFFbnRy'
     'eRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgBQggKBl90aXRsZU'
     'IOCgxfZGVzY3JpcHRpb24=');
-

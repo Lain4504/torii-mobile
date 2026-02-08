@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_agent.proto
-//
-// @dart = 2.12
+// Generated from livekit_agent.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -63,9 +64,25 @@ const Job$json = {
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     {'1': 'dispatch_id', '3': 9, '4': 1, '5': 9, '10': 'dispatchId'},
-    {'1': 'type', '3': 2, '4': 1, '5': 14, '6': '.livekit.JobType', '10': 'type'},
+    {
+      '1': 'type',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.JobType',
+      '10': 'type'
+    },
     {'1': 'room', '3': 3, '4': 1, '5': 11, '6': '.livekit.Room', '10': 'room'},
-    {'1': 'participant', '3': 4, '4': 1, '5': 11, '6': '.livekit.ParticipantInfo', '9': 0, '10': 'participant', '17': true},
+    {
+      '1': 'participant',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '9': 0,
+      '10': 'participant',
+      '17': true
+    },
     {
       '1': 'namespace',
       '3': 5,
@@ -76,7 +93,14 @@ const Job$json = {
     },
     {'1': 'metadata', '3': 6, '4': 1, '5': 9, '10': 'metadata'},
     {'1': 'agent_name', '3': 7, '4': 1, '5': 9, '10': 'agentName'},
-    {'1': 'state', '3': 8, '4': 1, '5': 11, '6': '.livekit.JobState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.JobState',
+      '10': 'state'
+    },
     {'1': 'enable_recording', '3': 10, '4': 1, '5': 8, '10': 'enableRecording'},
   ],
   '8': [
@@ -98,12 +122,25 @@ final $typed_data.Uint8List jobDescriptor = $convert.base64Decode(
 const JobState$json = {
   '1': 'JobState',
   '2': [
-    {'1': 'status', '3': 1, '4': 1, '5': 14, '6': '.livekit.JobStatus', '10': 'status'},
+    {
+      '1': 'status',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.JobStatus',
+      '10': 'status'
+    },
     {'1': 'error', '3': 2, '4': 1, '5': 9, '10': 'error'},
     {'1': 'started_at', '3': 3, '4': 1, '5': 3, '10': 'startedAt'},
     {'1': 'ended_at', '3': 4, '4': 1, '5': 3, '10': 'endedAt'},
     {'1': 'updated_at', '3': 5, '4': 1, '5': 3, '10': 'updatedAt'},
-    {'1': 'participant_identity', '3': 6, '4': 1, '5': 9, '10': 'participantIdentity'},
+    {
+      '1': 'participant_identity',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
     {'1': 'worker_id', '3': 7, '4': 1, '5': 9, '10': 'workerId'},
     {'1': 'agent_id', '3': 8, '4': 1, '5': 9, '10': 'agentId'},
   ],
@@ -121,13 +158,69 @@ final $typed_data.Uint8List jobStateDescriptor = $convert.base64Decode(
 const WorkerMessage$json = {
   '1': 'WorkerMessage',
   '2': [
-    {'1': 'register', '3': 1, '4': 1, '5': 11, '6': '.livekit.RegisterWorkerRequest', '9': 0, '10': 'register'},
-    {'1': 'availability', '3': 2, '4': 1, '5': 11, '6': '.livekit.AvailabilityResponse', '9': 0, '10': 'availability'},
-    {'1': 'update_worker', '3': 3, '4': 1, '5': 11, '6': '.livekit.UpdateWorkerStatus', '9': 0, '10': 'updateWorker'},
-    {'1': 'update_job', '3': 4, '4': 1, '5': 11, '6': '.livekit.UpdateJobStatus', '9': 0, '10': 'updateJob'},
-    {'1': 'ping', '3': 5, '4': 1, '5': 11, '6': '.livekit.WorkerPing', '9': 0, '10': 'ping'},
-    {'1': 'simulate_job', '3': 6, '4': 1, '5': 11, '6': '.livekit.SimulateJobRequest', '9': 0, '10': 'simulateJob'},
-    {'1': 'migrate_job', '3': 7, '4': 1, '5': 11, '6': '.livekit.MigrateJobRequest', '9': 0, '10': 'migrateJob'},
+    {
+      '1': 'register',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RegisterWorkerRequest',
+      '9': 0,
+      '10': 'register'
+    },
+    {
+      '1': 'availability',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AvailabilityResponse',
+      '9': 0,
+      '10': 'availability'
+    },
+    {
+      '1': 'update_worker',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateWorkerStatus',
+      '9': 0,
+      '10': 'updateWorker'
+    },
+    {
+      '1': 'update_job',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateJobStatus',
+      '9': 0,
+      '10': 'updateJob'
+    },
+    {
+      '1': 'ping',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.WorkerPing',
+      '9': 0,
+      '10': 'ping'
+    },
+    {
+      '1': 'simulate_job',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SimulateJobRequest',
+      '9': 0,
+      '10': 'simulateJob'
+    },
+    {
+      '1': 'migrate_job',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.MigrateJobRequest',
+      '9': 0,
+      '10': 'migrateJob'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -150,11 +243,51 @@ final $typed_data.Uint8List workerMessageDescriptor = $convert.base64Decode(
 const ServerMessage$json = {
   '1': 'ServerMessage',
   '2': [
-    {'1': 'register', '3': 1, '4': 1, '5': 11, '6': '.livekit.RegisterWorkerResponse', '9': 0, '10': 'register'},
-    {'1': 'availability', '3': 2, '4': 1, '5': 11, '6': '.livekit.AvailabilityRequest', '9': 0, '10': 'availability'},
-    {'1': 'assignment', '3': 3, '4': 1, '5': 11, '6': '.livekit.JobAssignment', '9': 0, '10': 'assignment'},
-    {'1': 'termination', '3': 5, '4': 1, '5': 11, '6': '.livekit.JobTermination', '9': 0, '10': 'termination'},
-    {'1': 'pong', '3': 4, '4': 1, '5': 11, '6': '.livekit.WorkerPong', '9': 0, '10': 'pong'},
+    {
+      '1': 'register',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RegisterWorkerResponse',
+      '9': 0,
+      '10': 'register'
+    },
+    {
+      '1': 'availability',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AvailabilityRequest',
+      '9': 0,
+      '10': 'availability'
+    },
+    {
+      '1': 'assignment',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.JobAssignment',
+      '9': 0,
+      '10': 'assignment'
+    },
+    {
+      '1': 'termination',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.JobTermination',
+      '9': 0,
+      '10': 'termination'
+    },
+    {
+      '1': 'pong',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.WorkerPong',
+      '9': 0,
+      '10': 'pong'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -174,9 +307,23 @@ final $typed_data.Uint8List serverMessageDescriptor = $convert.base64Decode(
 const SimulateJobRequest$json = {
   '1': 'SimulateJobRequest',
   '2': [
-    {'1': 'type', '3': 1, '4': 1, '5': 14, '6': '.livekit.JobType', '10': 'type'},
+    {
+      '1': 'type',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.JobType',
+      '10': 'type'
+    },
     {'1': 'room', '3': 2, '4': 1, '5': 11, '6': '.livekit.Room', '10': 'room'},
-    {'1': 'participant', '3': 3, '4': 1, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participant'},
+    {
+      '1': 'participant',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'participant'
+    },
   ],
 };
 
@@ -195,8 +342,8 @@ const WorkerPing$json = {
 };
 
 /// Descriptor for `WorkerPing`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List workerPingDescriptor = $convert.base64Decode(
-    'CgpXb3JrZXJQaW5nEhwKCXRpbWVzdGFtcBgBIAEoA1IJdGltZXN0YW1w');
+final $typed_data.Uint8List workerPingDescriptor = $convert
+    .base64Decode('CgpXb3JrZXJQaW5nEhwKCXRpbWVzdGFtcBgBIAEoA1IJdGltZXN0YW1w');
 
 @$core.Deprecated('Use workerPongDescriptor instead')
 const WorkerPong$json = {
@@ -216,12 +363,34 @@ final $typed_data.Uint8List workerPongDescriptor = $convert.base64Decode(
 const RegisterWorkerRequest$json = {
   '1': 'RegisterWorkerRequest',
   '2': [
-    {'1': 'type', '3': 1, '4': 1, '5': 14, '6': '.livekit.JobType', '10': 'type'},
+    {
+      '1': 'type',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.JobType',
+      '10': 'type'
+    },
     {'1': 'agent_name', '3': 8, '4': 1, '5': 9, '10': 'agentName'},
     {'1': 'version', '3': 3, '4': 1, '5': 9, '10': 'version'},
     {'1': 'ping_interval', '3': 5, '4': 1, '5': 13, '10': 'pingInterval'},
-    {'1': 'namespace', '3': 6, '4': 1, '5': 9, '9': 0, '10': 'namespace', '17': true},
-    {'1': 'allowed_permissions', '3': 7, '4': 1, '5': 11, '6': '.livekit.ParticipantPermission', '10': 'allowedPermissions'},
+    {
+      '1': 'namespace',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'namespace',
+      '17': true
+    },
+    {
+      '1': 'allowed_permissions',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantPermission',
+      '10': 'allowedPermissions'
+    },
   ],
   '8': [
     {'1': '_namespace'},
@@ -242,7 +411,14 @@ const RegisterWorkerResponse$json = {
   '1': 'RegisterWorkerResponse',
   '2': [
     {'1': 'worker_id', '3': 1, '4': 1, '5': 9, '10': 'workerId'},
-    {'1': 'server_info', '3': 3, '4': 1, '5': 11, '6': '.livekit.ServerInfo', '10': 'serverInfo'},
+    {
+      '1': 'server_info',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ServerInfo',
+      '10': 'serverInfo'
+    },
   ],
 };
 
@@ -286,9 +462,28 @@ const AvailabilityResponse$json = {
     {'1': 'supports_resume', '3': 3, '4': 1, '5': 8, '10': 'supportsResume'},
     {'1': 'terminate', '3': 8, '4': 1, '5': 8, '10': 'terminate'},
     {'1': 'participant_name', '3': 4, '4': 1, '5': 9, '10': 'participantName'},
-    {'1': 'participant_identity', '3': 5, '4': 1, '5': 9, '10': 'participantIdentity'},
-    {'1': 'participant_metadata', '3': 6, '4': 1, '5': 9, '10': 'participantMetadata'},
-    {'1': 'participant_attributes', '3': 7, '4': 3, '5': 11, '6': '.livekit.AvailabilityResponse.ParticipantAttributesEntry', '10': 'participantAttributes'},
+    {
+      '1': 'participant_identity',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
+    {
+      '1': 'participant_metadata',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '10': 'participantMetadata'
+    },
+    {
+      '1': 'participant_attributes',
+      '3': 7,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AvailabilityResponse.ParticipantAttributesEntry',
+      '10': 'participantAttributes'
+    },
   ],
   '3': [AvailabilityResponse_ParticipantAttributesEntry$json],
 };
@@ -320,7 +515,14 @@ const UpdateJobStatus$json = {
   '1': 'UpdateJobStatus',
   '2': [
     {'1': 'job_id', '3': 1, '4': 1, '5': 9, '10': 'jobId'},
-    {'1': 'status', '3': 2, '4': 1, '5': 14, '6': '.livekit.JobStatus', '10': 'status'},
+    {
+      '1': 'status',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.JobStatus',
+      '10': 'status'
+    },
     {'1': 'error', '3': 3, '4': 1, '5': 9, '10': 'error'},
   ],
 };
@@ -334,7 +536,16 @@ final $typed_data.Uint8List updateJobStatusDescriptor = $convert.base64Decode(
 const UpdateWorkerStatus$json = {
   '1': 'UpdateWorkerStatus',
   '2': [
-    {'1': 'status', '3': 1, '4': 1, '5': 14, '6': '.livekit.WorkerStatus', '9': 0, '10': 'status', '17': true},
+    {
+      '1': 'status',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.WorkerStatus',
+      '9': 0,
+      '10': 'status',
+      '17': true
+    },
     {'1': 'load', '3': 3, '4': 1, '5': 2, '10': 'load'},
     {'1': 'job_count', '3': 4, '4': 1, '5': 13, '10': 'jobCount'},
   ],
@@ -376,6 +587,5 @@ const JobTermination$json = {
 };
 
 /// Descriptor for `JobTermination`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List jobTerminationDescriptor = $convert.base64Decode(
-    'Cg5Kb2JUZXJtaW5hdGlvbhIVCgZqb2JfaWQYASABKAlSBWpvYklk');
-
+final $typed_data.Uint8List jobTerminationDescriptor = $convert
+    .base64Decode('Cg5Kb2JUZXJtaW5hdGlvbhIVCgZqb2JfaWQYASABKAlSBWpvYklk');

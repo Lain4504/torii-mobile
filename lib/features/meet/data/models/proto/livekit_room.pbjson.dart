@@ -1,20 +1,21 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_room.proto
-//
-// @dart = 2.12
+// Generated from livekit_room.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'livekit_agent_dispatch.pbjson.dart' as $6;
-import 'livekit_egress.pbjson.dart' as $7;
+import 'livekit_agent_dispatch.pbjson.dart' as $0;
+import 'livekit_egress.pbjson.dart' as $1;
 import 'livekit_models.pbjson.dart' as $2;
 
 @$core.Deprecated('Use createRoomRequestDescriptor instead')
@@ -24,16 +25,48 @@ const CreateRoomRequest$json = {
     {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
     {'1': 'room_preset', '3': 12, '4': 1, '5': 9, '10': 'roomPreset'},
     {'1': 'empty_timeout', '3': 2, '4': 1, '5': 13, '10': 'emptyTimeout'},
-    {'1': 'departure_timeout', '3': 10, '4': 1, '5': 13, '10': 'departureTimeout'},
+    {
+      '1': 'departure_timeout',
+      '3': 10,
+      '4': 1,
+      '5': 13,
+      '10': 'departureTimeout'
+    },
     {'1': 'max_participants', '3': 3, '4': 1, '5': 13, '10': 'maxParticipants'},
     {'1': 'node_id', '3': 4, '4': 1, '5': 9, '10': 'nodeId'},
     {'1': 'metadata', '3': 5, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
-    {'1': 'egress', '3': 6, '4': 1, '5': 11, '6': '.livekit.RoomEgress', '10': 'egress'},
-    {'1': 'min_playout_delay', '3': 7, '4': 1, '5': 13, '10': 'minPlayoutDelay'},
-    {'1': 'max_playout_delay', '3': 8, '4': 1, '5': 13, '10': 'maxPlayoutDelay'},
+    {
+      '1': 'egress',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomEgress',
+      '10': 'egress'
+    },
+    {
+      '1': 'min_playout_delay',
+      '3': 7,
+      '4': 1,
+      '5': 13,
+      '10': 'minPlayoutDelay'
+    },
+    {
+      '1': 'max_playout_delay',
+      '3': 8,
+      '4': 1,
+      '5': 13,
+      '10': 'maxPlayoutDelay'
+    },
     {'1': 'sync_streams', '3': 9, '4': 1, '5': 8, '10': 'syncStreams'},
     {'1': 'replay_enabled', '3': 13, '4': 1, '5': 8, '10': 'replayEnabled'},
-    {'1': 'agents', '3': 14, '4': 3, '5': 11, '6': '.livekit.RoomAgentDispatch', '10': 'agents'},
+    {
+      '1': 'agents',
+      '3': 14,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.RoomAgentDispatch',
+      '10': 'agents'
+    },
   ],
 };
 
@@ -54,9 +87,30 @@ final $typed_data.Uint8List createRoomRequestDescriptor = $convert.base64Decode(
 const RoomEgress$json = {
   '1': 'RoomEgress',
   '2': [
-    {'1': 'room', '3': 1, '4': 1, '5': 11, '6': '.livekit.RoomCompositeEgressRequest', '10': 'room'},
-    {'1': 'participant', '3': 3, '4': 1, '5': 11, '6': '.livekit.AutoParticipantEgress', '10': 'participant'},
-    {'1': 'tracks', '3': 2, '4': 1, '5': 11, '6': '.livekit.AutoTrackEgress', '10': 'tracks'},
+    {
+      '1': 'room',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomCompositeEgressRequest',
+      '10': 'room'
+    },
+    {
+      '1': 'participant',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AutoParticipantEgress',
+      '10': 'participant'
+    },
+    {
+      '1': 'tracks',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AutoTrackEgress',
+      '10': 'tracks'
+    },
   ],
 };
 
@@ -71,7 +125,14 @@ final $typed_data.Uint8List roomEgressDescriptor = $convert.base64Decode(
 const RoomAgent$json = {
   '1': 'RoomAgent',
   '2': [
-    {'1': 'dispatches', '3': 1, '4': 3, '5': 11, '6': '.livekit.RoomAgentDispatch', '10': 'dispatches'},
+    {
+      '1': 'dispatches',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.RoomAgentDispatch',
+      '10': 'dispatches'
+    },
   ],
 };
 
@@ -89,14 +150,21 @@ const ListRoomsRequest$json = {
 };
 
 /// Descriptor for `ListRoomsRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listRoomsRequestDescriptor = $convert.base64Decode(
-    'ChBMaXN0Um9vbXNSZXF1ZXN0EhQKBW5hbWVzGAEgAygJUgVuYW1lcw==');
+final $typed_data.Uint8List listRoomsRequestDescriptor = $convert
+    .base64Decode('ChBMaXN0Um9vbXNSZXF1ZXN0EhQKBW5hbWVzGAEgAygJUgVuYW1lcw==');
 
 @$core.Deprecated('Use listRoomsResponseDescriptor instead')
 const ListRoomsResponse$json = {
   '1': 'ListRoomsResponse',
   '2': [
-    {'1': 'rooms', '3': 1, '4': 3, '5': 11, '6': '.livekit.Room', '10': 'rooms'},
+    {
+      '1': 'rooms',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.Room',
+      '10': 'rooms'
+    },
   ],
 };
 
@@ -114,8 +182,8 @@ const DeleteRoomRequest$json = {
 };
 
 /// Descriptor for `DeleteRoomRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List deleteRoomRequestDescriptor = $convert.base64Decode(
-    'ChFEZWxldGVSb29tUmVxdWVzdBISCgRyb29tGAEgASgJUgRyb29t');
+final $typed_data.Uint8List deleteRoomRequestDescriptor = $convert
+    .base64Decode('ChFEZWxldGVSb29tUmVxdWVzdBISCgRyb29tGAEgASgJUgRyb29t');
 
 @$core.Deprecated('Use deleteRoomResponseDescriptor instead')
 const DeleteRoomResponse$json = {
@@ -123,8 +191,8 @@ const DeleteRoomResponse$json = {
 };
 
 /// Descriptor for `DeleteRoomResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List deleteRoomResponseDescriptor = $convert.base64Decode(
-    'ChJEZWxldGVSb29tUmVzcG9uc2U=');
+final $typed_data.Uint8List deleteRoomResponseDescriptor =
+    $convert.base64Decode('ChJEZWxldGVSb29tUmVzcG9uc2U=');
 
 @$core.Deprecated('Use listParticipantsRequestDescriptor instead')
 const ListParticipantsRequest$json = {
@@ -135,21 +203,30 @@ const ListParticipantsRequest$json = {
 };
 
 /// Descriptor for `ListParticipantsRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listParticipantsRequestDescriptor = $convert.base64Decode(
-    'ChdMaXN0UGFydGljaXBhbnRzUmVxdWVzdBISCgRyb29tGAEgASgJUgRyb29t');
+final $typed_data.Uint8List listParticipantsRequestDescriptor =
+    $convert.base64Decode(
+        'ChdMaXN0UGFydGljaXBhbnRzUmVxdWVzdBISCgRyb29tGAEgASgJUgRyb29t');
 
 @$core.Deprecated('Use listParticipantsResponseDescriptor instead')
 const ListParticipantsResponse$json = {
   '1': 'ListParticipantsResponse',
   '2': [
-    {'1': 'participants', '3': 1, '4': 3, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participants'},
+    {
+      '1': 'participants',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'participants'
+    },
   ],
 };
 
 /// Descriptor for `ListParticipantsResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listParticipantsResponseDescriptor = $convert.base64Decode(
-    'ChhMaXN0UGFydGljaXBhbnRzUmVzcG9uc2USPAoMcGFydGljaXBhbnRzGAEgAygLMhgubGl2ZW'
-    'tpdC5QYXJ0aWNpcGFudEluZm9SDHBhcnRpY2lwYW50cw==');
+final $typed_data.Uint8List listParticipantsResponseDescriptor =
+    $convert.base64Decode(
+        'ChhMaXN0UGFydGljaXBhbnRzUmVzcG9uc2USPAoMcGFydGljaXBhbnRzGAEgAygLMhgubGl2ZW'
+        'tpdC5QYXJ0aWNpcGFudEluZm9SDHBhcnRpY2lwYW50cw==');
 
 @$core.Deprecated('Use roomParticipantIdentityDescriptor instead')
 const RoomParticipantIdentity$json = {
@@ -161,9 +238,10 @@ const RoomParticipantIdentity$json = {
 };
 
 /// Descriptor for `RoomParticipantIdentity`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List roomParticipantIdentityDescriptor = $convert.base64Decode(
-    'ChdSb29tUGFydGljaXBhbnRJZGVudGl0eRISCgRyb29tGAEgASgJUgRyb29tEhoKCGlkZW50aX'
-    'R5GAIgASgJUghpZGVudGl0eQ==');
+final $typed_data.Uint8List roomParticipantIdentityDescriptor =
+    $convert.base64Decode(
+        'ChdSb29tUGFydGljaXBhbnRJZGVudGl0eRISCgRyb29tGAEgASgJUgRyb29tEhoKCGlkZW50aX'
+        'R5GAIgASgJUghpZGVudGl0eQ==');
 
 @$core.Deprecated('Use removeParticipantResponseDescriptor instead')
 const RemoveParticipantResponse$json = {
@@ -171,8 +249,8 @@ const RemoveParticipantResponse$json = {
 };
 
 /// Descriptor for `RemoveParticipantResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List removeParticipantResponseDescriptor = $convert.base64Decode(
-    'ChlSZW1vdmVQYXJ0aWNpcGFudFJlc3BvbnNl');
+final $typed_data.Uint8List removeParticipantResponseDescriptor =
+    $convert.base64Decode('ChlSZW1vdmVQYXJ0aWNpcGFudFJlc3BvbnNl');
 
 @$core.Deprecated('Use muteRoomTrackRequestDescriptor instead')
 const MuteRoomTrackRequest$json = {
@@ -195,7 +273,14 @@ final $typed_data.Uint8List muteRoomTrackRequestDescriptor = $convert.base64Deco
 const MuteRoomTrackResponse$json = {
   '1': 'MuteRoomTrackResponse',
   '2': [
-    {'1': 'track', '3': 1, '4': 1, '5': 11, '6': '.livekit.TrackInfo', '10': 'track'},
+    {
+      '1': 'track',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackInfo',
+      '10': 'track'
+    },
   ],
 };
 
@@ -211,9 +296,24 @@ const UpdateParticipantRequest$json = {
     {'1': 'room', '3': 1, '4': 1, '5': 9, '10': 'room'},
     {'1': 'identity', '3': 2, '4': 1, '5': 9, '10': 'identity'},
     {'1': 'metadata', '3': 3, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
-    {'1': 'permission', '3': 4, '4': 1, '5': 11, '6': '.livekit.ParticipantPermission', '10': 'permission'},
+    {
+      '1': 'permission',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantPermission',
+      '10': 'permission'
+    },
     {'1': 'name', '3': 5, '4': 1, '5': 9, '8': {}, '10': 'name'},
-    {'1': 'attributes', '3': 6, '4': 3, '5': 11, '6': '.livekit.UpdateParticipantRequest.AttributesEntry', '8': {}, '10': 'attributes'},
+    {
+      '1': 'attributes',
+      '3': 6,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.UpdateParticipantRequest.AttributesEntry',
+      '8': {},
+      '10': 'attributes'
+    },
   ],
   '3': [UpdateParticipantRequest_AttributesEntry$json],
 };
@@ -248,7 +348,14 @@ const UpdateSubscriptionsRequest$json = {
     {'1': 'identity', '3': 2, '4': 1, '5': 9, '10': 'identity'},
     {'1': 'track_sids', '3': 3, '4': 3, '5': 9, '10': 'trackSids'},
     {'1': 'subscribe', '3': 4, '4': 1, '5': 8, '10': 'subscribe'},
-    {'1': 'participant_tracks', '3': 5, '4': 3, '5': 11, '6': '.livekit.ParticipantTracks', '10': 'participantTracks'},
+    {
+      '1': 'participant_tracks',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantTracks',
+      '10': 'participantTracks'
+    },
   ],
 };
 
@@ -265,8 +372,8 @@ const UpdateSubscriptionsResponse$json = {
 };
 
 /// Descriptor for `UpdateSubscriptionsResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List updateSubscriptionsResponseDescriptor = $convert.base64Decode(
-    'ChtVcGRhdGVTdWJzY3JpcHRpb25zUmVzcG9uc2U=');
+final $typed_data.Uint8List updateSubscriptionsResponseDescriptor =
+    $convert.base64Decode('ChtVcGRhdGVTdWJzY3JpcHRpb25zUmVzcG9uc2U=');
 
 @$core.Deprecated('Use sendDataRequestDescriptor instead')
 const SendDataRequest$json = {
@@ -274,7 +381,14 @@ const SendDataRequest$json = {
   '2': [
     {'1': 'room', '3': 1, '4': 1, '5': 9, '10': 'room'},
     {'1': 'data', '3': 2, '4': 1, '5': 12, '10': 'data'},
-    {'1': 'kind', '3': 3, '4': 1, '5': 14, '6': '.livekit.DataPacket.Kind', '10': 'kind'},
+    {
+      '1': 'kind',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.DataPacket.Kind',
+      '10': 'kind'
+    },
     {
       '1': 'destination_sids',
       '3': 4,
@@ -283,7 +397,13 @@ const SendDataRequest$json = {
       '8': {'3': true},
       '10': 'destinationSids',
     },
-    {'1': 'destination_identities', '3': 6, '4': 3, '5': 9, '10': 'destinationIdentities'},
+    {
+      '1': 'destination_identities',
+      '3': 6,
+      '4': 3,
+      '5': 9,
+      '10': 'destinationIdentities'
+    },
     {'1': 'topic', '3': 5, '4': 1, '5': 9, '9': 0, '10': 'topic', '17': true},
     {'1': 'nonce', '3': 7, '4': 1, '5': 12, '10': 'nonce'},
   ],
@@ -306,8 +426,8 @@ const SendDataResponse$json = {
 };
 
 /// Descriptor for `SendDataResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List sendDataResponseDescriptor = $convert.base64Decode(
-    'ChBTZW5kRGF0YVJlc3BvbnNl');
+final $typed_data.Uint8List sendDataResponseDescriptor =
+    $convert.base64Decode('ChBTZW5kRGF0YVJlc3BvbnNl');
 
 @$core.Deprecated('Use updateRoomMetadataRequestDescriptor instead')
 const UpdateRoomMetadataRequest$json = {
@@ -330,14 +450,46 @@ const RoomConfiguration$json = {
   '2': [
     {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
     {'1': 'empty_timeout', '3': 2, '4': 1, '5': 13, '10': 'emptyTimeout'},
-    {'1': 'departure_timeout', '3': 3, '4': 1, '5': 13, '10': 'departureTimeout'},
+    {
+      '1': 'departure_timeout',
+      '3': 3,
+      '4': 1,
+      '5': 13,
+      '10': 'departureTimeout'
+    },
     {'1': 'max_participants', '3': 4, '4': 1, '5': 13, '10': 'maxParticipants'},
     {'1': 'metadata', '3': 11, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
-    {'1': 'egress', '3': 5, '4': 1, '5': 11, '6': '.livekit.RoomEgress', '10': 'egress'},
-    {'1': 'min_playout_delay', '3': 7, '4': 1, '5': 13, '10': 'minPlayoutDelay'},
-    {'1': 'max_playout_delay', '3': 8, '4': 1, '5': 13, '10': 'maxPlayoutDelay'},
+    {
+      '1': 'egress',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomEgress',
+      '10': 'egress'
+    },
+    {
+      '1': 'min_playout_delay',
+      '3': 7,
+      '4': 1,
+      '5': 13,
+      '10': 'minPlayoutDelay'
+    },
+    {
+      '1': 'max_playout_delay',
+      '3': 8,
+      '4': 1,
+      '5': 13,
+      '10': 'maxPlayoutDelay'
+    },
     {'1': 'sync_streams', '3': 9, '4': 1, '5': 8, '10': 'syncStreams'},
-    {'1': 'agents', '3': 10, '4': 3, '5': 11, '6': '.livekit.RoomAgentDispatch', '10': 'agents'},
+    {
+      '1': 'agents',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.RoomAgentDispatch',
+      '10': 'agents'
+    },
   ],
 };
 
@@ -375,8 +527,8 @@ const ForwardParticipantResponse$json = {
 };
 
 /// Descriptor for `ForwardParticipantResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List forwardParticipantResponseDescriptor = $convert.base64Decode(
-    'ChpGb3J3YXJkUGFydGljaXBhbnRSZXNwb25zZQ==');
+final $typed_data.Uint8List forwardParticipantResponseDescriptor =
+    $convert.base64Decode('ChpGb3J3YXJkUGFydGljaXBhbnRSZXNwb25zZQ==');
 
 @$core.Deprecated('Use moveParticipantRequestDescriptor instead')
 const MoveParticipantRequest$json = {
@@ -400,18 +552,30 @@ const MoveParticipantResponse$json = {
 };
 
 /// Descriptor for `MoveParticipantResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List moveParticipantResponseDescriptor = $convert.base64Decode(
-    'ChdNb3ZlUGFydGljaXBhbnRSZXNwb25zZQ==');
+final $typed_data.Uint8List moveParticipantResponseDescriptor =
+    $convert.base64Decode('ChdNb3ZlUGFydGljaXBhbnRSZXNwb25zZQ==');
 
 @$core.Deprecated('Use performRpcRequestDescriptor instead')
 const PerformRpcRequest$json = {
   '1': 'PerformRpcRequest',
   '2': [
     {'1': 'room', '3': 1, '4': 1, '5': 9, '10': 'room'},
-    {'1': 'destination_identity', '3': 2, '4': 1, '5': 9, '10': 'destinationIdentity'},
+    {
+      '1': 'destination_identity',
+      '3': 2,
+      '4': 1,
+      '5': 9,
+      '10': 'destinationIdentity'
+    },
     {'1': 'method', '3': 3, '4': 1, '5': 9, '10': 'method'},
     {'1': 'payload', '3': 4, '4': 1, '5': 9, '10': 'payload'},
-    {'1': 'response_timeout_ms', '3': 5, '4': 1, '5': 13, '10': 'responseTimeoutMs'},
+    {
+      '1': 'response_timeout_ms',
+      '3': 5,
+      '4': 1,
+      '5': 13,
+      '10': 'responseTimeoutMs'
+    },
   ],
 };
 
@@ -431,50 +595,108 @@ const PerformRpcResponse$json = {
 };
 
 /// Descriptor for `PerformRpcResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List performRpcResponseDescriptor = $convert.base64Decode(
-    'ChJQZXJmb3JtUnBjUmVzcG9uc2USGAoHcGF5bG9hZBgBIAEoCVIHcGF5bG9hZA==');
+final $typed_data.Uint8List performRpcResponseDescriptor =
+    $convert.base64Decode(
+        'ChJQZXJmb3JtUnBjUmVzcG9uc2USGAoHcGF5bG9hZBgBIAEoCVIHcGF5bG9hZA==');
 
 const $core.Map<$core.String, $core.dynamic> RoomServiceBase$json = {
   '1': 'RoomService',
   '2': [
-    {'1': 'CreateRoom', '2': '.livekit.CreateRoomRequest', '3': '.livekit.Room'},
-    {'1': 'ListRooms', '2': '.livekit.ListRoomsRequest', '3': '.livekit.ListRoomsResponse'},
-    {'1': 'DeleteRoom', '2': '.livekit.DeleteRoomRequest', '3': '.livekit.DeleteRoomResponse'},
-    {'1': 'ListParticipants', '2': '.livekit.ListParticipantsRequest', '3': '.livekit.ListParticipantsResponse'},
-    {'1': 'GetParticipant', '2': '.livekit.RoomParticipantIdentity', '3': '.livekit.ParticipantInfo'},
-    {'1': 'RemoveParticipant', '2': '.livekit.RoomParticipantIdentity', '3': '.livekit.RemoveParticipantResponse'},
-    {'1': 'MutePublishedTrack', '2': '.livekit.MuteRoomTrackRequest', '3': '.livekit.MuteRoomTrackResponse'},
-    {'1': 'UpdateParticipant', '2': '.livekit.UpdateParticipantRequest', '3': '.livekit.ParticipantInfo'},
-    {'1': 'UpdateSubscriptions', '2': '.livekit.UpdateSubscriptionsRequest', '3': '.livekit.UpdateSubscriptionsResponse'},
-    {'1': 'SendData', '2': '.livekit.SendDataRequest', '3': '.livekit.SendDataResponse'},
-    {'1': 'UpdateRoomMetadata', '2': '.livekit.UpdateRoomMetadataRequest', '3': '.livekit.Room'},
-    {'1': 'ForwardParticipant', '2': '.livekit.ForwardParticipantRequest', '3': '.livekit.ForwardParticipantResponse'},
-    {'1': 'MoveParticipant', '2': '.livekit.MoveParticipantRequest', '3': '.livekit.MoveParticipantResponse'},
-    {'1': 'PerformRpc', '2': '.livekit.PerformRpcRequest', '3': '.livekit.PerformRpcResponse'},
+    {
+      '1': 'CreateRoom',
+      '2': '.livekit.CreateRoomRequest',
+      '3': '.livekit.Room'
+    },
+    {
+      '1': 'ListRooms',
+      '2': '.livekit.ListRoomsRequest',
+      '3': '.livekit.ListRoomsResponse'
+    },
+    {
+      '1': 'DeleteRoom',
+      '2': '.livekit.DeleteRoomRequest',
+      '3': '.livekit.DeleteRoomResponse'
+    },
+    {
+      '1': 'ListParticipants',
+      '2': '.livekit.ListParticipantsRequest',
+      '3': '.livekit.ListParticipantsResponse'
+    },
+    {
+      '1': 'GetParticipant',
+      '2': '.livekit.RoomParticipantIdentity',
+      '3': '.livekit.ParticipantInfo'
+    },
+    {
+      '1': 'RemoveParticipant',
+      '2': '.livekit.RoomParticipantIdentity',
+      '3': '.livekit.RemoveParticipantResponse'
+    },
+    {
+      '1': 'MutePublishedTrack',
+      '2': '.livekit.MuteRoomTrackRequest',
+      '3': '.livekit.MuteRoomTrackResponse'
+    },
+    {
+      '1': 'UpdateParticipant',
+      '2': '.livekit.UpdateParticipantRequest',
+      '3': '.livekit.ParticipantInfo'
+    },
+    {
+      '1': 'UpdateSubscriptions',
+      '2': '.livekit.UpdateSubscriptionsRequest',
+      '3': '.livekit.UpdateSubscriptionsResponse'
+    },
+    {
+      '1': 'SendData',
+      '2': '.livekit.SendDataRequest',
+      '3': '.livekit.SendDataResponse'
+    },
+    {
+      '1': 'UpdateRoomMetadata',
+      '2': '.livekit.UpdateRoomMetadataRequest',
+      '3': '.livekit.Room'
+    },
+    {
+      '1': 'ForwardParticipant',
+      '2': '.livekit.ForwardParticipantRequest',
+      '3': '.livekit.ForwardParticipantResponse'
+    },
+    {
+      '1': 'MoveParticipant',
+      '2': '.livekit.MoveParticipantRequest',
+      '3': '.livekit.MoveParticipantResponse'
+    },
+    {
+      '1': 'PerformRpc',
+      '2': '.livekit.PerformRpcRequest',
+      '3': '.livekit.PerformRpcResponse'
+    },
   ],
 };
 
 @$core.Deprecated('Use roomServiceDescriptor instead')
-const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> RoomServiceBase$messageJson = {
+const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>>
+    RoomServiceBase$messageJson = {
   '.livekit.CreateRoomRequest': CreateRoomRequest$json,
   '.livekit.RoomEgress': RoomEgress$json,
-  '.livekit.RoomCompositeEgressRequest': $7.RoomCompositeEgressRequest$json,
-  '.livekit.EncodedFileOutput': $7.EncodedFileOutput$json,
-  '.livekit.S3Upload': $7.S3Upload$json,
-  '.livekit.S3Upload.MetadataEntry': $7.S3Upload_MetadataEntry$json,
-  '.livekit.ProxyConfig': $7.ProxyConfig$json,
-  '.livekit.GCPUpload': $7.GCPUpload$json,
-  '.livekit.AzureBlobUpload': $7.AzureBlobUpload$json,
-  '.livekit.AliOSSUpload': $7.AliOSSUpload$json,
-  '.livekit.StreamOutput': $7.StreamOutput$json,
-  '.livekit.EncodingOptions': $7.EncodingOptions$json,
-  '.livekit.SegmentedFileOutput': $7.SegmentedFileOutput$json,
-  '.livekit.ImageOutput': $7.ImageOutput$json,
+  '.livekit.RoomCompositeEgressRequest': $1.RoomCompositeEgressRequest$json,
+  '.livekit.EncodedFileOutput': $1.EncodedFileOutput$json,
+  '.livekit.S3Upload': $1.S3Upload$json,
+  '.livekit.S3Upload.MetadataEntry': $1.S3Upload_MetadataEntry$json,
+  '.livekit.ProxyConfig': $1.ProxyConfig$json,
+  '.livekit.GCPUpload': $1.GCPUpload$json,
+  '.livekit.AzureBlobUpload': $1.AzureBlobUpload$json,
+  '.livekit.AliOSSUpload': $1.AliOSSUpload$json,
+  '.livekit.StreamOutput': $1.StreamOutput$json,
+  '.livekit.EncodingOptions': $1.EncodingOptions$json,
+  '.livekit.SegmentedFileOutput': $1.SegmentedFileOutput$json,
+  '.livekit.ImageOutput': $1.ImageOutput$json,
   '.livekit.WebhookConfig': $2.WebhookConfig$json,
   '.livekit.FilterParams': $2.FilterParams$json,
-  '.livekit.AutoTrackEgress': $7.AutoTrackEgress$json,
-  '.livekit.AutoParticipantEgress': $7.AutoParticipantEgress$json,
-  '.livekit.RoomAgentDispatch': $6.RoomAgentDispatch$json,
+  '.livekit.AutoTrackEgress': $1.AutoTrackEgress$json,
+  '.livekit.AutoParticipantEgress': $1.AutoParticipantEgress$json,
+  '.livekit.RoomAgentDispatch': $0.RoomAgentDispatch$json,
   '.livekit.Room': $2.Room$json,
   '.livekit.Codec': $2.Codec$json,
   '.livekit.TimedVersion': $2.TimedVersion$json,
@@ -489,14 +711,16 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> RoomServic
   '.livekit.VideoLayer': $2.VideoLayer$json,
   '.livekit.SimulcastCodecInfo': $2.SimulcastCodecInfo$json,
   '.livekit.ParticipantPermission': $2.ParticipantPermission$json,
-  '.livekit.ParticipantInfo.AttributesEntry': $2.ParticipantInfo_AttributesEntry$json,
+  '.livekit.ParticipantInfo.AttributesEntry':
+      $2.ParticipantInfo_AttributesEntry$json,
   '.livekit.DataTrackInfo': $2.DataTrackInfo$json,
   '.livekit.RoomParticipantIdentity': RoomParticipantIdentity$json,
   '.livekit.RemoveParticipantResponse': RemoveParticipantResponse$json,
   '.livekit.MuteRoomTrackRequest': MuteRoomTrackRequest$json,
   '.livekit.MuteRoomTrackResponse': MuteRoomTrackResponse$json,
   '.livekit.UpdateParticipantRequest': UpdateParticipantRequest$json,
-  '.livekit.UpdateParticipantRequest.AttributesEntry': UpdateParticipantRequest_AttributesEntry$json,
+  '.livekit.UpdateParticipantRequest.AttributesEntry':
+      UpdateParticipantRequest_AttributesEntry$json,
   '.livekit.UpdateSubscriptionsRequest': UpdateSubscriptionsRequest$json,
   '.livekit.ParticipantTracks': $2.ParticipantTracks$json,
   '.livekit.UpdateSubscriptionsResponse': UpdateSubscriptionsResponse$json,
@@ -534,4 +758,3 @@ final $typed_data.Uint8List roomServiceDescriptor = $convert.base64Decode(
     'UGFydGljaXBhbnRSZXF1ZXN0GiAubGl2ZWtpdC5Nb3ZlUGFydGljaXBhbnRSZXNwb25zZRJFCg'
     'pQZXJmb3JtUnBjEhoubGl2ZWtpdC5QZXJmb3JtUnBjUmVxdWVzdBobLmxpdmVraXQuUGVyZm9y'
     'bVJwY1Jlc3BvbnNl');
-

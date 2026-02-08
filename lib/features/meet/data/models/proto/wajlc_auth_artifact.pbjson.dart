@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: wajlc_auth_artifact.proto
-//
-// @dart = 2.12
+// Generated from wajlc_auth_artifact.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -18,8 +19,25 @@ const FetchArtifactsReq$json = {
   '1': 'FetchArtifactsReq',
   '2': [
     {'1': 'room_ids', '3': 1, '4': 3, '5': 9, '10': 'roomIds'},
-    {'1': 'room_sid', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'roomSid', '17': true},
-    {'1': 'type', '3': 3, '4': 1, '5': 14, '6': '.wajlc.RoomArtifactType', '9': 1, '10': 'type', '17': true},
+    {
+      '1': 'room_sid',
+      '3': 2,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'roomSid',
+      '17': true
+    },
+    {
+      '1': 'type',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.wajlc.RoomArtifactType',
+      '9': 1,
+      '10': 'type',
+      '17': true
+    },
     {'1': 'from', '3': 4, '4': 1, '5': 4, '10': 'from'},
     {'1': 'limit', '3': 5, '4': 1, '5': 4, '10': 'limit'},
     {'1': 'order_by', '3': 6, '4': 1, '5': 9, '10': 'orderBy'},
@@ -43,9 +61,23 @@ const ArtifactInfo$json = {
   '2': [
     {'1': 'artifact_id', '3': 1, '4': 1, '5': 9, '10': 'artifactId'},
     {'1': 'room_id', '3': 2, '4': 1, '5': 9, '10': 'roomId'},
-    {'1': 'type', '3': 3, '4': 1, '5': 14, '6': '.wajlc.RoomArtifactType', '10': 'type'},
+    {
+      '1': 'type',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.wajlc.RoomArtifactType',
+      '10': 'type'
+    },
     {'1': 'created', '3': 4, '4': 1, '5': 9, '10': 'created'},
-    {'1': 'metadata', '3': 5, '4': 1, '5': 11, '6': '.wajlc.RoomArtifactMetadata', '10': 'metadata'},
+    {
+      '1': 'metadata',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.RoomArtifactMetadata',
+      '10': 'metadata'
+    },
   ],
 };
 
@@ -64,8 +96,24 @@ const FetchArtifactsResult$json = {
     {'1': 'from', '3': 2, '4': 1, '5': 4, '10': 'from'},
     {'1': 'limit', '3': 3, '4': 1, '5': 4, '10': 'limit'},
     {'1': 'order_by', '3': 4, '4': 1, '5': 9, '10': 'orderBy'},
-    {'1': 'type', '3': 5, '4': 1, '5': 14, '6': '.wajlc.RoomArtifactType', '9': 0, '10': 'type', '17': true},
-    {'1': 'artifacts_list', '3': 6, '4': 3, '5': 11, '6': '.wajlc.ArtifactInfo', '10': 'artifactsList'},
+    {
+      '1': 'type',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.wajlc.RoomArtifactType',
+      '9': 0,
+      '10': 'type',
+      '17': true
+    },
+    {
+      '1': 'artifacts_list',
+      '3': 6,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.ArtifactInfo',
+      '10': 'artifactsList'
+    },
   ],
   '8': [
     {'1': '_type'},
@@ -86,7 +134,14 @@ const FetchArtifactsRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {'1': 'result', '3': 3, '4': 1, '5': 11, '6': '.wajlc.FetchArtifactsResult', '10': 'result'},
+    {
+      '1': 'result',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.FetchArtifactsResult',
+      '10': 'result'
+    },
   ],
 };
 
@@ -105,9 +160,10 @@ const GetArtifactDownloadTokenReq$json = {
 };
 
 /// Descriptor for `GetArtifactDownloadTokenReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getArtifactDownloadTokenReqDescriptor = $convert.base64Decode(
-    'ChtHZXRBcnRpZmFjdERvd25sb2FkVG9rZW5SZXESJwoLYXJ0aWZhY3RfaWQYASABKAlCBrpIA8'
-    'gBAVIKYXJ0aWZhY3RJZA==');
+final $typed_data.Uint8List getArtifactDownloadTokenReqDescriptor =
+    $convert.base64Decode(
+        'ChtHZXRBcnRpZmFjdERvd25sb2FkVG9rZW5SZXESJwoLYXJ0aWZhY3RfaWQYASABKAlCBrpIA8'
+        'gBAVIKYXJ0aWZhY3RJZA==');
 
 @$core.Deprecated('Use getArtifactDownloadTokenResDescriptor instead')
 const GetArtifactDownloadTokenRes$json = {
@@ -123,9 +179,10 @@ const GetArtifactDownloadTokenRes$json = {
 };
 
 /// Descriptor for `GetArtifactDownloadTokenRes`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getArtifactDownloadTokenResDescriptor = $convert.base64Decode(
-    'ChtHZXRBcnRpZmFjdERvd25sb2FkVG9rZW5SZXMSFgoGc3RhdHVzGAEgASgIUgZzdGF0dXMSEA'
-    'oDbXNnGAIgASgJUgNtc2cSGQoFdG9rZW4YAyABKAlIAFIFdG9rZW6IAQFCCAoGX3Rva2Vu');
+final $typed_data.Uint8List getArtifactDownloadTokenResDescriptor =
+    $convert.base64Decode(
+        'ChtHZXRBcnRpZmFjdERvd25sb2FkVG9rZW5SZXMSFgoGc3RhdHVzGAEgASgIUgZzdGF0dXMSEA'
+        'oDbXNnGAIgASgJUgNtc2cSGQoFdG9rZW4YAyABKAlIAFIFdG9rZW6IAQFCCAoGX3Rva2Vu');
 
 @$core.Deprecated('Use deleteArtifactReqDescriptor instead')
 const DeleteArtifactReq$json = {
@@ -173,8 +230,26 @@ const ArtifactInfoRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {'1': 'artifact_info', '3': 3, '4': 1, '5': 11, '6': '.wajlc.ArtifactInfo', '9': 0, '10': 'artifactInfo', '17': true},
-    {'1': 'room_info', '3': 4, '4': 1, '5': 11, '6': '.wajlc.PastRoomInfo', '9': 1, '10': 'roomInfo', '17': true},
+    {
+      '1': 'artifact_info',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.ArtifactInfo',
+      '9': 0,
+      '10': 'artifactInfo',
+      '17': true
+    },
+    {
+      '1': 'room_info',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.PastRoomInfo',
+      '9': 1,
+      '10': 'roomInfo',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_artifact_info'},
@@ -188,4 +263,3 @@ final $typed_data.Uint8List artifactInfoResDescriptor = $convert.base64Decode(
     'Ntc2cSPQoNYXJ0aWZhY3RfaW5mbxgDIAEoCzITLndhamxjLkFydGlmYWN0SW5mb0gAUgxhcnRp'
     'ZmFjdEluZm+IAQESNQoJcm9vbV9pbmZvGAQgASgLMhMud2FqbGMuUGFzdFJvb21JbmZvSAFSCH'
     'Jvb21JbmZviAEBQhAKDl9hcnRpZmFjdF9pbmZvQgwKCl9yb29tX2luZm8=');
-

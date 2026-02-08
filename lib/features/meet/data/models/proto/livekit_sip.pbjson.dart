@@ -1,24 +1,25 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_sip.proto
-//
-// @dart = 2.12
+// Generated from livekit_sip.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'google/protobuf/duration.pbjson.dart' as $10;
-import 'google/protobuf/empty.pbjson.dart' as $3;
+import 'google/protobuf/duration.pbjson.dart' as $0;
+import 'google/protobuf/empty.pbjson.dart' as $4;
 import 'livekit_agent_dispatch.pbjson.dart' as $6;
-import 'livekit_egress.pbjson.dart' as $7;
-import 'livekit_models.pbjson.dart' as $2;
-import 'livekit_room.pbjson.dart' as $9;
+import 'livekit_egress.pbjson.dart' as $5;
+import 'livekit_models.pbjson.dart' as $1;
+import 'livekit_room.pbjson.dart' as $2;
 
 @$core.Deprecated('Use sIPStatusCodeDescriptor instead')
 const SIPStatusCode$json = {
@@ -258,8 +259,8 @@ const SIPFeature$json = {
 };
 
 /// Descriptor for `SIPFeature`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List sIPFeatureDescriptor = $convert.base64Decode(
-    'CgpTSVBGZWF0dXJlEggKBE5PTkUQABIRCg1LUklTUF9FTkFCTEVEEAE=');
+final $typed_data.Uint8List sIPFeatureDescriptor = $convert
+    .base64Decode('CgpTSVBGZWF0dXJlEggKBE5PTkUQABIRCg1LUklTUF9FTkFCTEVEEAE=');
 
 @$core.Deprecated('Use sIPCallDirectionDescriptor instead')
 const SIPCallDirection$json = {
@@ -280,7 +281,14 @@ final $typed_data.Uint8List sIPCallDirectionDescriptor = $convert.base64Decode(
 const SIPStatus$json = {
   '1': 'SIPStatus',
   '2': [
-    {'1': 'code', '3': 1, '4': 1, '5': 14, '6': '.livekit.SIPStatusCode', '10': 'code'},
+    {
+      '1': 'code',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPStatusCode',
+      '10': 'code'
+    },
     {'1': 'status', '3': 2, '4': 1, '5': 9, '10': 'status'},
   ],
 };
@@ -294,7 +302,13 @@ final $typed_data.Uint8List sIPStatusDescriptor = $convert.base64Decode(
 const CreateSIPTrunkRequest$json = {
   '1': 'CreateSIPTrunkRequest',
   '2': [
-    {'1': 'inbound_addresses', '3': 1, '4': 3, '5': 9, '10': 'inboundAddresses'},
+    {
+      '1': 'inbound_addresses',
+      '3': 1,
+      '4': 3,
+      '5': 9,
+      '10': 'inboundAddresses'
+    },
     {'1': 'outbound_address', '3': 2, '4': 1, '5': 9, '10': 'outboundAddress'},
     {'1': 'outbound_number', '3': 3, '4': 1, '5': 9, '10': 'outboundNumber'},
     {
@@ -306,10 +320,38 @@ const CreateSIPTrunkRequest$json = {
       '10': 'inboundNumbersRegex',
     },
     {'1': 'inbound_numbers', '3': 9, '4': 3, '5': 9, '10': 'inboundNumbers'},
-    {'1': 'inbound_username', '3': 5, '4': 1, '5': 9, '8': {}, '10': 'inboundUsername'},
-    {'1': 'inbound_password', '3': 6, '4': 1, '5': 9, '8': {}, '10': 'inboundPassword'},
-    {'1': 'outbound_username', '3': 7, '4': 1, '5': 9, '8': {}, '10': 'outboundUsername'},
-    {'1': 'outbound_password', '3': 8, '4': 1, '5': 9, '8': {}, '10': 'outboundPassword'},
+    {
+      '1': 'inbound_username',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'inboundUsername'
+    },
+    {
+      '1': 'inbound_password',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'inboundPassword'
+    },
+    {
+      '1': 'outbound_username',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'outboundUsername'
+    },
+    {
+      '1': 'outbound_password',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'outboundPassword'
+    },
     {'1': 'name', '3': 10, '4': 1, '5': 9, '10': 'name'},
     {'1': 'metadata', '3': 11, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
   ],
@@ -338,7 +380,14 @@ const ProviderInfo$json = {
   '2': [
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
-    {'1': 'type', '3': 3, '4': 1, '5': 14, '6': '.livekit.ProviderType', '10': 'type'},
+    {
+      '1': 'type',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ProviderType',
+      '10': 'type'
+    },
     {'1': 'prevent_transfer', '3': 4, '4': 1, '5': 8, '10': 'preventTransfer'},
   ],
 };
@@ -354,11 +403,31 @@ const SIPTrunkInfo$json = {
   '1': 'SIPTrunkInfo',
   '2': [
     {'1': 'sip_trunk_id', '3': 1, '4': 1, '5': 9, '10': 'sipTrunkId'},
-    {'1': 'kind', '3': 14, '4': 1, '5': 14, '6': '.livekit.SIPTrunkInfo.TrunkKind', '10': 'kind'},
-    {'1': 'inbound_addresses', '3': 2, '4': 3, '5': 9, '10': 'inboundAddresses'},
+    {
+      '1': 'kind',
+      '3': 14,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPTrunkInfo.TrunkKind',
+      '10': 'kind'
+    },
+    {
+      '1': 'inbound_addresses',
+      '3': 2,
+      '4': 3,
+      '5': 9,
+      '10': 'inboundAddresses'
+    },
     {'1': 'outbound_address', '3': 3, '4': 1, '5': 9, '10': 'outboundAddress'},
     {'1': 'outbound_number', '3': 4, '4': 1, '5': 9, '10': 'outboundNumber'},
-    {'1': 'transport', '3': 13, '4': 1, '5': 14, '6': '.livekit.SIPTransport', '10': 'transport'},
+    {
+      '1': 'transport',
+      '3': 13,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPTransport',
+      '10': 'transport'
+    },
     {
       '1': 'inbound_numbers_regex',
       '3': 5,
@@ -368,10 +437,38 @@ const SIPTrunkInfo$json = {
       '10': 'inboundNumbersRegex',
     },
     {'1': 'inbound_numbers', '3': 10, '4': 3, '5': 9, '10': 'inboundNumbers'},
-    {'1': 'inbound_username', '3': 6, '4': 1, '5': 9, '8': {}, '10': 'inboundUsername'},
-    {'1': 'inbound_password', '3': 7, '4': 1, '5': 9, '8': {}, '10': 'inboundPassword'},
-    {'1': 'outbound_username', '3': 8, '4': 1, '5': 9, '8': {}, '10': 'outboundUsername'},
-    {'1': 'outbound_password', '3': 9, '4': 1, '5': 9, '8': {}, '10': 'outboundPassword'},
+    {
+      '1': 'inbound_username',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'inboundUsername'
+    },
+    {
+      '1': 'inbound_password',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'inboundPassword'
+    },
+    {
+      '1': 'outbound_username',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'outboundUsername'
+    },
+    {
+      '1': 'outbound_password',
+      '3': 9,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'outboundPassword'
+    },
     {'1': 'name', '3': 11, '4': 1, '5': 9, '10': 'name'},
     {'1': 'metadata', '3': 12, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
   ],
@@ -412,22 +509,46 @@ final $typed_data.Uint8List sIPTrunkInfoDescriptor = $convert.base64Decode(
 const CreateSIPInboundTrunkRequest$json = {
   '1': 'CreateSIPInboundTrunkRequest',
   '2': [
-    {'1': 'trunk', '3': 1, '4': 1, '5': 11, '6': '.livekit.SIPInboundTrunkInfo', '10': 'trunk'},
+    {
+      '1': 'trunk',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPInboundTrunkInfo',
+      '10': 'trunk'
+    },
   ],
 };
 
 /// Descriptor for `CreateSIPInboundTrunkRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List createSIPInboundTrunkRequestDescriptor = $convert.base64Decode(
-    'ChxDcmVhdGVTSVBJbmJvdW5kVHJ1bmtSZXF1ZXN0EjIKBXRydW5rGAEgASgLMhwubGl2ZWtpdC'
-    '5TSVBJbmJvdW5kVHJ1bmtJbmZvUgV0cnVuaw==');
+final $typed_data.Uint8List createSIPInboundTrunkRequestDescriptor =
+    $convert.base64Decode(
+        'ChxDcmVhdGVTSVBJbmJvdW5kVHJ1bmtSZXF1ZXN0EjIKBXRydW5rGAEgASgLMhwubGl2ZWtpdC'
+        '5TSVBJbmJvdW5kVHJ1bmtJbmZvUgV0cnVuaw==');
 
 @$core.Deprecated('Use updateSIPInboundTrunkRequestDescriptor instead')
 const UpdateSIPInboundTrunkRequest$json = {
   '1': 'UpdateSIPInboundTrunkRequest',
   '2': [
     {'1': 'sip_trunk_id', '3': 1, '4': 1, '5': 9, '10': 'sipTrunkId'},
-    {'1': 'replace', '3': 2, '4': 1, '5': 11, '6': '.livekit.SIPInboundTrunkInfo', '9': 0, '10': 'replace'},
-    {'1': 'update', '3': 3, '4': 1, '5': 11, '6': '.livekit.SIPInboundTrunkUpdate', '9': 0, '10': 'update'},
+    {
+      '1': 'replace',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPInboundTrunkInfo',
+      '9': 0,
+      '10': 'replace'
+    },
+    {
+      '1': 'update',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPInboundTrunkUpdate',
+      '9': 0,
+      '10': 'update'
+    },
   ],
   '8': [
     {'1': 'action'},
@@ -449,20 +570,94 @@ const SIPInboundTrunkInfo$json = {
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'metadata', '3': 3, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
     {'1': 'numbers', '3': 4, '4': 3, '5': 9, '10': 'numbers'},
-    {'1': 'allowed_addresses', '3': 5, '4': 3, '5': 9, '10': 'allowedAddresses'},
+    {
+      '1': 'allowed_addresses',
+      '3': 5,
+      '4': 3,
+      '5': 9,
+      '10': 'allowedAddresses'
+    },
     {'1': 'allowed_numbers', '3': 6, '4': 3, '5': 9, '10': 'allowedNumbers'},
-    {'1': 'auth_username', '3': 7, '4': 1, '5': 9, '8': {}, '10': 'authUsername'},
-    {'1': 'auth_password', '3': 8, '4': 1, '5': 9, '8': {}, '10': 'authPassword'},
-    {'1': 'headers', '3': 9, '4': 3, '5': 11, '6': '.livekit.SIPInboundTrunkInfo.HeadersEntry', '8': {}, '10': 'headers'},
-    {'1': 'headers_to_attributes', '3': 10, '4': 3, '5': 11, '6': '.livekit.SIPInboundTrunkInfo.HeadersToAttributesEntry', '10': 'headersToAttributes'},
-    {'1': 'attributes_to_headers', '3': 14, '4': 3, '5': 11, '6': '.livekit.SIPInboundTrunkInfo.AttributesToHeadersEntry', '10': 'attributesToHeaders'},
-    {'1': 'include_headers', '3': 15, '4': 1, '5': 14, '6': '.livekit.SIPHeaderOptions', '10': 'includeHeaders'},
-    {'1': 'ringing_timeout', '3': 11, '4': 1, '5': 11, '6': '.google.protobuf.Duration', '10': 'ringingTimeout'},
-    {'1': 'max_call_duration', '3': 12, '4': 1, '5': 11, '6': '.google.protobuf.Duration', '10': 'maxCallDuration'},
+    {
+      '1': 'auth_username',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'authUsername'
+    },
+    {
+      '1': 'auth_password',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'authPassword'
+    },
+    {
+      '1': 'headers',
+      '3': 9,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPInboundTrunkInfo.HeadersEntry',
+      '8': {},
+      '10': 'headers'
+    },
+    {
+      '1': 'headers_to_attributes',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPInboundTrunkInfo.HeadersToAttributesEntry',
+      '10': 'headersToAttributes'
+    },
+    {
+      '1': 'attributes_to_headers',
+      '3': 14,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPInboundTrunkInfo.AttributesToHeadersEntry',
+      '10': 'attributesToHeaders'
+    },
+    {
+      '1': 'include_headers',
+      '3': 15,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPHeaderOptions',
+      '10': 'includeHeaders'
+    },
+    {
+      '1': 'ringing_timeout',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Duration',
+      '10': 'ringingTimeout'
+    },
+    {
+      '1': 'max_call_duration',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Duration',
+      '10': 'maxCallDuration'
+    },
     {'1': 'krisp_enabled', '3': 13, '4': 1, '5': 8, '10': 'krispEnabled'},
-    {'1': 'media_encryption', '3': 16, '4': 1, '5': 14, '6': '.livekit.SIPMediaEncryption', '10': 'mediaEncryption'},
+    {
+      '1': 'media_encryption',
+      '3': 16,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPMediaEncryption',
+      '10': 'mediaEncryption'
+    },
   ],
-  '3': [SIPInboundTrunkInfo_HeadersEntry$json, SIPInboundTrunkInfo_HeadersToAttributesEntry$json, SIPInboundTrunkInfo_AttributesToHeadersEntry$json],
+  '3': [
+    SIPInboundTrunkInfo_HeadersEntry$json,
+    SIPInboundTrunkInfo_HeadersToAttributesEntry$json,
+    SIPInboundTrunkInfo_AttributesToHeadersEntry$json
+  ],
 };
 
 @$core.Deprecated('Use sIPInboundTrunkInfoDescriptor instead')
@@ -525,14 +720,71 @@ final $typed_data.Uint8List sIPInboundTrunkInfoDescriptor = $convert.base64Decod
 const SIPInboundTrunkUpdate$json = {
   '1': 'SIPInboundTrunkUpdate',
   '2': [
-    {'1': 'numbers', '3': 1, '4': 1, '5': 11, '6': '.livekit.ListUpdate', '10': 'numbers'},
-    {'1': 'allowed_addresses', '3': 2, '4': 1, '5': 11, '6': '.livekit.ListUpdate', '10': 'allowedAddresses'},
-    {'1': 'allowed_numbers', '3': 3, '4': 1, '5': 11, '6': '.livekit.ListUpdate', '10': 'allowedNumbers'},
-    {'1': 'auth_username', '3': 4, '4': 1, '5': 9, '8': {}, '9': 0, '10': 'authUsername', '17': true},
-    {'1': 'auth_password', '3': 5, '4': 1, '5': 9, '8': {}, '9': 1, '10': 'authPassword', '17': true},
+    {
+      '1': 'numbers',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ListUpdate',
+      '10': 'numbers'
+    },
+    {
+      '1': 'allowed_addresses',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ListUpdate',
+      '10': 'allowedAddresses'
+    },
+    {
+      '1': 'allowed_numbers',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ListUpdate',
+      '10': 'allowedNumbers'
+    },
+    {
+      '1': 'auth_username',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 0,
+      '10': 'authUsername',
+      '17': true
+    },
+    {
+      '1': 'auth_password',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 1,
+      '10': 'authPassword',
+      '17': true
+    },
     {'1': 'name', '3': 6, '4': 1, '5': 9, '9': 2, '10': 'name', '17': true},
-    {'1': 'metadata', '3': 7, '4': 1, '5': 9, '8': {}, '9': 3, '10': 'metadata', '17': true},
-    {'1': 'media_encryption', '3': 8, '4': 1, '5': 14, '6': '.livekit.SIPMediaEncryption', '9': 4, '10': 'mediaEncryption', '17': true},
+    {
+      '1': 'metadata',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 3,
+      '10': 'metadata',
+      '17': true
+    },
+    {
+      '1': 'media_encryption',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPMediaEncryption',
+      '9': 4,
+      '10': 'mediaEncryption',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_auth_username'},
@@ -562,22 +814,46 @@ final $typed_data.Uint8List sIPInboundTrunkUpdateDescriptor = $convert.base64Dec
 const CreateSIPOutboundTrunkRequest$json = {
   '1': 'CreateSIPOutboundTrunkRequest',
   '2': [
-    {'1': 'trunk', '3': 1, '4': 1, '5': 11, '6': '.livekit.SIPOutboundTrunkInfo', '10': 'trunk'},
+    {
+      '1': 'trunk',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPOutboundTrunkInfo',
+      '10': 'trunk'
+    },
   ],
 };
 
 /// Descriptor for `CreateSIPOutboundTrunkRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List createSIPOutboundTrunkRequestDescriptor = $convert.base64Decode(
-    'Ch1DcmVhdGVTSVBPdXRib3VuZFRydW5rUmVxdWVzdBIzCgV0cnVuaxgBIAEoCzIdLmxpdmVraX'
-    'QuU0lQT3V0Ym91bmRUcnVua0luZm9SBXRydW5r');
+final $typed_data.Uint8List createSIPOutboundTrunkRequestDescriptor =
+    $convert.base64Decode(
+        'Ch1DcmVhdGVTSVBPdXRib3VuZFRydW5rUmVxdWVzdBIzCgV0cnVuaxgBIAEoCzIdLmxpdmVraX'
+        'QuU0lQT3V0Ym91bmRUcnVua0luZm9SBXRydW5r');
 
 @$core.Deprecated('Use updateSIPOutboundTrunkRequestDescriptor instead')
 const UpdateSIPOutboundTrunkRequest$json = {
   '1': 'UpdateSIPOutboundTrunkRequest',
   '2': [
     {'1': 'sip_trunk_id', '3': 1, '4': 1, '5': 9, '10': 'sipTrunkId'},
-    {'1': 'replace', '3': 2, '4': 1, '5': 11, '6': '.livekit.SIPOutboundTrunkInfo', '9': 0, '10': 'replace'},
-    {'1': 'update', '3': 3, '4': 1, '5': 11, '6': '.livekit.SIPOutboundTrunkUpdate', '9': 0, '10': 'update'},
+    {
+      '1': 'replace',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPOutboundTrunkInfo',
+      '9': 0,
+      '10': 'replace'
+    },
+    {
+      '1': 'update',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPOutboundTrunkUpdate',
+      '9': 0,
+      '10': 'update'
+    },
   ],
   '8': [
     {'1': 'action'},
@@ -599,18 +875,85 @@ const SIPOutboundTrunkInfo$json = {
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'metadata', '3': 3, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
     {'1': 'address', '3': 4, '4': 1, '5': 9, '10': 'address'},
-    {'1': 'destination_country', '3': 14, '4': 1, '5': 9, '10': 'destinationCountry'},
-    {'1': 'transport', '3': 5, '4': 1, '5': 14, '6': '.livekit.SIPTransport', '10': 'transport'},
+    {
+      '1': 'destination_country',
+      '3': 14,
+      '4': 1,
+      '5': 9,
+      '10': 'destinationCountry'
+    },
+    {
+      '1': 'transport',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPTransport',
+      '10': 'transport'
+    },
     {'1': 'numbers', '3': 6, '4': 3, '5': 9, '10': 'numbers'},
-    {'1': 'auth_username', '3': 7, '4': 1, '5': 9, '8': {}, '10': 'authUsername'},
-    {'1': 'auth_password', '3': 8, '4': 1, '5': 9, '8': {}, '10': 'authPassword'},
-    {'1': 'headers', '3': 9, '4': 3, '5': 11, '6': '.livekit.SIPOutboundTrunkInfo.HeadersEntry', '8': {}, '10': 'headers'},
-    {'1': 'headers_to_attributes', '3': 10, '4': 3, '5': 11, '6': '.livekit.SIPOutboundTrunkInfo.HeadersToAttributesEntry', '10': 'headersToAttributes'},
-    {'1': 'attributes_to_headers', '3': 11, '4': 3, '5': 11, '6': '.livekit.SIPOutboundTrunkInfo.AttributesToHeadersEntry', '10': 'attributesToHeaders'},
-    {'1': 'include_headers', '3': 12, '4': 1, '5': 14, '6': '.livekit.SIPHeaderOptions', '10': 'includeHeaders'},
-    {'1': 'media_encryption', '3': 13, '4': 1, '5': 14, '6': '.livekit.SIPMediaEncryption', '10': 'mediaEncryption'},
+    {
+      '1': 'auth_username',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'authUsername'
+    },
+    {
+      '1': 'auth_password',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'authPassword'
+    },
+    {
+      '1': 'headers',
+      '3': 9,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPOutboundTrunkInfo.HeadersEntry',
+      '8': {},
+      '10': 'headers'
+    },
+    {
+      '1': 'headers_to_attributes',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPOutboundTrunkInfo.HeadersToAttributesEntry',
+      '10': 'headersToAttributes'
+    },
+    {
+      '1': 'attributes_to_headers',
+      '3': 11,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPOutboundTrunkInfo.AttributesToHeadersEntry',
+      '10': 'attributesToHeaders'
+    },
+    {
+      '1': 'include_headers',
+      '3': 12,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPHeaderOptions',
+      '10': 'includeHeaders'
+    },
+    {
+      '1': 'media_encryption',
+      '3': 13,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPMediaEncryption',
+      '10': 'mediaEncryption'
+    },
   ],
-  '3': [SIPOutboundTrunkInfo_HeadersEntry$json, SIPOutboundTrunkInfo_HeadersToAttributesEntry$json, SIPOutboundTrunkInfo_AttributesToHeadersEntry$json],
+  '3': [
+    SIPOutboundTrunkInfo_HeadersEntry$json,
+    SIPOutboundTrunkInfo_HeadersToAttributesEntry$json,
+    SIPOutboundTrunkInfo_AttributesToHeadersEntry$json
+  ],
 };
 
 @$core.Deprecated('Use sIPOutboundTrunkInfoDescriptor instead')
@@ -671,15 +1014,83 @@ final $typed_data.Uint8List sIPOutboundTrunkInfoDescriptor = $convert.base64Deco
 const SIPOutboundTrunkUpdate$json = {
   '1': 'SIPOutboundTrunkUpdate',
   '2': [
-    {'1': 'address', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'address', '17': true},
-    {'1': 'transport', '3': 2, '4': 1, '5': 14, '6': '.livekit.SIPTransport', '9': 1, '10': 'transport', '17': true},
-    {'1': 'destination_country', '3': 9, '4': 1, '5': 9, '9': 2, '10': 'destinationCountry', '17': true},
-    {'1': 'numbers', '3': 3, '4': 1, '5': 11, '6': '.livekit.ListUpdate', '10': 'numbers'},
-    {'1': 'auth_username', '3': 4, '4': 1, '5': 9, '8': {}, '9': 3, '10': 'authUsername', '17': true},
-    {'1': 'auth_password', '3': 5, '4': 1, '5': 9, '8': {}, '9': 4, '10': 'authPassword', '17': true},
+    {
+      '1': 'address',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'address',
+      '17': true
+    },
+    {
+      '1': 'transport',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPTransport',
+      '9': 1,
+      '10': 'transport',
+      '17': true
+    },
+    {
+      '1': 'destination_country',
+      '3': 9,
+      '4': 1,
+      '5': 9,
+      '9': 2,
+      '10': 'destinationCountry',
+      '17': true
+    },
+    {
+      '1': 'numbers',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ListUpdate',
+      '10': 'numbers'
+    },
+    {
+      '1': 'auth_username',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 3,
+      '10': 'authUsername',
+      '17': true
+    },
+    {
+      '1': 'auth_password',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 4,
+      '10': 'authPassword',
+      '17': true
+    },
     {'1': 'name', '3': 6, '4': 1, '5': 9, '9': 5, '10': 'name', '17': true},
-    {'1': 'metadata', '3': 7, '4': 1, '5': 9, '8': {}, '9': 6, '10': 'metadata', '17': true},
-    {'1': 'media_encryption', '3': 8, '4': 1, '5': 14, '6': '.livekit.SIPMediaEncryption', '9': 7, '10': 'mediaEncryption', '17': true},
+    {
+      '1': 'metadata',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 6,
+      '10': 'metadata',
+      '17': true
+    },
+    {
+      '1': 'media_encryption',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPMediaEncryption',
+      '9': 7,
+      '10': 'mediaEncryption',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_address'},
@@ -718,22 +1129,31 @@ const GetSIPInboundTrunkRequest$json = {
 };
 
 /// Descriptor for `GetSIPInboundTrunkRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getSIPInboundTrunkRequestDescriptor = $convert.base64Decode(
-    'ChlHZXRTSVBJbmJvdW5kVHJ1bmtSZXF1ZXN0EiAKDHNpcF90cnVua19pZBgBIAEoCVIKc2lwVH'
-    'J1bmtJZA==');
+final $typed_data.Uint8List getSIPInboundTrunkRequestDescriptor =
+    $convert.base64Decode(
+        'ChlHZXRTSVBJbmJvdW5kVHJ1bmtSZXF1ZXN0EiAKDHNpcF90cnVua19pZBgBIAEoCVIKc2lwVH'
+        'J1bmtJZA==');
 
 @$core.Deprecated('Use getSIPInboundTrunkResponseDescriptor instead')
 const GetSIPInboundTrunkResponse$json = {
   '1': 'GetSIPInboundTrunkResponse',
   '2': [
-    {'1': 'trunk', '3': 1, '4': 1, '5': 11, '6': '.livekit.SIPInboundTrunkInfo', '10': 'trunk'},
+    {
+      '1': 'trunk',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPInboundTrunkInfo',
+      '10': 'trunk'
+    },
   ],
 };
 
 /// Descriptor for `GetSIPInboundTrunkResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getSIPInboundTrunkResponseDescriptor = $convert.base64Decode(
-    'ChpHZXRTSVBJbmJvdW5kVHJ1bmtSZXNwb25zZRIyCgV0cnVuaxgBIAEoCzIcLmxpdmVraXQuU0'
-    'lQSW5ib3VuZFRydW5rSW5mb1IFdHJ1bms=');
+final $typed_data.Uint8List getSIPInboundTrunkResponseDescriptor =
+    $convert.base64Decode(
+        'ChpHZXRTSVBJbmJvdW5kVHJ1bmtSZXNwb25zZRIyCgV0cnVuaxgBIAEoCzIcLmxpdmVraXQuU0'
+        'lQSW5ib3VuZFRydW5rSW5mb1IFdHJ1bms=');
 
 @$core.Deprecated('Use getSIPOutboundTrunkRequestDescriptor instead')
 const GetSIPOutboundTrunkRequest$json = {
@@ -744,28 +1164,44 @@ const GetSIPOutboundTrunkRequest$json = {
 };
 
 /// Descriptor for `GetSIPOutboundTrunkRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getSIPOutboundTrunkRequestDescriptor = $convert.base64Decode(
-    'ChpHZXRTSVBPdXRib3VuZFRydW5rUmVxdWVzdBIgCgxzaXBfdHJ1bmtfaWQYASABKAlSCnNpcF'
-    'RydW5rSWQ=');
+final $typed_data.Uint8List getSIPOutboundTrunkRequestDescriptor =
+    $convert.base64Decode(
+        'ChpHZXRTSVBPdXRib3VuZFRydW5rUmVxdWVzdBIgCgxzaXBfdHJ1bmtfaWQYASABKAlSCnNpcF'
+        'RydW5rSWQ=');
 
 @$core.Deprecated('Use getSIPOutboundTrunkResponseDescriptor instead')
 const GetSIPOutboundTrunkResponse$json = {
   '1': 'GetSIPOutboundTrunkResponse',
   '2': [
-    {'1': 'trunk', '3': 1, '4': 1, '5': 11, '6': '.livekit.SIPOutboundTrunkInfo', '10': 'trunk'},
+    {
+      '1': 'trunk',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPOutboundTrunkInfo',
+      '10': 'trunk'
+    },
   ],
 };
 
 /// Descriptor for `GetSIPOutboundTrunkResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getSIPOutboundTrunkResponseDescriptor = $convert.base64Decode(
-    'ChtHZXRTSVBPdXRib3VuZFRydW5rUmVzcG9uc2USMwoFdHJ1bmsYASABKAsyHS5saXZla2l0Ll'
-    'NJUE91dGJvdW5kVHJ1bmtJbmZvUgV0cnVuaw==');
+final $typed_data.Uint8List getSIPOutboundTrunkResponseDescriptor =
+    $convert.base64Decode(
+        'ChtHZXRTSVBPdXRib3VuZFRydW5rUmVzcG9uc2USMwoFdHJ1bmsYASABKAsyHS5saXZla2l0Ll'
+        'NJUE91dGJvdW5kVHJ1bmtJbmZvUgV0cnVuaw==');
 
 @$core.Deprecated('Use listSIPTrunkRequestDescriptor instead')
 const ListSIPTrunkRequest$json = {
   '1': 'ListSIPTrunkRequest',
   '2': [
-    {'1': 'page', '3': 1, '4': 1, '5': 11, '6': '.livekit.Pagination', '10': 'page'},
+    {
+      '1': 'page',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.Pagination',
+      '10': 'page'
+    },
   ],
   '7': {'3': true},
 };
@@ -779,7 +1215,14 @@ final $typed_data.Uint8List listSIPTrunkRequestDescriptor = $convert.base64Decod
 const ListSIPTrunkResponse$json = {
   '1': 'ListSIPTrunkResponse',
   '2': [
-    {'1': 'items', '3': 1, '4': 3, '5': 11, '6': '.livekit.SIPTrunkInfo', '10': 'items'},
+    {
+      '1': 'items',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPTrunkInfo',
+      '10': 'items'
+    },
   ],
   '7': {'3': true},
 };
@@ -793,59 +1236,91 @@ final $typed_data.Uint8List listSIPTrunkResponseDescriptor = $convert.base64Deco
 const ListSIPInboundTrunkRequest$json = {
   '1': 'ListSIPInboundTrunkRequest',
   '2': [
-    {'1': 'page', '3': 3, '4': 1, '5': 11, '6': '.livekit.Pagination', '10': 'page'},
+    {
+      '1': 'page',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.Pagination',
+      '10': 'page'
+    },
     {'1': 'trunk_ids', '3': 1, '4': 3, '5': 9, '10': 'trunkIds'},
     {'1': 'numbers', '3': 2, '4': 3, '5': 9, '10': 'numbers'},
   ],
 };
 
 /// Descriptor for `ListSIPInboundTrunkRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listSIPInboundTrunkRequestDescriptor = $convert.base64Decode(
-    'ChpMaXN0U0lQSW5ib3VuZFRydW5rUmVxdWVzdBInCgRwYWdlGAMgASgLMhMubGl2ZWtpdC5QYW'
-    'dpbmF0aW9uUgRwYWdlEhsKCXRydW5rX2lkcxgBIAMoCVIIdHJ1bmtJZHMSGAoHbnVtYmVycxgC'
-    'IAMoCVIHbnVtYmVycw==');
+final $typed_data.Uint8List listSIPInboundTrunkRequestDescriptor =
+    $convert.base64Decode(
+        'ChpMaXN0U0lQSW5ib3VuZFRydW5rUmVxdWVzdBInCgRwYWdlGAMgASgLMhMubGl2ZWtpdC5QYW'
+        'dpbmF0aW9uUgRwYWdlEhsKCXRydW5rX2lkcxgBIAMoCVIIdHJ1bmtJZHMSGAoHbnVtYmVycxgC'
+        'IAMoCVIHbnVtYmVycw==');
 
 @$core.Deprecated('Use listSIPInboundTrunkResponseDescriptor instead')
 const ListSIPInboundTrunkResponse$json = {
   '1': 'ListSIPInboundTrunkResponse',
   '2': [
-    {'1': 'items', '3': 1, '4': 3, '5': 11, '6': '.livekit.SIPInboundTrunkInfo', '10': 'items'},
+    {
+      '1': 'items',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPInboundTrunkInfo',
+      '10': 'items'
+    },
   ],
 };
 
 /// Descriptor for `ListSIPInboundTrunkResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listSIPInboundTrunkResponseDescriptor = $convert.base64Decode(
-    'ChtMaXN0U0lQSW5ib3VuZFRydW5rUmVzcG9uc2USMgoFaXRlbXMYASADKAsyHC5saXZla2l0Ll'
-    'NJUEluYm91bmRUcnVua0luZm9SBWl0ZW1z');
+final $typed_data.Uint8List listSIPInboundTrunkResponseDescriptor =
+    $convert.base64Decode(
+        'ChtMaXN0U0lQSW5ib3VuZFRydW5rUmVzcG9uc2USMgoFaXRlbXMYASADKAsyHC5saXZla2l0Ll'
+        'NJUEluYm91bmRUcnVua0luZm9SBWl0ZW1z');
 
 @$core.Deprecated('Use listSIPOutboundTrunkRequestDescriptor instead')
 const ListSIPOutboundTrunkRequest$json = {
   '1': 'ListSIPOutboundTrunkRequest',
   '2': [
-    {'1': 'page', '3': 3, '4': 1, '5': 11, '6': '.livekit.Pagination', '10': 'page'},
+    {
+      '1': 'page',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.Pagination',
+      '10': 'page'
+    },
     {'1': 'trunk_ids', '3': 1, '4': 3, '5': 9, '10': 'trunkIds'},
     {'1': 'numbers', '3': 2, '4': 3, '5': 9, '10': 'numbers'},
   ],
 };
 
 /// Descriptor for `ListSIPOutboundTrunkRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listSIPOutboundTrunkRequestDescriptor = $convert.base64Decode(
-    'ChtMaXN0U0lQT3V0Ym91bmRUcnVua1JlcXVlc3QSJwoEcGFnZRgDIAEoCzITLmxpdmVraXQuUG'
-    'FnaW5hdGlvblIEcGFnZRIbCgl0cnVua19pZHMYASADKAlSCHRydW5rSWRzEhgKB251bWJlcnMY'
-    'AiADKAlSB251bWJlcnM=');
+final $typed_data.Uint8List listSIPOutboundTrunkRequestDescriptor =
+    $convert.base64Decode(
+        'ChtMaXN0U0lQT3V0Ym91bmRUcnVua1JlcXVlc3QSJwoEcGFnZRgDIAEoCzITLmxpdmVraXQuUG'
+        'FnaW5hdGlvblIEcGFnZRIbCgl0cnVua19pZHMYASADKAlSCHRydW5rSWRzEhgKB251bWJlcnMY'
+        'AiADKAlSB251bWJlcnM=');
 
 @$core.Deprecated('Use listSIPOutboundTrunkResponseDescriptor instead')
 const ListSIPOutboundTrunkResponse$json = {
   '1': 'ListSIPOutboundTrunkResponse',
   '2': [
-    {'1': 'items', '3': 1, '4': 3, '5': 11, '6': '.livekit.SIPOutboundTrunkInfo', '10': 'items'},
+    {
+      '1': 'items',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPOutboundTrunkInfo',
+      '10': 'items'
+    },
   ],
 };
 
 /// Descriptor for `ListSIPOutboundTrunkResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listSIPOutboundTrunkResponseDescriptor = $convert.base64Decode(
-    'ChxMaXN0U0lQT3V0Ym91bmRUcnVua1Jlc3BvbnNlEjMKBWl0ZW1zGAEgAygLMh0ubGl2ZWtpdC'
-    '5TSVBPdXRib3VuZFRydW5rSW5mb1IFaXRlbXM=');
+final $typed_data.Uint8List listSIPOutboundTrunkResponseDescriptor =
+    $convert.base64Decode(
+        'ChxMaXN0U0lQT3V0Ym91bmRUcnVua1Jlc3BvbnNlEjMKBWl0ZW1zGAEgAygLMh0ubGl2ZWtpdC'
+        '5TSVBPdXRib3VuZFRydW5rSW5mb1IFaXRlbXM=');
 
 @$core.Deprecated('Use deleteSIPTrunkRequestDescriptor instead')
 const DeleteSIPTrunkRequest$json = {
@@ -884,9 +1359,10 @@ const SIPDispatchRuleIndividual$json = {
 };
 
 /// Descriptor for `SIPDispatchRuleIndividual`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List sIPDispatchRuleIndividualDescriptor = $convert.base64Decode(
-    'ChlTSVBEaXNwYXRjaFJ1bGVJbmRpdmlkdWFsEh8KC3Jvb21fcHJlZml4GAEgASgJUgpyb29tUH'
-    'JlZml4EhAKA3BpbhgCIAEoCVIDcGlu');
+final $typed_data.Uint8List sIPDispatchRuleIndividualDescriptor =
+    $convert.base64Decode(
+        'ChlTSVBEaXNwYXRjaFJ1bGVJbmRpdmlkdWFsEh8KC3Jvb21fcHJlZml4GAEgASgJUgpyb29tUH'
+        'JlZml4EhAKA3BpbhgCIAEoCVIDcGlu');
 
 @$core.Deprecated('Use sIPDispatchRuleCalleeDescriptor instead')
 const SIPDispatchRuleCallee$json = {
@@ -907,9 +1383,33 @@ final $typed_data.Uint8List sIPDispatchRuleCalleeDescriptor = $convert.base64Dec
 const SIPDispatchRule$json = {
   '1': 'SIPDispatchRule',
   '2': [
-    {'1': 'dispatch_rule_direct', '3': 1, '4': 1, '5': 11, '6': '.livekit.SIPDispatchRuleDirect', '9': 0, '10': 'dispatchRuleDirect'},
-    {'1': 'dispatch_rule_individual', '3': 2, '4': 1, '5': 11, '6': '.livekit.SIPDispatchRuleIndividual', '9': 0, '10': 'dispatchRuleIndividual'},
-    {'1': 'dispatch_rule_callee', '3': 3, '4': 1, '5': 11, '6': '.livekit.SIPDispatchRuleCallee', '9': 0, '10': 'dispatchRuleCallee'},
+    {
+      '1': 'dispatch_rule_direct',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleDirect',
+      '9': 0,
+      '10': 'dispatchRuleDirect'
+    },
+    {
+      '1': 'dispatch_rule_individual',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleIndividual',
+      '9': 0,
+      '10': 'dispatchRuleIndividual'
+    },
+    {
+      '1': 'dispatch_rule_callee',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleCallee',
+      '9': 0,
+      '10': 'dispatchRuleCallee'
+    },
   ],
   '8': [
     {'1': 'rule'},
@@ -929,7 +1429,14 @@ final $typed_data.Uint8List sIPDispatchRuleDescriptor = $convert.base64Decode(
 const CreateSIPDispatchRuleRequest$json = {
   '1': 'CreateSIPDispatchRuleRequest',
   '2': [
-    {'1': 'dispatch_rule', '3': 10, '4': 1, '5': 11, '6': '.livekit.SIPDispatchRuleInfo', '10': 'dispatchRule'},
+    {
+      '1': 'dispatch_rule',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleInfo',
+      '10': 'dispatchRule'
+    },
     {
       '1': 'rule',
       '3': 1,
@@ -1038,9 +1545,31 @@ final $typed_data.Uint8List createSIPDispatchRuleRequestDescriptor = $convert.ba
 const UpdateSIPDispatchRuleRequest$json = {
   '1': 'UpdateSIPDispatchRuleRequest',
   '2': [
-    {'1': 'sip_dispatch_rule_id', '3': 1, '4': 1, '5': 9, '10': 'sipDispatchRuleId'},
-    {'1': 'replace', '3': 2, '4': 1, '5': 11, '6': '.livekit.SIPDispatchRuleInfo', '9': 0, '10': 'replace'},
-    {'1': 'update', '3': 3, '4': 1, '5': 11, '6': '.livekit.SIPDispatchRuleUpdate', '9': 0, '10': 'update'},
+    {
+      '1': 'sip_dispatch_rule_id',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'sipDispatchRuleId'
+    },
+    {
+      '1': 'replace',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleInfo',
+      '9': 0,
+      '10': 'replace'
+    },
+    {
+      '1': 'update',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleUpdate',
+      '9': 0,
+      '10': 'update'
+    },
   ],
   '8': [
     {'1': 'action'},
@@ -1058,18 +1587,53 @@ final $typed_data.Uint8List updateSIPDispatchRuleRequestDescriptor = $convert.ba
 const SIPDispatchRuleInfo$json = {
   '1': 'SIPDispatchRuleInfo',
   '2': [
-    {'1': 'sip_dispatch_rule_id', '3': 1, '4': 1, '5': 9, '10': 'sipDispatchRuleId'},
-    {'1': 'rule', '3': 2, '4': 1, '5': 11, '6': '.livekit.SIPDispatchRule', '10': 'rule'},
+    {
+      '1': 'sip_dispatch_rule_id',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'sipDispatchRuleId'
+    },
+    {
+      '1': 'rule',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRule',
+      '10': 'rule'
+    },
     {'1': 'trunk_ids', '3': 3, '4': 3, '5': 9, '10': 'trunkIds'},
     {'1': 'hide_phone_number', '3': 4, '4': 1, '5': 8, '10': 'hidePhoneNumber'},
     {'1': 'inbound_numbers', '3': 7, '4': 3, '5': 9, '10': 'inboundNumbers'},
     {'1': 'name', '3': 5, '4': 1, '5': 9, '10': 'name'},
     {'1': 'metadata', '3': 6, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
-    {'1': 'attributes', '3': 8, '4': 3, '5': 11, '6': '.livekit.SIPDispatchRuleInfo.AttributesEntry', '8': {}, '10': 'attributes'},
+    {
+      '1': 'attributes',
+      '3': 8,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleInfo.AttributesEntry',
+      '8': {},
+      '10': 'attributes'
+    },
     {'1': 'room_preset', '3': 9, '4': 1, '5': 9, '10': 'roomPreset'},
-    {'1': 'room_config', '3': 10, '4': 1, '5': 11, '6': '.livekit.RoomConfiguration', '10': 'roomConfig'},
+    {
+      '1': 'room_config',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomConfiguration',
+      '10': 'roomConfig'
+    },
     {'1': 'krisp_enabled', '3': 11, '4': 1, '5': 8, '10': 'krispEnabled'},
-    {'1': 'media_encryption', '3': 12, '4': 1, '5': 14, '6': '.livekit.SIPMediaEncryption', '10': 'mediaEncryption'},
+    {
+      '1': 'media_encryption',
+      '3': 12,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPMediaEncryption',
+      '10': 'mediaEncryption'
+    },
   ],
   '3': [SIPDispatchRuleInfo_AttributesEntry$json],
 };
@@ -1104,12 +1668,52 @@ final $typed_data.Uint8List sIPDispatchRuleInfoDescriptor = $convert.base64Decod
 const SIPDispatchRuleUpdate$json = {
   '1': 'SIPDispatchRuleUpdate',
   '2': [
-    {'1': 'trunk_ids', '3': 1, '4': 1, '5': 11, '6': '.livekit.ListUpdate', '10': 'trunkIds'},
-    {'1': 'rule', '3': 2, '4': 1, '5': 11, '6': '.livekit.SIPDispatchRule', '10': 'rule'},
+    {
+      '1': 'trunk_ids',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ListUpdate',
+      '10': 'trunkIds'
+    },
+    {
+      '1': 'rule',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRule',
+      '10': 'rule'
+    },
     {'1': 'name', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'name', '17': true},
-    {'1': 'metadata', '3': 4, '4': 1, '5': 9, '8': {}, '9': 1, '10': 'metadata', '17': true},
-    {'1': 'attributes', '3': 5, '4': 3, '5': 11, '6': '.livekit.SIPDispatchRuleUpdate.AttributesEntry', '8': {}, '10': 'attributes'},
-    {'1': 'media_encryption', '3': 6, '4': 1, '5': 14, '6': '.livekit.SIPMediaEncryption', '9': 2, '10': 'mediaEncryption', '17': true},
+    {
+      '1': 'metadata',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 1,
+      '10': 'metadata',
+      '17': true
+    },
+    {
+      '1': 'attributes',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleUpdate.AttributesEntry',
+      '8': {},
+      '10': 'attributes'
+    },
+    {
+      '1': 'media_encryption',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPMediaEncryption',
+      '9': 2,
+      '10': 'mediaEncryption',
+      '17': true
+    },
   ],
   '3': [SIPDispatchRuleUpdate_AttributesEntry$json],
   '8': [
@@ -1146,57 +1750,124 @@ final $typed_data.Uint8List sIPDispatchRuleUpdateDescriptor = $convert.base64Dec
 const ListSIPDispatchRuleRequest$json = {
   '1': 'ListSIPDispatchRuleRequest',
   '2': [
-    {'1': 'page', '3': 3, '4': 1, '5': 11, '6': '.livekit.Pagination', '10': 'page'},
+    {
+      '1': 'page',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.Pagination',
+      '10': 'page'
+    },
     {'1': 'dispatch_rule_ids', '3': 1, '4': 3, '5': 9, '10': 'dispatchRuleIds'},
     {'1': 'trunk_ids', '3': 2, '4': 3, '5': 9, '10': 'trunkIds'},
   ],
 };
 
 /// Descriptor for `ListSIPDispatchRuleRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listSIPDispatchRuleRequestDescriptor = $convert.base64Decode(
-    'ChpMaXN0U0lQRGlzcGF0Y2hSdWxlUmVxdWVzdBInCgRwYWdlGAMgASgLMhMubGl2ZWtpdC5QYW'
-    'dpbmF0aW9uUgRwYWdlEioKEWRpc3BhdGNoX3J1bGVfaWRzGAEgAygJUg9kaXNwYXRjaFJ1bGVJ'
-    'ZHMSGwoJdHJ1bmtfaWRzGAIgAygJUgh0cnVua0lkcw==');
+final $typed_data.Uint8List listSIPDispatchRuleRequestDescriptor =
+    $convert.base64Decode(
+        'ChpMaXN0U0lQRGlzcGF0Y2hSdWxlUmVxdWVzdBInCgRwYWdlGAMgASgLMhMubGl2ZWtpdC5QYW'
+        'dpbmF0aW9uUgRwYWdlEioKEWRpc3BhdGNoX3J1bGVfaWRzGAEgAygJUg9kaXNwYXRjaFJ1bGVJ'
+        'ZHMSGwoJdHJ1bmtfaWRzGAIgAygJUgh0cnVua0lkcw==');
 
 @$core.Deprecated('Use listSIPDispatchRuleResponseDescriptor instead')
 const ListSIPDispatchRuleResponse$json = {
   '1': 'ListSIPDispatchRuleResponse',
   '2': [
-    {'1': 'items', '3': 1, '4': 3, '5': 11, '6': '.livekit.SIPDispatchRuleInfo', '10': 'items'},
+    {
+      '1': 'items',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleInfo',
+      '10': 'items'
+    },
   ],
 };
 
 /// Descriptor for `ListSIPDispatchRuleResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List listSIPDispatchRuleResponseDescriptor = $convert.base64Decode(
-    'ChtMaXN0U0lQRGlzcGF0Y2hSdWxlUmVzcG9uc2USMgoFaXRlbXMYASADKAsyHC5saXZla2l0Ll'
-    'NJUERpc3BhdGNoUnVsZUluZm9SBWl0ZW1z');
+final $typed_data.Uint8List listSIPDispatchRuleResponseDescriptor =
+    $convert.base64Decode(
+        'ChtMaXN0U0lQRGlzcGF0Y2hSdWxlUmVzcG9uc2USMgoFaXRlbXMYASADKAsyHC5saXZla2l0Ll'
+        'NJUERpc3BhdGNoUnVsZUluZm9SBWl0ZW1z');
 
 @$core.Deprecated('Use deleteSIPDispatchRuleRequestDescriptor instead')
 const DeleteSIPDispatchRuleRequest$json = {
   '1': 'DeleteSIPDispatchRuleRequest',
   '2': [
-    {'1': 'sip_dispatch_rule_id', '3': 1, '4': 1, '5': 9, '10': 'sipDispatchRuleId'},
+    {
+      '1': 'sip_dispatch_rule_id',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'sipDispatchRuleId'
+    },
   ],
 };
 
 /// Descriptor for `DeleteSIPDispatchRuleRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List deleteSIPDispatchRuleRequestDescriptor = $convert.base64Decode(
-    'ChxEZWxldGVTSVBEaXNwYXRjaFJ1bGVSZXF1ZXN0Ei8KFHNpcF9kaXNwYXRjaF9ydWxlX2lkGA'
-    'EgASgJUhFzaXBEaXNwYXRjaFJ1bGVJZA==');
+final $typed_data.Uint8List deleteSIPDispatchRuleRequestDescriptor =
+    $convert.base64Decode(
+        'ChxEZWxldGVTSVBEaXNwYXRjaFJ1bGVSZXF1ZXN0Ei8KFHNpcF9kaXNwYXRjaF9ydWxlX2lkGA'
+        'EgASgJUhFzaXBEaXNwYXRjaFJ1bGVJZA==');
 
 @$core.Deprecated('Use sIPOutboundConfigDescriptor instead')
 const SIPOutboundConfig$json = {
   '1': 'SIPOutboundConfig',
   '2': [
     {'1': 'hostname', '3': 1, '4': 1, '5': 9, '10': 'hostname'},
-    {'1': 'destination_country', '3': 7, '4': 1, '5': 9, '10': 'destinationCountry'},
-    {'1': 'transport', '3': 2, '4': 1, '5': 14, '6': '.livekit.SIPTransport', '10': 'transport'},
-    {'1': 'auth_username', '3': 3, '4': 1, '5': 9, '8': {}, '10': 'authUsername'},
-    {'1': 'auth_password', '3': 4, '4': 1, '5': 9, '8': {}, '10': 'authPassword'},
-    {'1': 'headers_to_attributes', '3': 5, '4': 3, '5': 11, '6': '.livekit.SIPOutboundConfig.HeadersToAttributesEntry', '10': 'headersToAttributes'},
-    {'1': 'attributes_to_headers', '3': 6, '4': 3, '5': 11, '6': '.livekit.SIPOutboundConfig.AttributesToHeadersEntry', '10': 'attributesToHeaders'},
+    {
+      '1': 'destination_country',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '10': 'destinationCountry'
+    },
+    {
+      '1': 'transport',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPTransport',
+      '10': 'transport'
+    },
+    {
+      '1': 'auth_username',
+      '3': 3,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'authUsername'
+    },
+    {
+      '1': 'auth_password',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'authPassword'
+    },
+    {
+      '1': 'headers_to_attributes',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPOutboundConfig.HeadersToAttributesEntry',
+      '10': 'headersToAttributes'
+    },
+    {
+      '1': 'attributes_to_headers',
+      '3': 6,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPOutboundConfig.AttributesToHeadersEntry',
+      '10': 'attributesToHeaders'
+    },
   ],
-  '3': [SIPOutboundConfig_HeadersToAttributesEntry$json, SIPOutboundConfig_AttributesToHeadersEntry$json],
+  '3': [
+    SIPOutboundConfig_HeadersToAttributesEntry$json,
+    SIPOutboundConfig_AttributesToHeadersEntry$json
+  ],
 };
 
 @$core.Deprecated('Use sIPOutboundConfigDescriptor instead')
@@ -1239,14 +1910,49 @@ const CreateSIPParticipantRequest$json = {
   '1': 'CreateSIPParticipantRequest',
   '2': [
     {'1': 'sip_trunk_id', '3': 1, '4': 1, '5': 9, '10': 'sipTrunkId'},
-    {'1': 'trunk', '3': 20, '4': 1, '5': 11, '6': '.livekit.SIPOutboundConfig', '10': 'trunk'},
+    {
+      '1': 'trunk',
+      '3': 20,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPOutboundConfig',
+      '10': 'trunk'
+    },
     {'1': 'sip_call_to', '3': 2, '4': 1, '5': 9, '10': 'sipCallTo'},
     {'1': 'sip_number', '3': 15, '4': 1, '5': 9, '10': 'sipNumber'},
     {'1': 'room_name', '3': 3, '4': 1, '5': 9, '10': 'roomName'},
-    {'1': 'participant_identity', '3': 4, '4': 1, '5': 9, '10': 'participantIdentity'},
-    {'1': 'participant_name', '3': 7, '4': 1, '5': 9, '8': {}, '10': 'participantName'},
-    {'1': 'participant_metadata', '3': 8, '4': 1, '5': 9, '8': {}, '10': 'participantMetadata'},
-    {'1': 'participant_attributes', '3': 9, '4': 3, '5': 11, '6': '.livekit.CreateSIPParticipantRequest.ParticipantAttributesEntry', '8': {}, '10': 'participantAttributes'},
+    {
+      '1': 'participant_identity',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
+    {
+      '1': 'participant_name',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'participantName'
+    },
+    {
+      '1': 'participant_metadata',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'participantMetadata'
+    },
+    {
+      '1': 'participant_attributes',
+      '3': 9,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.CreateSIPParticipantRequest.ParticipantAttributesEntry',
+      '8': {},
+      '10': 'participantAttributes'
+    },
     {'1': 'dtmf', '3': 5, '4': 1, '5': 9, '10': 'dtmf'},
     {
       '1': 'play_ringtone',
@@ -1257,18 +1963,87 @@ const CreateSIPParticipantRequest$json = {
       '10': 'playRingtone',
     },
     {'1': 'play_dialtone', '3': 13, '4': 1, '5': 8, '10': 'playDialtone'},
-    {'1': 'hide_phone_number', '3': 10, '4': 1, '5': 8, '10': 'hidePhoneNumber'},
-    {'1': 'headers', '3': 16, '4': 3, '5': 11, '6': '.livekit.CreateSIPParticipantRequest.HeadersEntry', '8': {}, '10': 'headers'},
-    {'1': 'include_headers', '3': 17, '4': 1, '5': 14, '6': '.livekit.SIPHeaderOptions', '10': 'includeHeaders'},
-    {'1': 'ringing_timeout', '3': 11, '4': 1, '5': 11, '6': '.google.protobuf.Duration', '10': 'ringingTimeout'},
-    {'1': 'max_call_duration', '3': 12, '4': 1, '5': 11, '6': '.google.protobuf.Duration', '10': 'maxCallDuration'},
+    {
+      '1': 'hide_phone_number',
+      '3': 10,
+      '4': 1,
+      '5': 8,
+      '10': 'hidePhoneNumber'
+    },
+    {
+      '1': 'headers',
+      '3': 16,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.CreateSIPParticipantRequest.HeadersEntry',
+      '8': {},
+      '10': 'headers'
+    },
+    {
+      '1': 'include_headers',
+      '3': 17,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPHeaderOptions',
+      '10': 'includeHeaders'
+    },
+    {
+      '1': 'ringing_timeout',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Duration',
+      '10': 'ringingTimeout'
+    },
+    {
+      '1': 'max_call_duration',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Duration',
+      '10': 'maxCallDuration'
+    },
     {'1': 'krisp_enabled', '3': 14, '4': 1, '5': 8, '10': 'krispEnabled'},
-    {'1': 'media_encryption', '3': 18, '4': 1, '5': 14, '6': '.livekit.SIPMediaEncryption', '10': 'mediaEncryption'},
-    {'1': 'wait_until_answered', '3': 19, '4': 1, '5': 8, '10': 'waitUntilAnswered'},
-    {'1': 'display_name', '3': 21, '4': 1, '5': 9, '8': {}, '9': 0, '10': 'displayName', '17': true},
-    {'1': 'destination', '3': 22, '4': 1, '5': 11, '6': '.livekit.Destination', '9': 1, '10': 'destination', '17': true},
+    {
+      '1': 'media_encryption',
+      '3': 18,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPMediaEncryption',
+      '10': 'mediaEncryption'
+    },
+    {
+      '1': 'wait_until_answered',
+      '3': 19,
+      '4': 1,
+      '5': 8,
+      '10': 'waitUntilAnswered'
+    },
+    {
+      '1': 'display_name',
+      '3': 21,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 0,
+      '10': 'displayName',
+      '17': true
+    },
+    {
+      '1': 'destination',
+      '3': 22,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.Destination',
+      '9': 1,
+      '10': 'destination',
+      '17': true
+    },
   ],
-  '3': [CreateSIPParticipantRequest_ParticipantAttributesEntry$json, CreateSIPParticipantRequest_HeadersEntry$json],
+  '3': [
+    CreateSIPParticipantRequest_ParticipantAttributesEntry$json,
+    CreateSIPParticipantRequest_HeadersEntry$json
+  ],
   '8': [
     {'1': '_display_name'},
     {'1': '_destination'},
@@ -1331,7 +2106,13 @@ const SIPParticipantInfo$json = {
   '1': 'SIPParticipantInfo',
   '2': [
     {'1': 'participant_id', '3': 1, '4': 1, '5': 9, '10': 'participantId'},
-    {'1': 'participant_identity', '3': 2, '4': 1, '5': 9, '10': 'participantIdentity'},
+    {
+      '1': 'participant_identity',
+      '3': 2,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
     {'1': 'room_name', '3': 3, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'sip_call_id', '3': 4, '4': 1, '5': 9, '10': 'sipCallId'},
   ],
@@ -1348,12 +2129,33 @@ final $typed_data.Uint8List sIPParticipantInfoDescriptor = $convert.base64Decode
 const TransferSIPParticipantRequest$json = {
   '1': 'TransferSIPParticipantRequest',
   '2': [
-    {'1': 'participant_identity', '3': 1, '4': 1, '5': 9, '10': 'participantIdentity'},
+    {
+      '1': 'participant_identity',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
     {'1': 'room_name', '3': 2, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'transfer_to', '3': 3, '4': 1, '5': 9, '10': 'transferTo'},
     {'1': 'play_dialtone', '3': 4, '4': 1, '5': 8, '10': 'playDialtone'},
-    {'1': 'headers', '3': 5, '4': 3, '5': 11, '6': '.livekit.TransferSIPParticipantRequest.HeadersEntry', '8': {}, '10': 'headers'},
-    {'1': 'ringing_timeout', '3': 6, '4': 1, '5': 11, '6': '.google.protobuf.Duration', '10': 'ringingTimeout'},
+    {
+      '1': 'headers',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.TransferSIPParticipantRequest.HeadersEntry',
+      '8': {},
+      '10': 'headers'
+    },
+    {
+      '1': 'ringing_timeout',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Duration',
+      '10': 'ringingTimeout'
+    },
   ],
   '3': [TransferSIPParticipantRequest_HeadersEntry$json],
 };
@@ -1389,10 +2191,38 @@ const SIPCallInfo$json = {
     {'1': 'region', '3': 17, '4': 1, '5': 9, '10': 'region'},
     {'1': 'room_name', '3': 3, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'room_id', '3': 4, '4': 1, '5': 9, '10': 'roomId'},
-    {'1': 'participant_identity', '3': 5, '4': 1, '5': 9, '10': 'participantIdentity'},
-    {'1': 'participant_attributes', '3': 18, '4': 3, '5': 11, '6': '.livekit.SIPCallInfo.ParticipantAttributesEntry', '8': {}, '10': 'participantAttributes'},
-    {'1': 'from_uri', '3': 6, '4': 1, '5': 11, '6': '.livekit.SIPUri', '10': 'fromUri'},
-    {'1': 'to_uri', '3': 7, '4': 1, '5': 11, '6': '.livekit.SIPUri', '10': 'toUri'},
+    {
+      '1': 'participant_identity',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
+    {
+      '1': 'participant_attributes',
+      '3': 18,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SIPCallInfo.ParticipantAttributesEntry',
+      '8': {},
+      '10': 'participantAttributes'
+    },
+    {
+      '1': 'from_uri',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPUri',
+      '10': 'fromUri'
+    },
+    {
+      '1': 'to_uri',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPUri',
+      '10': 'toUri'
+    },
     {
       '1': 'created_at',
       '3': 9,
@@ -1417,20 +2247,69 @@ const SIPCallInfo$json = {
       '8': {'3': true},
       '10': 'endedAt',
     },
-    {'1': 'enabled_features', '3': 14, '4': 3, '5': 14, '6': '.livekit.SIPFeature', '10': 'enabledFeatures'},
-    {'1': 'call_direction', '3': 15, '4': 1, '5': 14, '6': '.livekit.SIPCallDirection', '10': 'callDirection'},
-    {'1': 'call_status', '3': 8, '4': 1, '5': 14, '6': '.livekit.SIPCallStatus', '10': 'callStatus'},
+    {
+      '1': 'enabled_features',
+      '3': 14,
+      '4': 3,
+      '5': 14,
+      '6': '.livekit.SIPFeature',
+      '10': 'enabledFeatures'
+    },
+    {
+      '1': 'call_direction',
+      '3': 15,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPCallDirection',
+      '10': 'callDirection'
+    },
+    {
+      '1': 'call_status',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPCallStatus',
+      '10': 'callStatus'
+    },
     {'1': 'created_at_ns', '3': 22, '4': 1, '5': 3, '10': 'createdAtNs'},
     {'1': 'started_at_ns', '3': 23, '4': 1, '5': 3, '10': 'startedAtNs'},
     {'1': 'ended_at_ns', '3': 24, '4': 1, '5': 3, '10': 'endedAtNs'},
-    {'1': 'disconnect_reason', '3': 12, '4': 1, '5': 14, '6': '.livekit.DisconnectReason', '10': 'disconnectReason'},
+    {
+      '1': 'disconnect_reason',
+      '3': 12,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.DisconnectReason',
+      '10': 'disconnectReason'
+    },
     {'1': 'error', '3': 13, '4': 1, '5': 9, '10': 'error'},
-    {'1': 'call_status_code', '3': 19, '4': 1, '5': 11, '6': '.livekit.SIPStatus', '10': 'callStatusCode'},
+    {
+      '1': 'call_status_code',
+      '3': 19,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPStatus',
+      '10': 'callStatusCode'
+    },
     {'1': 'audio_codec', '3': 20, '4': 1, '5': 9, '10': 'audioCodec'},
     {'1': 'media_encryption', '3': 21, '4': 1, '5': 9, '10': 'mediaEncryption'},
     {'1': 'pcap_file_link', '3': 25, '4': 1, '5': 9, '10': 'pcapFileLink'},
-    {'1': 'call_context', '3': 26, '4': 3, '5': 11, '6': '.google.protobuf.Any', '10': 'callContext'},
-    {'1': 'provider_info', '3': 27, '4': 1, '5': 11, '6': '.livekit.ProviderInfo', '10': 'providerInfo'},
+    {
+      '1': 'call_context',
+      '3': 26,
+      '4': 3,
+      '5': 11,
+      '6': '.google.protobuf.Any',
+      '10': 'callContext'
+    },
+    {
+      '1': 'provider_info',
+      '3': 27,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ProviderInfo',
+      '10': 'providerInfo'
+    },
   ],
   '3': [SIPCallInfo_ParticipantAttributesEntry$json],
 };
@@ -1479,11 +2358,37 @@ const SIPTransferInfo$json = {
     {'1': 'transfer_id', '3': 1, '4': 1, '5': 9, '10': 'transferId'},
     {'1': 'call_id', '3': 2, '4': 1, '5': 9, '10': 'callId'},
     {'1': 'transfer_to', '3': 3, '4': 1, '5': 9, '10': 'transferTo'},
-    {'1': 'transfer_initiated_at_ns', '3': 4, '4': 1, '5': 3, '10': 'transferInitiatedAtNs'},
-    {'1': 'transfer_completed_at_ns', '3': 5, '4': 1, '5': 3, '10': 'transferCompletedAtNs'},
-    {'1': 'transfer_status', '3': 6, '4': 1, '5': 14, '6': '.livekit.SIPTransferStatus', '10': 'transferStatus'},
+    {
+      '1': 'transfer_initiated_at_ns',
+      '3': 4,
+      '4': 1,
+      '5': 3,
+      '10': 'transferInitiatedAtNs'
+    },
+    {
+      '1': 'transfer_completed_at_ns',
+      '3': 5,
+      '4': 1,
+      '5': 3,
+      '10': 'transferCompletedAtNs'
+    },
+    {
+      '1': 'transfer_status',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPTransferStatus',
+      '10': 'transferStatus'
+    },
     {'1': 'error', '3': 7, '4': 1, '5': 9, '10': 'error'},
-    {'1': 'transfer_status_code', '3': 8, '4': 1, '5': 11, '6': '.livekit.SIPStatus', '10': 'transferStatusCode'},
+    {
+      '1': 'transfer_status_code',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPStatus',
+      '10': 'transferStatusCode'
+    },
   ],
 };
 
@@ -1505,7 +2410,14 @@ const SIPUri$json = {
     {'1': 'host', '3': 2, '4': 1, '5': 9, '10': 'host'},
     {'1': 'ip', '3': 3, '4': 1, '5': 9, '10': 'ip'},
     {'1': 'port', '3': 4, '4': 1, '5': 13, '10': 'port'},
-    {'1': 'transport', '3': 5, '4': 1, '5': 14, '6': '.livekit.SIPTransport', '10': 'transport'},
+    {
+      '1': 'transport',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SIPTransport',
+      '10': 'transport'
+    },
   ],
 };
 
@@ -1539,44 +2451,111 @@ const $core.Map<$core.String, $core.dynamic> SIPServiceBase$json = {
       '3': '.livekit.ListSIPTrunkResponse',
       '4': {'33': true},
     },
-    {'1': 'CreateSIPInboundTrunk', '2': '.livekit.CreateSIPInboundTrunkRequest', '3': '.livekit.SIPInboundTrunkInfo'},
-    {'1': 'CreateSIPOutboundTrunk', '2': '.livekit.CreateSIPOutboundTrunkRequest', '3': '.livekit.SIPOutboundTrunkInfo'},
-    {'1': 'UpdateSIPInboundTrunk', '2': '.livekit.UpdateSIPInboundTrunkRequest', '3': '.livekit.SIPInboundTrunkInfo'},
-    {'1': 'UpdateSIPOutboundTrunk', '2': '.livekit.UpdateSIPOutboundTrunkRequest', '3': '.livekit.SIPOutboundTrunkInfo'},
-    {'1': 'GetSIPInboundTrunk', '2': '.livekit.GetSIPInboundTrunkRequest', '3': '.livekit.GetSIPInboundTrunkResponse'},
-    {'1': 'GetSIPOutboundTrunk', '2': '.livekit.GetSIPOutboundTrunkRequest', '3': '.livekit.GetSIPOutboundTrunkResponse'},
-    {'1': 'ListSIPInboundTrunk', '2': '.livekit.ListSIPInboundTrunkRequest', '3': '.livekit.ListSIPInboundTrunkResponse'},
-    {'1': 'ListSIPOutboundTrunk', '2': '.livekit.ListSIPOutboundTrunkRequest', '3': '.livekit.ListSIPOutboundTrunkResponse'},
-    {'1': 'DeleteSIPTrunk', '2': '.livekit.DeleteSIPTrunkRequest', '3': '.livekit.SIPTrunkInfo'},
-    {'1': 'CreateSIPDispatchRule', '2': '.livekit.CreateSIPDispatchRuleRequest', '3': '.livekit.SIPDispatchRuleInfo'},
-    {'1': 'UpdateSIPDispatchRule', '2': '.livekit.UpdateSIPDispatchRuleRequest', '3': '.livekit.SIPDispatchRuleInfo'},
-    {'1': 'ListSIPDispatchRule', '2': '.livekit.ListSIPDispatchRuleRequest', '3': '.livekit.ListSIPDispatchRuleResponse'},
-    {'1': 'DeleteSIPDispatchRule', '2': '.livekit.DeleteSIPDispatchRuleRequest', '3': '.livekit.SIPDispatchRuleInfo'},
-    {'1': 'CreateSIPParticipant', '2': '.livekit.CreateSIPParticipantRequest', '3': '.livekit.SIPParticipantInfo'},
-    {'1': 'TransferSIPParticipant', '2': '.livekit.TransferSIPParticipantRequest', '3': '.google.protobuf.Empty'},
+    {
+      '1': 'CreateSIPInboundTrunk',
+      '2': '.livekit.CreateSIPInboundTrunkRequest',
+      '3': '.livekit.SIPInboundTrunkInfo'
+    },
+    {
+      '1': 'CreateSIPOutboundTrunk',
+      '2': '.livekit.CreateSIPOutboundTrunkRequest',
+      '3': '.livekit.SIPOutboundTrunkInfo'
+    },
+    {
+      '1': 'UpdateSIPInboundTrunk',
+      '2': '.livekit.UpdateSIPInboundTrunkRequest',
+      '3': '.livekit.SIPInboundTrunkInfo'
+    },
+    {
+      '1': 'UpdateSIPOutboundTrunk',
+      '2': '.livekit.UpdateSIPOutboundTrunkRequest',
+      '3': '.livekit.SIPOutboundTrunkInfo'
+    },
+    {
+      '1': 'GetSIPInboundTrunk',
+      '2': '.livekit.GetSIPInboundTrunkRequest',
+      '3': '.livekit.GetSIPInboundTrunkResponse'
+    },
+    {
+      '1': 'GetSIPOutboundTrunk',
+      '2': '.livekit.GetSIPOutboundTrunkRequest',
+      '3': '.livekit.GetSIPOutboundTrunkResponse'
+    },
+    {
+      '1': 'ListSIPInboundTrunk',
+      '2': '.livekit.ListSIPInboundTrunkRequest',
+      '3': '.livekit.ListSIPInboundTrunkResponse'
+    },
+    {
+      '1': 'ListSIPOutboundTrunk',
+      '2': '.livekit.ListSIPOutboundTrunkRequest',
+      '3': '.livekit.ListSIPOutboundTrunkResponse'
+    },
+    {
+      '1': 'DeleteSIPTrunk',
+      '2': '.livekit.DeleteSIPTrunkRequest',
+      '3': '.livekit.SIPTrunkInfo'
+    },
+    {
+      '1': 'CreateSIPDispatchRule',
+      '2': '.livekit.CreateSIPDispatchRuleRequest',
+      '3': '.livekit.SIPDispatchRuleInfo'
+    },
+    {
+      '1': 'UpdateSIPDispatchRule',
+      '2': '.livekit.UpdateSIPDispatchRuleRequest',
+      '3': '.livekit.SIPDispatchRuleInfo'
+    },
+    {
+      '1': 'ListSIPDispatchRule',
+      '2': '.livekit.ListSIPDispatchRuleRequest',
+      '3': '.livekit.ListSIPDispatchRuleResponse'
+    },
+    {
+      '1': 'DeleteSIPDispatchRule',
+      '2': '.livekit.DeleteSIPDispatchRuleRequest',
+      '3': '.livekit.SIPDispatchRuleInfo'
+    },
+    {
+      '1': 'CreateSIPParticipant',
+      '2': '.livekit.CreateSIPParticipantRequest',
+      '3': '.livekit.SIPParticipantInfo'
+    },
+    {
+      '1': 'TransferSIPParticipant',
+      '2': '.livekit.TransferSIPParticipantRequest',
+      '3': '.google.protobuf.Empty'
+    },
   ],
 };
 
 @$core.Deprecated('Use sIPServiceDescriptor instead')
-const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> SIPServiceBase$messageJson = {
+const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>>
+    SIPServiceBase$messageJson = {
   '.livekit.ListSIPTrunkRequest': ListSIPTrunkRequest$json,
-  '.livekit.Pagination': $2.Pagination$json,
+  '.livekit.Pagination': $1.Pagination$json,
   '.livekit.ListSIPTrunkResponse': ListSIPTrunkResponse$json,
   '.livekit.SIPTrunkInfo': SIPTrunkInfo$json,
   '.livekit.CreateSIPInboundTrunkRequest': CreateSIPInboundTrunkRequest$json,
   '.livekit.SIPInboundTrunkInfo': SIPInboundTrunkInfo$json,
-  '.livekit.SIPInboundTrunkInfo.HeadersEntry': SIPInboundTrunkInfo_HeadersEntry$json,
-  '.livekit.SIPInboundTrunkInfo.HeadersToAttributesEntry': SIPInboundTrunkInfo_HeadersToAttributesEntry$json,
-  '.google.protobuf.Duration': $10.Duration$json,
-  '.livekit.SIPInboundTrunkInfo.AttributesToHeadersEntry': SIPInboundTrunkInfo_AttributesToHeadersEntry$json,
+  '.livekit.SIPInboundTrunkInfo.HeadersEntry':
+      SIPInboundTrunkInfo_HeadersEntry$json,
+  '.livekit.SIPInboundTrunkInfo.HeadersToAttributesEntry':
+      SIPInboundTrunkInfo_HeadersToAttributesEntry$json,
+  '.google.protobuf.Duration': $0.Duration$json,
+  '.livekit.SIPInboundTrunkInfo.AttributesToHeadersEntry':
+      SIPInboundTrunkInfo_AttributesToHeadersEntry$json,
   '.livekit.CreateSIPOutboundTrunkRequest': CreateSIPOutboundTrunkRequest$json,
   '.livekit.SIPOutboundTrunkInfo': SIPOutboundTrunkInfo$json,
-  '.livekit.SIPOutboundTrunkInfo.HeadersEntry': SIPOutboundTrunkInfo_HeadersEntry$json,
-  '.livekit.SIPOutboundTrunkInfo.HeadersToAttributesEntry': SIPOutboundTrunkInfo_HeadersToAttributesEntry$json,
-  '.livekit.SIPOutboundTrunkInfo.AttributesToHeadersEntry': SIPOutboundTrunkInfo_AttributesToHeadersEntry$json,
+  '.livekit.SIPOutboundTrunkInfo.HeadersEntry':
+      SIPOutboundTrunkInfo_HeadersEntry$json,
+  '.livekit.SIPOutboundTrunkInfo.HeadersToAttributesEntry':
+      SIPOutboundTrunkInfo_HeadersToAttributesEntry$json,
+  '.livekit.SIPOutboundTrunkInfo.AttributesToHeadersEntry':
+      SIPOutboundTrunkInfo_AttributesToHeadersEntry$json,
   '.livekit.UpdateSIPInboundTrunkRequest': UpdateSIPInboundTrunkRequest$json,
   '.livekit.SIPInboundTrunkUpdate': SIPInboundTrunkUpdate$json,
-  '.livekit.ListUpdate': $2.ListUpdate$json,
+  '.livekit.ListUpdate': $1.ListUpdate$json,
   '.livekit.UpdateSIPOutboundTrunkRequest': UpdateSIPOutboundTrunkRequest$json,
   '.livekit.SIPOutboundTrunkUpdate': SIPOutboundTrunkUpdate$json,
   '.livekit.GetSIPInboundTrunkRequest': GetSIPInboundTrunkRequest$json,
@@ -1593,45 +2572,53 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> SIPService
   '.livekit.SIPDispatchRuleDirect': SIPDispatchRuleDirect$json,
   '.livekit.SIPDispatchRuleIndividual': SIPDispatchRuleIndividual$json,
   '.livekit.SIPDispatchRuleCallee': SIPDispatchRuleCallee$json,
-  '.livekit.CreateSIPDispatchRuleRequest.AttributesEntry': CreateSIPDispatchRuleRequest_AttributesEntry$json,
-  '.livekit.RoomConfiguration': $9.RoomConfiguration$json,
-  '.livekit.RoomEgress': $9.RoomEgress$json,
-  '.livekit.RoomCompositeEgressRequest': $7.RoomCompositeEgressRequest$json,
-  '.livekit.EncodedFileOutput': $7.EncodedFileOutput$json,
-  '.livekit.S3Upload': $7.S3Upload$json,
-  '.livekit.S3Upload.MetadataEntry': $7.S3Upload_MetadataEntry$json,
-  '.livekit.ProxyConfig': $7.ProxyConfig$json,
-  '.livekit.GCPUpload': $7.GCPUpload$json,
-  '.livekit.AzureBlobUpload': $7.AzureBlobUpload$json,
-  '.livekit.AliOSSUpload': $7.AliOSSUpload$json,
-  '.livekit.StreamOutput': $7.StreamOutput$json,
-  '.livekit.EncodingOptions': $7.EncodingOptions$json,
-  '.livekit.SegmentedFileOutput': $7.SegmentedFileOutput$json,
-  '.livekit.ImageOutput': $7.ImageOutput$json,
-  '.livekit.WebhookConfig': $2.WebhookConfig$json,
-  '.livekit.FilterParams': $2.FilterParams$json,
-  '.livekit.AutoTrackEgress': $7.AutoTrackEgress$json,
-  '.livekit.AutoParticipantEgress': $7.AutoParticipantEgress$json,
+  '.livekit.CreateSIPDispatchRuleRequest.AttributesEntry':
+      CreateSIPDispatchRuleRequest_AttributesEntry$json,
+  '.livekit.RoomConfiguration': $2.RoomConfiguration$json,
+  '.livekit.RoomEgress': $2.RoomEgress$json,
+  '.livekit.RoomCompositeEgressRequest': $5.RoomCompositeEgressRequest$json,
+  '.livekit.EncodedFileOutput': $5.EncodedFileOutput$json,
+  '.livekit.S3Upload': $5.S3Upload$json,
+  '.livekit.S3Upload.MetadataEntry': $5.S3Upload_MetadataEntry$json,
+  '.livekit.ProxyConfig': $5.ProxyConfig$json,
+  '.livekit.GCPUpload': $5.GCPUpload$json,
+  '.livekit.AzureBlobUpload': $5.AzureBlobUpload$json,
+  '.livekit.AliOSSUpload': $5.AliOSSUpload$json,
+  '.livekit.StreamOutput': $5.StreamOutput$json,
+  '.livekit.EncodingOptions': $5.EncodingOptions$json,
+  '.livekit.SegmentedFileOutput': $5.SegmentedFileOutput$json,
+  '.livekit.ImageOutput': $5.ImageOutput$json,
+  '.livekit.WebhookConfig': $1.WebhookConfig$json,
+  '.livekit.FilterParams': $1.FilterParams$json,
+  '.livekit.AutoTrackEgress': $5.AutoTrackEgress$json,
+  '.livekit.AutoParticipantEgress': $5.AutoParticipantEgress$json,
   '.livekit.RoomAgentDispatch': $6.RoomAgentDispatch$json,
   '.livekit.SIPDispatchRuleInfo': SIPDispatchRuleInfo$json,
-  '.livekit.SIPDispatchRuleInfo.AttributesEntry': SIPDispatchRuleInfo_AttributesEntry$json,
+  '.livekit.SIPDispatchRuleInfo.AttributesEntry':
+      SIPDispatchRuleInfo_AttributesEntry$json,
   '.livekit.UpdateSIPDispatchRuleRequest': UpdateSIPDispatchRuleRequest$json,
   '.livekit.SIPDispatchRuleUpdate': SIPDispatchRuleUpdate$json,
-  '.livekit.SIPDispatchRuleUpdate.AttributesEntry': SIPDispatchRuleUpdate_AttributesEntry$json,
+  '.livekit.SIPDispatchRuleUpdate.AttributesEntry':
+      SIPDispatchRuleUpdate_AttributesEntry$json,
   '.livekit.ListSIPDispatchRuleRequest': ListSIPDispatchRuleRequest$json,
   '.livekit.ListSIPDispatchRuleResponse': ListSIPDispatchRuleResponse$json,
   '.livekit.DeleteSIPDispatchRuleRequest': DeleteSIPDispatchRuleRequest$json,
   '.livekit.CreateSIPParticipantRequest': CreateSIPParticipantRequest$json,
-  '.livekit.CreateSIPParticipantRequest.ParticipantAttributesEntry': CreateSIPParticipantRequest_ParticipantAttributesEntry$json,
-  '.livekit.CreateSIPParticipantRequest.HeadersEntry': CreateSIPParticipantRequest_HeadersEntry$json,
+  '.livekit.CreateSIPParticipantRequest.ParticipantAttributesEntry':
+      CreateSIPParticipantRequest_ParticipantAttributesEntry$json,
+  '.livekit.CreateSIPParticipantRequest.HeadersEntry':
+      CreateSIPParticipantRequest_HeadersEntry$json,
   '.livekit.SIPOutboundConfig': SIPOutboundConfig$json,
-  '.livekit.SIPOutboundConfig.HeadersToAttributesEntry': SIPOutboundConfig_HeadersToAttributesEntry$json,
-  '.livekit.SIPOutboundConfig.AttributesToHeadersEntry': SIPOutboundConfig_AttributesToHeadersEntry$json,
+  '.livekit.SIPOutboundConfig.HeadersToAttributesEntry':
+      SIPOutboundConfig_HeadersToAttributesEntry$json,
+  '.livekit.SIPOutboundConfig.AttributesToHeadersEntry':
+      SIPOutboundConfig_AttributesToHeadersEntry$json,
   '.livekit.Destination': Destination$json,
   '.livekit.SIPParticipantInfo': SIPParticipantInfo$json,
   '.livekit.TransferSIPParticipantRequest': TransferSIPParticipantRequest$json,
-  '.livekit.TransferSIPParticipantRequest.HeadersEntry': TransferSIPParticipantRequest_HeadersEntry$json,
-  '.google.protobuf.Empty': $3.Empty$json,
+  '.livekit.TransferSIPParticipantRequest.HeadersEntry':
+      TransferSIPParticipantRequest_HeadersEntry$json,
+  '.google.protobuf.Empty': $4.Empty$json,
 };
 
 /// Descriptor for `SIP`. Decode as a `google.protobuf.ServiceDescriptorProto`.
@@ -1663,4 +2650,3 @@ final $typed_data.Uint8List sIPServiceDescriptor = $convert.base64Decode(
     'Y2lwYW50EiQubGl2ZWtpdC5DcmVhdGVTSVBQYXJ0aWNpcGFudFJlcXVlc3QaGy5saXZla2l0Ll'
     'NJUFBhcnRpY2lwYW50SW5mbxJYChZUcmFuc2ZlclNJUFBhcnRpY2lwYW50EiYubGl2ZWtpdC5U'
     'cmFuc2ZlclNJUFBhcnRpY2lwYW50UmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eQ==');
-

@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: wajlc_polls.proto
-//
-// @dart = 2.12
+// Generated from wajlc_polls.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -35,7 +36,14 @@ const CreatePollReq$json = {
     {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
     {'1': 'poll_id', '3': 3, '4': 1, '5': 9, '10': 'pollId'},
     {'1': 'question', '3': 4, '4': 1, '5': 9, '10': 'question'},
-    {'1': 'options', '3': 5, '4': 3, '5': 11, '6': '.wajlc.CreatePollOptions', '10': 'options'},
+    {
+      '1': 'options',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.CreatePollOptions',
+      '10': 'options'
+    },
   ],
 };
 
@@ -67,7 +75,14 @@ const PollInfo$json = {
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     {'1': 'room_id', '3': 2, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'question', '3': 3, '4': 1, '5': 9, '10': 'question'},
-    {'1': 'options', '3': 4, '4': 3, '5': 11, '6': '.wajlc.CreatePollOptions', '10': 'options'},
+    {
+      '1': 'options',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.CreatePollOptions',
+      '10': 'options'
+    },
     {'1': 'is_running', '3': 5, '4': 1, '5': 8, '10': 'isRunning'},
     {'1': 'created', '3': 6, '4': 1, '5': 3, '10': 'created'},
     {'1': 'created_by', '3': 7, '4': 1, '5': 9, '10': 'createdBy'},
@@ -127,9 +142,10 @@ const PollResponsesResultOptions$json = {
 };
 
 /// Descriptor for `PollResponsesResultOptions`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List pollResponsesResultOptionsDescriptor = $convert.base64Decode(
-    'ChpQb2xsUmVzcG9uc2VzUmVzdWx0T3B0aW9ucxIOCgJpZBgBIAEoBFICaWQSEgoEdGV4dBgCIA'
-    'EoCVIEdGV4dBIdCgp2b3RlX2NvdW50GAMgASgEUgl2b3RlQ291bnQ=');
+final $typed_data.Uint8List pollResponsesResultOptionsDescriptor =
+    $convert.base64Decode(
+        'ChpQb2xsUmVzcG9uc2VzUmVzdWx0T3B0aW9ucxIOCgJpZBgBIAEoBFICaWQSEgoEdGV4dBgCIA'
+        'EoCVIEdGV4dBIdCgp2b3RlX2NvdW50GAMgASgEUgl2b3RlQ291bnQ=');
 
 @$core.Deprecated('Use pollResponsesResultDescriptor instead')
 const PollResponsesResult$json = {
@@ -137,7 +153,14 @@ const PollResponsesResult$json = {
   '2': [
     {'1': 'question', '3': 1, '4': 1, '5': 9, '10': 'question'},
     {'1': 'total_responses', '3': 2, '4': 1, '5': 4, '10': 'totalResponses'},
-    {'1': 'options', '3': 3, '4': 3, '5': 11, '6': '.wajlc.PollResponsesResultOptions', '10': 'options'},
+    {
+      '1': 'options',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.PollResponsesResultOptions',
+      '10': 'options'
+    },
   ],
 };
 
@@ -167,15 +190,79 @@ const PollResponse$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {'1': 'poll_id', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'pollId', '17': true},
-    {'1': 'total_responses', '3': 4, '4': 1, '5': 4, '9': 1, '10': 'totalResponses', '17': true},
+    {
+      '1': 'poll_id',
+      '3': 3,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'pollId',
+      '17': true
+    },
+    {
+      '1': 'total_responses',
+      '3': 4,
+      '4': 1,
+      '5': 4,
+      '9': 1,
+      '10': 'totalResponses',
+      '17': true
+    },
     {'1': 'voted', '3': 5, '4': 1, '5': 4, '9': 2, '10': 'voted', '17': true},
-    {'1': 'responses', '3': 6, '4': 3, '5': 11, '6': '.wajlc.PollResponse.ResponsesEntry', '10': 'responses'},
-    {'1': 'polls', '3': 7, '4': 3, '5': 11, '6': '.wajlc.PollInfo', '10': 'polls'},
-    {'1': 'stats', '3': 8, '4': 1, '5': 11, '6': '.wajlc.PollsStats', '9': 3, '10': 'stats', '17': true},
-    {'1': 'total_polls', '3': 9, '4': 1, '5': 4, '9': 4, '10': 'totalPolls', '17': true},
-    {'1': 'total_running', '3': 10, '4': 1, '5': 4, '9': 5, '10': 'totalRunning', '17': true},
-    {'1': 'poll_responses_result', '3': 11, '4': 1, '5': 11, '6': '.wajlc.PollResponsesResult', '9': 6, '10': 'pollResponsesResult', '17': true},
+    {
+      '1': 'responses',
+      '3': 6,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.PollResponse.ResponsesEntry',
+      '10': 'responses'
+    },
+    {
+      '1': 'polls',
+      '3': 7,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.PollInfo',
+      '10': 'polls'
+    },
+    {
+      '1': 'stats',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.PollsStats',
+      '9': 3,
+      '10': 'stats',
+      '17': true
+    },
+    {
+      '1': 'total_polls',
+      '3': 9,
+      '4': 1,
+      '5': 4,
+      '9': 4,
+      '10': 'totalPolls',
+      '17': true
+    },
+    {
+      '1': 'total_running',
+      '3': 10,
+      '4': 1,
+      '5': 4,
+      '9': 5,
+      '10': 'totalRunning',
+      '17': true
+    },
+    {
+      '1': 'poll_responses_result',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.PollResponsesResult',
+      '9': 6,
+      '10': 'pollResponsesResult',
+      '17': true
+    },
   ],
   '3': [PollResponse_ResponsesEntry$json],
   '8': [
@@ -213,4 +300,3 @@ final $typed_data.Uint8List pollResponseDescriptor = $convert.base64Decode(
     'kYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgBQgoKCF9wb2xsX2lkQhIKEF90'
     'b3RhbF9yZXNwb25zZXNCCAoGX3ZvdGVkQggKBl9zdGF0c0IOCgxfdG90YWxfcG9sbHNCEAoOX3'
     'RvdGFsX3J1bm5pbmdCGAoWX3BvbGxfcmVzcG9uc2VzX3Jlc3VsdA==');
-

@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: wajlc_gen_token.proto
-//
-// @dart = 2.12
+// Generated from wajlc_gen_token.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -18,7 +19,15 @@ const GenerateTokenReq$json = {
   '1': 'GenerateTokenReq',
   '2': [
     {'1': 'room_id', '3': 1, '4': 1, '5': 9, '8': {}, '10': 'roomId'},
-    {'1': 'user_info', '3': 2, '4': 1, '5': 11, '6': '.wajlc.UserInfo', '8': {}, '10': 'userInfo'},
+    {
+      '1': 'user_info',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.UserInfo',
+      '8': {},
+      '10': 'userInfo'
+    },
   ],
 };
 
@@ -38,7 +47,14 @@ const UserInfo$json = {
     {'1': 'user_id', '3': 2, '4': 1, '5': 9, '10': 'userId'},
     {'1': 'is_admin', '3': 3, '4': 1, '5': 8, '10': 'isAdmin'},
     {'1': 'is_hidden', '3': 4, '4': 1, '5': 8, '10': 'isHidden'},
-    {'1': 'user_metadata', '3': 5, '4': 1, '5': 11, '6': '.wajlc.UserMetadata', '10': 'userMetadata'},
+    {
+      '1': 'user_metadata',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.UserMetadata',
+      '10': 'userMetadata'
+    },
   ],
 };
 
@@ -53,17 +69,80 @@ final $typed_data.Uint8List userInfoDescriptor = $convert.base64Decode(
 const UserMetadata$json = {
   '1': 'UserMetadata',
   '2': [
-    {'1': 'profile_pic', '3': 1, '4': 1, '5': 9, '8': {}, '9': 0, '10': 'profilePic', '17': true},
+    {
+      '1': 'profile_pic',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 0,
+      '10': 'profilePic',
+      '17': true
+    },
     {'1': 'is_admin', '3': 2, '4': 1, '5': 8, '10': 'isAdmin'},
-    {'1': 'record_webcam', '3': 3, '4': 1, '5': 8, '9': 1, '10': 'recordWebcam', '17': true},
+    {
+      '1': 'record_webcam',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '9': 1,
+      '10': 'recordWebcam',
+      '17': true
+    },
     {'1': 'is_presenter', '3': 4, '4': 1, '5': 8, '8': {}, '10': 'isPresenter'},
     {'1': 'raised_hand', '3': 5, '4': 1, '5': 8, '8': {}, '10': 'raisedHand'},
-    {'1': 'wait_for_approval', '3': 6, '4': 1, '5': 8, '8': {}, '10': 'waitForApproval'},
-    {'1': 'preferred_lang', '3': 7, '4': 1, '5': 9, '9': 2, '10': 'preferredLang', '17': true},
-    {'1': 'lock_settings', '3': 8, '4': 1, '5': 11, '6': '.wajlc.LockSettings', '10': 'lockSettings'},
-    {'1': 'metadata_id', '3': 9, '4': 1, '5': 9, '8': {}, '9': 3, '10': 'metadataId', '17': true},
-    {'1': 'extra_data', '3': 10, '4': 3, '5': 11, '6': '.wajlc.UserMetadata.ExtraDataEntry', '10': 'extraData'},
-    {'1': 'ex_user_id', '3': 11, '4': 1, '5': 9, '9': 4, '10': 'exUserId', '17': true},
+    {
+      '1': 'wait_for_approval',
+      '3': 6,
+      '4': 1,
+      '5': 8,
+      '8': {},
+      '10': 'waitForApproval'
+    },
+    {
+      '1': 'preferred_lang',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '9': 2,
+      '10': 'preferredLang',
+      '17': true
+    },
+    {
+      '1': 'lock_settings',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.LockSettings',
+      '10': 'lockSettings'
+    },
+    {
+      '1': 'metadata_id',
+      '3': 9,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '9': 3,
+      '10': 'metadataId',
+      '17': true
+    },
+    {
+      '1': 'extra_data',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.UserMetadata.ExtraDataEntry',
+      '10': 'extraData'
+    },
+    {
+      '1': 'ex_user_id',
+      '3': 11,
+      '4': 1,
+      '5': 9,
+      '9': 4,
+      '10': 'exUserId',
+      '17': true
+    },
   ],
   '3': [UserMetadata_ExtraDataEntry$json],
   '8': [
@@ -124,15 +203,87 @@ final $typed_data.Uint8List wajlcTokenClaimsDescriptor = $convert.base64Decode(
 const LockSettings$json = {
   '1': 'LockSettings',
   '2': [
-    {'1': 'lock_microphone', '3': 1, '4': 1, '5': 8, '9': 0, '10': 'lockMicrophone', '17': true},
-    {'1': 'lock_webcam', '3': 2, '4': 1, '5': 8, '9': 1, '10': 'lockWebcam', '17': true},
-    {'1': 'lock_screen_sharing', '3': 3, '4': 1, '5': 8, '9': 2, '10': 'lockScreenSharing', '17': true},
-    {'1': 'lock_chat', '3': 4, '4': 1, '5': 8, '9': 3, '10': 'lockChat', '17': true},
-    {'1': 'lock_chat_send_message', '3': 5, '4': 1, '5': 8, '9': 4, '10': 'lockChatSendMessage', '17': true},
-    {'1': 'lock_chat_file_share', '3': 6, '4': 1, '5': 8, '9': 5, '10': 'lockChatFileShare', '17': true},
-    {'1': 'lock_private_chat', '3': 7, '4': 1, '5': 8, '9': 6, '10': 'lockPrivateChat', '17': true},
-    {'1': 'lock_whiteboard', '3': 8, '4': 1, '5': 8, '9': 7, '10': 'lockWhiteboard', '17': true},
-    {'1': 'lock_shared_notepad', '3': 9, '4': 1, '5': 8, '9': 8, '10': 'lockSharedNotepad', '17': true},
+    {
+      '1': 'lock_microphone',
+      '3': 1,
+      '4': 1,
+      '5': 8,
+      '9': 0,
+      '10': 'lockMicrophone',
+      '17': true
+    },
+    {
+      '1': 'lock_webcam',
+      '3': 2,
+      '4': 1,
+      '5': 8,
+      '9': 1,
+      '10': 'lockWebcam',
+      '17': true
+    },
+    {
+      '1': 'lock_screen_sharing',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '9': 2,
+      '10': 'lockScreenSharing',
+      '17': true
+    },
+    {
+      '1': 'lock_chat',
+      '3': 4,
+      '4': 1,
+      '5': 8,
+      '9': 3,
+      '10': 'lockChat',
+      '17': true
+    },
+    {
+      '1': 'lock_chat_send_message',
+      '3': 5,
+      '4': 1,
+      '5': 8,
+      '9': 4,
+      '10': 'lockChatSendMessage',
+      '17': true
+    },
+    {
+      '1': 'lock_chat_file_share',
+      '3': 6,
+      '4': 1,
+      '5': 8,
+      '9': 5,
+      '10': 'lockChatFileShare',
+      '17': true
+    },
+    {
+      '1': 'lock_private_chat',
+      '3': 7,
+      '4': 1,
+      '5': 8,
+      '9': 6,
+      '10': 'lockPrivateChat',
+      '17': true
+    },
+    {
+      '1': 'lock_whiteboard',
+      '3': 8,
+      '4': 1,
+      '5': 8,
+      '9': 7,
+      '10': 'lockWhiteboard',
+      '17': true
+    },
+    {
+      '1': 'lock_shared_notepad',
+      '3': 9,
+      '4': 1,
+      '5': 8,
+      '9': 8,
+      '10': 'lockSharedNotepad',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_lock_microphone'},
@@ -184,16 +335,96 @@ final $typed_data.Uint8List generateTokenResDescriptor = $convert.base64Decode(
 const CustomDesignParams$json = {
   '1': 'CustomDesignParams',
   '2': [
-    {'1': 'primary_color', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'primaryColor', '17': true},
-    {'1': 'secondary_color', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'secondaryColor', '17': true},
-    {'1': 'background_color', '3': 3, '4': 1, '5': 9, '9': 2, '10': 'backgroundColor', '17': true},
-    {'1': 'background_image', '3': 4, '4': 1, '5': 9, '9': 3, '10': 'backgroundImage', '17': true},
-    {'1': 'header_bg_color', '3': 5, '4': 1, '5': 9, '9': 4, '10': 'headerBgColor', '17': true},
-    {'1': 'footer_bg_color', '3': 6, '4': 1, '5': 9, '9': 5, '10': 'footerBgColor', '17': true},
-    {'1': 'left_side_bg_color', '3': 7, '4': 1, '5': 9, '9': 6, '10': 'leftSideBgColor', '17': true},
-    {'1': 'right_side_bg_color', '3': 8, '4': 1, '5': 9, '9': 7, '10': 'rightSideBgColor', '17': true},
-    {'1': 'custom_css_url', '3': 9, '4': 1, '5': 9, '9': 8, '10': 'customCssUrl', '17': true},
-    {'1': 'custom_logo', '3': 10, '4': 1, '5': 9, '9': 9, '10': 'customLogo', '17': true},
+    {
+      '1': 'primary_color',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'primaryColor',
+      '17': true
+    },
+    {
+      '1': 'secondary_color',
+      '3': 2,
+      '4': 1,
+      '5': 9,
+      '9': 1,
+      '10': 'secondaryColor',
+      '17': true
+    },
+    {
+      '1': 'background_color',
+      '3': 3,
+      '4': 1,
+      '5': 9,
+      '9': 2,
+      '10': 'backgroundColor',
+      '17': true
+    },
+    {
+      '1': 'background_image',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '9': 3,
+      '10': 'backgroundImage',
+      '17': true
+    },
+    {
+      '1': 'header_bg_color',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '9': 4,
+      '10': 'headerBgColor',
+      '17': true
+    },
+    {
+      '1': 'footer_bg_color',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '9': 5,
+      '10': 'footerBgColor',
+      '17': true
+    },
+    {
+      '1': 'left_side_bg_color',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '9': 6,
+      '10': 'leftSideBgColor',
+      '17': true
+    },
+    {
+      '1': 'right_side_bg_color',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '9': 7,
+      '10': 'rightSideBgColor',
+      '17': true
+    },
+    {
+      '1': 'custom_css_url',
+      '3': 9,
+      '4': 1,
+      '5': 9,
+      '9': 8,
+      '10': 'customCssUrl',
+      '17': true
+    },
+    {
+      '1': 'custom_logo',
+      '3': 10,
+      '4': 1,
+      '5': 9,
+      '9': 9,
+      '10': 'customLogo',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_primary_color'},
@@ -224,4 +455,3 @@ final $typed_data.Uint8List customDesignParamsDescriptor = $convert.base64Decode
     'Z2VCEgoQX2hlYWRlcl9iZ19jb2xvckISChBfZm9vdGVyX2JnX2NvbG9yQhUKE19sZWZ0X3NpZG'
     'VfYmdfY29sb3JCFgoUX3JpZ2h0X3NpZGVfYmdfY29sb3JCEQoPX2N1c3RvbV9jc3NfdXJsQg4K'
     'DF9jdXN0b21fbG9nbw==');
-

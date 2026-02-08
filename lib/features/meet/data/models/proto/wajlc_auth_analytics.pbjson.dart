@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: wajlc_auth_analytics.proto
-//
-// @dart = 2.12
+// Generated from wajlc_auth_analytics.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -56,7 +57,14 @@ const FetchAnalyticsResult$json = {
     {'1': 'from', '3': 2, '4': 1, '5': 13, '10': 'from'},
     {'1': 'limit', '3': 3, '4': 1, '5': 13, '10': 'limit'},
     {'1': 'order_by', '3': 4, '4': 1, '5': 9, '10': 'orderBy'},
-    {'1': 'analytics_list', '3': 5, '4': 3, '5': 11, '6': '.wajlc.AnalyticsInfo', '10': 'analyticsList'},
+    {
+      '1': 'analytics_list',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.AnalyticsInfo',
+      '10': 'analyticsList'
+    },
   ],
 };
 
@@ -73,7 +81,14 @@ const FetchAnalyticsRes$json = {
   '2': [
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
-    {'1': 'result', '3': 3, '4': 1, '5': 11, '6': '.wajlc.FetchAnalyticsResult', '10': 'result'},
+    {
+      '1': 'result',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.FetchAnalyticsResult',
+      '10': 'result'
+    },
   ],
 };
 
@@ -118,9 +133,10 @@ const GetAnalyticsDownloadTokenReq$json = {
 };
 
 /// Descriptor for `GetAnalyticsDownloadTokenReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getAnalyticsDownloadTokenReqDescriptor = $convert.base64Decode(
-    'ChxHZXRBbmFseXRpY3NEb3dubG9hZFRva2VuUmVxEh8KB2ZpbGVfaWQYASABKAlCBrpIA8gBAV'
-    'IGZmlsZUlk');
+final $typed_data.Uint8List getAnalyticsDownloadTokenReqDescriptor =
+    $convert.base64Decode(
+        'ChxHZXRBbmFseXRpY3NEb3dubG9hZFRva2VuUmVxEh8KB2ZpbGVfaWQYASABKAlCBrpIA8gBAV'
+        'IGZmlsZUlk');
 
 @$core.Deprecated('Use getAnalyticsDownloadTokenResDescriptor instead')
 const GetAnalyticsDownloadTokenRes$json = {
@@ -136,7 +152,7 @@ const GetAnalyticsDownloadTokenRes$json = {
 };
 
 /// Descriptor for `GetAnalyticsDownloadTokenRes`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List getAnalyticsDownloadTokenResDescriptor = $convert.base64Decode(
-    'ChxHZXRBbmFseXRpY3NEb3dubG9hZFRva2VuUmVzEhYKBnN0YXR1cxgBIAEoCFIGc3RhdHVzEh'
-    'AKA21zZxgCIAEoCVIDbXNnEhkKBXRva2VuGAMgASgJSABSBXRva2VuiAEBQggKBl90b2tlbg==');
-
+final $typed_data.Uint8List getAnalyticsDownloadTokenResDescriptor =
+    $convert.base64Decode(
+        'ChxHZXRBbmFseXRpY3NEb3dubG9hZFRva2VuUmVzEhYKBnN0YXR1cxgBIAEoCFIGc3RhdHVzEh'
+        'AKA21zZxgCIAEoCVIDbXNnEhkKBXRva2VuGAMgASgJSABSBXRva2VuiAEBQggKBl90b2tlbg==');

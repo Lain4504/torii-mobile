@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
@@ -119,6 +120,7 @@ class MeetNotifier extends StateNotifier<MeetState> {
   final MeetApiService _apiService;
   final LiveKitService _liveKitService;
   final NatsService _natsService;
+  Timer? _disconnectedDebounceTimer;
 
   MeetNotifier(this._apiService, this._liveKitService, this._natsService) : super(MeetState()) {
     // Sync participants from LiveKit to state
@@ -146,8 +148,30 @@ class MeetNotifier extends StateNotifier<MeetState> {
 
     _liveKitService.onConnectionStateChanged = (connected) {
       if (!connected) {
-        state = state.copyWith(status: MeetStatus.disconnected);
+        _disconnectedDebounceTimer?.cancel();
+        _disconnectedDebounceTimer = Timer(const Duration(milliseconds: 2500), () {
+          _disconnectedDebounceTimer = null;
+          if (state.status == MeetStatus.connected) {
+            state = state.copyWith(status: MeetStatus.disconnected);
+          }
+        });
       }
+    };
+
+    _liveKitService.onReconnecting = () {
+      _disconnectedDebounceTimer?.cancel();
+      _disconnectedDebounceTimer = null;
+      state = state.copyWith(statusMessage: 'Reconnecting...');
+    };
+
+    _liveKitService.onReconnected = () {
+      _disconnectedDebounceTimer?.cancel();
+      _disconnectedDebounceTimer = null;
+      state = state.copyWith(
+        status: MeetStatus.connected,
+        statusMessage: 'Connected',
+        participants: _sortParticipants(_liveKitService.allParticipants),
+      );
     };
     
     _liveKitService.onConnectionQualityChanged = (participant, quality) {
@@ -507,7 +531,11 @@ class MeetNotifier extends StateNotifier<MeetState> {
     }
   }
 
+  bool _isConnectingToLiveKit = false;
+
   void _handleResMediaServerData(String jsonStr) {
+    if (_isConnectingToLiveKit || state.status == MeetStatus.connected) return;
+    if (state.status != MeetStatus.mediaConnecting) return;
     try {
       final map = jsonDecode(jsonStr) as Map<String, dynamic>;
       final mediaInfo = nats_msg.MediaServerConnInfo.create()
@@ -589,6 +617,8 @@ class MeetNotifier extends StateNotifier<MeetState> {
   }
 
   Future<void> _connectToLiveKit(String url, String token) async {
+    if (_isConnectingToLiveKit) return;
+    _isConnectingToLiveKit = true;
     try {
       await _liveKitService.connect(url, token);
       await _liveKitService.setMicrophoneEnabled(state.isMicEnabled);
@@ -599,7 +629,11 @@ class MeetNotifier extends StateNotifier<MeetState> {
         participants: _sortParticipants(_liveKitService.allParticipants),
       );
     } catch (e) {
-      state = state.copyWith(status: MeetStatus.error, errorMessage: 'Media Server Connection Failed: $e');
+      if (state.status == MeetStatus.mediaConnecting) {
+        state = state.copyWith(status: MeetStatus.error, errorMessage: 'Media Server Connection Failed: $e');
+      }
+    } finally {
+      _isConnectingToLiveKit = false;
     }
   }
 
@@ -690,6 +724,8 @@ class MeetNotifier extends StateNotifier<MeetState> {
   }
 
   Future<void> leaveMeeting() async {
+    _disconnectedDebounceTimer?.cancel();
+    _disconnectedDebounceTimer = null;
     await _liveKitService.disconnect();
     await _natsService.disconnect();
     _apiService.setManualToken(null);

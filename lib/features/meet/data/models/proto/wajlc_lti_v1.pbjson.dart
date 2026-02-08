@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: wajlc_lti_v1.proto
-//
-// @dart = 2.12
+// Generated from wajlc_lti_v1.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -22,7 +23,14 @@ const LtiClaims$json = {
     {'1': 'is_admin', '3': 3, '4': 1, '5': 8, '10': 'isAdmin'},
     {'1': 'room_id', '3': 4, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'room_title', '3': 5, '4': 1, '5': 9, '10': 'roomTitle'},
-    {'1': 'lti_custom_parameters', '3': 6, '4': 1, '5': 11, '6': '.wajlc.LtiCustomParameters', '10': 'ltiCustomParameters'},
+    {
+      '1': 'lti_custom_parameters',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.LtiCustomParameters',
+      '10': 'ltiCustomParameters'
+    },
   ],
 };
 
@@ -37,16 +45,95 @@ final $typed_data.Uint8List ltiClaimsDescriptor = $convert.base64Decode(
 const LtiCustomParameters$json = {
   '1': 'LtiCustomParameters',
   '2': [
-    {'1': 'room_duration', '3': 1, '4': 1, '5': 4, '9': 0, '10': 'roomDuration', '17': true},
-    {'1': 'allow_polls', '3': 2, '4': 1, '5': 8, '9': 1, '10': 'allowPolls', '17': true},
-    {'1': 'allow_shared_note_pad', '3': 3, '4': 1, '5': 8, '9': 2, '10': 'allowSharedNotePad', '17': true},
-    {'1': 'allow_breakout_room', '3': 4, '4': 1, '5': 8, '9': 3, '10': 'allowBreakoutRoom', '17': true},
-    {'1': 'allow_recording', '3': 5, '4': 1, '5': 8, '9': 4, '10': 'allowRecording', '17': true},
-    {'1': 'allow_rtmp', '3': 6, '4': 1, '5': 8, '9': 5, '10': 'allowRtmp', '17': true},
-    {'1': 'allow_view_other_webcams', '3': 7, '4': 1, '5': 8, '9': 6, '10': 'allowViewOtherWebcams', '17': true},
-    {'1': 'allow_view_other_users_list', '3': 8, '4': 1, '5': 8, '9': 7, '10': 'allowViewOtherUsersList', '17': true},
-    {'1': 'mute_on_start', '3': 9, '4': 1, '5': 8, '9': 8, '10': 'muteOnStart', '17': true},
-    {'1': 'lti_custom_design', '3': 10, '4': 1, '5': 11, '6': '.wajlc.LtiCustomDesign', '10': 'ltiCustomDesign'},
+    {
+      '1': 'room_duration',
+      '3': 1,
+      '4': 1,
+      '5': 4,
+      '9': 0,
+      '10': 'roomDuration',
+      '17': true
+    },
+    {
+      '1': 'allow_polls',
+      '3': 2,
+      '4': 1,
+      '5': 8,
+      '9': 1,
+      '10': 'allowPolls',
+      '17': true
+    },
+    {
+      '1': 'allow_shared_note_pad',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '9': 2,
+      '10': 'allowSharedNotePad',
+      '17': true
+    },
+    {
+      '1': 'allow_breakout_room',
+      '3': 4,
+      '4': 1,
+      '5': 8,
+      '9': 3,
+      '10': 'allowBreakoutRoom',
+      '17': true
+    },
+    {
+      '1': 'allow_recording',
+      '3': 5,
+      '4': 1,
+      '5': 8,
+      '9': 4,
+      '10': 'allowRecording',
+      '17': true
+    },
+    {
+      '1': 'allow_rtmp',
+      '3': 6,
+      '4': 1,
+      '5': 8,
+      '9': 5,
+      '10': 'allowRtmp',
+      '17': true
+    },
+    {
+      '1': 'allow_view_other_webcams',
+      '3': 7,
+      '4': 1,
+      '5': 8,
+      '9': 6,
+      '10': 'allowViewOtherWebcams',
+      '17': true
+    },
+    {
+      '1': 'allow_view_other_users_list',
+      '3': 8,
+      '4': 1,
+      '5': 8,
+      '9': 7,
+      '10': 'allowViewOtherUsersList',
+      '17': true
+    },
+    {
+      '1': 'mute_on_start',
+      '3': 9,
+      '4': 1,
+      '5': 8,
+      '9': 8,
+      '10': 'muteOnStart',
+      '17': true
+    },
+    {
+      '1': 'lti_custom_design',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.LtiCustomDesign',
+      '10': 'ltiCustomDesign'
+    },
   ],
   '8': [
     {'1': '_room_duration'},
@@ -82,10 +169,42 @@ final $typed_data.Uint8List ltiCustomParametersDescriptor = $convert.base64Decod
 const LtiCustomDesign$json = {
   '1': 'LtiCustomDesign',
   '2': [
-    {'1': 'primary_color', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'primaryColor', '17': true},
-    {'1': 'secondary_color', '3': 2, '4': 1, '5': 9, '9': 1, '10': 'secondaryColor', '17': true},
-    {'1': 'background_color', '3': 3, '4': 1, '5': 9, '9': 2, '10': 'backgroundColor', '17': true},
-    {'1': 'custom_logo', '3': 4, '4': 1, '5': 9, '9': 3, '10': 'customLogo', '17': true},
+    {
+      '1': 'primary_color',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'primaryColor',
+      '17': true
+    },
+    {
+      '1': 'secondary_color',
+      '3': 2,
+      '4': 1,
+      '5': 9,
+      '9': 1,
+      '10': 'secondaryColor',
+      '17': true
+    },
+    {
+      '1': 'background_color',
+      '3': 3,
+      '4': 1,
+      '5': 9,
+      '9': 2,
+      '10': 'backgroundColor',
+      '17': true
+    },
+    {
+      '1': 'custom_logo',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '9': 3,
+      '10': 'customLogo',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_primary_color'},
@@ -102,4 +221,3 @@ final $typed_data.Uint8List ltiCustomDesignDescriptor = $convert.base64Decode(
     'Y2tncm91bmRfY29sb3IYAyABKAlIAlIPYmFja2dyb3VuZENvbG9yiAEBEiQKC2N1c3RvbV9sb2'
     'dvGAQgASgJSANSCmN1c3RvbUxvZ2+IAQFCEAoOX3ByaW1hcnlfY29sb3JCEgoQX3NlY29uZGFy'
     'eV9jb2xvckITChFfYmFja2dyb3VuZF9jb2xvckIOCgxfY3VzdG9tX2xvZ28=');
-

@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: wajlc_breakout_room.proto
-//
-// @dart = 2.12
+// Generated from wajlc_breakout_room.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -20,8 +21,23 @@ const CreateBreakoutRoomsReq$json = {
     {'1': 'room_id', '3': 1, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'requested_user_id', '3': 2, '4': 1, '5': 9, '10': 'requestedUserId'},
     {'1': 'duration', '3': 3, '4': 1, '5': 4, '10': 'duration'},
-    {'1': 'welcome_msg', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'welcomeMsg', '17': true},
-    {'1': 'rooms', '3': 5, '4': 3, '5': 11, '6': '.wajlc.BreakoutRoom', '10': 'rooms'},
+    {
+      '1': 'welcome_msg',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'welcomeMsg',
+      '17': true
+    },
+    {
+      '1': 'rooms',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.BreakoutRoom',
+      '10': 'rooms'
+    },
   ],
   '8': [
     {'1': '_welcome_msg'},
@@ -44,7 +60,14 @@ const BreakoutRoom$json = {
     {'1': 'duration', '3': 3, '4': 1, '5': 4, '10': 'duration'},
     {'1': 'started', '3': 4, '4': 1, '5': 8, '10': 'started'},
     {'1': 'created', '3': 5, '4': 1, '5': 4, '10': 'created'},
-    {'1': 'users', '3': 6, '4': 3, '5': 11, '6': '.wajlc.BreakoutRoomUser', '10': 'users'},
+    {
+      '1': 'users',
+      '3': 6,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.BreakoutRoomUser',
+      '10': 'users'
+    },
   ],
 };
 
@@ -81,10 +104,11 @@ const IncreaseBreakoutRoomDurationReq$json = {
 };
 
 /// Descriptor for `IncreaseBreakoutRoomDurationReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List increaseBreakoutRoomDurationReqDescriptor = $convert.base64Decode(
-    'Ch9JbmNyZWFzZUJyZWFrb3V0Um9vbUR1cmF0aW9uUmVxEigKEGJyZWFrb3V0X3Jvb21faWQYAS'
-    'ABKAlSDmJyZWFrb3V0Um9vbUlkEhoKCGR1cmF0aW9uGAIgASgEUghkdXJhdGlvbhIXCgdyb29t'
-    'X2lkGAMgASgJUgZyb29tSWQ=');
+final $typed_data.Uint8List increaseBreakoutRoomDurationReqDescriptor =
+    $convert.base64Decode(
+        'Ch9JbmNyZWFzZUJyZWFrb3V0Um9vbUR1cmF0aW9uUmVxEigKEGJyZWFrb3V0X3Jvb21faWQYAS'
+        'ABKAlSDmJyZWFrb3V0Um9vbUlkEhoKCGR1cmF0aW9uGAIgASgEUghkdXJhdGlvbhIXCgdyb29t'
+        'X2lkGAMgASgJUgZyb29tSWQ=');
 
 @$core.Deprecated('Use broadcastBreakoutRoomMsgReqDescriptor instead')
 const BroadcastBreakoutRoomMsgReq$json = {
@@ -96,9 +120,10 @@ const BroadcastBreakoutRoomMsgReq$json = {
 };
 
 /// Descriptor for `BroadcastBreakoutRoomMsgReq`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List broadcastBreakoutRoomMsgReqDescriptor = $convert.base64Decode(
-    'ChtCcm9hZGNhc3RCcmVha291dFJvb21Nc2dSZXESEAoDbXNnGAEgASgJUgNtc2cSFwoHcm9vbV'
-    '9pZBgDIAEoCVIGcm9vbUlk');
+final $typed_data.Uint8List broadcastBreakoutRoomMsgReqDescriptor =
+    $convert.base64Decode(
+        'ChtCcm9hZGNhc3RCcmVha291dFJvb21Nc2dSZXESEAoDbXNnGAEgASgJUgNtc2cSFwoHcm9vbV'
+        '9pZBgDIAEoCVIGcm9vbUlk');
 
 @$core.Deprecated('Use joinBreakoutRoomReqDescriptor instead')
 const JoinBreakoutRoomReq$json = {
@@ -138,8 +163,24 @@ const BreakoutRoomRes$json = {
     {'1': 'status', '3': 1, '4': 1, '5': 8, '10': 'status'},
     {'1': 'msg', '3': 2, '4': 1, '5': 9, '10': 'msg'},
     {'1': 'token', '3': 3, '4': 1, '5': 9, '9': 0, '10': 'token', '17': true},
-    {'1': 'room', '3': 4, '4': 1, '5': 11, '6': '.wajlc.BreakoutRoom', '9': 1, '10': 'room', '17': true},
-    {'1': 'rooms', '3': 5, '4': 3, '5': 11, '6': '.wajlc.BreakoutRoom', '10': 'rooms'},
+    {
+      '1': 'room',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.wajlc.BreakoutRoom',
+      '9': 1,
+      '10': 'room',
+      '17': true
+    },
+    {
+      '1': 'rooms',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.wajlc.BreakoutRoom',
+      '10': 'rooms'
+    },
   ],
   '8': [
     {'1': '_token'},
@@ -153,4 +194,3 @@ final $typed_data.Uint8List breakoutRoomResDescriptor = $convert.base64Decode(
     'Ntc2cSGQoFdG9rZW4YAyABKAlIAFIFdG9rZW6IAQESLAoEcm9vbRgEIAEoCzITLndhamxjLkJy'
     'ZWFrb3V0Um9vbUgBUgRyb29tiAEBEikKBXJvb21zGAUgAygLMhMud2FqbGMuQnJlYWtvdXRSb2'
     '9tUgVyb29tc0IICgZfdG9rZW5CBwoFX3Jvb20=');
-

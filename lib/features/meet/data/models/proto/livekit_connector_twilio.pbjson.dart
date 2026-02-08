@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_connector_twilio.proto
-//
-// @dart = 2.12
+// Generated from livekit_connector_twilio.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -17,14 +18,62 @@ import 'dart:typed_data' as $typed_data;
 const ConnectTwilioCallRequest$json = {
   '1': 'ConnectTwilioCallRequest',
   '2': [
-    {'1': 'twilio_call_direction', '3': 1, '4': 1, '5': 14, '6': '.livekit.ConnectTwilioCallRequest.TwilioCallDirection', '10': 'twilioCallDirection'},
+    {
+      '1': 'twilio_call_direction',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ConnectTwilioCallRequest.TwilioCallDirection',
+      '10': 'twilioCallDirection'
+    },
     {'1': 'room_name', '3': 2, '4': 1, '5': 9, '10': 'roomName'},
-    {'1': 'agents', '3': 3, '4': 3, '5': 11, '6': '.livekit.RoomAgentDispatch', '10': 'agents'},
-    {'1': 'participant_identity', '3': 4, '4': 1, '5': 9, '10': 'participantIdentity'},
-    {'1': 'participant_name', '3': 5, '4': 1, '5': 9, '8': {}, '10': 'participantName'},
-    {'1': 'participant_metadata', '3': 6, '4': 1, '5': 9, '8': {}, '10': 'participantMetadata'},
-    {'1': 'participant_attributes', '3': 7, '4': 3, '5': 11, '6': '.livekit.ConnectTwilioCallRequest.ParticipantAttributesEntry', '8': {}, '10': 'participantAttributes'},
-    {'1': 'destination_country', '3': 8, '4': 1, '5': 9, '10': 'destinationCountry'},
+    {
+      '1': 'agents',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.RoomAgentDispatch',
+      '10': 'agents'
+    },
+    {
+      '1': 'participant_identity',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
+    {
+      '1': 'participant_name',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'participantName'
+    },
+    {
+      '1': 'participant_metadata',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'participantMetadata'
+    },
+    {
+      '1': 'participant_attributes',
+      '3': 7,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ConnectTwilioCallRequest.ParticipantAttributesEntry',
+      '8': {},
+      '10': 'participantAttributes'
+    },
+    {
+      '1': 'destination_country',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '10': 'destinationCountry'
+    },
   ],
   '3': [ConnectTwilioCallRequest_ParticipantAttributesEntry$json],
   '4': [ConnectTwilioCallRequest_TwilioCallDirection$json],
@@ -76,7 +125,7 @@ const ConnectTwilioCallResponse$json = {
 };
 
 /// Descriptor for `ConnectTwilioCallResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List connectTwilioCallResponseDescriptor = $convert.base64Decode(
-    'ChlDb25uZWN0VHdpbGlvQ2FsbFJlc3BvbnNlEh8KC2Nvbm5lY3RfdXJsGAEgASgJUgpjb25uZW'
-    'N0VXJs');
-
+final $typed_data.Uint8List connectTwilioCallResponseDescriptor =
+    $convert.base64Decode(
+        'ChlDb25uZWN0VHdpbGlvQ2FsbFJlc3BvbnNlEh8KC2Nvbm5lY3RfdXJsGAEgASgJUgpjb25uZW'
+        'N0VXJs');

@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_rtc.proto
-//
-// @dart = 2.12
+// Generated from livekit_rtc.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -36,8 +37,8 @@ const StreamState$json = {
 };
 
 /// Descriptor for `StreamState`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List streamStateDescriptor = $convert.base64Decode(
-    'CgtTdHJlYW1TdGF0ZRIKCgZBQ1RJVkUQABIKCgZQQVVTRUQQAQ==');
+final $typed_data.Uint8List streamStateDescriptor = $convert
+    .base64Decode('CgtTdHJlYW1TdGF0ZRIKCgZBQ1RJVkUQABIKCgZQQVVTRUQQAQ==');
 
 @$core.Deprecated('Use candidateProtocolDescriptor instead')
 const CandidateProtocol$json = {
@@ -57,14 +58,78 @@ final $typed_data.Uint8List candidateProtocolDescriptor = $convert.base64Decode(
 const SignalRequest$json = {
   '1': 'SignalRequest',
   '2': [
-    {'1': 'offer', '3': 1, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '9': 0, '10': 'offer'},
-    {'1': 'answer', '3': 2, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '9': 0, '10': 'answer'},
-    {'1': 'trickle', '3': 3, '4': 1, '5': 11, '6': '.livekit.TrickleRequest', '9': 0, '10': 'trickle'},
-    {'1': 'add_track', '3': 4, '4': 1, '5': 11, '6': '.livekit.AddTrackRequest', '9': 0, '10': 'addTrack'},
-    {'1': 'mute', '3': 5, '4': 1, '5': 11, '6': '.livekit.MuteTrackRequest', '9': 0, '10': 'mute'},
-    {'1': 'subscription', '3': 6, '4': 1, '5': 11, '6': '.livekit.UpdateSubscription', '9': 0, '10': 'subscription'},
-    {'1': 'track_setting', '3': 7, '4': 1, '5': 11, '6': '.livekit.UpdateTrackSettings', '9': 0, '10': 'trackSetting'},
-    {'1': 'leave', '3': 8, '4': 1, '5': 11, '6': '.livekit.LeaveRequest', '9': 0, '10': 'leave'},
+    {
+      '1': 'offer',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '9': 0,
+      '10': 'offer'
+    },
+    {
+      '1': 'answer',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '9': 0,
+      '10': 'answer'
+    },
+    {
+      '1': 'trickle',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrickleRequest',
+      '9': 0,
+      '10': 'trickle'
+    },
+    {
+      '1': 'add_track',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AddTrackRequest',
+      '9': 0,
+      '10': 'addTrack'
+    },
+    {
+      '1': 'mute',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.MuteTrackRequest',
+      '9': 0,
+      '10': 'mute'
+    },
+    {
+      '1': 'subscription',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateSubscription',
+      '9': 0,
+      '10': 'subscription'
+    },
+    {
+      '1': 'track_setting',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateTrackSettings',
+      '9': 0,
+      '10': 'trackSetting'
+    },
+    {
+      '1': 'leave',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.LeaveRequest',
+      '9': 0,
+      '10': 'leave'
+    },
     {
       '1': 'update_layers',
       '3': 10,
@@ -75,17 +140,97 @@ const SignalRequest$json = {
       '9': 0,
       '10': 'updateLayers',
     },
-    {'1': 'subscription_permission', '3': 11, '4': 1, '5': 11, '6': '.livekit.SubscriptionPermission', '9': 0, '10': 'subscriptionPermission'},
-    {'1': 'sync_state', '3': 12, '4': 1, '5': 11, '6': '.livekit.SyncState', '9': 0, '10': 'syncState'},
-    {'1': 'simulate', '3': 13, '4': 1, '5': 11, '6': '.livekit.SimulateScenario', '9': 0, '10': 'simulate'},
+    {
+      '1': 'subscription_permission',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SubscriptionPermission',
+      '9': 0,
+      '10': 'subscriptionPermission'
+    },
+    {
+      '1': 'sync_state',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SyncState',
+      '9': 0,
+      '10': 'syncState'
+    },
+    {
+      '1': 'simulate',
+      '3': 13,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SimulateScenario',
+      '9': 0,
+      '10': 'simulate'
+    },
     {'1': 'ping', '3': 14, '4': 1, '5': 3, '9': 0, '10': 'ping'},
-    {'1': 'update_metadata', '3': 15, '4': 1, '5': 11, '6': '.livekit.UpdateParticipantMetadata', '9': 0, '10': 'updateMetadata'},
-    {'1': 'ping_req', '3': 16, '4': 1, '5': 11, '6': '.livekit.Ping', '9': 0, '10': 'pingReq'},
-    {'1': 'update_audio_track', '3': 17, '4': 1, '5': 11, '6': '.livekit.UpdateLocalAudioTrack', '9': 0, '10': 'updateAudioTrack'},
-    {'1': 'update_video_track', '3': 18, '4': 1, '5': 11, '6': '.livekit.UpdateLocalVideoTrack', '9': 0, '10': 'updateVideoTrack'},
-    {'1': 'publish_data_track_request', '3': 19, '4': 1, '5': 11, '6': '.livekit.PublishDataTrackRequest', '9': 0, '10': 'publishDataTrackRequest'},
-    {'1': 'unpublish_data_track_request', '3': 20, '4': 1, '5': 11, '6': '.livekit.UnpublishDataTrackRequest', '9': 0, '10': 'unpublishDataTrackRequest'},
-    {'1': 'update_data_subscription', '3': 21, '4': 1, '5': 11, '6': '.livekit.UpdateDataSubscription', '9': 0, '10': 'updateDataSubscription'},
+    {
+      '1': 'update_metadata',
+      '3': 15,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateParticipantMetadata',
+      '9': 0,
+      '10': 'updateMetadata'
+    },
+    {
+      '1': 'ping_req',
+      '3': 16,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.Ping',
+      '9': 0,
+      '10': 'pingReq'
+    },
+    {
+      '1': 'update_audio_track',
+      '3': 17,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateLocalAudioTrack',
+      '9': 0,
+      '10': 'updateAudioTrack'
+    },
+    {
+      '1': 'update_video_track',
+      '3': 18,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateLocalVideoTrack',
+      '9': 0,
+      '10': 'updateVideoTrack'
+    },
+    {
+      '1': 'publish_data_track_request',
+      '3': 19,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.PublishDataTrackRequest',
+      '9': 0,
+      '10': 'publishDataTrackRequest'
+    },
+    {
+      '1': 'unpublish_data_track_request',
+      '3': 20,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UnpublishDataTrackRequest',
+      '9': 0,
+      '10': 'unpublishDataTrackRequest'
+    },
+    {
+      '1': 'update_data_subscription',
+      '3': 21,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateDataSubscription',
+      '9': 0,
+      '10': 'updateDataSubscription'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -124,34 +269,249 @@ final $typed_data.Uint8List signalRequestDescriptor = $convert.base64Decode(
 const SignalResponse$json = {
   '1': 'SignalResponse',
   '2': [
-    {'1': 'join', '3': 1, '4': 1, '5': 11, '6': '.livekit.JoinResponse', '9': 0, '10': 'join'},
-    {'1': 'answer', '3': 2, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '9': 0, '10': 'answer'},
-    {'1': 'offer', '3': 3, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '9': 0, '10': 'offer'},
-    {'1': 'trickle', '3': 4, '4': 1, '5': 11, '6': '.livekit.TrickleRequest', '9': 0, '10': 'trickle'},
-    {'1': 'update', '3': 5, '4': 1, '5': 11, '6': '.livekit.ParticipantUpdate', '9': 0, '10': 'update'},
-    {'1': 'track_published', '3': 6, '4': 1, '5': 11, '6': '.livekit.TrackPublishedResponse', '9': 0, '10': 'trackPublished'},
-    {'1': 'leave', '3': 8, '4': 1, '5': 11, '6': '.livekit.LeaveRequest', '9': 0, '10': 'leave'},
-    {'1': 'mute', '3': 9, '4': 1, '5': 11, '6': '.livekit.MuteTrackRequest', '9': 0, '10': 'mute'},
-    {'1': 'speakers_changed', '3': 10, '4': 1, '5': 11, '6': '.livekit.SpeakersChanged', '9': 0, '10': 'speakersChanged'},
-    {'1': 'room_update', '3': 11, '4': 1, '5': 11, '6': '.livekit.RoomUpdate', '9': 0, '10': 'roomUpdate'},
-    {'1': 'connection_quality', '3': 12, '4': 1, '5': 11, '6': '.livekit.ConnectionQualityUpdate', '9': 0, '10': 'connectionQuality'},
-    {'1': 'stream_state_update', '3': 13, '4': 1, '5': 11, '6': '.livekit.StreamStateUpdate', '9': 0, '10': 'streamStateUpdate'},
-    {'1': 'subscribed_quality_update', '3': 14, '4': 1, '5': 11, '6': '.livekit.SubscribedQualityUpdate', '9': 0, '10': 'subscribedQualityUpdate'},
-    {'1': 'subscription_permission_update', '3': 15, '4': 1, '5': 11, '6': '.livekit.SubscriptionPermissionUpdate', '9': 0, '10': 'subscriptionPermissionUpdate'},
-    {'1': 'refresh_token', '3': 16, '4': 1, '5': 9, '9': 0, '10': 'refreshToken'},
-    {'1': 'track_unpublished', '3': 17, '4': 1, '5': 11, '6': '.livekit.TrackUnpublishedResponse', '9': 0, '10': 'trackUnpublished'},
+    {
+      '1': 'join',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.JoinResponse',
+      '9': 0,
+      '10': 'join'
+    },
+    {
+      '1': 'answer',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '9': 0,
+      '10': 'answer'
+    },
+    {
+      '1': 'offer',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '9': 0,
+      '10': 'offer'
+    },
+    {
+      '1': 'trickle',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrickleRequest',
+      '9': 0,
+      '10': 'trickle'
+    },
+    {
+      '1': 'update',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantUpdate',
+      '9': 0,
+      '10': 'update'
+    },
+    {
+      '1': 'track_published',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackPublishedResponse',
+      '9': 0,
+      '10': 'trackPublished'
+    },
+    {
+      '1': 'leave',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.LeaveRequest',
+      '9': 0,
+      '10': 'leave'
+    },
+    {
+      '1': 'mute',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.MuteTrackRequest',
+      '9': 0,
+      '10': 'mute'
+    },
+    {
+      '1': 'speakers_changed',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SpeakersChanged',
+      '9': 0,
+      '10': 'speakersChanged'
+    },
+    {
+      '1': 'room_update',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomUpdate',
+      '9': 0,
+      '10': 'roomUpdate'
+    },
+    {
+      '1': 'connection_quality',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ConnectionQualityUpdate',
+      '9': 0,
+      '10': 'connectionQuality'
+    },
+    {
+      '1': 'stream_state_update',
+      '3': 13,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.StreamStateUpdate',
+      '9': 0,
+      '10': 'streamStateUpdate'
+    },
+    {
+      '1': 'subscribed_quality_update',
+      '3': 14,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SubscribedQualityUpdate',
+      '9': 0,
+      '10': 'subscribedQualityUpdate'
+    },
+    {
+      '1': 'subscription_permission_update',
+      '3': 15,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SubscriptionPermissionUpdate',
+      '9': 0,
+      '10': 'subscriptionPermissionUpdate'
+    },
+    {
+      '1': 'refresh_token',
+      '3': 16,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'refreshToken'
+    },
+    {
+      '1': 'track_unpublished',
+      '3': 17,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackUnpublishedResponse',
+      '9': 0,
+      '10': 'trackUnpublished'
+    },
     {'1': 'pong', '3': 18, '4': 1, '5': 3, '9': 0, '10': 'pong'},
-    {'1': 'reconnect', '3': 19, '4': 1, '5': 11, '6': '.livekit.ReconnectResponse', '9': 0, '10': 'reconnect'},
-    {'1': 'pong_resp', '3': 20, '4': 1, '5': 11, '6': '.livekit.Pong', '9': 0, '10': 'pongResp'},
-    {'1': 'subscription_response', '3': 21, '4': 1, '5': 11, '6': '.livekit.SubscriptionResponse', '9': 0, '10': 'subscriptionResponse'},
-    {'1': 'request_response', '3': 22, '4': 1, '5': 11, '6': '.livekit.RequestResponse', '9': 0, '10': 'requestResponse'},
-    {'1': 'track_subscribed', '3': 23, '4': 1, '5': 11, '6': '.livekit.TrackSubscribed', '9': 0, '10': 'trackSubscribed'},
-    {'1': 'room_moved', '3': 24, '4': 1, '5': 11, '6': '.livekit.RoomMovedResponse', '9': 0, '10': 'roomMoved'},
-    {'1': 'media_sections_requirement', '3': 25, '4': 1, '5': 11, '6': '.livekit.MediaSectionsRequirement', '9': 0, '10': 'mediaSectionsRequirement'},
-    {'1': 'subscribed_audio_codec_update', '3': 26, '4': 1, '5': 11, '6': '.livekit.SubscribedAudioCodecUpdate', '9': 0, '10': 'subscribedAudioCodecUpdate'},
-    {'1': 'publish_data_track_response', '3': 27, '4': 1, '5': 11, '6': '.livekit.PublishDataTrackResponse', '9': 0, '10': 'publishDataTrackResponse'},
-    {'1': 'unpublish_data_track_response', '3': 28, '4': 1, '5': 11, '6': '.livekit.UnpublishDataTrackResponse', '9': 0, '10': 'unpublishDataTrackResponse'},
-    {'1': 'data_track_subscriber_handles', '3': 29, '4': 1, '5': 11, '6': '.livekit.DataTrackSubscriberHandles', '9': 0, '10': 'dataTrackSubscriberHandles'},
+    {
+      '1': 'reconnect',
+      '3': 19,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ReconnectResponse',
+      '9': 0,
+      '10': 'reconnect'
+    },
+    {
+      '1': 'pong_resp',
+      '3': 20,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.Pong',
+      '9': 0,
+      '10': 'pongResp'
+    },
+    {
+      '1': 'subscription_response',
+      '3': 21,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SubscriptionResponse',
+      '9': 0,
+      '10': 'subscriptionResponse'
+    },
+    {
+      '1': 'request_response',
+      '3': 22,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RequestResponse',
+      '9': 0,
+      '10': 'requestResponse'
+    },
+    {
+      '1': 'track_subscribed',
+      '3': 23,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackSubscribed',
+      '9': 0,
+      '10': 'trackSubscribed'
+    },
+    {
+      '1': 'room_moved',
+      '3': 24,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomMovedResponse',
+      '9': 0,
+      '10': 'roomMoved'
+    },
+    {
+      '1': 'media_sections_requirement',
+      '3': 25,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.MediaSectionsRequirement',
+      '9': 0,
+      '10': 'mediaSectionsRequirement'
+    },
+    {
+      '1': 'subscribed_audio_codec_update',
+      '3': 26,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SubscribedAudioCodecUpdate',
+      '9': 0,
+      '10': 'subscribedAudioCodecUpdate'
+    },
+    {
+      '1': 'publish_data_track_response',
+      '3': 27,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.PublishDataTrackResponse',
+      '9': 0,
+      '10': 'publishDataTrackResponse'
+    },
+    {
+      '1': 'unpublish_data_track_response',
+      '3': 28,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UnpublishDataTrackResponse',
+      '9': 0,
+      '10': 'unpublishDataTrackResponse'
+    },
+    {
+      '1': 'data_track_subscriber_handles',
+      '3': 29,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.DataTrackSubscriberHandles',
+      '9': 0,
+      '10': 'dataTrackSubscriberHandles'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -204,8 +564,22 @@ const SimulcastCodec$json = {
   '2': [
     {'1': 'codec', '3': 1, '4': 1, '5': 9, '10': 'codec'},
     {'1': 'cid', '3': 2, '4': 1, '5': 9, '10': 'cid'},
-    {'1': 'layers', '3': 4, '4': 3, '5': 11, '6': '.livekit.VideoLayer', '10': 'layers'},
-    {'1': 'video_layer_mode', '3': 5, '4': 1, '5': 14, '6': '.livekit.VideoLayer.Mode', '10': 'videoLayerMode'},
+    {
+      '1': 'layers',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.VideoLayer',
+      '10': 'layers'
+    },
+    {
+      '1': 'video_layer_mode',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.VideoLayer.Mode',
+      '10': 'videoLayerMode'
+    },
   ],
 };
 
@@ -222,7 +596,14 @@ const AddTrackRequest$json = {
   '2': [
     {'1': 'cid', '3': 1, '4': 1, '5': 9, '10': 'cid'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
-    {'1': 'type', '3': 3, '4': 1, '5': 14, '6': '.livekit.TrackType', '10': 'type'},
+    {
+      '1': 'type',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.TrackType',
+      '10': 'type'
+    },
     {'1': 'width', '3': 4, '4': 1, '5': 13, '10': 'width'},
     {'1': 'height', '3': 5, '4': 1, '5': 13, '10': 'height'},
     {'1': 'muted', '3': 6, '4': 1, '5': 8, '10': 'muted'},
@@ -234,9 +615,30 @@ const AddTrackRequest$json = {
       '8': {'3': true},
       '10': 'disableDtx',
     },
-    {'1': 'source', '3': 8, '4': 1, '5': 14, '6': '.livekit.TrackSource', '10': 'source'},
-    {'1': 'layers', '3': 9, '4': 3, '5': 11, '6': '.livekit.VideoLayer', '10': 'layers'},
-    {'1': 'simulcast_codecs', '3': 10, '4': 3, '5': 11, '6': '.livekit.SimulcastCodec', '10': 'simulcastCodecs'},
+    {
+      '1': 'source',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.TrackSource',
+      '10': 'source'
+    },
+    {
+      '1': 'layers',
+      '3': 9,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.VideoLayer',
+      '10': 'layers'
+    },
+    {
+      '1': 'simulcast_codecs',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SimulcastCodec',
+      '10': 'simulcastCodecs'
+    },
     {'1': 'sid', '3': 11, '4': 1, '5': 9, '10': 'sid'},
     {
       '1': 'stereo',
@@ -247,10 +649,31 @@ const AddTrackRequest$json = {
       '10': 'stereo',
     },
     {'1': 'disable_red', '3': 13, '4': 1, '5': 8, '10': 'disableRed'},
-    {'1': 'encryption', '3': 14, '4': 1, '5': 14, '6': '.livekit.Encryption.Type', '10': 'encryption'},
+    {
+      '1': 'encryption',
+      '3': 14,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.Encryption.Type',
+      '10': 'encryption'
+    },
     {'1': 'stream', '3': 15, '4': 1, '5': 9, '10': 'stream'},
-    {'1': 'backup_codec_policy', '3': 16, '4': 1, '5': 14, '6': '.livekit.BackupCodecPolicy', '10': 'backupCodecPolicy'},
-    {'1': 'audio_features', '3': 17, '4': 3, '5': 14, '6': '.livekit.AudioTrackFeature', '10': 'audioFeatures'},
+    {
+      '1': 'backup_codec_policy',
+      '3': 16,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.BackupCodecPolicy',
+      '10': 'backupCodecPolicy'
+    },
+    {
+      '1': 'audio_features',
+      '3': 17,
+      '4': 3,
+      '5': 14,
+      '6': '.livekit.AudioTrackFeature',
+      '10': 'audioFeatures'
+    },
   ],
 };
 
@@ -275,7 +698,14 @@ const PublishDataTrackRequest$json = {
   '2': [
     {'1': 'pub_handle', '3': 1, '4': 1, '5': 13, '10': 'pubHandle'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
-    {'1': 'encryption', '3': 3, '4': 1, '5': 14, '6': '.livekit.Encryption.Type', '10': 'encryption'},
+    {
+      '1': 'encryption',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.Encryption.Type',
+      '10': 'encryption'
+    },
   ],
 };
 
@@ -289,14 +719,22 @@ final $typed_data.Uint8List publishDataTrackRequestDescriptor = $convert.base64D
 const PublishDataTrackResponse$json = {
   '1': 'PublishDataTrackResponse',
   '2': [
-    {'1': 'info', '3': 1, '4': 1, '5': 11, '6': '.livekit.DataTrackInfo', '10': 'info'},
+    {
+      '1': 'info',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.DataTrackInfo',
+      '10': 'info'
+    },
   ],
 };
 
 /// Descriptor for `PublishDataTrackResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List publishDataTrackResponseDescriptor = $convert.base64Decode(
-    'ChhQdWJsaXNoRGF0YVRyYWNrUmVzcG9uc2USKgoEaW5mbxgBIAEoCzIWLmxpdmVraXQuRGF0YV'
-    'RyYWNrSW5mb1IEaW5mbw==');
+final $typed_data.Uint8List publishDataTrackResponseDescriptor =
+    $convert.base64Decode(
+        'ChhQdWJsaXNoRGF0YVRyYWNrUmVzcG9uc2USKgoEaW5mbxgBIAEoCzIWLmxpdmVraXQuRGF0YV'
+        'RyYWNrSW5mb1IEaW5mbw==');
 
 @$core.Deprecated('Use unpublishDataTrackRequestDescriptor instead')
 const UnpublishDataTrackRequest$json = {
@@ -307,37 +745,62 @@ const UnpublishDataTrackRequest$json = {
 };
 
 /// Descriptor for `UnpublishDataTrackRequest`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List unpublishDataTrackRequestDescriptor = $convert.base64Decode(
-    'ChlVbnB1Ymxpc2hEYXRhVHJhY2tSZXF1ZXN0Eh0KCnB1Yl9oYW5kbGUYASABKA1SCXB1Ykhhbm'
-    'RsZQ==');
+final $typed_data.Uint8List unpublishDataTrackRequestDescriptor =
+    $convert.base64Decode(
+        'ChlVbnB1Ymxpc2hEYXRhVHJhY2tSZXF1ZXN0Eh0KCnB1Yl9oYW5kbGUYASABKA1SCXB1Ykhhbm'
+        'RsZQ==');
 
 @$core.Deprecated('Use unpublishDataTrackResponseDescriptor instead')
 const UnpublishDataTrackResponse$json = {
   '1': 'UnpublishDataTrackResponse',
   '2': [
-    {'1': 'info', '3': 1, '4': 1, '5': 11, '6': '.livekit.DataTrackInfo', '10': 'info'},
+    {
+      '1': 'info',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.DataTrackInfo',
+      '10': 'info'
+    },
   ],
 };
 
 /// Descriptor for `UnpublishDataTrackResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List unpublishDataTrackResponseDescriptor = $convert.base64Decode(
-    'ChpVbnB1Ymxpc2hEYXRhVHJhY2tSZXNwb25zZRIqCgRpbmZvGAEgASgLMhYubGl2ZWtpdC5EYX'
-    'RhVHJhY2tJbmZvUgRpbmZv');
+final $typed_data.Uint8List unpublishDataTrackResponseDescriptor =
+    $convert.base64Decode(
+        'ChpVbnB1Ymxpc2hEYXRhVHJhY2tSZXNwb25zZRIqCgRpbmZvGAEgASgLMhYubGl2ZWtpdC5EYX'
+        'RhVHJhY2tJbmZvUgRpbmZv');
 
 @$core.Deprecated('Use dataTrackSubscriberHandlesDescriptor instead')
 const DataTrackSubscriberHandles$json = {
   '1': 'DataTrackSubscriberHandles',
   '2': [
-    {'1': 'sub_handles', '3': 1, '4': 3, '5': 11, '6': '.livekit.DataTrackSubscriberHandles.SubHandlesEntry', '10': 'subHandles'},
+    {
+      '1': 'sub_handles',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.DataTrackSubscriberHandles.SubHandlesEntry',
+      '10': 'subHandles'
+    },
   ],
-  '3': [DataTrackSubscriberHandles_PublishedDataTrack$json, DataTrackSubscriberHandles_SubHandlesEntry$json],
+  '3': [
+    DataTrackSubscriberHandles_PublishedDataTrack$json,
+    DataTrackSubscriberHandles_SubHandlesEntry$json
+  ],
 };
 
 @$core.Deprecated('Use dataTrackSubscriberHandlesDescriptor instead')
 const DataTrackSubscriberHandles_PublishedDataTrack$json = {
   '1': 'PublishedDataTrack',
   '2': [
-    {'1': 'publisher_identity', '3': 1, '4': 1, '5': 9, '10': 'publisherIdentity'},
+    {
+      '1': 'publisher_identity',
+      '3': 1,
+      '4': 1,
+      '5': 9,
+      '10': 'publisherIdentity'
+    },
     {'1': 'publisher_sid', '3': 2, '4': 1, '5': 9, '10': 'publisherSid'},
     {'1': 'track_sid', '3': 3, '4': 1, '5': 9, '10': 'trackSid'},
   ],
@@ -348,7 +811,14 @@ const DataTrackSubscriberHandles_SubHandlesEntry$json = {
   '1': 'SubHandlesEntry',
   '2': [
     {'1': 'key', '3': 1, '4': 1, '5': 13, '10': 'key'},
-    {'1': 'value', '3': 2, '4': 1, '5': 11, '6': '.livekit.DataTrackSubscriberHandles.PublishedDataTrack', '10': 'value'},
+    {
+      '1': 'value',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.DataTrackSubscriberHandles.PublishedDataTrack',
+      '10': 'value'
+    },
   ],
   '7': {'7': true},
 };
@@ -368,7 +838,14 @@ const TrickleRequest$json = {
   '1': 'TrickleRequest',
   '2': [
     {'1': 'candidateInit', '3': 1, '4': 1, '5': 9, '10': 'candidateInit'},
-    {'1': 'target', '3': 2, '4': 1, '5': 14, '6': '.livekit.SignalTarget', '10': 'target'},
+    {
+      '1': 'target',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SignalTarget',
+      '10': 'target'
+    },
     {'1': 'final', '3': 3, '4': 1, '5': 8, '10': 'final'},
   ],
 };
@@ -398,19 +875,67 @@ const JoinResponse$json = {
   '1': 'JoinResponse',
   '2': [
     {'1': 'room', '3': 1, '4': 1, '5': 11, '6': '.livekit.Room', '10': 'room'},
-    {'1': 'participant', '3': 2, '4': 1, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participant'},
-    {'1': 'other_participants', '3': 3, '4': 3, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'otherParticipants'},
+    {
+      '1': 'participant',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'participant'
+    },
+    {
+      '1': 'other_participants',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'otherParticipants'
+    },
     {'1': 'server_version', '3': 4, '4': 1, '5': 9, '10': 'serverVersion'},
-    {'1': 'ice_servers', '3': 5, '4': 3, '5': 11, '6': '.livekit.ICEServer', '10': 'iceServers'},
-    {'1': 'subscriber_primary', '3': 6, '4': 1, '5': 8, '10': 'subscriberPrimary'},
+    {
+      '1': 'ice_servers',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ICEServer',
+      '10': 'iceServers'
+    },
+    {
+      '1': 'subscriber_primary',
+      '3': 6,
+      '4': 1,
+      '5': 8,
+      '10': 'subscriberPrimary'
+    },
     {'1': 'alternative_url', '3': 7, '4': 1, '5': 9, '10': 'alternativeUrl'},
-    {'1': 'client_configuration', '3': 8, '4': 1, '5': 11, '6': '.livekit.ClientConfiguration', '10': 'clientConfiguration'},
+    {
+      '1': 'client_configuration',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ClientConfiguration',
+      '10': 'clientConfiguration'
+    },
     {'1': 'server_region', '3': 9, '4': 1, '5': 9, '10': 'serverRegion'},
     {'1': 'ping_timeout', '3': 10, '4': 1, '5': 5, '10': 'pingTimeout'},
     {'1': 'ping_interval', '3': 11, '4': 1, '5': 5, '10': 'pingInterval'},
-    {'1': 'server_info', '3': 12, '4': 1, '5': 11, '6': '.livekit.ServerInfo', '10': 'serverInfo'},
+    {
+      '1': 'server_info',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ServerInfo',
+      '10': 'serverInfo'
+    },
     {'1': 'sif_trailer', '3': 13, '4': 1, '5': 12, '10': 'sifTrailer'},
-    {'1': 'enabled_publish_codecs', '3': 14, '4': 3, '5': 11, '6': '.livekit.Codec', '10': 'enabledPublishCodecs'},
+    {
+      '1': 'enabled_publish_codecs',
+      '3': 14,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.Codec',
+      '10': 'enabledPublishCodecs'
+    },
     {'1': 'fast_publish', '3': 15, '4': 1, '5': 8, '10': 'fastPublish'},
   ],
 };
@@ -436,9 +961,30 @@ final $typed_data.Uint8List joinResponseDescriptor = $convert.base64Decode(
 const ReconnectResponse$json = {
   '1': 'ReconnectResponse',
   '2': [
-    {'1': 'ice_servers', '3': 1, '4': 3, '5': 11, '6': '.livekit.ICEServer', '10': 'iceServers'},
-    {'1': 'client_configuration', '3': 2, '4': 1, '5': 11, '6': '.livekit.ClientConfiguration', '10': 'clientConfiguration'},
-    {'1': 'server_info', '3': 3, '4': 1, '5': 11, '6': '.livekit.ServerInfo', '10': 'serverInfo'},
+    {
+      '1': 'ice_servers',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ICEServer',
+      '10': 'iceServers'
+    },
+    {
+      '1': 'client_configuration',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ClientConfiguration',
+      '10': 'clientConfiguration'
+    },
+    {
+      '1': 'server_info',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ServerInfo',
+      '10': 'serverInfo'
+    },
     {'1': 'last_message_seq', '3': 4, '4': 1, '5': 13, '10': 'lastMessageSeq'},
   ],
 };
@@ -456,14 +1002,22 @@ const TrackPublishedResponse$json = {
   '1': 'TrackPublishedResponse',
   '2': [
     {'1': 'cid', '3': 1, '4': 1, '5': 9, '10': 'cid'},
-    {'1': 'track', '3': 2, '4': 1, '5': 11, '6': '.livekit.TrackInfo', '10': 'track'},
+    {
+      '1': 'track',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackInfo',
+      '10': 'track'
+    },
   ],
 };
 
 /// Descriptor for `TrackPublishedResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List trackPublishedResponseDescriptor = $convert.base64Decode(
-    'ChZUcmFja1B1Ymxpc2hlZFJlc3BvbnNlEhAKA2NpZBgBIAEoCVIDY2lkEigKBXRyYWNrGAIgAS'
-    'gLMhIubGl2ZWtpdC5UcmFja0luZm9SBXRyYWNr');
+final $typed_data.Uint8List trackPublishedResponseDescriptor =
+    $convert.base64Decode(
+        'ChZUcmFja1B1Ymxpc2hlZFJlc3BvbnNlEhAKA2NpZBgBIAEoCVIDY2lkEigKBXRyYWNrGAIgAS'
+        'gLMhIubGl2ZWtpdC5UcmFja0luZm9SBXRyYWNr');
 
 @$core.Deprecated('Use trackUnpublishedResponseDescriptor instead')
 const TrackUnpublishedResponse$json = {
@@ -474,9 +1028,10 @@ const TrackUnpublishedResponse$json = {
 };
 
 /// Descriptor for `TrackUnpublishedResponse`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List trackUnpublishedResponseDescriptor = $convert.base64Decode(
-    'ChhUcmFja1VucHVibGlzaGVkUmVzcG9uc2USGwoJdHJhY2tfc2lkGAEgASgJUgh0cmFja1NpZA'
-    '==');
+final $typed_data.Uint8List trackUnpublishedResponseDescriptor =
+    $convert.base64Decode(
+        'ChhUcmFja1VucHVibGlzaGVkUmVzcG9uc2USGwoJdHJhY2tfc2lkGAEgASgJUgh0cmFja1NpZA'
+        '==');
 
 @$core.Deprecated('Use sessionDescriptionDescriptor instead')
 const SessionDescription$json = {
@@ -485,7 +1040,14 @@ const SessionDescription$json = {
     {'1': 'type', '3': 1, '4': 1, '5': 9, '10': 'type'},
     {'1': 'sdp', '3': 2, '4': 1, '5': 9, '10': 'sdp'},
     {'1': 'id', '3': 3, '4': 1, '5': 13, '10': 'id'},
-    {'1': 'mid_to_track_id', '3': 4, '4': 3, '5': 11, '6': '.livekit.SessionDescription.MidToTrackIdEntry', '10': 'midToTrackId'},
+    {
+      '1': 'mid_to_track_id',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SessionDescription.MidToTrackIdEntry',
+      '10': 'midToTrackId'
+    },
   ],
   '3': [SessionDescription_MidToTrackIdEntry$json],
 };
@@ -512,7 +1074,14 @@ final $typed_data.Uint8List sessionDescriptionDescriptor = $convert.base64Decode
 const ParticipantUpdate$json = {
   '1': 'ParticipantUpdate',
   '2': [
-    {'1': 'participants', '3': 1, '4': 3, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participants'},
+    {
+      '1': 'participants',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'participants'
+    },
   ],
 };
 
@@ -527,7 +1096,14 @@ const UpdateSubscription$json = {
   '2': [
     {'1': 'track_sids', '3': 1, '4': 3, '5': 9, '10': 'trackSids'},
     {'1': 'subscribe', '3': 2, '4': 1, '5': 8, '10': 'subscribe'},
-    {'1': 'participant_tracks', '3': 3, '4': 3, '5': 11, '6': '.livekit.ParticipantTracks', '10': 'participantTracks'},
+    {
+      '1': 'participant_tracks',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantTracks',
+      '10': 'participantTracks'
+    },
   ],
 };
 
@@ -541,7 +1117,14 @@ final $typed_data.Uint8List updateSubscriptionDescriptor = $convert.base64Decode
 const UpdateDataSubscription$json = {
   '1': 'UpdateDataSubscription',
   '2': [
-    {'1': 'updates', '3': 1, '4': 3, '5': 11, '6': '.livekit.UpdateDataSubscription.Update', '10': 'updates'},
+    {
+      '1': 'updates',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.UpdateDataSubscription.Update',
+      '10': 'updates'
+    },
   ],
   '3': [UpdateDataSubscription_Update$json],
 };
@@ -552,7 +1135,14 @@ const UpdateDataSubscription_Update$json = {
   '2': [
     {'1': 'track_sid', '3': 1, '4': 1, '5': 9, '10': 'trackSid'},
     {'1': 'subscribe', '3': 2, '4': 1, '5': 8, '10': 'subscribe'},
-    {'1': 'options', '3': 3, '4': 1, '5': 11, '6': '.livekit.DataTrackSubscriptionOptions', '10': 'options'},
+    {
+      '1': 'options',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.DataTrackSubscriptionOptions',
+      '10': 'options'
+    },
   ],
 };
 
@@ -570,7 +1160,14 @@ const UpdateTrackSettings$json = {
   '2': [
     {'1': 'track_sids', '3': 1, '4': 3, '5': 9, '10': 'trackSids'},
     {'1': 'disabled', '3': 3, '4': 1, '5': 8, '10': 'disabled'},
-    {'1': 'quality', '3': 4, '4': 1, '5': 14, '6': '.livekit.VideoQuality', '10': 'quality'},
+    {
+      '1': 'quality',
+      '3': 4,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.VideoQuality',
+      '10': 'quality'
+    },
     {'1': 'width', '3': 5, '4': 1, '5': 13, '10': 'width'},
     {'1': 'height', '3': 6, '4': 1, '5': 13, '10': 'height'},
     {'1': 'fps', '3': 7, '4': 1, '5': 13, '10': 'fps'},
@@ -590,7 +1187,14 @@ const UpdateLocalAudioTrack$json = {
   '1': 'UpdateLocalAudioTrack',
   '2': [
     {'1': 'track_sid', '3': 1, '4': 1, '5': 9, '10': 'trackSid'},
-    {'1': 'features', '3': 2, '4': 3, '5': 14, '6': '.livekit.AudioTrackFeature', '10': 'features'},
+    {
+      '1': 'features',
+      '3': 2,
+      '4': 3,
+      '5': 14,
+      '6': '.livekit.AudioTrackFeature',
+      '10': 'features'
+    },
   ],
 };
 
@@ -619,9 +1223,30 @@ const LeaveRequest$json = {
   '1': 'LeaveRequest',
   '2': [
     {'1': 'can_reconnect', '3': 1, '4': 1, '5': 8, '10': 'canReconnect'},
-    {'1': 'reason', '3': 2, '4': 1, '5': 14, '6': '.livekit.DisconnectReason', '10': 'reason'},
-    {'1': 'action', '3': 3, '4': 1, '5': 14, '6': '.livekit.LeaveRequest.Action', '10': 'action'},
-    {'1': 'regions', '3': 4, '4': 1, '5': 11, '6': '.livekit.RegionSettings', '10': 'regions'},
+    {
+      '1': 'reason',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.DisconnectReason',
+      '10': 'reason'
+    },
+    {
+      '1': 'action',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.LeaveRequest.Action',
+      '10': 'action'
+    },
+    {
+      '1': 'regions',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RegionSettings',
+      '10': 'regions'
+    },
   ],
   '4': [LeaveRequest_Action$json],
 };
@@ -649,7 +1274,14 @@ const UpdateVideoLayers$json = {
   '1': 'UpdateVideoLayers',
   '2': [
     {'1': 'track_sid', '3': 1, '4': 1, '5': 9, '10': 'trackSid'},
-    {'1': 'layers', '3': 2, '4': 3, '5': 11, '6': '.livekit.VideoLayer', '10': 'layers'},
+    {
+      '1': 'layers',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.VideoLayer',
+      '10': 'layers'
+    },
   ],
   '7': {'3': true},
 };
@@ -665,7 +1297,15 @@ const UpdateParticipantMetadata$json = {
   '2': [
     {'1': 'metadata', '3': 1, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '8': {}, '10': 'name'},
-    {'1': 'attributes', '3': 3, '4': 3, '5': 11, '6': '.livekit.UpdateParticipantMetadata.AttributesEntry', '8': {}, '10': 'attributes'},
+    {
+      '1': 'attributes',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.UpdateParticipantMetadata.AttributesEntry',
+      '8': {},
+      '10': 'attributes'
+    },
     {'1': 'request_id', '3': 4, '4': 1, '5': 13, '10': 'requestId'},
   ],
   '3': [UpdateParticipantMetadata_AttributesEntry$json],
@@ -710,7 +1350,14 @@ final $typed_data.Uint8List iCEServerDescriptor = $convert.base64Decode(
 const SpeakersChanged$json = {
   '1': 'SpeakersChanged',
   '2': [
-    {'1': 'speakers', '3': 1, '4': 3, '5': 11, '6': '.livekit.SpeakerInfo', '10': 'speakers'},
+    {
+      '1': 'speakers',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SpeakerInfo',
+      '10': 'speakers'
+    },
   ],
 };
 
@@ -736,7 +1383,14 @@ const ConnectionQualityInfo$json = {
   '1': 'ConnectionQualityInfo',
   '2': [
     {'1': 'participant_sid', '3': 1, '4': 1, '5': 9, '10': 'participantSid'},
-    {'1': 'quality', '3': 2, '4': 1, '5': 14, '6': '.livekit.ConnectionQuality', '10': 'quality'},
+    {
+      '1': 'quality',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ConnectionQuality',
+      '10': 'quality'
+    },
     {'1': 'score', '3': 3, '4': 1, '5': 2, '10': 'score'},
   ],
 };
@@ -751,14 +1405,22 @@ final $typed_data.Uint8List connectionQualityInfoDescriptor = $convert.base64Dec
 const ConnectionQualityUpdate$json = {
   '1': 'ConnectionQualityUpdate',
   '2': [
-    {'1': 'updates', '3': 1, '4': 3, '5': 11, '6': '.livekit.ConnectionQualityInfo', '10': 'updates'},
+    {
+      '1': 'updates',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ConnectionQualityInfo',
+      '10': 'updates'
+    },
   ],
 };
 
 /// Descriptor for `ConnectionQualityUpdate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List connectionQualityUpdateDescriptor = $convert.base64Decode(
-    'ChdDb25uZWN0aW9uUXVhbGl0eVVwZGF0ZRI4Cgd1cGRhdGVzGAEgAygLMh4ubGl2ZWtpdC5Db2'
-    '5uZWN0aW9uUXVhbGl0eUluZm9SB3VwZGF0ZXM=');
+final $typed_data.Uint8List connectionQualityUpdateDescriptor =
+    $convert.base64Decode(
+        'ChdDb25uZWN0aW9uUXVhbGl0eVVwZGF0ZRI4Cgd1cGRhdGVzGAEgAygLMh4ubGl2ZWtpdC5Db2'
+        '5uZWN0aW9uUXVhbGl0eUluZm9SB3VwZGF0ZXM=');
 
 @$core.Deprecated('Use streamStateInfoDescriptor instead')
 const StreamStateInfo$json = {
@@ -766,7 +1428,14 @@ const StreamStateInfo$json = {
   '2': [
     {'1': 'participant_sid', '3': 1, '4': 1, '5': 9, '10': 'participantSid'},
     {'1': 'track_sid', '3': 2, '4': 1, '5': 9, '10': 'trackSid'},
-    {'1': 'state', '3': 3, '4': 1, '5': 14, '6': '.livekit.StreamState', '10': 'state'},
+    {
+      '1': 'state',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.StreamState',
+      '10': 'state'
+    },
   ],
 };
 
@@ -780,7 +1449,14 @@ final $typed_data.Uint8List streamStateInfoDescriptor = $convert.base64Decode(
 const StreamStateUpdate$json = {
   '1': 'StreamStateUpdate',
   '2': [
-    {'1': 'stream_states', '3': 1, '4': 3, '5': 11, '6': '.livekit.StreamStateInfo', '10': 'streamStates'},
+    {
+      '1': 'stream_states',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.StreamStateInfo',
+      '10': 'streamStates'
+    },
   ],
 };
 
@@ -793,7 +1469,14 @@ final $typed_data.Uint8List streamStateUpdateDescriptor = $convert.base64Decode(
 const SubscribedQuality$json = {
   '1': 'SubscribedQuality',
   '2': [
-    {'1': 'quality', '3': 1, '4': 1, '5': 14, '6': '.livekit.VideoQuality', '10': 'quality'},
+    {
+      '1': 'quality',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.VideoQuality',
+      '10': 'quality'
+    },
     {'1': 'enabled', '3': 2, '4': 1, '5': 8, '10': 'enabled'},
   ],
 };
@@ -808,7 +1491,14 @@ const SubscribedCodec$json = {
   '1': 'SubscribedCodec',
   '2': [
     {'1': 'codec', '3': 1, '4': 1, '5': 9, '10': 'codec'},
-    {'1': 'qualities', '3': 2, '4': 3, '5': 11, '6': '.livekit.SubscribedQuality', '10': 'qualities'},
+    {
+      '1': 'qualities',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SubscribedQuality',
+      '10': 'qualities'
+    },
   ],
 };
 
@@ -831,7 +1521,14 @@ const SubscribedQualityUpdate$json = {
       '8': {'3': true},
       '10': 'subscribedQualities',
     },
-    {'1': 'subscribed_codecs', '3': 3, '4': 3, '5': 11, '6': '.livekit.SubscribedCodec', '10': 'subscribedCodecs'},
+    {
+      '1': 'subscribed_codecs',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SubscribedCodec',
+      '10': 'subscribedCodecs'
+    },
   ],
 };
 
@@ -847,15 +1544,23 @@ const SubscribedAudioCodecUpdate$json = {
   '1': 'SubscribedAudioCodecUpdate',
   '2': [
     {'1': 'track_sid', '3': 1, '4': 1, '5': 9, '10': 'trackSid'},
-    {'1': 'subscribed_audio_codecs', '3': 2, '4': 3, '5': 11, '6': '.livekit.SubscribedAudioCodec', '10': 'subscribedAudioCodecs'},
+    {
+      '1': 'subscribed_audio_codecs',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SubscribedAudioCodec',
+      '10': 'subscribedAudioCodecs'
+    },
   ],
 };
 
 /// Descriptor for `SubscribedAudioCodecUpdate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List subscribedAudioCodecUpdateDescriptor = $convert.base64Decode(
-    'ChpTdWJzY3JpYmVkQXVkaW9Db2RlY1VwZGF0ZRIbCgl0cmFja19zaWQYASABKAlSCHRyYWNrU2'
-    'lkElUKF3N1YnNjcmliZWRfYXVkaW9fY29kZWNzGAIgAygLMh0ubGl2ZWtpdC5TdWJzY3JpYmVk'
-    'QXVkaW9Db2RlY1IVc3Vic2NyaWJlZEF1ZGlvQ29kZWNz');
+final $typed_data.Uint8List subscribedAudioCodecUpdateDescriptor =
+    $convert.base64Decode(
+        'ChpTdWJzY3JpYmVkQXVkaW9Db2RlY1VwZGF0ZRIbCgl0cmFja19zaWQYASABKAlSCHRyYWNrU2'
+        'lkElUKF3N1YnNjcmliZWRfYXVkaW9fY29kZWNzGAIgAygLMh0ubGl2ZWtpdC5TdWJzY3JpYmVk'
+        'QXVkaW9Db2RlY1IVc3Vic2NyaWJlZEF1ZGlvQ29kZWNz');
 
 @$core.Deprecated('Use trackPermissionDescriptor instead')
 const TrackPermission$json = {
@@ -864,7 +1569,13 @@ const TrackPermission$json = {
     {'1': 'participant_sid', '3': 1, '4': 1, '5': 9, '10': 'participantSid'},
     {'1': 'all_tracks', '3': 2, '4': 1, '5': 8, '10': 'allTracks'},
     {'1': 'track_sids', '3': 3, '4': 3, '5': 9, '10': 'trackSids'},
-    {'1': 'participant_identity', '3': 4, '4': 1, '5': 9, '10': 'participantIdentity'},
+    {
+      '1': 'participant_identity',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
   ],
 };
 
@@ -880,7 +1591,14 @@ const SubscriptionPermission$json = {
   '1': 'SubscriptionPermission',
   '2': [
     {'1': 'all_participants', '3': 1, '4': 1, '5': 8, '10': 'allParticipants'},
-    {'1': 'track_permissions', '3': 2, '4': 3, '5': 11, '6': '.livekit.TrackPermission', '10': 'trackPermissions'},
+    {
+      '1': 'track_permissions',
+      '3': 2,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.TrackPermission',
+      '10': 'trackPermissions'
+    },
   ],
 };
 
@@ -901,10 +1619,11 @@ const SubscriptionPermissionUpdate$json = {
 };
 
 /// Descriptor for `SubscriptionPermissionUpdate`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List subscriptionPermissionUpdateDescriptor = $convert.base64Decode(
-    'ChxTdWJzY3JpcHRpb25QZXJtaXNzaW9uVXBkYXRlEicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCV'
-    'IOcGFydGljaXBhbnRTaWQSGwoJdHJhY2tfc2lkGAIgASgJUgh0cmFja1NpZBIYCgdhbGxvd2Vk'
-    'GAMgASgIUgdhbGxvd2Vk');
+final $typed_data.Uint8List subscriptionPermissionUpdateDescriptor =
+    $convert.base64Decode(
+        'ChxTdWJzY3JpcHRpb25QZXJtaXNzaW9uVXBkYXRlEicKD3BhcnRpY2lwYW50X3NpZBgBIAEoCV'
+        'IOcGFydGljaXBhbnRTaWQSGwoJdHJhY2tfc2lkGAIgASgJUgh0cmFja1NpZBIYCgdhbGxvd2Vk'
+        'GAMgASgIUgdhbGxvd2Vk');
 
 @$core.Deprecated('Use roomMovedResponseDescriptor instead')
 const RoomMovedResponse$json = {
@@ -912,8 +1631,22 @@ const RoomMovedResponse$json = {
   '2': [
     {'1': 'room', '3': 1, '4': 1, '5': 11, '6': '.livekit.Room', '10': 'room'},
     {'1': 'token', '3': 2, '4': 1, '5': 9, '10': 'token'},
-    {'1': 'participant', '3': 3, '4': 1, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participant'},
-    {'1': 'other_participants', '3': 4, '4': 3, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'otherParticipants'},
+    {
+      '1': 'participant',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'participant'
+    },
+    {
+      '1': 'other_participants',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'otherParticipants'
+    },
   ],
 };
 
@@ -928,14 +1661,69 @@ final $typed_data.Uint8List roomMovedResponseDescriptor = $convert.base64Decode(
 const SyncState$json = {
   '1': 'SyncState',
   '2': [
-    {'1': 'answer', '3': 1, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '10': 'answer'},
-    {'1': 'subscription', '3': 2, '4': 1, '5': 11, '6': '.livekit.UpdateSubscription', '10': 'subscription'},
-    {'1': 'publish_tracks', '3': 3, '4': 3, '5': 11, '6': '.livekit.TrackPublishedResponse', '10': 'publishTracks'},
-    {'1': 'data_channels', '3': 4, '4': 3, '5': 11, '6': '.livekit.DataChannelInfo', '10': 'dataChannels'},
-    {'1': 'offer', '3': 5, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '10': 'offer'},
-    {'1': 'track_sids_disabled', '3': 6, '4': 3, '5': 9, '10': 'trackSidsDisabled'},
-    {'1': 'datachannel_receive_states', '3': 7, '4': 3, '5': 11, '6': '.livekit.DataChannelReceiveState', '10': 'datachannelReceiveStates'},
-    {'1': 'publish_data_tracks', '3': 8, '4': 3, '5': 11, '6': '.livekit.PublishDataTrackResponse', '10': 'publishDataTracks'},
+    {
+      '1': 'answer',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '10': 'answer'
+    },
+    {
+      '1': 'subscription',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateSubscription',
+      '10': 'subscription'
+    },
+    {
+      '1': 'publish_tracks',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.TrackPublishedResponse',
+      '10': 'publishTracks'
+    },
+    {
+      '1': 'data_channels',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.DataChannelInfo',
+      '10': 'dataChannels'
+    },
+    {
+      '1': 'offer',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '10': 'offer'
+    },
+    {
+      '1': 'track_sids_disabled',
+      '3': 6,
+      '4': 3,
+      '5': 9,
+      '10': 'trackSidsDisabled'
+    },
+    {
+      '1': 'datachannel_receive_states',
+      '3': 7,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.DataChannelReceiveState',
+      '10': 'datachannelReceiveStates'
+    },
+    {
+      '1': 'publish_data_tracks',
+      '3': 8,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.PublishDataTrackResponse',
+      '10': 'publishDataTracks'
+    },
   ],
 };
 
@@ -962,9 +1750,10 @@ const DataChannelReceiveState$json = {
 };
 
 /// Descriptor for `DataChannelReceiveState`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List dataChannelReceiveStateDescriptor = $convert.base64Decode(
-    'ChdEYXRhQ2hhbm5lbFJlY2VpdmVTdGF0ZRIjCg1wdWJsaXNoZXJfc2lkGAEgASgJUgxwdWJsaX'
-    'NoZXJTaWQSGQoIbGFzdF9zZXEYAiABKA1SB2xhc3RTZXE=');
+final $typed_data.Uint8List dataChannelReceiveStateDescriptor =
+    $convert.base64Decode(
+        'ChdEYXRhQ2hhbm5lbFJlY2VpdmVTdGF0ZRIjCg1wdWJsaXNoZXJfc2lkGAEgASgJUgxwdWJsaX'
+        'NoZXJTaWQSGQoIbGFzdF9zZXEYAiABKA1SB2xhc3RTZXE=');
 
 @$core.Deprecated('Use dataChannelInfoDescriptor instead')
 const DataChannelInfo$json = {
@@ -972,7 +1761,14 @@ const DataChannelInfo$json = {
   '2': [
     {'1': 'label', '3': 1, '4': 1, '5': 9, '10': 'label'},
     {'1': 'id', '3': 2, '4': 1, '5': 13, '10': 'id'},
-    {'1': 'target', '3': 3, '4': 1, '5': 14, '6': '.livekit.SignalTarget', '10': 'target'},
+    {
+      '1': 'target',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SignalTarget',
+      '10': 'target'
+    },
   ],
 };
 
@@ -985,15 +1781,58 @@ final $typed_data.Uint8List dataChannelInfoDescriptor = $convert.base64Decode(
 const SimulateScenario$json = {
   '1': 'SimulateScenario',
   '2': [
-    {'1': 'speaker_update', '3': 1, '4': 1, '5': 5, '9': 0, '10': 'speakerUpdate'},
+    {
+      '1': 'speaker_update',
+      '3': 1,
+      '4': 1,
+      '5': 5,
+      '9': 0,
+      '10': 'speakerUpdate'
+    },
     {'1': 'node_failure', '3': 2, '4': 1, '5': 8, '9': 0, '10': 'nodeFailure'},
     {'1': 'migration', '3': 3, '4': 1, '5': 8, '9': 0, '10': 'migration'},
     {'1': 'server_leave', '3': 4, '4': 1, '5': 8, '9': 0, '10': 'serverLeave'},
-    {'1': 'switch_candidate_protocol', '3': 5, '4': 1, '5': 14, '6': '.livekit.CandidateProtocol', '9': 0, '10': 'switchCandidateProtocol'},
-    {'1': 'subscriber_bandwidth', '3': 6, '4': 1, '5': 3, '9': 0, '10': 'subscriberBandwidth'},
-    {'1': 'disconnect_signal_on_resume', '3': 7, '4': 1, '5': 8, '9': 0, '10': 'disconnectSignalOnResume'},
-    {'1': 'disconnect_signal_on_resume_no_messages', '3': 8, '4': 1, '5': 8, '9': 0, '10': 'disconnectSignalOnResumeNoMessages'},
-    {'1': 'leave_request_full_reconnect', '3': 9, '4': 1, '5': 8, '9': 0, '10': 'leaveRequestFullReconnect'},
+    {
+      '1': 'switch_candidate_protocol',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.CandidateProtocol',
+      '9': 0,
+      '10': 'switchCandidateProtocol'
+    },
+    {
+      '1': 'subscriber_bandwidth',
+      '3': 6,
+      '4': 1,
+      '5': 3,
+      '9': 0,
+      '10': 'subscriberBandwidth'
+    },
+    {
+      '1': 'disconnect_signal_on_resume',
+      '3': 7,
+      '4': 1,
+      '5': 8,
+      '9': 0,
+      '10': 'disconnectSignalOnResume'
+    },
+    {
+      '1': 'disconnect_signal_on_resume_no_messages',
+      '3': 8,
+      '4': 1,
+      '5': 8,
+      '9': 0,
+      '10': 'disconnectSignalOnResumeNoMessages'
+    },
+    {
+      '1': 'leave_request_full_reconnect',
+      '3': 9,
+      '4': 1,
+      '5': 8,
+      '9': 0,
+      '10': 'leaveRequestFullReconnect'
+    },
   ],
   '8': [
     {'1': 'scenario'},
@@ -1030,7 +1869,13 @@ final $typed_data.Uint8List pingDescriptor = $convert.base64Decode(
 const Pong$json = {
   '1': 'Pong',
   '2': [
-    {'1': 'last_ping_timestamp', '3': 1, '4': 1, '5': 3, '10': 'lastPingTimestamp'},
+    {
+      '1': 'last_ping_timestamp',
+      '3': 1,
+      '4': 1,
+      '5': 3,
+      '10': 'lastPingTimestamp'
+    },
     {'1': 'timestamp', '3': 2, '4': 1, '5': 3, '10': 'timestamp'},
   ],
 };
@@ -1044,7 +1889,14 @@ final $typed_data.Uint8List pongDescriptor = $convert.base64Decode(
 const RegionSettings$json = {
   '1': 'RegionSettings',
   '2': [
-    {'1': 'regions', '3': 1, '4': 3, '5': 11, '6': '.livekit.RegionInfo', '10': 'regions'},
+    {
+      '1': 'regions',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.RegionInfo',
+      '10': 'regions'
+    },
   ],
 };
 
@@ -1073,7 +1925,14 @@ const SubscriptionResponse$json = {
   '1': 'SubscriptionResponse',
   '2': [
     {'1': 'track_sid', '3': 1, '4': 1, '5': 9, '10': 'trackSid'},
-    {'1': 'err', '3': 2, '4': 1, '5': 14, '6': '.livekit.SubscriptionError', '10': 'err'},
+    {
+      '1': 'err',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SubscriptionError',
+      '10': 'err'
+    },
   ],
 };
 
@@ -1087,16 +1946,87 @@ const RequestResponse$json = {
   '1': 'RequestResponse',
   '2': [
     {'1': 'request_id', '3': 1, '4': 1, '5': 13, '10': 'requestId'},
-    {'1': 'reason', '3': 2, '4': 1, '5': 14, '6': '.livekit.RequestResponse.Reason', '10': 'reason'},
+    {
+      '1': 'reason',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.RequestResponse.Reason',
+      '10': 'reason'
+    },
     {'1': 'message', '3': 3, '4': 1, '5': 9, '10': 'message'},
-    {'1': 'trickle', '3': 4, '4': 1, '5': 11, '6': '.livekit.TrickleRequest', '9': 0, '10': 'trickle'},
-    {'1': 'add_track', '3': 5, '4': 1, '5': 11, '6': '.livekit.AddTrackRequest', '9': 0, '10': 'addTrack'},
-    {'1': 'mute', '3': 6, '4': 1, '5': 11, '6': '.livekit.MuteTrackRequest', '9': 0, '10': 'mute'},
-    {'1': 'update_metadata', '3': 7, '4': 1, '5': 11, '6': '.livekit.UpdateParticipantMetadata', '9': 0, '10': 'updateMetadata'},
-    {'1': 'update_audio_track', '3': 8, '4': 1, '5': 11, '6': '.livekit.UpdateLocalAudioTrack', '9': 0, '10': 'updateAudioTrack'},
-    {'1': 'update_video_track', '3': 9, '4': 1, '5': 11, '6': '.livekit.UpdateLocalVideoTrack', '9': 0, '10': 'updateVideoTrack'},
-    {'1': 'publish_data_track', '3': 10, '4': 1, '5': 11, '6': '.livekit.PublishDataTrackRequest', '9': 0, '10': 'publishDataTrack'},
-    {'1': 'unpublish_data_track', '3': 11, '4': 1, '5': 11, '6': '.livekit.UnpublishDataTrackRequest', '9': 0, '10': 'unpublishDataTrack'},
+    {
+      '1': 'trickle',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrickleRequest',
+      '9': 0,
+      '10': 'trickle'
+    },
+    {
+      '1': 'add_track',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AddTrackRequest',
+      '9': 0,
+      '10': 'addTrack'
+    },
+    {
+      '1': 'mute',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.MuteTrackRequest',
+      '9': 0,
+      '10': 'mute'
+    },
+    {
+      '1': 'update_metadata',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateParticipantMetadata',
+      '9': 0,
+      '10': 'updateMetadata'
+    },
+    {
+      '1': 'update_audio_track',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateLocalAudioTrack',
+      '9': 0,
+      '10': 'updateAudioTrack'
+    },
+    {
+      '1': 'update_video_track',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateLocalVideoTrack',
+      '9': 0,
+      '10': 'updateVideoTrack'
+    },
+    {
+      '1': 'publish_data_track',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.PublishDataTrackRequest',
+      '9': 0,
+      '10': 'publishDataTrack'
+    },
+    {
+      '1': 'unpublish_data_track',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UnpublishDataTrackRequest',
+      '9': 0,
+      '10': 'unpublishDataTrack'
+    },
   ],
   '4': [RequestResponse_Reason$json],
   '8': [
@@ -1160,7 +2090,15 @@ const ConnectionSettings$json = {
   '2': [
     {'1': 'auto_subscribe', '3': 1, '4': 1, '5': 8, '10': 'autoSubscribe'},
     {'1': 'adaptive_stream', '3': 2, '4': 1, '5': 8, '10': 'adaptiveStream'},
-    {'1': 'subscriber_allow_pause', '3': 3, '4': 1, '5': 8, '9': 0, '10': 'subscriberAllowPause', '17': true},
+    {
+      '1': 'subscriber_allow_pause',
+      '3': 3,
+      '4': 1,
+      '5': 8,
+      '9': 0,
+      '10': 'subscriberAllowPause',
+      '17': true
+    },
     {'1': 'disable_ice_lite', '3': 4, '4': 1, '5': 8, '10': 'disableIceLite'},
   ],
   '8': [
@@ -1180,16 +2118,66 @@ final $typed_data.Uint8List connectionSettingsDescriptor = $convert.base64Decode
 const JoinRequest$json = {
   '1': 'JoinRequest',
   '2': [
-    {'1': 'client_info', '3': 1, '4': 1, '5': 11, '6': '.livekit.ClientInfo', '10': 'clientInfo'},
-    {'1': 'connection_settings', '3': 2, '4': 1, '5': 11, '6': '.livekit.ConnectionSettings', '10': 'connectionSettings'},
+    {
+      '1': 'client_info',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ClientInfo',
+      '10': 'clientInfo'
+    },
+    {
+      '1': 'connection_settings',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ConnectionSettings',
+      '10': 'connectionSettings'
+    },
     {'1': 'metadata', '3': 3, '4': 1, '5': 9, '8': {}, '10': 'metadata'},
-    {'1': 'participant_attributes', '3': 4, '4': 3, '5': 11, '6': '.livekit.JoinRequest.ParticipantAttributesEntry', '8': {}, '10': 'participantAttributes'},
-    {'1': 'add_track_requests', '3': 5, '4': 3, '5': 11, '6': '.livekit.AddTrackRequest', '10': 'addTrackRequests'},
-    {'1': 'publisher_offer', '3': 6, '4': 1, '5': 11, '6': '.livekit.SessionDescription', '10': 'publisherOffer'},
+    {
+      '1': 'participant_attributes',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.JoinRequest.ParticipantAttributesEntry',
+      '8': {},
+      '10': 'participantAttributes'
+    },
+    {
+      '1': 'add_track_requests',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AddTrackRequest',
+      '10': 'addTrackRequests'
+    },
+    {
+      '1': 'publisher_offer',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SessionDescription',
+      '10': 'publisherOffer'
+    },
     {'1': 'reconnect', '3': 7, '4': 1, '5': 8, '10': 'reconnect'},
-    {'1': 'reconnect_reason', '3': 8, '4': 1, '5': 14, '6': '.livekit.ReconnectReason', '10': 'reconnectReason'},
+    {
+      '1': 'reconnect_reason',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ReconnectReason',
+      '10': 'reconnectReason'
+    },
     {'1': 'participant_sid', '3': 9, '4': 1, '5': 9, '10': 'participantSid'},
-    {'1': 'sync_state', '3': 10, '4': 1, '5': 11, '6': '.livekit.SyncState', '10': 'syncState'},
+    {
+      '1': 'sync_state',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SyncState',
+      '10': 'syncState'
+    },
   ],
   '3': [JoinRequest_ParticipantAttributesEntry$json],
 };
@@ -1225,7 +2213,14 @@ final $typed_data.Uint8List joinRequestDescriptor = $convert.base64Decode(
 const WrappedJoinRequest$json = {
   '1': 'WrappedJoinRequest',
   '2': [
-    {'1': 'compression', '3': 1, '4': 1, '5': 14, '6': '.livekit.WrappedJoinRequest.Compression', '10': 'compression'},
+    {
+      '1': 'compression',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.WrappedJoinRequest.Compression',
+      '10': 'compression'
+    },
     {'1': 'join_request', '3': 2, '4': 1, '5': 12, '10': 'joinRequest'},
   ],
   '4': [WrappedJoinRequest_Compression$json],
@@ -1256,7 +2251,7 @@ const MediaSectionsRequirement$json = {
 };
 
 /// Descriptor for `MediaSectionsRequirement`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List mediaSectionsRequirementDescriptor = $convert.base64Decode(
-    'ChhNZWRpYVNlY3Rpb25zUmVxdWlyZW1lbnQSHQoKbnVtX2F1ZGlvcxgBIAEoDVIJbnVtQXVkaW'
-    '9zEh0KCm51bV92aWRlb3MYAiABKA1SCW51bVZpZGVvcw==');
-
+final $typed_data.Uint8List mediaSectionsRequirementDescriptor =
+    $convert.base64Decode(
+        'ChhNZWRpYVNlY3Rpb25zUmVxdWlyZW1lbnQSHQoKbnVtX2F1ZGlvcxgBIAEoDVIJbnVtQXVkaW'
+        '9zEh0KCm51bV92aWRlb3MYAiABKA1SCW51bVZpZGVvcw==');

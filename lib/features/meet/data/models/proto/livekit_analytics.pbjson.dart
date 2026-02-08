@@ -1,13 +1,14 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_analytics.proto
-//
-// @dart = 2.12
+// Generated from livekit_analytics.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
@@ -23,8 +24,8 @@ const StreamType$json = {
 };
 
 /// Descriptor for `StreamType`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List streamTypeDescriptor = $convert.base64Decode(
-    'CgpTdHJlYW1UeXBlEgwKCFVQU1RSRUFNEAASDgoKRE9XTlNUUkVBTRAB');
+final $typed_data.Uint8List streamTypeDescriptor = $convert
+    .base64Decode('CgpTdHJlYW1UeXBlEgwKCFVQU1RSRUFNEAASDgoKRE9XTlNUUkVBTRAB');
 
 @$core.Deprecated('Use analyticsEventTypeDescriptor instead')
 const AnalyticsEventType$json = {
@@ -125,7 +126,13 @@ const AnalyticsStream$json = {
     {'1': 'ssrc', '3': 1, '4': 1, '5': 13, '10': 'ssrc'},
     {'1': 'primary_packets', '3': 2, '4': 1, '5': 13, '10': 'primaryPackets'},
     {'1': 'primary_bytes', '3': 3, '4': 1, '5': 4, '10': 'primaryBytes'},
-    {'1': 'retransmit_packets', '3': 4, '4': 1, '5': 13, '10': 'retransmitPackets'},
+    {
+      '1': 'retransmit_packets',
+      '3': 4,
+      '4': 1,
+      '5': 13,
+      '10': 'retransmitPackets'
+    },
     {'1': 'retransmit_bytes', '3': 5, '4': 1, '5': 4, '10': 'retransmitBytes'},
     {'1': 'padding_packets', '3': 6, '4': 1, '5': 13, '10': 'paddingPackets'},
     {'1': 'padding_bytes', '3': 7, '4': 1, '5': 4, '10': 'paddingBytes'},
@@ -136,10 +143,37 @@ const AnalyticsStream$json = {
     {'1': 'nacks', '3': 12, '4': 1, '5': 13, '10': 'nacks'},
     {'1': 'plis', '3': 13, '4': 1, '5': 13, '10': 'plis'},
     {'1': 'firs', '3': 14, '4': 1, '5': 13, '10': 'firs'},
-    {'1': 'video_layers', '3': 15, '4': 3, '5': 11, '6': '.livekit.AnalyticsVideoLayer', '10': 'videoLayers'},
-    {'1': 'start_time', '3': 17, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'startTime'},
-    {'1': 'end_time', '3': 18, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'endTime'},
-    {'1': 'packets_out_of_order', '3': 19, '4': 1, '5': 13, '10': 'packetsOutOfOrder'},
+    {
+      '1': 'video_layers',
+      '3': 15,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AnalyticsVideoLayer',
+      '10': 'videoLayers'
+    },
+    {
+      '1': 'start_time',
+      '3': 17,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'startTime'
+    },
+    {
+      '1': 'end_time',
+      '3': 18,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'endTime'
+    },
+    {
+      '1': 'packets_out_of_order',
+      '3': 19,
+      '4': 1,
+      '5': 13,
+      '10': 'packetsOutOfOrder'
+    },
   ],
 };
 
@@ -165,15 +199,36 @@ const AnalyticsStat$json = {
   '2': [
     {'1': 'id', '3': 14, '4': 1, '5': 9, '10': 'id'},
     {'1': 'analytics_key', '3': 1, '4': 1, '5': 9, '10': 'analyticsKey'},
-    {'1': 'kind', '3': 2, '4': 1, '5': 14, '6': '.livekit.StreamType', '10': 'kind'},
-    {'1': 'time_stamp', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'timeStamp'},
+    {
+      '1': 'kind',
+      '3': 2,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.StreamType',
+      '10': 'kind'
+    },
+    {
+      '1': 'time_stamp',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'timeStamp'
+    },
     {'1': 'node', '3': 4, '4': 1, '5': 9, '10': 'node'},
     {'1': 'room_id', '3': 5, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'room_name', '3': 6, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'participant_id', '3': 7, '4': 1, '5': 9, '10': 'participantId'},
     {'1': 'track_id', '3': 8, '4': 1, '5': 9, '10': 'trackId'},
     {'1': 'score', '3': 9, '4': 1, '5': 2, '10': 'score'},
-    {'1': 'streams', '3': 10, '4': 3, '5': 11, '6': '.livekit.AnalyticsStream', '10': 'streams'},
+    {
+      '1': 'streams',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AnalyticsStream',
+      '10': 'streams'
+    },
     {'1': 'mime', '3': 11, '4': 1, '5': 9, '10': 'mime'},
     {'1': 'min_score', '3': 12, '4': 1, '5': 2, '10': 'minScore'},
     {'1': 'median_score', '3': 13, '4': 1, '5': 2, '10': 'medianScore'},
@@ -196,7 +251,14 @@ final $typed_data.Uint8List analyticsStatDescriptor = $convert.base64Decode(
 const AnalyticsStats$json = {
   '1': 'AnalyticsStats',
   '2': [
-    {'1': 'stats', '3': 1, '4': 3, '5': 11, '6': '.livekit.AnalyticsStat', '10': 'stats'},
+    {
+      '1': 'stats',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AnalyticsStat',
+      '10': 'stats'
+    },
   ],
 };
 
@@ -212,12 +274,49 @@ const AnalyticsClientMeta$json = {
     {'1': 'region', '3': 1, '4': 1, '5': 9, '10': 'region'},
     {'1': 'node', '3': 2, '4': 1, '5': 9, '10': 'node'},
     {'1': 'client_addr', '3': 3, '4': 1, '5': 9, '10': 'clientAddr'},
-    {'1': 'client_connect_time', '3': 4, '4': 1, '5': 13, '10': 'clientConnectTime'},
+    {
+      '1': 'client_connect_time',
+      '3': 4,
+      '4': 1,
+      '5': 13,
+      '10': 'clientConnectTime'
+    },
     {'1': 'connection_type', '3': 5, '4': 1, '5': 9, '10': 'connectionType'},
-    {'1': 'reconnect_reason', '3': 6, '4': 1, '5': 14, '6': '.livekit.ReconnectReason', '10': 'reconnectReason'},
-    {'1': 'geo_hash', '3': 7, '4': 1, '5': 9, '9': 0, '10': 'geoHash', '17': true},
-    {'1': 'country', '3': 8, '4': 1, '5': 9, '9': 1, '10': 'country', '17': true},
-    {'1': 'isp_asn', '3': 9, '4': 1, '5': 13, '9': 2, '10': 'ispAsn', '17': true},
+    {
+      '1': 'reconnect_reason',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ReconnectReason',
+      '10': 'reconnectReason'
+    },
+    {
+      '1': 'geo_hash',
+      '3': 7,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'geoHash',
+      '17': true
+    },
+    {
+      '1': 'country',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '9': 1,
+      '10': 'country',
+      '17': true
+    },
+    {
+      '1': 'isp_asn',
+      '3': 9,
+      '4': 1,
+      '5': 13,
+      '9': 2,
+      '10': 'ispAsn',
+      '17': true
+    },
   ],
   '8': [
     {'1': '_geo_hash'},
@@ -241,39 +340,178 @@ const AnalyticsEvent$json = {
   '1': 'AnalyticsEvent',
   '2': [
     {'1': 'id', '3': 25, '4': 1, '5': 9, '10': 'id'},
-    {'1': 'type', '3': 1, '4': 1, '5': 14, '6': '.livekit.AnalyticsEventType', '10': 'type'},
-    {'1': 'timestamp', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'timestamp'},
+    {
+      '1': 'type',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.AnalyticsEventType',
+      '10': 'type'
+    },
+    {
+      '1': 'timestamp',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'timestamp'
+    },
     {'1': 'room_id', '3': 3, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'room', '3': 4, '4': 1, '5': 11, '6': '.livekit.Room', '10': 'room'},
     {'1': 'participant_id', '3': 5, '4': 1, '5': 9, '10': 'participantId'},
-    {'1': 'participant', '3': 6, '4': 1, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participant'},
+    {
+      '1': 'participant',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'participant'
+    },
     {'1': 'track_id', '3': 7, '4': 1, '5': 9, '10': 'trackId'},
-    {'1': 'track', '3': 8, '4': 1, '5': 11, '6': '.livekit.TrackInfo', '10': 'track'},
+    {
+      '1': 'track',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackInfo',
+      '10': 'track'
+    },
     {'1': 'analytics_key', '3': 10, '4': 1, '5': 9, '10': 'analyticsKey'},
-    {'1': 'client_info', '3': 11, '4': 1, '5': 11, '6': '.livekit.ClientInfo', '10': 'clientInfo'},
-    {'1': 'client_meta', '3': 12, '4': 1, '5': 11, '6': '.livekit.AnalyticsClientMeta', '10': 'clientMeta'},
+    {
+      '1': 'client_info',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ClientInfo',
+      '10': 'clientInfo'
+    },
+    {
+      '1': 'client_meta',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AnalyticsClientMeta',
+      '10': 'clientMeta'
+    },
     {'1': 'egress_id', '3': 13, '4': 1, '5': 9, '10': 'egressId'},
     {'1': 'ingress_id', '3': 19, '4': 1, '5': 9, '10': 'ingressId'},
-    {'1': 'max_subscribed_video_quality', '3': 14, '4': 1, '5': 14, '6': '.livekit.VideoQuality', '10': 'maxSubscribedVideoQuality'},
-    {'1': 'publisher', '3': 15, '4': 1, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'publisher'},
+    {
+      '1': 'max_subscribed_video_quality',
+      '3': 14,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.VideoQuality',
+      '10': 'maxSubscribedVideoQuality'
+    },
+    {
+      '1': 'publisher',
+      '3': 15,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantInfo',
+      '10': 'publisher'
+    },
     {'1': 'mime', '3': 16, '4': 1, '5': 9, '10': 'mime'},
-    {'1': 'egress', '3': 17, '4': 1, '5': 11, '6': '.livekit.EgressInfo', '10': 'egress'},
-    {'1': 'ingress', '3': 18, '4': 1, '5': 11, '6': '.livekit.IngressInfo', '10': 'ingress'},
+    {
+      '1': 'egress',
+      '3': 17,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.EgressInfo',
+      '10': 'egress'
+    },
+    {
+      '1': 'ingress',
+      '3': 18,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.IngressInfo',
+      '10': 'ingress'
+    },
     {'1': 'error', '3': 20, '4': 1, '5': 9, '10': 'error'},
-    {'1': 'rtp_stats', '3': 21, '4': 1, '5': 11, '6': '.livekit.RTPStats', '10': 'rtpStats'},
+    {
+      '1': 'rtp_stats',
+      '3': 21,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RTPStats',
+      '10': 'rtpStats'
+    },
     {'1': 'video_layer', '3': 22, '4': 1, '5': 5, '10': 'videoLayer'},
     {'1': 'node_id', '3': 24, '4': 1, '5': 9, '10': 'nodeId'},
     {'1': 'sip_call_id', '3': 26, '4': 1, '5': 9, '10': 'sipCallId'},
-    {'1': 'sip_call', '3': 27, '4': 1, '5': 11, '6': '.livekit.SIPCallInfo', '10': 'sipCall'},
+    {
+      '1': 'sip_call',
+      '3': 27,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPCallInfo',
+      '10': 'sipCall'
+    },
     {'1': 'sip_trunk_id', '3': 28, '4': 1, '5': 9, '10': 'sipTrunkId'},
-    {'1': 'sip_inbound_trunk', '3': 29, '4': 1, '5': 11, '6': '.livekit.SIPInboundTrunkInfo', '10': 'sipInboundTrunk'},
-    {'1': 'sip_outbound_trunk', '3': 30, '4': 1, '5': 11, '6': '.livekit.SIPOutboundTrunkInfo', '10': 'sipOutboundTrunk'},
-    {'1': 'sip_dispatch_rule_id', '3': 31, '4': 1, '5': 9, '10': 'sipDispatchRuleId'},
-    {'1': 'sip_dispatch_rule', '3': 32, '4': 1, '5': 11, '6': '.livekit.SIPDispatchRuleInfo', '10': 'sipDispatchRule'},
-    {'1': 'sip_transfer', '3': 36, '4': 1, '5': 11, '6': '.livekit.SIPTransferInfo', '10': 'sipTransfer'},
-    {'1': 'report', '3': 33, '4': 1, '5': 11, '6': '.livekit.ReportInfo', '10': 'report'},
-    {'1': 'api_call', '3': 34, '4': 1, '5': 11, '6': '.livekit.APICallInfo', '10': 'apiCall'},
-    {'1': 'webhook', '3': 35, '4': 1, '5': 11, '6': '.livekit.WebhookInfo', '10': 'webhook'},
+    {
+      '1': 'sip_inbound_trunk',
+      '3': 29,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPInboundTrunkInfo',
+      '10': 'sipInboundTrunk'
+    },
+    {
+      '1': 'sip_outbound_trunk',
+      '3': 30,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPOutboundTrunkInfo',
+      '10': 'sipOutboundTrunk'
+    },
+    {
+      '1': 'sip_dispatch_rule_id',
+      '3': 31,
+      '4': 1,
+      '5': 9,
+      '10': 'sipDispatchRuleId'
+    },
+    {
+      '1': 'sip_dispatch_rule',
+      '3': 32,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPDispatchRuleInfo',
+      '10': 'sipDispatchRule'
+    },
+    {
+      '1': 'sip_transfer',
+      '3': 36,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SIPTransferInfo',
+      '10': 'sipTransfer'
+    },
+    {
+      '1': 'report',
+      '3': 33,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ReportInfo',
+      '10': 'report'
+    },
+    {
+      '1': 'api_call',
+      '3': 34,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.APICallInfo',
+      '10': 'apiCall'
+    },
+    {
+      '1': 'webhook',
+      '3': 35,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.WebhookInfo',
+      '10': 'webhook'
+    },
   ],
 };
 
@@ -313,7 +551,14 @@ final $typed_data.Uint8List analyticsEventDescriptor = $convert.base64Decode(
 const AnalyticsEvents$json = {
   '1': 'AnalyticsEvents',
   '2': [
-    {'1': 'events', '3': 1, '4': 3, '5': 11, '6': '.livekit.AnalyticsEvent', '10': 'events'},
+    {
+      '1': 'events',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AnalyticsEvent',
+      '10': 'events'
+    },
   ],
 };
 
@@ -329,8 +574,22 @@ const AnalyticsRoomParticipant$json = {
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     {'1': 'identity', '3': 2, '4': 1, '5': 9, '10': 'identity'},
     {'1': 'name', '3': 3, '4': 1, '5': 9, '10': 'name'},
-    {'1': 'state', '3': 4, '4': 1, '5': 14, '6': '.livekit.ParticipantInfo.State', '10': 'state'},
-    {'1': 'joined_at', '3': 5, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'joinedAt'},
+    {
+      '1': 'state',
+      '3': 4,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ParticipantInfo.State',
+      '10': 'state'
+    },
+    {
+      '1': 'joined_at',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'joinedAt'
+    },
   ],
 };
 
@@ -348,8 +607,22 @@ const AnalyticsRoom$json = {
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'project_id', '3': 5, '4': 1, '5': 9, '10': 'projectId'},
-    {'1': 'created_at', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
-    {'1': 'participants', '3': 4, '4': 3, '5': 11, '6': '.livekit.AnalyticsRoomParticipant', '10': 'participants'},
+    {
+      '1': 'created_at',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'createdAt'
+    },
+    {
+      '1': 'participants',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AnalyticsRoomParticipant',
+      '10': 'participants'
+    },
   ],
 };
 
@@ -366,8 +639,22 @@ const AnalyticsNodeRooms$json = {
   '2': [
     {'1': 'node_id', '3': 1, '4': 1, '5': 9, '10': 'nodeId'},
     {'1': 'sequence_number', '3': 2, '4': 1, '5': 4, '10': 'sequenceNumber'},
-    {'1': 'timestamp', '3': 3, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'timestamp'},
-    {'1': 'rooms', '3': 4, '4': 3, '5': 11, '6': '.livekit.AnalyticsRoom', '10': 'rooms'},
+    {
+      '1': 'timestamp',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'timestamp'
+    },
+    {
+      '1': 'rooms',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.AnalyticsRoom',
+      '10': 'rooms'
+    },
   ],
 };
 
@@ -382,7 +669,15 @@ final $typed_data.Uint8List analyticsNodeRoomsDescriptor = $convert.base64Decode
 const ReportInfo$json = {
   '1': 'ReportInfo',
   '2': [
-    {'1': 'feature_usage', '3': 1, '4': 1, '5': 11, '6': '.livekit.FeatureUsageInfo', '9': 0, '10': 'featureUsage'},
+    {
+      '1': 'feature_usage',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.FeatureUsageInfo',
+      '9': 0,
+      '10': 'featureUsage'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -398,8 +693,22 @@ final $typed_data.Uint8List reportInfoDescriptor = $convert.base64Decode(
 const TimeRange$json = {
   '1': 'TimeRange',
   '2': [
-    {'1': 'started_at', '3': 1, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'startedAt'},
-    {'1': 'ended_at', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'endedAt'},
+    {
+      '1': 'started_at',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'startedAt'
+    },
+    {
+      '1': 'ended_at',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'endedAt'
+    },
   ],
 };
 
@@ -413,14 +722,34 @@ final $typed_data.Uint8List timeRangeDescriptor = $convert.base64Decode(
 const FeatureUsageInfo$json = {
   '1': 'FeatureUsageInfo',
   '2': [
-    {'1': 'feature', '3': 1, '4': 1, '5': 14, '6': '.livekit.FeatureUsageInfo.Feature', '10': 'feature'},
+    {
+      '1': 'feature',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.FeatureUsageInfo.Feature',
+      '10': 'feature'
+    },
     {'1': 'project_id', '3': 2, '4': 1, '5': 9, '10': 'projectId'},
     {'1': 'room_name', '3': 3, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'room_id', '3': 4, '4': 1, '5': 9, '10': 'roomId'},
-    {'1': 'participant_identity', '3': 5, '4': 1, '5': 9, '10': 'participantIdentity'},
+    {
+      '1': 'participant_identity',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
     {'1': 'participant_id', '3': 6, '4': 1, '5': 9, '10': 'participantId'},
     {'1': 'track_id', '3': 7, '4': 1, '5': 9, '10': 'trackId'},
-    {'1': 'time_ranges', '3': 8, '4': 3, '5': 11, '6': '.livekit.TimeRange', '10': 'timeRanges'},
+    {
+      '1': 'time_ranges',
+      '3': 8,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.TimeRange',
+      '10': 'timeRanges'
+    },
   ],
   '4': [FeatureUsageInfo_Feature$json],
 };
@@ -450,16 +779,96 @@ final $typed_data.Uint8List featureUsageInfoDescriptor = $convert.base64Decode(
 const APICallRequest$json = {
   '1': 'APICallRequest',
   '2': [
-    {'1': 'create_room_request', '3': 1, '4': 1, '5': 11, '6': '.livekit.CreateRoomRequest', '9': 0, '10': 'createRoomRequest'},
-    {'1': 'list_rooms_request', '3': 2, '4': 1, '5': 11, '6': '.livekit.ListRoomsRequest', '9': 0, '10': 'listRoomsRequest'},
-    {'1': 'delete_room_request', '3': 3, '4': 1, '5': 11, '6': '.livekit.DeleteRoomRequest', '9': 0, '10': 'deleteRoomRequest'},
-    {'1': 'list_participants_request', '3': 4, '4': 1, '5': 11, '6': '.livekit.ListParticipantsRequest', '9': 0, '10': 'listParticipantsRequest'},
-    {'1': 'room_participant_identity', '3': 5, '4': 1, '5': 11, '6': '.livekit.RoomParticipantIdentity', '9': 0, '10': 'roomParticipantIdentity'},
-    {'1': 'mute_room_track_request', '3': 6, '4': 1, '5': 11, '6': '.livekit.MuteRoomTrackRequest', '9': 0, '10': 'muteRoomTrackRequest'},
-    {'1': 'update_participant_request', '3': 7, '4': 1, '5': 11, '6': '.livekit.UpdateParticipantRequest', '9': 0, '10': 'updateParticipantRequest'},
-    {'1': 'update_subscriptions_request', '3': 8, '4': 1, '5': 11, '6': '.livekit.UpdateSubscriptionsRequest', '9': 0, '10': 'updateSubscriptionsRequest'},
-    {'1': 'send_data_request', '3': 9, '4': 1, '5': 11, '6': '.livekit.SendDataRequest', '9': 0, '10': 'sendDataRequest'},
-    {'1': 'update_room_metadata_request', '3': 10, '4': 1, '5': 11, '6': '.livekit.UpdateRoomMetadataRequest', '9': 0, '10': 'updateRoomMetadataRequest'},
+    {
+      '1': 'create_room_request',
+      '3': 1,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.CreateRoomRequest',
+      '9': 0,
+      '10': 'createRoomRequest'
+    },
+    {
+      '1': 'list_rooms_request',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ListRoomsRequest',
+      '9': 0,
+      '10': 'listRoomsRequest'
+    },
+    {
+      '1': 'delete_room_request',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.DeleteRoomRequest',
+      '9': 0,
+      '10': 'deleteRoomRequest'
+    },
+    {
+      '1': 'list_participants_request',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ListParticipantsRequest',
+      '9': 0,
+      '10': 'listParticipantsRequest'
+    },
+    {
+      '1': 'room_participant_identity',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomParticipantIdentity',
+      '9': 0,
+      '10': 'roomParticipantIdentity'
+    },
+    {
+      '1': 'mute_room_track_request',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.MuteRoomTrackRequest',
+      '9': 0,
+      '10': 'muteRoomTrackRequest'
+    },
+    {
+      '1': 'update_participant_request',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateParticipantRequest',
+      '9': 0,
+      '10': 'updateParticipantRequest'
+    },
+    {
+      '1': 'update_subscriptions_request',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateSubscriptionsRequest',
+      '9': 0,
+      '10': 'updateSubscriptionsRequest'
+    },
+    {
+      '1': 'send_data_request',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.SendDataRequest',
+      '9': 0,
+      '10': 'sendDataRequest'
+    },
+    {
+      '1': 'update_room_metadata_request',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateRoomMetadataRequest',
+      '9': 0,
+      '10': 'updateRoomMetadataRequest'
+    },
   ],
   '8': [
     {'1': 'message'},
@@ -491,19 +900,45 @@ const APICallInfo$json = {
   '1': 'APICallInfo',
   '2': [
     {'1': 'project_id', '3': 1, '4': 1, '5': 9, '10': 'projectId'},
-    {'1': 'request', '3': 2, '4': 1, '5': 11, '6': '.livekit.APICallRequest', '10': 'request'},
+    {
+      '1': 'request',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.APICallRequest',
+      '10': 'request'
+    },
     {'1': 'service', '3': 3, '4': 1, '5': 9, '10': 'service'},
     {'1': 'method', '3': 4, '4': 1, '5': 9, '10': 'method'},
     {'1': 'node_id', '3': 5, '4': 1, '5': 9, '10': 'nodeId'},
     {'1': 'status', '3': 6, '4': 1, '5': 5, '10': 'status'},
     {'1': 'twirp_error_code', '3': 7, '4': 1, '5': 9, '10': 'twirpErrorCode'},
-    {'1': 'twirp_error_message', '3': 8, '4': 1, '5': 9, '10': 'twirpErrorMessage'},
+    {
+      '1': 'twirp_error_message',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '10': 'twirpErrorMessage'
+    },
     {'1': 'room_name', '3': 9, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'room_id', '3': 10, '4': 1, '5': 9, '10': 'roomId'},
-    {'1': 'participant_identity', '3': 11, '4': 1, '5': 9, '10': 'participantIdentity'},
+    {
+      '1': 'participant_identity',
+      '3': 11,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
     {'1': 'participant_id', '3': 12, '4': 1, '5': 9, '10': 'participantId'},
     {'1': 'track_id', '3': 13, '4': 1, '5': 9, '10': 'trackId'},
-    {'1': 'started_at', '3': 14, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'startedAt'},
+    {
+      '1': 'started_at',
+      '3': 14,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'startedAt'
+    },
     {'1': 'duration_ns', '3': 15, '4': 1, '5': 3, '10': 'durationNs'},
   ],
 };
@@ -530,21 +965,60 @@ const WebhookInfo$json = {
     {'1': 'project_id', '3': 3, '4': 1, '5': 9, '10': 'projectId'},
     {'1': 'room_name', '3': 4, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'room_id', '3': 5, '4': 1, '5': 9, '10': 'roomId'},
-    {'1': 'participant_identity', '3': 6, '4': 1, '5': 9, '10': 'participantIdentity'},
+    {
+      '1': 'participant_identity',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '10': 'participantIdentity'
+    },
     {'1': 'participant_id', '3': 7, '4': 1, '5': 9, '10': 'participantId'},
     {'1': 'track_id', '3': 8, '4': 1, '5': 9, '10': 'trackId'},
     {'1': 'egress_id', '3': 9, '4': 1, '5': 9, '10': 'egressId'},
     {'1': 'ingress_id', '3': 10, '4': 1, '5': 9, '10': 'ingressId'},
-    {'1': 'created_at', '3': 11, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'createdAt'},
-    {'1': 'queued_at', '3': 12, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'queuedAt'},
-    {'1': 'queue_duration_ns', '3': 13, '4': 1, '5': 3, '10': 'queueDurationNs'},
-    {'1': 'sent_at', '3': 14, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'sentAt'},
+    {
+      '1': 'created_at',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'createdAt'
+    },
+    {
+      '1': 'queued_at',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'queuedAt'
+    },
+    {
+      '1': 'queue_duration_ns',
+      '3': 13,
+      '4': 1,
+      '5': 3,
+      '10': 'queueDurationNs'
+    },
+    {
+      '1': 'sent_at',
+      '3': 14,
+      '4': 1,
+      '5': 11,
+      '6': '.google.protobuf.Timestamp',
+      '10': 'sentAt'
+    },
     {'1': 'send_duration_ns', '3': 15, '4': 1, '5': 3, '10': 'sendDurationNs'},
     {'1': 'url', '3': 16, '4': 1, '5': 9, '10': 'url'},
     {'1': 'num_dropped', '3': 17, '4': 1, '5': 5, '10': 'numDropped'},
     {'1': 'is_dropped', '3': 18, '4': 1, '5': 8, '10': 'isDropped'},
     {'1': 'service_status', '3': 19, '4': 1, '5': 9, '10': 'serviceStatus'},
-    {'1': 'service_error_code', '3': 20, '4': 1, '5': 5, '10': 'serviceErrorCode'},
+    {
+      '1': 'service_error_code',
+      '3': 20,
+      '4': 1,
+      '5': 5,
+      '10': 'serviceErrorCode'
+    },
     {'1': 'service_error', '3': 21, '4': 1, '5': 9, '10': 'serviceError'},
     {'1': 'send_error', '3': 22, '4': 1, '5': 9, '10': 'sendError'},
   ],
@@ -567,4 +1041,3 @@ final $typed_data.Uint8List webhookInfoDescriptor = $convert.base64Decode(
     'ZXJ2aWNlX3N0YXR1cxgTIAEoCVINc2VydmljZVN0YXR1cxIsChJzZXJ2aWNlX2Vycm9yX2NvZG'
     'UYFCABKAVSEHNlcnZpY2VFcnJvckNvZGUSIwoNc2VydmljZV9lcnJvchgVIAEoCVIMc2Vydmlj'
     'ZUVycm9yEh0KCnNlbmRfZXJyb3IYFiABKAlSCXNlbmRFcnJvcg==');
-

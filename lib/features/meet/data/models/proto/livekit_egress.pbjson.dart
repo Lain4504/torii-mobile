@@ -1,19 +1,20 @@
+// This is a generated file - do not edit.
 //
-//  Generated code. Do not modify.
-//  source: livekit_egress.proto
-//
-// @dart = 2.12
+// Generated from livekit_egress.proto.
+
+// @dart = 3.3
 
 // ignore_for_file: annotate_overrides, camel_case_types, comment_references
-// ignore_for_file: constant_identifier_names, library_prefixes
-// ignore_for_file: non_constant_identifier_names, prefer_final_fields
-// ignore_for_file: unnecessary_import, unnecessary_this, unused_import
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
+// ignore_for_file: non_constant_identifier_names, unused_import
 
 import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-import 'livekit_models.pbjson.dart' as $2;
+import 'livekit_models.pbjson.dart' as $0;
 
 @$core.Deprecated('Use encodedFileTypeDescriptor instead')
 const EncodedFileType$json = {
@@ -55,8 +56,9 @@ const SegmentedFileSuffix$json = {
 };
 
 /// Descriptor for `SegmentedFileSuffix`. Decode as a `google.protobuf.EnumDescriptorProto`.
-final $typed_data.Uint8List segmentedFileSuffixDescriptor = $convert.base64Decode(
-    'ChNTZWdtZW50ZWRGaWxlU3VmZml4EgkKBUlOREVYEAASDQoJVElNRVNUQU1QEAE=');
+final $typed_data.Uint8List segmentedFileSuffixDescriptor =
+    $convert.base64Decode(
+        'ChNTZWdtZW50ZWRGaWxlU3VmZml4EgkKBUlOREVYEAASDQoJVElNRVNUQU1QEAE=');
 
 @$core.Deprecated('Use imageFileSuffixDescriptor instead')
 const ImageFileSuffix$json = {
@@ -166,7 +168,14 @@ const RoomCompositeEgressRequest$json = {
     {'1': 'room_name', '3': 1, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'layout', '3': 2, '4': 1, '5': 9, '10': 'layout'},
     {'1': 'audio_only', '3': 3, '4': 1, '5': 8, '10': 'audioOnly'},
-    {'1': 'audio_mixing', '3': 15, '4': 1, '5': 14, '6': '.livekit.AudioMixing', '10': 'audioMixing'},
+    {
+      '1': 'audio_mixing',
+      '3': 15,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.AudioMixing',
+      '10': 'audioMixing'
+    },
     {'1': 'video_only', '3': 4, '4': 1, '5': 8, '10': 'videoOnly'},
     {'1': 'custom_base_url', '3': 5, '4': 1, '5': 9, '10': 'customBaseUrl'},
     {
@@ -199,13 +208,64 @@ const RoomCompositeEgressRequest$json = {
       '9': 0,
       '10': 'segments',
     },
-    {'1': 'preset', '3': 8, '4': 1, '5': 14, '6': '.livekit.EncodingOptionsPreset', '9': 1, '10': 'preset'},
-    {'1': 'advanced', '3': 9, '4': 1, '5': 11, '6': '.livekit.EncodingOptions', '9': 1, '10': 'advanced'},
-    {'1': 'file_outputs', '3': 11, '4': 3, '5': 11, '6': '.livekit.EncodedFileOutput', '10': 'fileOutputs'},
-    {'1': 'stream_outputs', '3': 12, '4': 3, '5': 11, '6': '.livekit.StreamOutput', '10': 'streamOutputs'},
-    {'1': 'segment_outputs', '3': 13, '4': 3, '5': 11, '6': '.livekit.SegmentedFileOutput', '10': 'segmentOutputs'},
-    {'1': 'image_outputs', '3': 14, '4': 3, '5': 11, '6': '.livekit.ImageOutput', '10': 'imageOutputs'},
-    {'1': 'webhooks', '3': 16, '4': 3, '5': 11, '6': '.livekit.WebhookConfig', '10': 'webhooks'},
+    {
+      '1': 'preset',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.EncodingOptionsPreset',
+      '9': 1,
+      '10': 'preset'
+    },
+    {
+      '1': 'advanced',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.EncodingOptions',
+      '9': 1,
+      '10': 'advanced'
+    },
+    {
+      '1': 'file_outputs',
+      '3': 11,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.EncodedFileOutput',
+      '10': 'fileOutputs'
+    },
+    {
+      '1': 'stream_outputs',
+      '3': 12,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.StreamOutput',
+      '10': 'streamOutputs'
+    },
+    {
+      '1': 'segment_outputs',
+      '3': 13,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SegmentedFileOutput',
+      '10': 'segmentOutputs'
+    },
+    {
+      '1': 'image_outputs',
+      '3': 14,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ImageOutput',
+      '10': 'imageOutputs'
+    },
+    {
+      '1': 'webhooks',
+      '3': 16,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.WebhookConfig',
+      '10': 'webhooks'
+    },
   ],
   '8': [
     {'1': 'output'},
@@ -239,7 +299,13 @@ const WebEgressRequest$json = {
     {'1': 'url', '3': 1, '4': 1, '5': 9, '10': 'url'},
     {'1': 'audio_only', '3': 2, '4': 1, '5': 8, '10': 'audioOnly'},
     {'1': 'video_only', '3': 3, '4': 1, '5': 8, '10': 'videoOnly'},
-    {'1': 'await_start_signal', '3': 12, '4': 1, '5': 8, '10': 'awaitStartSignal'},
+    {
+      '1': 'await_start_signal',
+      '3': 12,
+      '4': 1,
+      '5': 8,
+      '10': 'awaitStartSignal'
+    },
     {
       '1': 'file',
       '3': 4,
@@ -270,13 +336,64 @@ const WebEgressRequest$json = {
       '9': 0,
       '10': 'segments',
     },
-    {'1': 'preset', '3': 7, '4': 1, '5': 14, '6': '.livekit.EncodingOptionsPreset', '9': 1, '10': 'preset'},
-    {'1': 'advanced', '3': 8, '4': 1, '5': 11, '6': '.livekit.EncodingOptions', '9': 1, '10': 'advanced'},
-    {'1': 'file_outputs', '3': 9, '4': 3, '5': 11, '6': '.livekit.EncodedFileOutput', '10': 'fileOutputs'},
-    {'1': 'stream_outputs', '3': 10, '4': 3, '5': 11, '6': '.livekit.StreamOutput', '10': 'streamOutputs'},
-    {'1': 'segment_outputs', '3': 11, '4': 3, '5': 11, '6': '.livekit.SegmentedFileOutput', '10': 'segmentOutputs'},
-    {'1': 'image_outputs', '3': 13, '4': 3, '5': 11, '6': '.livekit.ImageOutput', '10': 'imageOutputs'},
-    {'1': 'webhooks', '3': 14, '4': 3, '5': 11, '6': '.livekit.WebhookConfig', '10': 'webhooks'},
+    {
+      '1': 'preset',
+      '3': 7,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.EncodingOptionsPreset',
+      '9': 1,
+      '10': 'preset'
+    },
+    {
+      '1': 'advanced',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.EncodingOptions',
+      '9': 1,
+      '10': 'advanced'
+    },
+    {
+      '1': 'file_outputs',
+      '3': 9,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.EncodedFileOutput',
+      '10': 'fileOutputs'
+    },
+    {
+      '1': 'stream_outputs',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.StreamOutput',
+      '10': 'streamOutputs'
+    },
+    {
+      '1': 'segment_outputs',
+      '3': 11,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SegmentedFileOutput',
+      '10': 'segmentOutputs'
+    },
+    {
+      '1': 'image_outputs',
+      '3': 13,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ImageOutput',
+      '10': 'imageOutputs'
+    },
+    {
+      '1': 'webhooks',
+      '3': 14,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.WebhookConfig',
+      '10': 'webhooks'
+    },
   ],
   '8': [
     {'1': 'output'},
@@ -308,13 +425,64 @@ const ParticipantEgressRequest$json = {
     {'1': 'room_name', '3': 1, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'identity', '3': 2, '4': 1, '5': 9, '10': 'identity'},
     {'1': 'screen_share', '3': 3, '4': 1, '5': 8, '10': 'screenShare'},
-    {'1': 'preset', '3': 4, '4': 1, '5': 14, '6': '.livekit.EncodingOptionsPreset', '9': 0, '10': 'preset'},
-    {'1': 'advanced', '3': 5, '4': 1, '5': 11, '6': '.livekit.EncodingOptions', '9': 0, '10': 'advanced'},
-    {'1': 'file_outputs', '3': 6, '4': 3, '5': 11, '6': '.livekit.EncodedFileOutput', '10': 'fileOutputs'},
-    {'1': 'stream_outputs', '3': 7, '4': 3, '5': 11, '6': '.livekit.StreamOutput', '10': 'streamOutputs'},
-    {'1': 'segment_outputs', '3': 8, '4': 3, '5': 11, '6': '.livekit.SegmentedFileOutput', '10': 'segmentOutputs'},
-    {'1': 'image_outputs', '3': 9, '4': 3, '5': 11, '6': '.livekit.ImageOutput', '10': 'imageOutputs'},
-    {'1': 'webhooks', '3': 10, '4': 3, '5': 11, '6': '.livekit.WebhookConfig', '10': 'webhooks'},
+    {
+      '1': 'preset',
+      '3': 4,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.EncodingOptionsPreset',
+      '9': 0,
+      '10': 'preset'
+    },
+    {
+      '1': 'advanced',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.EncodingOptions',
+      '9': 0,
+      '10': 'advanced'
+    },
+    {
+      '1': 'file_outputs',
+      '3': 6,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.EncodedFileOutput',
+      '10': 'fileOutputs'
+    },
+    {
+      '1': 'stream_outputs',
+      '3': 7,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.StreamOutput',
+      '10': 'streamOutputs'
+    },
+    {
+      '1': 'segment_outputs',
+      '3': 8,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SegmentedFileOutput',
+      '10': 'segmentOutputs'
+    },
+    {
+      '1': 'image_outputs',
+      '3': 9,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ImageOutput',
+      '10': 'imageOutputs'
+    },
+    {
+      '1': 'webhooks',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.WebhookConfig',
+      '10': 'webhooks'
+    },
   ],
   '8': [
     {'1': 'options'},
@@ -371,13 +539,64 @@ const TrackCompositeEgressRequest$json = {
       '9': 0,
       '10': 'segments',
     },
-    {'1': 'preset', '3': 6, '4': 1, '5': 14, '6': '.livekit.EncodingOptionsPreset', '9': 1, '10': 'preset'},
-    {'1': 'advanced', '3': 7, '4': 1, '5': 11, '6': '.livekit.EncodingOptions', '9': 1, '10': 'advanced'},
-    {'1': 'file_outputs', '3': 11, '4': 3, '5': 11, '6': '.livekit.EncodedFileOutput', '10': 'fileOutputs'},
-    {'1': 'stream_outputs', '3': 12, '4': 3, '5': 11, '6': '.livekit.StreamOutput', '10': 'streamOutputs'},
-    {'1': 'segment_outputs', '3': 13, '4': 3, '5': 11, '6': '.livekit.SegmentedFileOutput', '10': 'segmentOutputs'},
-    {'1': 'image_outputs', '3': 14, '4': 3, '5': 11, '6': '.livekit.ImageOutput', '10': 'imageOutputs'},
-    {'1': 'webhooks', '3': 15, '4': 3, '5': 11, '6': '.livekit.WebhookConfig', '10': 'webhooks'},
+    {
+      '1': 'preset',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.EncodingOptionsPreset',
+      '9': 1,
+      '10': 'preset'
+    },
+    {
+      '1': 'advanced',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.EncodingOptions',
+      '9': 1,
+      '10': 'advanced'
+    },
+    {
+      '1': 'file_outputs',
+      '3': 11,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.EncodedFileOutput',
+      '10': 'fileOutputs'
+    },
+    {
+      '1': 'stream_outputs',
+      '3': 12,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.StreamOutput',
+      '10': 'streamOutputs'
+    },
+    {
+      '1': 'segment_outputs',
+      '3': 13,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SegmentedFileOutput',
+      '10': 'segmentOutputs'
+    },
+    {
+      '1': 'image_outputs',
+      '3': 14,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ImageOutput',
+      '10': 'imageOutputs'
+    },
+    {
+      '1': 'webhooks',
+      '3': 15,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.WebhookConfig',
+      '10': 'webhooks'
+    },
   ],
   '8': [
     {'1': 'output'},
@@ -408,9 +627,31 @@ const TrackEgressRequest$json = {
   '2': [
     {'1': 'room_name', '3': 1, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'track_id', '3': 2, '4': 1, '5': 9, '10': 'trackId'},
-    {'1': 'file', '3': 3, '4': 1, '5': 11, '6': '.livekit.DirectFileOutput', '9': 0, '10': 'file'},
-    {'1': 'websocket_url', '3': 4, '4': 1, '5': 9, '9': 0, '10': 'websocketUrl'},
-    {'1': 'webhooks', '3': 5, '4': 3, '5': 11, '6': '.livekit.WebhookConfig', '10': 'webhooks'},
+    {
+      '1': 'file',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.DirectFileOutput',
+      '9': 0,
+      '10': 'file'
+    },
+    {
+      '1': 'websocket_url',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'websocketUrl'
+    },
+    {
+      '1': 'webhooks',
+      '3': 5,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.WebhookConfig',
+      '10': 'webhooks'
+    },
   ],
   '8': [
     {'1': 'output'},
@@ -429,13 +670,52 @@ final $typed_data.Uint8List trackEgressRequestDescriptor = $convert.base64Decode
 const EncodedFileOutput$json = {
   '1': 'EncodedFileOutput',
   '2': [
-    {'1': 'file_type', '3': 1, '4': 1, '5': 14, '6': '.livekit.EncodedFileType', '10': 'fileType'},
+    {
+      '1': 'file_type',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.EncodedFileType',
+      '10': 'fileType'
+    },
     {'1': 'filepath', '3': 2, '4': 1, '5': 9, '10': 'filepath'},
     {'1': 'disable_manifest', '3': 6, '4': 1, '5': 8, '10': 'disableManifest'},
-    {'1': 's3', '3': 3, '4': 1, '5': 11, '6': '.livekit.S3Upload', '9': 0, '10': 's3'},
-    {'1': 'gcp', '3': 4, '4': 1, '5': 11, '6': '.livekit.GCPUpload', '9': 0, '10': 'gcp'},
-    {'1': 'azure', '3': 5, '4': 1, '5': 11, '6': '.livekit.AzureBlobUpload', '9': 0, '10': 'azure'},
-    {'1': 'aliOSS', '3': 7, '4': 1, '5': 11, '6': '.livekit.AliOSSUpload', '9': 0, '10': 'aliOSS'},
+    {
+      '1': 's3',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.S3Upload',
+      '9': 0,
+      '10': 's3'
+    },
+    {
+      '1': 'gcp',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.GCPUpload',
+      '9': 0,
+      '10': 'gcp'
+    },
+    {
+      '1': 'azure',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AzureBlobUpload',
+      '9': 0,
+      '10': 'azure'
+    },
+    {
+      '1': 'aliOSS',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AliOSSUpload',
+      '9': 0,
+      '10': 'aliOSS'
+    },
   ],
   '8': [
     {'1': 'output'},
@@ -455,17 +735,69 @@ final $typed_data.Uint8List encodedFileOutputDescriptor = $convert.base64Decode(
 const SegmentedFileOutput$json = {
   '1': 'SegmentedFileOutput',
   '2': [
-    {'1': 'protocol', '3': 1, '4': 1, '5': 14, '6': '.livekit.SegmentedFileProtocol', '10': 'protocol'},
+    {
+      '1': 'protocol',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SegmentedFileProtocol',
+      '10': 'protocol'
+    },
     {'1': 'filename_prefix', '3': 2, '4': 1, '5': 9, '10': 'filenamePrefix'},
     {'1': 'playlist_name', '3': 3, '4': 1, '5': 9, '10': 'playlistName'},
-    {'1': 'live_playlist_name', '3': 11, '4': 1, '5': 9, '10': 'livePlaylistName'},
+    {
+      '1': 'live_playlist_name',
+      '3': 11,
+      '4': 1,
+      '5': 9,
+      '10': 'livePlaylistName'
+    },
     {'1': 'segment_duration', '3': 4, '4': 1, '5': 13, '10': 'segmentDuration'},
-    {'1': 'filename_suffix', '3': 10, '4': 1, '5': 14, '6': '.livekit.SegmentedFileSuffix', '10': 'filenameSuffix'},
+    {
+      '1': 'filename_suffix',
+      '3': 10,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.SegmentedFileSuffix',
+      '10': 'filenameSuffix'
+    },
     {'1': 'disable_manifest', '3': 8, '4': 1, '5': 8, '10': 'disableManifest'},
-    {'1': 's3', '3': 5, '4': 1, '5': 11, '6': '.livekit.S3Upload', '9': 0, '10': 's3'},
-    {'1': 'gcp', '3': 6, '4': 1, '5': 11, '6': '.livekit.GCPUpload', '9': 0, '10': 'gcp'},
-    {'1': 'azure', '3': 7, '4': 1, '5': 11, '6': '.livekit.AzureBlobUpload', '9': 0, '10': 'azure'},
-    {'1': 'aliOSS', '3': 9, '4': 1, '5': 11, '6': '.livekit.AliOSSUpload', '9': 0, '10': 'aliOSS'},
+    {
+      '1': 's3',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.S3Upload',
+      '9': 0,
+      '10': 's3'
+    },
+    {
+      '1': 'gcp',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.GCPUpload',
+      '9': 0,
+      '10': 'gcp'
+    },
+    {
+      '1': 'azure',
+      '3': 7,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AzureBlobUpload',
+      '9': 0,
+      '10': 'azure'
+    },
+    {
+      '1': 'aliOSS',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AliOSSUpload',
+      '9': 0,
+      '10': 'aliOSS'
+    },
   ],
   '8': [
     {'1': 'output'},
@@ -491,10 +823,42 @@ const DirectFileOutput$json = {
   '2': [
     {'1': 'filepath', '3': 1, '4': 1, '5': 9, '10': 'filepath'},
     {'1': 'disable_manifest', '3': 5, '4': 1, '5': 8, '10': 'disableManifest'},
-    {'1': 's3', '3': 2, '4': 1, '5': 11, '6': '.livekit.S3Upload', '9': 0, '10': 's3'},
-    {'1': 'gcp', '3': 3, '4': 1, '5': 11, '6': '.livekit.GCPUpload', '9': 0, '10': 'gcp'},
-    {'1': 'azure', '3': 4, '4': 1, '5': 11, '6': '.livekit.AzureBlobUpload', '9': 0, '10': 'azure'},
-    {'1': 'aliOSS', '3': 6, '4': 1, '5': 11, '6': '.livekit.AliOSSUpload', '9': 0, '10': 'aliOSS'},
+    {
+      '1': 's3',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.S3Upload',
+      '9': 0,
+      '10': 's3'
+    },
+    {
+      '1': 'gcp',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.GCPUpload',
+      '9': 0,
+      '10': 'gcp'
+    },
+    {
+      '1': 'azure',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AzureBlobUpload',
+      '9': 0,
+      '10': 'azure'
+    },
+    {
+      '1': 'aliOSS',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AliOSSUpload',
+      '9': 0,
+      '10': 'aliOSS'
+    },
   ],
   '8': [
     {'1': 'output'},
@@ -517,13 +881,59 @@ const ImageOutput$json = {
     {'1': 'width', '3': 2, '4': 1, '5': 5, '10': 'width'},
     {'1': 'height', '3': 3, '4': 1, '5': 5, '10': 'height'},
     {'1': 'filename_prefix', '3': 4, '4': 1, '5': 9, '10': 'filenamePrefix'},
-    {'1': 'filename_suffix', '3': 5, '4': 1, '5': 14, '6': '.livekit.ImageFileSuffix', '10': 'filenameSuffix'},
-    {'1': 'image_codec', '3': 6, '4': 1, '5': 14, '6': '.livekit.ImageCodec', '10': 'imageCodec'},
+    {
+      '1': 'filename_suffix',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ImageFileSuffix',
+      '10': 'filenameSuffix'
+    },
+    {
+      '1': 'image_codec',
+      '3': 6,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.ImageCodec',
+      '10': 'imageCodec'
+    },
     {'1': 'disable_manifest', '3': 7, '4': 1, '5': 8, '10': 'disableManifest'},
-    {'1': 's3', '3': 8, '4': 1, '5': 11, '6': '.livekit.S3Upload', '9': 0, '10': 's3'},
-    {'1': 'gcp', '3': 9, '4': 1, '5': 11, '6': '.livekit.GCPUpload', '9': 0, '10': 'gcp'},
-    {'1': 'azure', '3': 10, '4': 1, '5': 11, '6': '.livekit.AzureBlobUpload', '9': 0, '10': 'azure'},
-    {'1': 'aliOSS', '3': 11, '4': 1, '5': 11, '6': '.livekit.AliOSSUpload', '9': 0, '10': 'aliOSS'},
+    {
+      '1': 's3',
+      '3': 8,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.S3Upload',
+      '9': 0,
+      '10': 's3'
+    },
+    {
+      '1': 'gcp',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.GCPUpload',
+      '9': 0,
+      '10': 'gcp'
+    },
+    {
+      '1': 'azure',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AzureBlobUpload',
+      '9': 0,
+      '10': 'azure'
+    },
+    {
+      '1': 'aliOSS',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AliOSSUpload',
+      '9': 0,
+      '10': 'aliOSS'
+    },
   ],
   '8': [
     {'1': 'output'},
@@ -548,17 +958,58 @@ const S3Upload$json = {
   '2': [
     {'1': 'access_key', '3': 1, '4': 1, '5': 9, '8': {}, '10': 'accessKey'},
     {'1': 'secret', '3': 2, '4': 1, '5': 9, '8': {}, '10': 'secret'},
-    {'1': 'session_token', '3': 11, '4': 1, '5': 9, '8': {}, '10': 'sessionToken'},
-    {'1': 'assume_role_arn', '3': 12, '4': 1, '5': 9, '8': {}, '10': 'assumeRoleArn'},
-    {'1': 'assume_role_external_id', '3': 13, '4': 1, '5': 9, '8': {}, '10': 'assumeRoleExternalId'},
+    {
+      '1': 'session_token',
+      '3': 11,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'sessionToken'
+    },
+    {
+      '1': 'assume_role_arn',
+      '3': 12,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'assumeRoleArn'
+    },
+    {
+      '1': 'assume_role_external_id',
+      '3': 13,
+      '4': 1,
+      '5': 9,
+      '8': {},
+      '10': 'assumeRoleExternalId'
+    },
     {'1': 'region', '3': 3, '4': 1, '5': 9, '10': 'region'},
     {'1': 'endpoint', '3': 4, '4': 1, '5': 9, '10': 'endpoint'},
     {'1': 'bucket', '3': 5, '4': 1, '5': 9, '10': 'bucket'},
     {'1': 'force_path_style', '3': 6, '4': 1, '5': 8, '10': 'forcePathStyle'},
-    {'1': 'metadata', '3': 7, '4': 3, '5': 11, '6': '.livekit.S3Upload.MetadataEntry', '10': 'metadata'},
+    {
+      '1': 'metadata',
+      '3': 7,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.S3Upload.MetadataEntry',
+      '10': 'metadata'
+    },
     {'1': 'tagging', '3': 8, '4': 1, '5': 9, '10': 'tagging'},
-    {'1': 'content_disposition', '3': 9, '4': 1, '5': 9, '10': 'contentDisposition'},
-    {'1': 'proxy', '3': 10, '4': 1, '5': 11, '6': '.livekit.ProxyConfig', '10': 'proxy'},
+    {
+      '1': 'content_disposition',
+      '3': 9,
+      '4': 1,
+      '5': 9,
+      '10': 'contentDisposition'
+    },
+    {
+      '1': 'proxy',
+      '3': 10,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ProxyConfig',
+      '10': 'proxy'
+    },
   ],
   '3': [S3Upload_MetadataEntry$json],
 };
@@ -593,7 +1044,14 @@ const GCPUpload$json = {
   '2': [
     {'1': 'credentials', '3': 1, '4': 1, '5': 9, '8': {}, '10': 'credentials'},
     {'1': 'bucket', '3': 2, '4': 1, '5': 9, '10': 'bucket'},
-    {'1': 'proxy', '3': 3, '4': 1, '5': 11, '6': '.livekit.ProxyConfig', '10': 'proxy'},
+    {
+      '1': 'proxy',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ProxyConfig',
+      '10': 'proxy'
+    },
   ],
 };
 
@@ -656,7 +1114,14 @@ final $typed_data.Uint8List proxyConfigDescriptor = $convert.base64Decode(
 const StreamOutput$json = {
   '1': 'StreamOutput',
   '2': [
-    {'1': 'protocol', '3': 1, '4': 1, '5': 14, '6': '.livekit.StreamProtocol', '10': 'protocol'},
+    {
+      '1': 'protocol',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.StreamProtocol',
+      '10': 'protocol'
+    },
     {'1': 'urls', '3': 2, '4': 3, '5': 9, '10': 'urls'},
   ],
 };
@@ -674,14 +1139,34 @@ const EncodingOptions$json = {
     {'1': 'height', '3': 2, '4': 1, '5': 5, '10': 'height'},
     {'1': 'depth', '3': 3, '4': 1, '5': 5, '10': 'depth'},
     {'1': 'framerate', '3': 4, '4': 1, '5': 5, '10': 'framerate'},
-    {'1': 'audio_codec', '3': 5, '4': 1, '5': 14, '6': '.livekit.AudioCodec', '10': 'audioCodec'},
+    {
+      '1': 'audio_codec',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.AudioCodec',
+      '10': 'audioCodec'
+    },
     {'1': 'audio_bitrate', '3': 6, '4': 1, '5': 5, '10': 'audioBitrate'},
     {'1': 'audio_quality', '3': 11, '4': 1, '5': 5, '10': 'audioQuality'},
     {'1': 'audio_frequency', '3': 7, '4': 1, '5': 5, '10': 'audioFrequency'},
-    {'1': 'video_codec', '3': 8, '4': 1, '5': 14, '6': '.livekit.VideoCodec', '10': 'videoCodec'},
+    {
+      '1': 'video_codec',
+      '3': 8,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.VideoCodec',
+      '10': 'videoCodec'
+    },
     {'1': 'video_bitrate', '3': 9, '4': 1, '5': 5, '10': 'videoBitrate'},
     {'1': 'video_quality', '3': 12, '4': 1, '5': 5, '10': 'videoQuality'},
-    {'1': 'key_frame_interval', '3': 10, '4': 1, '5': 1, '10': 'keyFrameInterval'},
+    {
+      '1': 'key_frame_interval',
+      '3': 10,
+      '4': 1,
+      '5': 1,
+      '10': 'keyFrameInterval'
+    },
   ],
 };
 
@@ -717,7 +1202,13 @@ const UpdateStreamRequest$json = {
   '2': [
     {'1': 'egress_id', '3': 1, '4': 1, '5': 9, '10': 'egressId'},
     {'1': 'add_output_urls', '3': 2, '4': 3, '5': 9, '10': 'addOutputUrls'},
-    {'1': 'remove_output_urls', '3': 3, '4': 3, '5': 9, '10': 'removeOutputUrls'},
+    {
+      '1': 'remove_output_urls',
+      '3': 3,
+      '4': 3,
+      '5': 9,
+      '10': 'removeOutputUrls'
+    },
   ],
 };
 
@@ -746,7 +1237,14 @@ final $typed_data.Uint8List listEgressRequestDescriptor = $convert.base64Decode(
 const ListEgressResponse$json = {
   '1': 'ListEgressResponse',
   '2': [
-    {'1': 'items', '3': 1, '4': 3, '5': 11, '6': '.livekit.EgressInfo', '10': 'items'},
+    {
+      '1': 'items',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.EgressInfo',
+      '10': 'items'
+    },
   ],
 };
 
@@ -774,19 +1272,73 @@ const EgressInfo$json = {
     {'1': 'egress_id', '3': 1, '4': 1, '5': 9, '10': 'egressId'},
     {'1': 'room_id', '3': 2, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'room_name', '3': 13, '4': 1, '5': 9, '10': 'roomName'},
-    {'1': 'source_type', '3': 26, '4': 1, '5': 14, '6': '.livekit.EgressSourceType', '10': 'sourceType'},
-    {'1': 'status', '3': 3, '4': 1, '5': 14, '6': '.livekit.EgressStatus', '10': 'status'},
+    {
+      '1': 'source_type',
+      '3': 26,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.EgressSourceType',
+      '10': 'sourceType'
+    },
+    {
+      '1': 'status',
+      '3': 3,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.EgressStatus',
+      '10': 'status'
+    },
     {'1': 'started_at', '3': 10, '4': 1, '5': 3, '10': 'startedAt'},
     {'1': 'ended_at', '3': 11, '4': 1, '5': 3, '10': 'endedAt'},
     {'1': 'updated_at', '3': 18, '4': 1, '5': 3, '10': 'updatedAt'},
     {'1': 'details', '3': 21, '4': 1, '5': 9, '10': 'details'},
     {'1': 'error', '3': 9, '4': 1, '5': 9, '10': 'error'},
     {'1': 'error_code', '3': 22, '4': 1, '5': 5, '10': 'errorCode'},
-    {'1': 'room_composite', '3': 4, '4': 1, '5': 11, '6': '.livekit.RoomCompositeEgressRequest', '9': 0, '10': 'roomComposite'},
-    {'1': 'web', '3': 14, '4': 1, '5': 11, '6': '.livekit.WebEgressRequest', '9': 0, '10': 'web'},
-    {'1': 'participant', '3': 19, '4': 1, '5': 11, '6': '.livekit.ParticipantEgressRequest', '9': 0, '10': 'participant'},
-    {'1': 'track_composite', '3': 5, '4': 1, '5': 11, '6': '.livekit.TrackCompositeEgressRequest', '9': 0, '10': 'trackComposite'},
-    {'1': 'track', '3': 6, '4': 1, '5': 11, '6': '.livekit.TrackEgressRequest', '9': 0, '10': 'track'},
+    {
+      '1': 'room_composite',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.RoomCompositeEgressRequest',
+      '9': 0,
+      '10': 'roomComposite'
+    },
+    {
+      '1': 'web',
+      '3': 14,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.WebEgressRequest',
+      '9': 0,
+      '10': 'web'
+    },
+    {
+      '1': 'participant',
+      '3': 19,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.ParticipantEgressRequest',
+      '9': 0,
+      '10': 'participant'
+    },
+    {
+      '1': 'track_composite',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackCompositeEgressRequest',
+      '9': 0,
+      '10': 'trackComposite'
+    },
+    {
+      '1': 'track',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.TrackEgressRequest',
+      '9': 0,
+      '10': 'track'
+    },
     {
       '1': 'stream',
       '3': 7,
@@ -817,12 +1369,52 @@ const EgressInfo$json = {
       '9': 1,
       '10': 'segments',
     },
-    {'1': 'stream_results', '3': 15, '4': 3, '5': 11, '6': '.livekit.StreamInfo', '10': 'streamResults'},
-    {'1': 'file_results', '3': 16, '4': 3, '5': 11, '6': '.livekit.FileInfo', '10': 'fileResults'},
-    {'1': 'segment_results', '3': 17, '4': 3, '5': 11, '6': '.livekit.SegmentsInfo', '10': 'segmentResults'},
-    {'1': 'image_results', '3': 20, '4': 3, '5': 11, '6': '.livekit.ImagesInfo', '10': 'imageResults'},
-    {'1': 'manifest_location', '3': 23, '4': 1, '5': 9, '10': 'manifestLocation'},
-    {'1': 'backup_storage_used', '3': 25, '4': 1, '5': 8, '10': 'backupStorageUsed'},
+    {
+      '1': 'stream_results',
+      '3': 15,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.StreamInfo',
+      '10': 'streamResults'
+    },
+    {
+      '1': 'file_results',
+      '3': 16,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.FileInfo',
+      '10': 'fileResults'
+    },
+    {
+      '1': 'segment_results',
+      '3': 17,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SegmentsInfo',
+      '10': 'segmentResults'
+    },
+    {
+      '1': 'image_results',
+      '3': 20,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.ImagesInfo',
+      '10': 'imageResults'
+    },
+    {
+      '1': 'manifest_location',
+      '3': 23,
+      '4': 1,
+      '5': 9,
+      '10': 'manifestLocation'
+    },
+    {
+      '1': 'backup_storage_used',
+      '3': 25,
+      '4': 1,
+      '5': 8,
+      '10': 'backupStorageUsed'
+    },
   ],
   '8': [
     {'1': 'request'},
@@ -859,7 +1451,14 @@ final $typed_data.Uint8List egressInfoDescriptor = $convert.base64Decode(
 const StreamInfoList$json = {
   '1': 'StreamInfoList',
   '2': [
-    {'1': 'info', '3': 1, '4': 3, '5': 11, '6': '.livekit.StreamInfo', '10': 'info'},
+    {
+      '1': 'info',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.StreamInfo',
+      '10': 'info'
+    },
   ],
   '7': {'3': true},
 };
@@ -877,7 +1476,14 @@ const StreamInfo$json = {
     {'1': 'started_at', '3': 2, '4': 1, '5': 3, '10': 'startedAt'},
     {'1': 'ended_at', '3': 3, '4': 1, '5': 3, '10': 'endedAt'},
     {'1': 'duration', '3': 4, '4': 1, '5': 3, '10': 'duration'},
-    {'1': 'status', '3': 5, '4': 1, '5': 14, '6': '.livekit.StreamInfo.Status', '10': 'status'},
+    {
+      '1': 'status',
+      '3': 5,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.StreamInfo.Status',
+      '10': 'status'
+    },
     {'1': 'error', '3': 6, '4': 1, '5': 9, '10': 'error'},
     {'1': 'last_retry_at', '3': 7, '4': 1, '5': 3, '10': 'lastRetryAt'},
     {'1': 'retries', '3': 8, '4': 1, '5': 13, '10': 'retries'},
@@ -929,11 +1535,29 @@ const SegmentsInfo$json = {
   '1': 'SegmentsInfo',
   '2': [
     {'1': 'playlist_name', '3': 1, '4': 1, '5': 9, '10': 'playlistName'},
-    {'1': 'live_playlist_name', '3': 8, '4': 1, '5': 9, '10': 'livePlaylistName'},
+    {
+      '1': 'live_playlist_name',
+      '3': 8,
+      '4': 1,
+      '5': 9,
+      '10': 'livePlaylistName'
+    },
     {'1': 'duration', '3': 2, '4': 1, '5': 3, '10': 'duration'},
     {'1': 'size', '3': 3, '4': 1, '5': 3, '10': 'size'},
-    {'1': 'playlist_location', '3': 4, '4': 1, '5': 9, '10': 'playlistLocation'},
-    {'1': 'live_playlist_location', '3': 9, '4': 1, '5': 9, '10': 'livePlaylistLocation'},
+    {
+      '1': 'playlist_location',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '10': 'playlistLocation'
+    },
+    {
+      '1': 'live_playlist_location',
+      '3': 9,
+      '4': 1,
+      '5': 9,
+      '10': 'livePlaylistLocation'
+    },
     {'1': 'segment_count', '3': 5, '4': 1, '5': 3, '10': 'segmentCount'},
     {'1': 'started_at', '3': 6, '4': 1, '5': 3, '10': 'startedAt'},
     {'1': 'ended_at', '3': 7, '4': 1, '5': 3, '10': 'endedAt'},
@@ -971,10 +1595,40 @@ final $typed_data.Uint8List imagesInfoDescriptor = $convert.base64Decode(
 const AutoParticipantEgress$json = {
   '1': 'AutoParticipantEgress',
   '2': [
-    {'1': 'preset', '3': 1, '4': 1, '5': 14, '6': '.livekit.EncodingOptionsPreset', '9': 0, '10': 'preset'},
-    {'1': 'advanced', '3': 2, '4': 1, '5': 11, '6': '.livekit.EncodingOptions', '9': 0, '10': 'advanced'},
-    {'1': 'file_outputs', '3': 3, '4': 3, '5': 11, '6': '.livekit.EncodedFileOutput', '10': 'fileOutputs'},
-    {'1': 'segment_outputs', '3': 4, '4': 3, '5': 11, '6': '.livekit.SegmentedFileOutput', '10': 'segmentOutputs'},
+    {
+      '1': 'preset',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.EncodingOptionsPreset',
+      '9': 0,
+      '10': 'preset'
+    },
+    {
+      '1': 'advanced',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.EncodingOptions',
+      '9': 0,
+      '10': 'advanced'
+    },
+    {
+      '1': 'file_outputs',
+      '3': 3,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.EncodedFileOutput',
+      '10': 'fileOutputs'
+    },
+    {
+      '1': 'segment_outputs',
+      '3': 4,
+      '4': 3,
+      '5': 11,
+      '6': '.livekit.SegmentedFileOutput',
+      '10': 'segmentOutputs'
+    },
   ],
   '8': [
     {'1': 'options'},
@@ -996,10 +1650,42 @@ const AutoTrackEgress$json = {
   '2': [
     {'1': 'filepath', '3': 1, '4': 1, '5': 9, '10': 'filepath'},
     {'1': 'disable_manifest', '3': 5, '4': 1, '5': 8, '10': 'disableManifest'},
-    {'1': 's3', '3': 2, '4': 1, '5': 11, '6': '.livekit.S3Upload', '9': 0, '10': 's3'},
-    {'1': 'gcp', '3': 3, '4': 1, '5': 11, '6': '.livekit.GCPUpload', '9': 0, '10': 'gcp'},
-    {'1': 'azure', '3': 4, '4': 1, '5': 11, '6': '.livekit.AzureBlobUpload', '9': 0, '10': 'azure'},
-    {'1': 'aliOSS', '3': 6, '4': 1, '5': 11, '6': '.livekit.AliOSSUpload', '9': 0, '10': 'aliOSS'},
+    {
+      '1': 's3',
+      '3': 2,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.S3Upload',
+      '9': 0,
+      '10': 's3'
+    },
+    {
+      '1': 'gcp',
+      '3': 3,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.GCPUpload',
+      '9': 0,
+      '10': 'gcp'
+    },
+    {
+      '1': 'azure',
+      '3': 4,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AzureBlobUpload',
+      '9': 0,
+      '10': 'azure'
+    },
+    {
+      '1': 'aliOSS',
+      '3': 6,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.AliOSSUpload',
+      '9': 0,
+      '10': 'aliOSS'
+    },
   ],
   '8': [
     {'1': 'output'},
@@ -1017,20 +1703,57 @@ final $typed_data.Uint8List autoTrackEgressDescriptor = $convert.base64Decode(
 const $core.Map<$core.String, $core.dynamic> EgressServiceBase$json = {
   '1': 'Egress',
   '2': [
-    {'1': 'StartRoomCompositeEgress', '2': '.livekit.RoomCompositeEgressRequest', '3': '.livekit.EgressInfo'},
-    {'1': 'StartWebEgress', '2': '.livekit.WebEgressRequest', '3': '.livekit.EgressInfo'},
-    {'1': 'StartParticipantEgress', '2': '.livekit.ParticipantEgressRequest', '3': '.livekit.EgressInfo'},
-    {'1': 'StartTrackCompositeEgress', '2': '.livekit.TrackCompositeEgressRequest', '3': '.livekit.EgressInfo'},
-    {'1': 'StartTrackEgress', '2': '.livekit.TrackEgressRequest', '3': '.livekit.EgressInfo'},
-    {'1': 'UpdateLayout', '2': '.livekit.UpdateLayoutRequest', '3': '.livekit.EgressInfo'},
-    {'1': 'UpdateStream', '2': '.livekit.UpdateStreamRequest', '3': '.livekit.EgressInfo'},
-    {'1': 'ListEgress', '2': '.livekit.ListEgressRequest', '3': '.livekit.ListEgressResponse'},
-    {'1': 'StopEgress', '2': '.livekit.StopEgressRequest', '3': '.livekit.EgressInfo'},
+    {
+      '1': 'StartRoomCompositeEgress',
+      '2': '.livekit.RoomCompositeEgressRequest',
+      '3': '.livekit.EgressInfo'
+    },
+    {
+      '1': 'StartWebEgress',
+      '2': '.livekit.WebEgressRequest',
+      '3': '.livekit.EgressInfo'
+    },
+    {
+      '1': 'StartParticipantEgress',
+      '2': '.livekit.ParticipantEgressRequest',
+      '3': '.livekit.EgressInfo'
+    },
+    {
+      '1': 'StartTrackCompositeEgress',
+      '2': '.livekit.TrackCompositeEgressRequest',
+      '3': '.livekit.EgressInfo'
+    },
+    {
+      '1': 'StartTrackEgress',
+      '2': '.livekit.TrackEgressRequest',
+      '3': '.livekit.EgressInfo'
+    },
+    {
+      '1': 'UpdateLayout',
+      '2': '.livekit.UpdateLayoutRequest',
+      '3': '.livekit.EgressInfo'
+    },
+    {
+      '1': 'UpdateStream',
+      '2': '.livekit.UpdateStreamRequest',
+      '3': '.livekit.EgressInfo'
+    },
+    {
+      '1': 'ListEgress',
+      '2': '.livekit.ListEgressRequest',
+      '3': '.livekit.ListEgressResponse'
+    },
+    {
+      '1': 'StopEgress',
+      '2': '.livekit.StopEgressRequest',
+      '3': '.livekit.EgressInfo'
+    },
   ],
 };
 
 @$core.Deprecated('Use egressServiceDescriptor instead')
-const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> EgressServiceBase$messageJson = {
+const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>>
+    EgressServiceBase$messageJson = {
   '.livekit.RoomCompositeEgressRequest': RoomCompositeEgressRequest$json,
   '.livekit.EncodedFileOutput': EncodedFileOutput$json,
   '.livekit.S3Upload': S3Upload$json,
@@ -1043,8 +1766,8 @@ const $core.Map<$core.String, $core.Map<$core.String, $core.dynamic>> EgressServ
   '.livekit.EncodingOptions': EncodingOptions$json,
   '.livekit.SegmentedFileOutput': SegmentedFileOutput$json,
   '.livekit.ImageOutput': ImageOutput$json,
-  '.livekit.WebhookConfig': $2.WebhookConfig$json,
-  '.livekit.FilterParams': $2.FilterParams$json,
+  '.livekit.WebhookConfig': $0.WebhookConfig$json,
+  '.livekit.FilterParams': $0.FilterParams$json,
   '.livekit.EgressInfo': EgressInfo$json,
   '.livekit.TrackCompositeEgressRequest': TrackCompositeEgressRequest$json,
   '.livekit.TrackEgressRequest': TrackEgressRequest$json,
@@ -1078,4 +1801,3 @@ final $typed_data.Uint8List egressServiceDescriptor = $convert.base64Decode(
     'a2l0Lkxpc3RFZ3Jlc3NSZXF1ZXN0GhsubGl2ZWtpdC5MaXN0RWdyZXNzUmVzcG9uc2USPQoKU3'
     'RvcEVncmVzcxIaLmxpdmVraXQuU3RvcEVncmVzc1JlcXVlc3QaEy5saXZla2l0LkVncmVzc0lu'
     'Zm8=');
-
