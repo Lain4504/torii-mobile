@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_design_system.dart';
 
 /// Torii Mobile App Theme
 /// 
 /// Minimalist, zen-inspired theme for a Japanese learning platform.
 /// Emphasizes clarity, calmness, and focus.
+/// Updated to match Web Design System (Nunito / OKLCH).
 
 class AppTheme {
   AppTheme._();
@@ -18,6 +20,55 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.light,
     
+    // Typography - Nunito
+    textTheme: GoogleFonts.nunitoTextTheme(
+      const TextTheme(
+        displayLarge: TextStyle(
+          fontSize: AppTypography.fontSize5xl,
+          fontWeight: AppTypography.bold,
+          color: AppColors.textPrimary,
+          letterSpacing: AppTypography.letterSpacingTight,
+          height: 1.1,
+        ),
+        displayMedium: TextStyle(
+          fontSize: AppTypography.fontSize4xl,
+          fontWeight: AppTypography.bold,
+          color: AppColors.textPrimary,
+          letterSpacing: AppTypography.letterSpacingTight,
+          height: 1.1,
+        ),
+        headlineLarge: TextStyle(
+          fontSize: AppTypography.fontSize3xl,
+          fontWeight: AppTypography.extraBold,
+          color: AppColors.textPrimary,
+          letterSpacing: AppTypography.letterSpacingTight,
+        ),
+        headlineMedium: TextStyle(
+          fontSize: AppTypography.fontSize2xl,
+          fontWeight: AppTypography.bold,
+          color: AppColors.textPrimary,
+          letterSpacing: AppTypography.letterSpacingTight,
+        ),
+        titleLarge: TextStyle(
+          fontSize: AppTypography.fontSizeXl,
+          fontWeight: AppTypography.semiBold,
+          color: AppColors.textPrimary,
+        ),
+        bodyLarge: TextStyle(
+          fontSize: AppTypography.fontSizeMd,
+          fontWeight: AppTypography.regular,
+          color: AppColors.textPrimary,
+          height: 1.6,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: AppTypography.fontSizeSm,
+          fontWeight: AppTypography.regular,
+          color: AppColors.textSecondary,
+          height: 1.6,
+        ),
+      ),
+    ),
+
     // Color Scheme
     colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
@@ -50,6 +101,7 @@ class AppTheme {
       centerTitle: true,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       titleTextStyle: TextStyle(
+        fontFamily: 'Nunito',
         fontSize: AppTypography.fontSizeLg,
         fontWeight: AppTypography.semiBold,
         color: AppColors.textPrimary,
@@ -67,7 +119,7 @@ class AppTheme {
       elevation: 0,
       shadowColor: AppColors.black.withValues(alpha: 0.04),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card), // Updated
         side: const BorderSide(color: AppColors.grey300, width: 1),
       ),
       margin: EdgeInsets.zero,
@@ -82,23 +134,23 @@ class AppTheme {
         vertical: AppSpacing.md,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.input), // Updated
         borderSide: const BorderSide(color: AppColors.grey300),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.input),
         borderSide: const BorderSide(color: AppColors.grey300),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.input),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.input),
         borderSide: const BorderSide(color: AppColors.error),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.input),
         borderSide: const BorderSide(color: AppColors.error, width: 1.5),
       ),
       hintStyle: const TextStyle(
@@ -116,7 +168,7 @@ class AppTheme {
         elevation: 0,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderRadius: BorderRadius.circular(AppRadius.button), // Updated
         ),
         textStyle: const TextStyle(
           fontSize: AppTypography.fontSizeMd,
@@ -137,7 +189,7 @@ class AppTheme {
         foregroundColor: AppColors.primary,
         side: const BorderSide(color: AppColors.grey300, width: 1.5),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderRadius: BorderRadius.circular(AppRadius.button), // Updated
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.xl,
@@ -183,58 +235,41 @@ class AppTheme {
         );
       }),
     ),
- 
-    // Text Theme - Clean Hierarchy
-    textTheme: const TextTheme(
-      displayLarge: TextStyle(
-        fontSize: AppTypography.fontSize5xl,
-        fontWeight: AppTypography.bold,
-        color: AppColors.textPrimary,
-        letterSpacing: AppTypography.letterSpacingTight,
-        height: 1.1,
-      ),
-      displayMedium: TextStyle(
-        fontSize: AppTypography.fontSize4xl,
-        fontWeight: AppTypography.bold,
-        color: AppColors.textPrimary,
-        letterSpacing: AppTypography.letterSpacingTight,
-        height: 1.1,
-      ),
-      headlineLarge: TextStyle(
-        fontSize: AppTypography.fontSize3xl,
-        fontWeight: AppTypography.extraBold,
-        color: AppColors.textPrimary,
-        letterSpacing: AppTypography.letterSpacingTight,
-      ),
-      headlineMedium: TextStyle(
-        fontSize: AppTypography.fontSize2xl,
-        fontWeight: AppTypography.bold,
-        color: AppColors.textPrimary,
-        letterSpacing: AppTypography.letterSpacingTight,
-      ),
-      titleLarge: TextStyle(
-        fontSize: AppTypography.fontSizeXl,
-        fontWeight: AppTypography.semiBold,
-        color: AppColors.textPrimary,
-      ),
-      bodyLarge: TextStyle(
-        fontSize: AppTypography.fontSizeMd,
-        fontWeight: AppTypography.regular,
-        color: AppColors.textPrimary,
-        height: 1.6,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: AppTypography.fontSizeSm,
-        fontWeight: AppTypography.regular,
-        color: AppColors.textSecondary,
-        height: 1.6,
-      ),
-    ),
   );
  
   static final dark = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+
+    // Typography - Nunito
+    textTheme: GoogleFonts.nunitoTextTheme(
+      const TextTheme(
+        displayLarge: TextStyle(
+          fontSize: AppTypography.fontSize5xl,
+          fontWeight: AppTypography.bold,
+          color: AppColors.textPrimaryDark,
+          letterSpacing: AppTypography.letterSpacingTight,
+          height: 1.1,
+        ),
+        headlineMedium: TextStyle(
+          fontSize: AppTypography.fontSize2xl,
+          fontWeight: AppTypography.bold,
+          color: AppColors.textPrimaryDark,
+        ),
+        bodyLarge: TextStyle(
+          fontSize: AppTypography.fontSizeMd,
+          fontWeight: AppTypography.regular,
+          color: AppColors.textPrimaryDark,
+          height: 1.6,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: AppTypography.fontSizeSm,
+          fontWeight: AppTypography.regular,
+          color: AppColors.textSecondaryDark,
+          height: 1.6,
+        ),
+      ),
+    ),
     
     // Color Scheme
     colorScheme: const ColorScheme.dark(
@@ -267,6 +302,7 @@ class AppTheme {
       centerTitle: true,
       systemOverlayStyle: SystemUiOverlayStyle.light,
       titleTextStyle: TextStyle(
+        fontFamily: 'Nunito',
         fontSize: AppTypography.fontSizeLg,
         fontWeight: AppTypography.semiBold,
         color: AppColors.textPrimaryDark,
@@ -282,7 +318,7 @@ class AppTheme {
       color: AppColors.surfaceDark,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card), // Updated
         side: const BorderSide(color: AppColors.grey300, width: 1),
       ),
     ),
@@ -294,37 +330,9 @@ class AppTheme {
         foregroundColor: AppColors.backgroundDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderRadius: BorderRadius.circular(AppRadius.button), // Updated
         ),
         minimumSize: const Size(0, 56),
-      ),
-    ),
- 
-    // Text Theme
-    textTheme: const TextTheme(
-      displayLarge: TextStyle(
-        fontSize: AppTypography.fontSize5xl,
-        fontWeight: AppTypography.bold,
-        color: AppColors.textPrimaryDark,
-        letterSpacing: AppTypography.letterSpacingTight,
-        height: 1.1,
-      ),
-      headlineMedium: TextStyle(
-        fontSize: AppTypography.fontSize2xl,
-        fontWeight: AppTypography.bold,
-        color: AppColors.textPrimaryDark,
-      ),
-      bodyLarge: TextStyle(
-        fontSize: AppTypography.fontSizeMd,
-        fontWeight: AppTypography.regular,
-        color: AppColors.textPrimaryDark,
-        height: 1.6,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: AppTypography.fontSizeSm,
-        fontWeight: AppTypography.regular,
-        color: AppColors.textSecondaryDark,
-        height: 1.6,
       ),
     ),
   );

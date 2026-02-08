@@ -50,10 +50,12 @@ import 'package:torii_app/features/ticket/views/pages/ticket_detail_page.dart';
 import 'package:torii_app/features/meet/presentation/screens/meet_landing_screen.dart';
 import 'package:torii_app/features/meet/presentation/screens/meeting_screen.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
+import 'package:torii_app/core/providers/shared_prefs_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authStateAsync = ref.read(authNotifierProvider);
   final authNotifier = ValueNotifier<AsyncValue<AuthState>>(authStateAsync);
+  final prefs = ref.read(sharedPreferencesProvider);
 
   ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (_, next) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -68,6 +70,23 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: authNotifier,
     
     redirect: (context, state) {
+      final matchedLocation = state.matchedLocation;
+      
+      // 1. Check Onboarding Status
+      final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+      final isOnboarding = matchedLocation == '/onboarding';
+
+      if (!onboardingCompleted) {
+        if (!isOnboarding) return '/onboarding';
+        return null;
+      }
+
+      if (isOnboarding) {
+        // If completed, redirect away from onboarding to login
+        return '/login';
+      }
+
+      // 2. Check Auth Status
       final authAsync = ref.read(authNotifierProvider);
       
       if (authAsync is AsyncLoading || authAsync is AsyncError) return null;
@@ -76,7 +95,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (authState == null) return null;
 
       final status = authState.status;
-      final matchedLocation = state.matchedLocation;
       final isLogin = matchedLocation == '/login';
       final isRegister = matchedLocation == '/register';
       final isVerifying2FA = matchedLocation == '/auth/verify-2fa';

@@ -5,6 +5,7 @@ import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/core/localization/l10n/app_localizations.dart';
 
 /// Register Page - Zen UI Pro Max - Premium Rebuild
 class RegisterPage extends ConsumerStatefulWidget {
@@ -44,6 +45,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     final asyncAuth = ref.watch(authStateProvider);
+    final l10n = AppLocalizations.of(context)!;
     
     // Listen for registration completion
     ref.listen<AsyncValue<AuthState>>(authStateProvider, (previous, next) {
@@ -59,7 +61,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
            if (!next.isLoading && !next.hasError && previous!.isLoading) {
               // Completed loading successfully
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Registration successful! Please login.')),
+                SnackBar(content: Text('${l10n.success}! ${l10n.signInToContinue}')),
               );
               WidgetsBinding.instance.addPostFrameCallback((_) {
                  if (mounted) context.go('/login');
@@ -89,7 +91,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     child: Column(
                       children: [
                         const SizedBox(height: AppSpacing.lg),
-                        _buildHeader(context),
+                        _buildHeader(context, l10n),
                         const SizedBox(height: AppSpacing.xxl),
                         
                         if (errorMessage != null) ...[
@@ -106,29 +108,29 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           child: Column(
                             children: [
                               ZenTextField(
-                                label: 'DISPLAY NAME',
+                                label: l10n.displayName.toUpperCase(),
                                 controller: _displayNameController,
                                 hintText: 'How should we call you?',
                                 icon: Icons.face_retouching_natural_rounded,
-                                validator: (val) => (val == null || val.isEmpty) ? 'Please enter your name' : null,
+                                validator: (val) => (val == null || val.isEmpty) ? l10n.nameRequired : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
                               ZenTextField(
-                                label: 'EMAIL ADDRESS',
+                                label: l10n.email.toUpperCase(),
                                 controller: _emailController,
                                 hintText: 'your.email@example.com',
                                 icon: Icons.alternate_email_rounded,
                                 keyboardType: TextInputType.emailAddress,
-                                validator: (val) => (val == null || !val.contains('@')) ? 'Please enter a valid email' : null,
+                                validator: (val) => (val == null || !val.contains('@')) ? l10n.pleaseEnterValidEmail : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
                               ZenTextField(
-                                label: 'PASSWORD',
+                                label: l10n.password.toUpperCase(),
                                 controller: _passwordController,
                                 hintText: '••••••••',
                                 icon: Icons.fingerprint_rounded,
                                 obscureText: _obscurePassword,
-                                validator: (val) => (val == null || val.length < 8) ? 'Password must be at least 8 characters' : null,
+                                validator: (val) => (val == null || val.length < 8) ? l10n.passwordTooShort : null,
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -139,12 +141,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                               ),
                               const SizedBox(height: AppSpacing.md),
                               ZenTextField(
-                                label: 'CONFIRM PASSWORD',
+                                label: l10n.confirmPassword.toUpperCase(),
                                 controller: _confirmPasswordController,
                                 hintText: '••••••••',
                                 icon: Icons.verified_user_outlined,
                                 obscureText: _obscureConfirmPassword,
-                                validator: (val) => (val != _passwordController.text) ? 'Passwords do not match' : null,
+                                validator: (val) => (val != _passwordController.text) ? l10n.passwordMismatch : null,
                                 textInputAction: TextInputAction.done,
                                 onSubmitted: (_) => _register(),
                                 suffixIcon: IconButton(
@@ -164,7 +166,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         EntryAnimation(
                           index: 4,
                           child: ZenButton(
-                            text: 'CREATE ACCOUNT',
+                            text: l10n.createAccount.toUpperCase(),
                             onPressed: _register,
                             isLoading: isLoading,
                             isFullWidth: true,
@@ -179,7 +181,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                             child: Text(
-                              'By creating an account, you agree to our terms of service and privacy protocols within the Torii ecosystem.',
+                              l10n.termsAndConditions,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: AppColors.textTertiary.withValues(alpha: 0.5),
@@ -194,7 +196,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         const SizedBox(height: AppSpacing.xxl),
                         EntryAnimation(
                           index: 6,
-                          child: _buildFooter(context),
+                          child: _buildFooter(context, l10n),
                         ),
                         const SizedBox(height: AppSpacing.xl),
                       ],
@@ -227,7 +229,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
     return Column(
       children: [
         EntryAnimation(
@@ -254,8 +256,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           child: Column(
             children: [
               Text(
-                'TORII Nihongo',
-                style: TextStyle(
+                l10n.appTitle.toUpperCase(),
+                style: const TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
                   fontSize: AppTypography.fontSize2xl,
                   letterSpacing: -1.0,
@@ -266,7 +268,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                'INITIALIZE LEARNING PROTOCOL',
+                l10n.initializeLearning.toUpperCase(),
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: AppTypography.black,
@@ -308,14 +310,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     );
   }
 
-  Widget _buildFooter(BuildContext context) {
+  Widget _buildFooter(BuildContext context, AppLocalizations l10n) {
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'ALREADY A LEARNER?',
+              l10n.alreadyLearner.toUpperCase(),
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary.withValues(alpha: 0.5),
@@ -326,9 +328,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             InkWell(
               onTap: () => context.go('/login'),
               borderRadius: BorderRadius.circular(4),
-              child: const Text(
-                'SIGN IN',
-                style: TextStyle(
+              child: Text(
+                l10n.signIn.toUpperCase(),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: AppTypography.black,
                   letterSpacing: 1.0,

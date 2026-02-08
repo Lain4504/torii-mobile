@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../../core/localization/l10n/app_localizations.dart';
 
 /// Onboarding Page - Minimalist First Impressions
 /// 
@@ -19,26 +20,33 @@ class _OnboardingPageState extends State<OnboardingPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<_OnboardingData> _pages = [
-    _OnboardingData(
-      icon: Icons.auto_stories_outlined,
-      title: 'Learn Japanese',
-      subtitle: 'Your gateway to the Japanese language',
-      description: 'Master vocabulary, grammar, and kanji through interactive lessons designed for all levels.',
-    ),
-    _OnboardingData(
-      icon: Icons.psychology_outlined,
-      title: 'Smart Practice',
-      subtitle: 'Powered by spaced repetition',
-      description: 'Our intelligent flashcard system helps you remember what you learn, when you need it most.',
-    ),
-    _OnboardingData(
-      icon: Icons.emoji_events_outlined,
-      title: 'Track Progress',
-      subtitle: 'Celebrate every milestone',
-      description: 'Set goals, earn streaks, and watch your Japanese skills grow day by day.',
-    ),
-  ];
+  late List<_OnboardingData> _pages;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final l10n = AppLocalizations.of(context)!;
+    _pages = [
+      _OnboardingData(
+        icon: Icons.auto_stories_outlined,
+        title: l10n.onboardingTitle1,
+        subtitle: l10n.onboardingSubtitle1,
+        description: l10n.onboardingDesc1,
+      ),
+      _OnboardingData(
+        icon: Icons.psychology_outlined,
+        title: l10n.onboardingTitle2,
+        subtitle: l10n.onboardingSubtitle2,
+        description: l10n.onboardingDesc2,
+      ),
+      _OnboardingData(
+        icon: Icons.emoji_events_outlined,
+        title: l10n.onboardingTitle3,
+        subtitle: l10n.onboardingSubtitle3,
+        description: l10n.onboardingDesc3,
+      ),
+    ];
+  }
 
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
@@ -68,6 +76,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     
     return Scaffold(
       body: Stack(
@@ -176,12 +185,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       if (_currentPage < _pages.length - 1)
                         EntryAnimation(
                           delay: const Duration(milliseconds: 300),
-                            child: const Text(
-                              'SKIP',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: AppTypography.black,
-                                letterSpacing: 2.0,
+                            child: GestureDetector(
+                              onTap: _completeOnboarding,
+                              child: Text(
+                                l10n.skip.toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: AppTypography.black,
+                                  letterSpacing: 2.0,
+                                ),
                               ),
                             ),
                         ),
@@ -229,8 +241,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         delay: const Duration(milliseconds: 500),
                         child: ZenButton(
                           text: _currentPage == _pages.length - 1 
-                              ? 'GET STARTED' 
-                              : 'CONTINUE',
+                              ? l10n.getStarted.toUpperCase()
+                              : l10n.continueBtn.toUpperCase(),
                           onPressed: _nextPage,
                           isFullWidth: true,
                         ),

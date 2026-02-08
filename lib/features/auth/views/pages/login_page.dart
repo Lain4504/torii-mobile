@@ -73,6 +73,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final asyncAuth = ref.watch(authStateProvider);
     final isLoading = asyncAuth.isLoading;
     final errorMessage = _googleError ?? asyncAuth.error?.toString();
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -80,7 +81,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
+              _buildAppBar(context, l10n),
               
               Expanded(
                 child: SingleChildScrollView(
@@ -91,13 +92,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     child: Column(
                       children: [
                         const SizedBox(height: AppSpacing.xl),
-                        _buildHeader(context),
+                        _buildHeader(context, l10n),
                         const SizedBox(height: AppSpacing.xxxl),
                         
                         if (errorMessage != null) ...[
                           EntryAnimation(
                             index: 2,
-                            child: _buildErrorBanner(errorMessage),
+                            child: _buildErrorBanner(errorMessage, l10n),
                           ),
                           const SizedBox(height: AppSpacing.lg),
                         ],
@@ -108,16 +109,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           child: Column(
                             children: [
                               ZenTextField(
-                                label: AppLocalizations.of(context)!.email,
+                                label: l10n.email,
                                 controller: _emailController,
                                 hintText: 'your.email@example.com',
                                 icon: Icons.alternate_email_rounded,
                                 keyboardType: TextInputType.emailAddress,
-                                validator: (val) => (val == null || !val.contains('@')) ? 'Please enter a valid email' : null,
+                                validator: (val) => (val == null || !val.contains('@')) ? l10n.pleaseEnterValidEmail : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
                               ZenTextField(
-                                label: AppLocalizations.of(context)!.password,
+                                label: l10n.password,
                                 controller: _passwordController,
                                 hintText: '••••••••',
                                 icon: Icons.fingerprint_rounded,
@@ -131,7 +132,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   ),
                                   onPressed: () => setState(() => _obscureText = !_obscureText),
                                 ),
-                                validator: (val) => (val == null || val.length < 6) ? 'Password too short' : null,
+                                validator: (val) => (val == null || val.length < 6) ? l10n.passwordTooShort : null,
                               ),
                             ],
                           ),
@@ -146,7 +147,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             child: TextButton(
                               onPressed: () => context.push('/auth/forgot-password'),
                               child: Text(
-                                AppLocalizations.of(context)!.forgotPassword,
+                                l10n.forgotPassword,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: AppTypography.bold,
@@ -162,7 +163,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         EntryAnimation(
                           index: 5,
                           child: ZenButton(
-                            text: AppLocalizations.of(context)!.signIn,
+                            text: l10n.signIn,
                             onPressed: _login,
                             isLoading: isLoading,
                             isFullWidth: true,
@@ -174,7 +175,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         
                         EntryAnimation(
                           index: 6,
-                          child: _buildFooter(context),
+                          child: _buildFooter(context, l10n),
                         ),
                       ],
                     ),
@@ -188,7 +189,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
@@ -213,8 +214,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: TextButton(
               onPressed: () => context.go('/register'),
               child: Text(
-                'SIGN UP',
-                style: TextStyle(
+                l10n.signUp.toUpperCase(),
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: AppTypography.black,
                   letterSpacing: 1.0,
@@ -228,7 +229,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
     return Column(
       children: [
         EntryAnimation(
@@ -255,8 +256,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             children: [
               Text(
-                'TORII APP',
-                style: TextStyle(
+                l10n.appTitle.toUpperCase(),
+                style: const TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
                   fontSize: AppTypography.fontSize2xl,
                   letterSpacing: -1.0,
@@ -267,7 +268,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                'NEURAL LEARNING PROTOCOL',
+                l10n.neuralProtocol.toUpperCase(),
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: AppTypography.black,
@@ -282,7 +283,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildErrorBanner(String message) {
+  Widget _buildErrorBanner(String message, AppLocalizations l10n) {
+    String displayMessage = message;
+    if (message.contains('10')) {
+      displayMessage = l10n.googleConfigError;
+    } else if (message.startsWith('Google Login Error')) {
+       // Simple replacement if exact match, else keep original
+       displayMessage = message.replaceFirst('Google Login Error: ', '').trim();
+       displayMessage = l10n.googleLoginError.replaceFirst('{error}', displayMessage);
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -296,7 +306,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              message,
+              displayMessage,
               style: const TextStyle(
                 color: AppColors.errorDark,
                 fontSize: 12,
@@ -309,18 +319,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildFooter(BuildContext context) {
+  Widget _buildFooter(BuildContext context, AppLocalizations l10n) {
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(width: 40, height: 1, color: AppColors.grey300.withValues(alpha: 0.4)),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Text(
-                'GENETIC ACCESS',
-                style: TextStyle(fontSize: 8, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+                l10n.geneticAccess.toUpperCase(),
+                style: const TextStyle(fontSize: 8, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
               ),
             ),
             Container(width: 40, height: 1, color: AppColors.grey300.withValues(alpha: 0.4)),

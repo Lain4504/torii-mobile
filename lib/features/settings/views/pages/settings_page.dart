@@ -36,9 +36,9 @@ class SettingsPage extends ConsumerWidget {
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => context.pop(),
               ),
-              title: const Text(
-                'APP_SETTINGS',
-                style: TextStyle(
+              title: Text(
+                "Cài đặt",
+                style: const TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
                   fontWeight: AppTypography.black,
                   fontSize: 18,
@@ -46,13 +46,6 @@ class SettingsPage extends ConsumerWidget {
                   letterSpacing: 2.0,
                 ),
               ),
-              // Assuming subtitle and trailing are intended for a custom header or a different widget,
-              // as SliverAppBar does not directly support these properties.
-              // For now, I'll add them as comments or integrate them into the title area if possible.
-              // If the intention was to replace SliverAppBar with a custom header, that would be a larger change.
-              // For faithful and syntactically correct change, I'll keep the title as a Text widget.
-              // subtitle: 'Edit your profile', // Not a direct property of SliverAppBar
-              // trailing: Text(user?.email ?? '', // Not a direct property of SliverAppBar
             ),
             SliverToBoxAdapter(
               child: Padding(
@@ -64,19 +57,19 @@ class SettingsPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Profile Section
-                    _buildProfileSection(context, ref),
+                    _buildProfileSection(context, ref, l10n),
                     const SizedBox(height: AppSpacing.xxxl),
 
                     // Payment Section
-                    _buildPaymentSection(context),
+                    _buildPaymentSection(context, l10n),
                     const SizedBox(height: AppSpacing.xxxl),
       
                     // Security Section
-                    _buildSecuritySection(context, ref),
+                    _buildSecuritySection(context, ref, l10n),
                     const SizedBox(height: AppSpacing.xxxl),
 
                     // Support Section
-                    _buildSupportSection(context, ref),
+                    _buildSupportSection(context, ref, l10n),
                     const SizedBox(height: AppSpacing.xxxl),
                     
                     // Language Section
@@ -84,7 +77,7 @@ class SettingsPage extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.xxxl),
       
                     // Danger Zone
-                    _buildDangerZone(context, ref),
+                    _buildDangerZone(context, ref, l10n),
                     const SizedBox(height: 60),
                   ],
                 ),
@@ -96,13 +89,13 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPaymentSection(BuildContext context) {
+  Widget _buildPaymentSection(BuildContext context, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'PAYMENTS',
-          style: TextStyle(
+        Text(
+          "Thanh toán",
+          style: const TextStyle(
             fontSize: 10, 
             fontWeight: AppTypography.black, 
             letterSpacing: 3.0, 
@@ -135,12 +128,12 @@ class SettingsPage extends ConsumerWidget {
                       child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 20),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Order History', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
-                          Text('View your exam and course purchases', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                          l10n.orderHistory,
+                          Text(l10n.orderHistoryDesc, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                         ],
                       ),
                     ),
@@ -155,13 +148,13 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSecuritySection(BuildContext context, WidgetRef ref) {
+  Widget _buildSecuritySection(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'SECURITY_SETTINGS',
-          style: TextStyle(
+        Text(
+          l10n.securitySettings.toUpperCase(),
+          style: const TextStyle(
             fontSize: 10, 
             fontWeight: AppTypography.black, 
             letterSpacing: 3.0, 
@@ -194,12 +187,12 @@ class SettingsPage extends ConsumerWidget {
                       child: const Icon(Icons.security_rounded, color: AppColors.primary, size: 20),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Two-Factor Authentication', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
-                          Text('Secure your account with TOTP', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                          Text(l10n.twoFactorAuth, style: const TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                          Text(l10n.twoFactorDesc, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                         ],
                       ),
                     ),
@@ -214,7 +207,7 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileSection(BuildContext context, WidgetRef ref) {
+  Widget _buildProfileSection(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final asyncAuth = ref.watch(authStateProvider);
     final isAuthenticated = asyncAuth.asData?.value.isAuthenticated ?? false;
     final user = asyncAuth.asData?.value.user;
@@ -223,7 +216,7 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          isAuthenticated ? 'PROFILE_CONFIG' : 'GET_STARTED',
+          isAuthenticated ? l10n.profileConfig.toUpperCase() : l10n.getStarted.toUpperCase(),
           style: const TextStyle(
             fontSize: 10,
             fontWeight: AppTypography.black,
@@ -277,12 +270,12 @@ class SettingsPage extends ConsumerWidget {
                       child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 24),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Ready to start?', style: TextStyle(fontSize: 16, fontWeight: AppTypography.extraBold)),
-                          Text('Join Torii to track your progress', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                          Text(l10n.readyToStart, style: const TextStyle(fontSize: 16, fontWeight: AppTypography.extraBold)),
+                          Text(l10n.joinToriiDesc, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                         ],
                       ),
                     ),
@@ -294,7 +287,7 @@ class SettingsPage extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
                       ),
-                      child: const Text('LOG IN', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0)),
+                      child: Text(l10n.signIn.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0)),
                     ),
                   ],
                 ),
@@ -303,7 +296,7 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDangerZone(BuildContext context, WidgetRef ref) {
+  Widget _buildDangerZone(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     final asyncAuth = ref.read(authStateProvider);
     final isAuthenticated = asyncAuth.asData?.value.isAuthenticated ?? false;
     if (!isAuthenticated) return const SizedBox.shrink();
@@ -311,9 +304,9 @@ class SettingsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'ACCOUNT_ACTIONS',
-          style: TextStyle(
+        Text(
+          l10n.accountActions.toUpperCase(),
+          style: const TextStyle(
             fontSize: 10, 
             fontWeight: AppTypography.black, 
             letterSpacing: 3.0, 
@@ -329,14 +322,14 @@ class SettingsPage extends ConsumerWidget {
             border: Border.all(color: const Color(0xFFE63946).withValues(alpha: 0.1)),
           ),
           child: TextButton(
-            onPressed: () => _showLogoutConfirm(context, ref),
+            onPressed: () => _showLogoutConfirm(context, ref, l10n),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 20),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xxl)),
             ),
-            child: const Text(
-              'LOG_OUT',
-              style: TextStyle(
+            child: Text(
+              l10n.logOut.toUpperCase(),
+              style: const TextStyle(
                 color: Color(0xFFE63946), 
                 fontWeight: AppTypography.black, 
                 fontSize: 11, 
@@ -349,32 +342,32 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  void _showLogoutConfirm(BuildContext context, WidgetRef ref) {
+  void _showLogoutConfirm(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xxl)),
-        title: const Text(
-          'LOG OUT',
-          style: TextStyle(fontSize: 16, fontWeight: AppTypography.black, letterSpacing: 1.0),
+        title: Text(
+          l10n.logOutConfirmTitle.toUpperCase(),
+          style: const TextStyle(fontSize: 16, fontWeight: AppTypography.black, letterSpacing: 1.0),
         ),
-        content: const Text(
-          'Are you sure you want to log out from Torii?',
-          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        content: Text(
+          l10n.logOutConfirmMessage,
+          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL', style: TextStyle(color: AppColors.textTertiary, fontWeight: AppTypography.black, fontSize: 11)),
+            child: Text(l10n.cancel.toUpperCase(), style: const TextStyle(color: AppColors.textTertiary, fontWeight: AppTypography.black, fontSize: 11)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ref.read(authStateProvider.notifier).logout();
             },
-            child: const Text('LOG OUT', style: TextStyle(color: Color(0xFFE63946), fontWeight: AppTypography.black, fontSize: 11)),
+            child: Text(l10n.logOut.toUpperCase(), style: const TextStyle(color: Color(0xFFE63946), fontWeight: AppTypography.black, fontSize: 11)),
           ),
         ],
       ),
@@ -435,13 +428,13 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSupportSection(BuildContext context, WidgetRef ref) {
+  Widget _buildSupportSection(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'SUPPORT',
-          style: TextStyle(
+        Text(
+          l10n.support.toUpperCase(),
+          style: const TextStyle(
             fontSize: 10, 
             fontWeight: AppTypography.black, 
             letterSpacing: 3.0, 
@@ -474,12 +467,12 @@ class SettingsPage extends ConsumerWidget {
                       child: const Icon(Icons.confirmation_number_outlined, color: Colors.blue, size: 20),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('My Tickets', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
-                          Text('Manage support requests and refunds', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                          Text(l10n.myTickets, style: const TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                          Text(l10n.manageTicketsDesc, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                         ],
                       ),
                     ),
@@ -493,7 +486,6 @@ class SettingsPage extends ConsumerWidget {
       ],
     );
   }
-}
 
 class _LanguageOption extends StatelessWidget {
   final Locale locale;
