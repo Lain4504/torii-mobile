@@ -27,7 +27,7 @@ class MyLearningPage extends ConsumerWidget {
               elevation: 0,
               centerTitle: true,
               title: const Text(
-                'MY_LEARNING',
+                'HỌC TẬP',
                 style: TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
                   fontWeight: AppTypography.black,
@@ -41,7 +41,7 @@ class MyLearningPage extends ConsumerWidget {
                 IconButton(
                   onPressed: () => context.push('/downloads'),
                   icon: const Icon(Icons.download_done_rounded, color: AppColors.textPrimary),
-                  tooltip: 'Downloads',
+                  tooltip: 'Tải xuống',
                 ),
                 const SizedBox(width: AppSpacing.md),
               ],
@@ -54,7 +54,7 @@ class MyLearningPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ENROLLED_COURSES',
+                      'KHÓA HỌC ĐÃ ĐĂNG KÝ',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: AppTypography.black,
@@ -64,7 +64,7 @@ class MyLearningPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Active Lessons',
+                      'Bài học đang học',
                       style: TextStyle(
                         fontFamily: AppTypography.fontFamilySerif,
                         fontSize: 32, 
@@ -80,7 +80,7 @@ class MyLearningPage extends ConsumerWidget {
 
             if (state.isLoading)
               const SliverFillRemaining(
-                child: Center(child: ZenLoading(text: 'Accessing Depositories...')),
+                child: Center(child: ZenLoading(text: 'Đang truy cập dữ liệu...')),
               )
             else if (state.myCourses.isEmpty)
               SliverFillRemaining(
@@ -93,7 +93,7 @@ class MyLearningPage extends ConsumerWidget {
                         Icon(Icons.auto_stories_rounded, size: 64, color: AppColors.primary.withValues(alpha: 0.1)),
                         const SizedBox(height: 24),
                         const Text(
-                          'NO SYNCED PROTOCOLS',
+                          'CHƯA CÓ DỮ LIỆU ĐỒNG BỘ',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: AppTypography.black,
@@ -102,7 +102,7 @@ class MyLearningPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 12),
                         const Text(
-                          'Your learning matrix is currently empty. Begin by enrolling in a curriculum.',
+                          'Hồ sơ học tập của bạn hiện đang trống. Hãy bắt đầu bằng cách đăng ký một khóa học.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 13,
@@ -112,7 +112,7 @@ class MyLearningPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 40),
                         ZenButton(
-                          text: 'OPEN CATALOG', 
+                          text: 'KHÁM PHÁ DANH MỤC', 
                           onPressed: () => context.go('/courses'),
                           isFullWidth: true,
                         ),

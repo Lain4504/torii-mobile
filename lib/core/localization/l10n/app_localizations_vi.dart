@@ -150,31 +150,31 @@ class AppLocalizationsVi extends AppLocalizations {
   String get continueBtn => 'Tiếp tục';
 
   @override
-  String get onboardingTitle1 => 'Học mọi lúc, mọi nơi';
+  String get onboardingTitle1 => 'Học tiếng Nhật mọi lúc mọi nơi';
 
   @override
-  String get onboardingSubtitle1 => 'Nội dung đa dạng';
+  String get onboardingSubtitle1 => 'Nội dung học tập phong phú';
 
   @override
-  String get onboardingDesc1 => 'Truy cập hàng ngàn bài học và tài liệu học tập từ các chuyên gia hàng đầu.';
+  String get onboardingDesc1 => 'Khám phá hàng ngàn bài học và tài liệu từ các chuyên gia.';
 
   @override
-  String get onboardingTitle2 => 'Học tập cá nhân hóa';
+  String get onboardingTitle2 => 'Lộ trình học tập riêng';
 
   @override
   String get onboardingSubtitle2 => 'Lộ trình tùy chỉnh';
 
   @override
-  String get onboardingDesc2 => 'Nhận các đề xuất học tập phù hợp với mục tiêu và sở thích của bạn.';
+  String get onboardingDesc2 => 'Hệ thống gợi ý bài học phù hợp với mục tiêu của bạn.';
 
   @override
   String get onboardingTitle3 => 'Theo dõi tiến độ';
 
   @override
-  String get onboardingSubtitle3 => 'Đạt được thành tích';
+  String get onboardingSubtitle3 => 'Mừng thành tích, nhận thưởng';
 
   @override
-  String get onboardingDesc3 => 'Theo dõi sự tiến bộ của bạn và nhận phần thưởng khi bạn đạt được các cột mốc quan trọng.';
+  String get onboardingDesc3 => 'Theo dõi tiến độ và nhận thưởng khi đạt các mốc quan trọng.';
 
   @override
   String get home => 'Trang chủ';

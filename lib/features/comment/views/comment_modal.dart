@@ -141,7 +141,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'COMMENTS', // Changed from REVIEWS
+                  'BÌNH LUẬN', // Changed from REVIEWS
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: AppTypography.black,
@@ -227,8 +227,8 @@ class _CommentModalState extends ConsumerState<CommentModal>
           letterSpacing: 0.5,
         ),
         tabs: const [
-          Tab(text: 'ALL COMMENTS'),
-          Tab(text: 'WRITE COMMENT'),
+          Tab(text: 'TẤT CẢ BÌNH LUẬN'),
+          Tab(text: 'VIẾT BÌNH LUẬN'),
         ],
       ),
     );
@@ -236,7 +236,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
 
   Widget _buildCommentsList(CommentState state, bool isDark) {
     if (state.isLoading && state.comments.isEmpty) {
-      return const Center(child: ZenLoading(text: 'Loading comments...'));
+      return const Center(child: ZenLoading(text: 'Đang tải bình luận...'));
     }
 
     if (state.error != null && state.comments.isEmpty) {
@@ -263,7 +263,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
               ),
               const SizedBox(height: AppSpacing.lg),
               ZenButton(
-                text: 'TRY AGAIN',
+                text: 'THỬ LẠI',
                 onPressed: () => ref
                     .read(commentProvider(widget.postId).notifier)
                     .loadComments(refresh: true),
@@ -288,7 +288,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                'No comments yet',
+                'Chưa có bình luận nào',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: AppTypography.bold,
@@ -299,7 +299,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Be the first to share your thoughts',
+                'Hãy là người đầu tiên chia sẻ cảm nghĩ của bạn',
                 style: TextStyle(
                   color: isDark
                       ? AppColors.textTertiary
@@ -308,7 +308,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
               ),
               const SizedBox(height: AppSpacing.xl),
               ZenButton(
-                text: 'WRITE COMMENT',
+                text: 'VIẾT BÌNH LUẬN',
                 onPressed: () => _tabController.animateTo(1),
               ),
             ],
@@ -328,7 +328,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(AppSpacing.lg),
-              child: ZenLoading(text: 'Loading more...'),
+              child: ZenLoading(text: 'Đang tải thêm...'),
             ),
           );
         }
@@ -479,7 +479,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
         children: [
           const SizedBox(height: AppSpacing.md),
           Text(
-            'YOUR COMMENT',
+            'BÌNH LUẬN CỦA BẠN',
             style: TextStyle(
               fontSize: 10,
               fontWeight: AppTypography.black,
@@ -504,7 +504,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
               controller: _contentController,
               maxLines: 6,
               decoration: InputDecoration(
-                hintText: 'Share your thoughts...',
+                hintText: 'Chia sẻ cảm nghĩ của bạn...',
                 hintStyle: TextStyle(
                   color: AppColors.textTertiary.withValues(alpha: 0.5),
                 ),
@@ -517,7 +517,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
           SizedBox(
             width: double.infinity,
             child: ZenButton(
-              text: state.isSubmitting ? 'POSTING...' : 'POST COMMENT',
+              text: state.isSubmitting ? 'ĐANG ĐĂNG...' : 'ĐĂNG BÌNH LUẬN',
               onPressed: state.isSubmitting ? null : _submitComment,
             ),
           ),
@@ -572,7 +572,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
       _tabController.animateTo(0);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Comment posted successfully!'),
+          content: Text('Đã đăng bình luận thành công!'),
           backgroundColor: AppColors.success,
           duration: Duration(seconds: 2),
         ),

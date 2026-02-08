@@ -155,7 +155,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'REVIEWS',
+                  'ĐÁNH GIÁ',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: AppTypography.black,
@@ -242,8 +242,8 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
           letterSpacing: 0.5,
         ),
         tabs: const [
-          Tab(text: 'ALL REVIEWS'),
-          Tab(text: 'WRITE REVIEW'),
+          Tab(text: 'TẤT CẢ ĐÁNH GIÁ'),
+          Tab(text: 'VIẾT ĐÁNH GIÁ'),
         ],
       ),
     );
@@ -252,7 +252,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
   /// Reviews list tab
   Widget _buildReviewsList(ReviewState state, bool isDark) {
     if (state.isLoading && state.reviews.isEmpty) {
-      return const Center(child: ZenLoading(text: 'Loading reviews...'));
+      return const Center(child: ZenLoading(text: 'Đang tải đánh giá...'));
     }
 
     if (state.error != null && state.reviews.isEmpty) {
@@ -279,7 +279,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
               ),
               const SizedBox(height: AppSpacing.lg),
               ZenButton(
-                text: 'TRY AGAIN',
+                text: 'THỬ LẠI',
                 onPressed: () {
                   final params = ReviewParams(
                     entityId: widget.entityId,
@@ -310,7 +310,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                'No reviews yet',
+                'Chưa có đánh giá nào',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: AppTypography.bold,
@@ -321,7 +321,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Be the first to share your thoughts',
+                'Hãy là người đầu tiên chia sẻ cảm nghĩ của bạn',
                 style: TextStyle(
                   color: isDark
                       ? AppColors.textTertiary
@@ -330,7 +330,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
               ),
               const SizedBox(height: AppSpacing.xl),
               ZenButton(
-                text: 'WRITE REVIEW',
+                text: 'VIẾT ĐÁNH GIÁ',
                 onPressed: () => _tabController.animateTo(1),
               ),
             ],
@@ -361,7 +361,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(AppSpacing.lg),
-                    child: ZenLoading(text: 'Loading more...'),
+                    child: ZenLoading(text: 'Đang tải thêm...'),
                   ),
                 );
               }
@@ -421,7 +421,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${dist.totalReviews} reviews',
+                  '${dist.totalReviews} đánh giá',
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.textTertiary,
@@ -595,7 +595,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
 
           // Rating selector
           Text(
-            'YOUR RATING',
+            'ĐÁNH GIÁ CỦA BẠN',
             style: TextStyle(
               fontSize: 10,
               fontWeight: AppTypography.black,
@@ -631,7 +631,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
 
           // Comment field
           Text(
-            'YOUR REVIEW (OPTIONAL)',
+            'NHẬN XÉT CỦA BẠN (TÙY CHỌN)',
             style: TextStyle(
               fontSize: 10,
               fontWeight: AppTypography.black,
@@ -657,7 +657,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
               maxLines: 6,
               decoration: InputDecoration(
                 hintText:
-                    'Share your thoughts about this ${widget.type.name}...',
+                    'Chia sẻ cảm nghĩ của bạn về ${widget.type.name} này...',
                 hintStyle: TextStyle(
                   color: AppColors.textTertiary.withValues(alpha: 0.5),
                 ),
@@ -672,7 +672,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
           SizedBox(
             width: double.infinity,
             child: ZenButton(
-              text: state.isSubmitting ? 'SUBMITTING...' : 'SUBMIT REVIEW',
+              text: state.isSubmitting ? 'ĐANG GỬI...' : 'GỬI ĐÁNH GIÁ',
               onPressed: state.isSubmitting ? null : _submitReview,
             ),
           ),
@@ -731,7 +731,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
       _tabController.animateTo(0); // Switch to reviews list
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Review submitted successfully!'),
+          content: Text('Đã gửi đánh giá thành công!'),
           backgroundColor: AppColors.success,
           duration: Duration(seconds: 2),
         ),

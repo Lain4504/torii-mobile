@@ -31,7 +31,7 @@ class _TicketListPageState extends ConsumerState<TicketListPage> {
     return Scaffold(
       // key: _scaffoldKey, // Remove key
       appBar: AppBar(
-        title: const Text('My Tickets'),
+        title: const Text('Yêu cầu của tôi'),
       ),
       // drawer: const CreateTicketDrawer(), // Remove drawer
       floatingActionButton: FloatingActionButton(
@@ -51,12 +51,12 @@ class _TicketListPageState extends ConsumerState<TicketListPage> {
                   children: [
                     const Icon(Icons.confirmation_number_outlined, size: 64, color: Colors.grey),
                     const SizedBox(height: 16),
-                    const Text('No tickets found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                    const Text('Không tìm thấy yêu cầu nào', style: TextStyle(fontSize: 18, color: Colors.grey)),
                     const SizedBox(height: 8),
                     ElevatedButton.icon(
                       onPressed: () => _showCreateTicketDialog(context),
                       icon: const Icon(Icons.add),
-                      label: const Text('Create First Ticket'),
+                      label: const Text('Tạo yêu cầu đầu tiên'),
                     ),
                   ],
                 ),
@@ -96,11 +96,11 @@ class _TicketListPageState extends ConsumerState<TicketListPage> {
               children: [
                 const Icon(Icons.error_outline, size: 48, color: Colors.red),
                 const SizedBox(height: 16),
-                Text('Error: $error'),
+                Text('Lỗi: $error'),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => ref.read(ticketListProvider.notifier).refresh(),
-                  child: const Text('Retry'),
+                  child: const Text('Thử lại'),
                 ),
               ],
             ),

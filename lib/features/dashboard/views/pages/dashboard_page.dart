@@ -38,7 +38,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       backgroundColor: AppColors.background,
       body: ZenBackground(
         child: myLearning.isLoading && myLearning.myCourses.isEmpty
-            ? const ZenLoadingScreen(text: 'Initializing Neural Matrix...')
+            ? const ZenLoadingScreen(text: 'Đang khởi tạo hệ thống...')
             : RefreshIndicator(
                 onRefresh: () => ref.read(myLearningProvider.notifier).loadData(),
                 color: AppColors.primary,
@@ -108,7 +108,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'LAST UPDATED: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+            'CẬP NHẬT LÚC: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
             style: TextStyle(
               fontSize: 9,
               color: AppColors.primary.withValues(alpha: 0.4),
@@ -118,7 +118,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           ),
           const SizedBox(height: 2),
           Text(
-            'TORII_LEARNING',
+            'HỌC TẬP TORII',
             style: TextStyle(
               fontFamily: AppTypography.fontFamilySerif,
               fontWeight: AppTypography.black,
@@ -200,7 +200,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
             ),
             child: Text(
-              'ACTIVE_LESSONS',
+              'BÀI HỌC ĐANG HỌC',
               style: TextStyle(
                 fontSize: 8,
                 fontWeight: AppTypography.black,
@@ -211,7 +211,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Welcome back, ${user?.displayName ?? 'Learner'}',
+            'Chào mừng quay trở lại, ${user?.displayName ?? 'Học viên'}',
             style: const TextStyle(
               fontFamily: AppTypography.fontFamilySerif,
               fontSize: 34,
@@ -246,11 +246,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _StatItem(label: 'STREAK', value: '${stats['streak'] ?? 0}', icon: Icons.local_fire_department_rounded, color: const Color(0xFFE63946)),
+            _StatItem(label: 'CHUỖI', value: '${stats['streak'] ?? 0}', icon: Icons.local_fire_department_rounded, color: const Color(0xFFE63946)),
             _buildDivider(),
-            _StatItem(label: 'ZEN XP', value: '${stats['totalXp'] ?? 0}', icon: Icons.bolt_rounded, color: AppColors.primary),
+            _StatItem(label: 'KINH NGHIỆM', value: '${stats['totalXp'] ?? 0}', icon: Icons.bolt_rounded, color: AppColors.primary),
             _buildDivider(),
-            _StatItem(label: 'MASTERY', value: '${stats['masteryLevel'] ?? 'N5'}', icon: Icons.auto_awesome_rounded, color: AppColors.accent),
+            _StatItem(label: 'TRÌNH ĐỘ', value: '${stats['masteryLevel'] ?? 'N5'}', icon: Icons.auto_awesome_rounded, color: AppColors.accent),
           ],
         ),
       ),
@@ -270,7 +270,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'CONTINUE_LEARNING',
+            'TIẾP TỤC HỌC',
             style: TextStyle(
               fontSize: 10, 
               fontWeight: AppTypography.black, 
@@ -313,7 +313,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'RESUME: MODULE 3',
+                        'TIẾP TỤC: MODULE 3',
                         style: TextStyle(
                           fontSize: 9, 
                           fontWeight: AppTypography.black, 
@@ -349,12 +349,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'MY_COURSES',
+                'KHÓA HỌC CỦA TÔI',
                 style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 3.0, color: AppColors.primary),
               ),
               TextButton(
                 onPressed: () => context.push('/my-learning'),
-                child: const Text('SEE ALL', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, color: AppColors.primary)),
+                child: const Text('XEM TẤT CẢ', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, color: AppColors.primary)),
               ),
             ],
           ),
@@ -363,7 +363,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
            const Center(
              child: Padding(
                padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
-               child: ZenLoading(text: 'Accessing Neural Record...'),
+               child: ZenLoading(text: 'Đang truy cập dữ liệu...'),
              ),
            )
         else if (state.myCourses.isEmpty)
@@ -399,18 +399,18 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             const Icon(Icons.auto_stories_rounded, size: 48, color: AppColors.textTertiary),
             const SizedBox(height: 16),
             const Text(
-              'NO COURSES ENROLLED',
+              'CHƯA ĐĂNG KÝ KHÓA HỌC',
               style: TextStyle(fontWeight: AppTypography.black, letterSpacing: 1.0),
             ),
             const SizedBox(height: 8),
             const Text(
-              'Start your journey by enrolling in a course.',
+              'Bắt đầu hành trình bằng cách đăng ký một khóa học.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 24),
             ZenButton(
-              text: 'EXPLORE CATALOG', 
+              text: 'KHÁM PHÁ DANH MỤC', 
               onPressed: () => context.go('/courses'),
               isFullWidth: true,
             ),
@@ -427,7 +427,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'QUICK_PROTOCOLS',
+            'TRUY CẬP NHANH',
             style: TextStyle(
               fontSize: 10, 
               fontWeight: AppTypography.black, 
@@ -438,11 +438,11 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _ShortcutTile(Icons.psychology_rounded, 'Recall', () => context.push('/flashcards'))),
+              Expanded(child: _ShortcutTile(Icons.psychology_rounded, 'Ôn tập', () => context.push('/flashcards'))),
               const SizedBox(width: AppSpacing.md),
-              Expanded(child: _ShortcutTile(Icons.assignment_turned_in_rounded, 'Tests', () => context.push('/exams'))),
+              Expanded(child: _ShortcutTile(Icons.assignment_turned_in_rounded, 'Kiểm tra', () => context.push('/exams'))),
               const SizedBox(width: AppSpacing.md),
-              Expanded(child: _ShortcutTile(Icons.groups_rounded, 'Social', () => context.push('/community'))),
+              Expanded(child: _ShortcutTile(Icons.groups_rounded, 'Cộng đồng', () => context.push('/community'))),
             ],
           ),
         ],

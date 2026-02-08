@@ -89,7 +89,7 @@ class EnrolledCourseCard extends StatelessWidget {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'YOUR PROGRESS',
+                                          'TIẾN ĐỘ CỦA BẠN',
                                           style: TextStyle(
                                             fontSize: 7,
                                             fontWeight: AppTypography.black,
@@ -107,7 +107,7 @@ class EnrolledCourseCard extends StatelessWidget {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              'Lesson 8 of 12',
+                                              'Bài học 8 trên 12',
                                               style: TextStyle(
                                                 fontSize: 11,
                                                 color: AppColors.textSecondary,
@@ -161,7 +161,7 @@ class EnrolledCourseCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: AppSpacing.xs),
                                 Text(
-                                  'CONTINUE',
+                                  'TIẾP TỤC',
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: AppTypography.black,
@@ -289,7 +289,7 @@ class EnrolledCourseCard extends StatelessWidget {
                   Icon(Icons.check_circle_rounded, color: Colors.white, size: 10),
                   const SizedBox(width: 3),
                   Text(
-                    'ENROLLED',
+                    'ĐÃ ĐĂNG KÝ',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 7,

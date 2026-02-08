@@ -15,7 +15,7 @@ class TicketDetailPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ticket Details'),
+        title: const Text('Chi tiết yêu cầu'),
       ),
       body: ticketAsync.when(
         data: (ticket) => SingleChildScrollView(
@@ -33,7 +33,7 @@ class TicketDetailPage extends ConsumerWidget {
                        border: Border.all(color: _getStatusColor(ticket.status)),
                      ),
                      child: Text(
-                       ticket.status.name,
+                       ticket.status.label,
                        style: TextStyle(
                          color: _getStatusColor(ticket.status),
                          fontWeight: FontWeight.bold,
@@ -60,7 +60,7 @@ class TicketDetailPage extends ConsumerWidget {
                    const Icon(Icons.label_outline, size: 16, color: Colors.grey),
                    const SizedBox(width: 4),
                    Text(
-                     'Type: ${ticket.type.name}', 
+                     'Loại: ${ticket.type.label}', 
                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
                    ),
                 ],
@@ -68,7 +68,7 @@ class TicketDetailPage extends ConsumerWidget {
               const Divider(height: 32),
               
               const Text(
-                'Description',
+                'Mô tả',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -86,7 +86,7 @@ class TicketDetailPage extends ConsumerWidget {
               if (ticket.metadata != null && ticket.metadata!.isNotEmpty) ...[
                 const SizedBox(height: 20),
                  const Text(
-                  'Additional Info',
+                  'Thông tin bổ sung',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -114,7 +114,7 @@ class TicketDetailPage extends ConsumerWidget {
               if (ticket.response != null && ticket.response!.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 const Text(
-                  'Response from Support',
+                  'Phản hồi từ hỗ trợ',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
@@ -145,7 +145,7 @@ class TicketDetailPage extends ConsumerWidget {
                                ),
                                const SizedBox(width: 8),
                                Text(
-                                 ticket.handler?.displayName ?? 'Support Staff',
+                                 ticket.handler?.displayName ?? 'Nhân viên hỗ trợ',
                                  style: const TextStyle(fontWeight: FontWeight.bold),
                                ),
                              ],
@@ -157,7 +157,7 @@ class TicketDetailPage extends ConsumerWidget {
                         Align(
                           alignment: Alignment.centerRight,
                           child: Text(
-                             'Updated: ${DateFormat('MMM dd, HH:mm').format(ticket.updatedAt)}',
+                             'Cập nhật: ${DateFormat('MMM dd, HH:mm').format(ticket.updatedAt)}',
                              style: TextStyle(color: Colors.grey[600], fontSize: 12),
                           ),
                         ),
@@ -169,7 +169,7 @@ class TicketDetailPage extends ConsumerWidget {
           ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+        error: (error, stack) => Center(child: Text('Lỗi: $error')),
       ),
     );
   }

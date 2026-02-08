@@ -28,7 +28,7 @@ class NotificationsPage extends ConsumerWidget {
                     if (notifications.isEmpty) {
                       return const Center(
                         child: Text(
-                          'No notifications yet',
+                          'Chưa có thông báo nào',
                           style: TextStyle(color: AppColors.textTertiary),
                         ),
                       );
@@ -43,7 +43,7 @@ class NotificationsPage extends ConsumerWidget {
                         padding: const EdgeInsets.all(AppSpacing.xl),
                         children: [
                           if (newNotifications.isNotEmpty) ...[
-                            _buildSectionHeader('NEW'),
+                            _buildSectionHeader('MỚI'),
                             const SizedBox(height: AppSpacing.md),
                             ...newNotifications.map((n) => Padding(
                               padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -53,7 +53,7 @@ class NotificationsPage extends ConsumerWidget {
                           ],
                           
                           if (earlierNotifications.isNotEmpty) ...[
-                            _buildSectionHeader('EARLIER'),
+                            _buildSectionHeader('CŨ HƠN'),
                             const SizedBox(height: AppSpacing.md),
                             ...earlierNotifications.map((n) => Padding(
                               padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -65,7 +65,7 @@ class NotificationsPage extends ConsumerWidget {
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(child: Text('Error: $err')),
+                  error: (err, stack) => Center(child: Text('Lỗi: $err')),
                 ),
               ),
             ],
@@ -82,12 +82,12 @@ class NotificationsPage extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           ZenButton(
-            text: 'BACK',
+            text: 'QUAY LẠI',
             onPressed: () => context.pop(),
             type: ZenButtonType.ghost, 
           ),
           const Text(
-            'NOTIFICATIONS',
+            'THÔNG BÁO',
             style: TextStyle(
               fontSize: 12,
               fontWeight: AppTypography.black,
@@ -97,7 +97,7 @@ class NotificationsPage extends ConsumerWidget {
           IconButton(
             onPressed: () => ref.read(notificationListProvider.notifier).markAllAsRead(), 
             icon: const Icon(Icons.done_all_rounded, size: 20, color: AppColors.textSecondary),
-            tooltip: 'Mark all as read',
+            tooltip: 'Đánh dấu tất cả là đã đọc',
           ),
         ],
       ),
@@ -289,10 +289,10 @@ class _NotificationItem extends ConsumerWidget {
     final now = DateTime.now();
     final difference = now.difference(date);
 
-    if (difference.inMinutes < 1) return 'now';
-    if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
-    if (difference.inHours < 24) return '${difference.inHours}h ago';
-    if (difference.inDays < 7) return '${difference.inDays}d ago';
-    return DateFormat('MMM d').format(date);
+    if (difference.inMinutes < 1) return 'vừa xong';
+    if (difference.inMinutes < 60) return '${difference.inMinutes} phút trước';
+    if (difference.inHours < 24) return '${difference.inHours} giờ trước';
+    if (difference.inDays < 7) return '${difference.inDays} ngày trước';
+    return DateFormat('dd/MM').format(date);
   }
 }

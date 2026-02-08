@@ -183,7 +183,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
                 ),
                 child: const Text(
-                  'SIGN IN',
+                  'ĐĂNG NHẬP',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: AppTypography.black,
@@ -301,11 +301,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
                 child: Row(
                   children: [
-                    _buildStatItem(Icons.local_fire_department_rounded, '7', 'STREAK', const Color(0xFFE63946)),
+                    _buildStatItem(Icons.local_fire_department_rounded, '7', 'CHUỖI', const Color(0xFFE63946)),
                     _buildVerticalDivider(),
-                    _buildStatItem(Icons.bolt_rounded, '1.2k', 'ZEN XP', AppColors.primary),
+                    _buildStatItem(Icons.bolt_rounded, '1.2k', 'KINH NGHIỆM', AppColors.primary),
                     _buildVerticalDivider(),
-                    _buildStatItem(Icons.emoji_events_rounded, 'N4', 'JLPT', AppColors.accent),
+                    _buildStatItem(Icons.emoji_events_rounded, 'N4', 'TRÌNH ĐỘ', AppColors.accent),
                   ],
                 ),
               ),
@@ -318,7 +318,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'DAILY FOCUS GOAL',
+                          'MỤC TIÊU HÀNG NGÀY',
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: AppTypography.black,
@@ -388,7 +388,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'PATH TO MASTERY',
+            'LỘ TRÌNH CHINH PHỤC',
             style: TextStyle(
               fontSize: 11,
               fontWeight: AppTypography.black,
@@ -405,10 +405,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             crossAxisSpacing: AppSpacing.md,
             childAspectRatio: 1.25,
             children: [
-              _QuickActionTile(Icons.map_outlined, 'Global Catalog', AppColors.primary, () => context.go('/courses')),
-              _QuickActionTile(Icons.psychology_outlined, 'Active Recall', AppColors.accent, () => user == null ? _showLoginPrompt(context) : context.go('/flashcards')),
-              _QuickActionTile(Icons.assignment_turned_in_outlined, 'Assessment', const Color(0xFF7D58A1), () => user == null ? _showLoginPrompt(context) : context.go('/exams')),
-              _QuickActionTile(Icons.videocam_outlined, 'Live Protocol', const Color(0xFFE63946), () => user == null ? _showLoginPrompt(context) : context.go('/live-classes')),
+              _QuickActionTile(Icons.map_outlined, 'Danh mục khóa học', AppColors.primary, () => context.go('/courses')),
+              _QuickActionTile(Icons.psychology_outlined, 'Gợi nhớ chủ động', AppColors.accent, () => user == null ? _showLoginPrompt(context) : context.go('/flashcards')),
+              _QuickActionTile(Icons.assignment_turned_in_outlined, 'Bài kiểm tra', const Color(0xFF7D58A1), () => user == null ? _showLoginPrompt(context) : context.go('/exams')),
+              _QuickActionTile(Icons.videocam_outlined, 'Lớp học trực tuyến', const Color(0xFFE63946), () => user == null ? _showLoginPrompt(context) : context.go('/live-classes')),
             ],
           ),
         ],
@@ -423,7 +423,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'OPTIMIZE FOCUS',
+            'TỐI ƯU TẬP TRUNG',
             style: TextStyle(
               fontSize: 11,
               fontWeight: AppTypography.black,
@@ -500,12 +500,12 @@ class _HomePageState extends ConsumerState<HomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'NEURAL MEMORY BANKS',
+                'KHO KIẾN THỨC',
                 style: TextStyle(fontSize: 11, fontWeight: AppTypography.black, letterSpacing: 2.5, color: AppColors.textTertiary),
               ),
               TextButton(
                 onPressed: () => context.go('/courses'),
-                child: const Text('FULL ACCESS', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0, color: AppColors.primary)),
+                child: const Text('TRUY CẬP TẤT CẢ', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0, color: AppColors.primary)),
               ),
             ],
           ),
@@ -514,7 +514,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
-                child: ZenLoading(text: 'Accessing Matrix Logs...'),
+                child: ZenLoading(text: 'Đang truy cập dữ liệu...'),
               ),
             )
           else
@@ -529,10 +529,10 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 5) return 'Good night';
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 5) return 'Chào buổi tối';
+    if (hour < 12) return 'Chào buổi sáng';
+    if (hour < 18) return 'Chào buổi chiều';
+    return 'Chào buổi tối';
   }
 
   void _showLoginPrompt(BuildContext context) {
@@ -549,16 +549,16 @@ class _HomePageState extends ConsumerState<HomePage> {
             const SizedBox(height: 40),
             const Icon(Icons.lock_outline_rounded, size: 50, color: AppColors.primary),
             const SizedBox(height: 24),
-            const Text('A MOMENT OF ZEN', style: TextStyle(fontSize: 20, fontWeight: AppTypography.black, letterSpacing: 2.0)),
+            const Text('KHOẢNH KHẮC TĨNH TÂM', style: TextStyle(fontSize: 20, fontWeight: AppTypography.black, letterSpacing: 2.0)),
             const SizedBox(height: 12),
             const Text(
-              'Please sign in to access your neural progress across the Torii Learning Matrix.',
+              'Vui lòng đăng nhập để truy cập tiến độ học tập của bạn trên hệ thống Torii.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, height: 1.6, fontWeight: AppTypography.medium, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 40),
             ZenButton(
-              text: 'INITIATE ACCESS',
+              text: 'BẮT ĐẦU TRUY CẬP',
               onPressed: () {
                 Navigator.pop(context);
                 context.go('/login');
@@ -569,7 +569,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             TextButton(
               onPressed: () => Navigator.pop(context), 
               child: const Text(
-                'REMAIN ANONYMOUS', 
+                'TIẾP TỤC ẨN DANH', 
                 style: TextStyle(
                   color: AppColors.textTertiary, 
                   fontSize: 10, 

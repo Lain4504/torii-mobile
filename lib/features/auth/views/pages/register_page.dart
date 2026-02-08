@@ -110,7 +110,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                               ZenTextField(
                                 label: l10n.displayName.toUpperCase(),
                                 controller: _displayNameController,
-                                hintText: 'How should we call you?',
+                                hintText: 'Chúng tôi nên gọi bạn là gì?',
                                 icon: Icons.face_retouching_natural_rounded,
                                 validator: (val) => (val == null || val.isEmpty) ? l10n.nameRequired : null,
                               ),

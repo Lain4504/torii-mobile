@@ -3,6 +3,17 @@ enum TicketType {
   REFUND,
   ERROR_REPORT;
 
+  String get label {
+    switch (this) {
+      case TicketType.SUPPORT:
+        return 'Hỗ trợ';
+      case TicketType.REFUND:
+        return 'Hoàn tiền';
+      case TicketType.ERROR_REPORT:
+        return 'Báo lỗi';
+    }
+  }
+
   static TicketType fromString(String value) {
     return TicketType.values.firstWhere(
       (e) => e.name == value.toUpperCase(),
@@ -18,6 +29,19 @@ enum TicketStatus {
   PROCESSING,
   APPROVED,
   REJECTED;
+
+  String get label {
+    switch (this) {
+      case TicketStatus.PENDING:
+        return 'Chờ xử lý';
+      case TicketStatus.PROCESSING:
+        return 'Đang xử lý';
+      case TicketStatus.APPROVED:
+        return 'Đã chấp nhận';
+      case TicketStatus.REJECTED:
+        return 'Đã từ chối';
+    }
+  }
 
   static TicketStatus fromString(String value) {
     return TicketStatus.values.firstWhere(

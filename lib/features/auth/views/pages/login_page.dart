@@ -62,7 +62,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       debugPrint('Google Login Error: $e');
       setState(() {
         _googleError = e.toString().contains('10') 
-            ? 'Cấu hình Google không khớp (Lỗi 10). Vui lòng kiểm tra mã SHA-1.' 
+            ? 'Cấu hình Google không khớp (Lỗi 10). Vui lòng kiểm tra lại.' 
             : 'Lỗi đăng nhập Google: $e';
       });
     }
