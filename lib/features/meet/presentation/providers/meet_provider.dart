@@ -720,6 +720,130 @@ class MeetNotifier extends StateNotifier<MeetState> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Waiting room & participant controls (admin)
+  // ---------------------------------------------------------------------------
+
+  bool get _isCurrentUserAdmin =>
+      state.localUser?.isAdmin ?? state.localMetadata?.isAdmin ?? false;
+
+  Future<void> approveWaitingUser(String userId) async {
+    if (!_isCurrentUserAdmin) return;
+    try {
+      final req = ApproveWaitingUsersReq(roomId: state.roomId, userId: userId);
+      final res = await _apiService.approveWaitingUsers(req);
+      if (!res.status) {
+        showNotification(res.msg);
+      }
+    } catch (e) {
+      if (kDebugMode) print('approveWaitingUser error: $e');
+      showNotification('Failed to approve user');
+    }
+  }
+
+  Future<void> rejectWaitingUser(String userId, String name) async {
+    if (!_isCurrentUserAdmin || state.roomInfo == null) return;
+    try {
+      final roomSid = state.roomMetadata?.roomSid ?? '';
+      final req = RemoveParticipantReq(
+        sid: roomSid,
+        roomId: state.roomId ?? '',
+        userId: userId,
+        msg: 'Bạn đã bị từ chối truy cập vào phòng',
+        blockUser: false,
+      );
+      final res = await _apiService.removeParticipant(req);
+      if (!res.status) {
+        showNotification(res.msg);
+      }
+    } catch (e) {
+      if (kDebugMode) print('rejectWaitingUser error: $e');
+      showNotification('Failed to reject user');
+    }
+  }
+
+  Future<void> muteUser(String userId) async {
+    if (!_isCurrentUserAdmin || state.roomInfo == null) return;
+    try {
+      final roomSid = state.roomMetadata?.roomSid ?? '';
+      final req = MuteUnMuteTrackReq(
+        sid: roomSid,
+        roomId: state.roomId ?? '',
+        userId: userId,
+        muted: true,
+        requestedUserId: state.userId ?? '',
+      );
+      final res = await _apiService.muteUnmuteTrack(req);
+      if (!res.status) {
+        showNotification(res.msg);
+      }
+    } catch (e) {
+      if (kDebugMode) print('muteUser error: $e');
+      showNotification('Failed to mute user');
+    }
+  }
+
+  Future<void> lowerHandForUser(String userId) async {
+    if (!_isCurrentUserAdmin) return;
+    final subjects = state.roomInfo?.natsSubjects;
+    if (subjects == null) return;
+    try {
+      _natsService.sendMessageToSystemWorker(
+        baseSubject: subjects.systemJsWorker,
+        payload: nats_msg.NatsMsgClientToServer(
+          event: nats_msg.NatsMsgClientToServerEvents.REQ_LOWER_OTHER_USER_HAND,
+          msg: userId,
+        ).writeToBuffer(),
+      );
+    } catch (e) {
+      if (kDebugMode) print('lowerHandForUser error: $e');
+      showNotification('Failed to lower hand');
+    }
+  }
+
+  Future<void> switchPresenterForUser(String userId, {required bool makePresenter}) async {
+    if (!_isCurrentUserAdmin || state.roomId == null) return;
+    try {
+      final task = makePresenter
+          ? SwitchPresenterTasks.PROMOTE_TO_PRESENTER
+          : SwitchPresenterTasks.DEMOTE_FROM_PRESENTER;
+      final req = SwitchPresenterReq(
+        roomId: state.roomId!,
+        userId: state.userId ?? '',
+        requestedUserId: userId,
+        task: task,
+      );
+      final res = await _apiService.switchPresenter(req);
+      if (!res.status) {
+        showNotification(res.msg);
+      }
+    } catch (e) {
+      if (kDebugMode) print('switchPresenterForUser error: $e');
+      showNotification('Failed to update presenter');
+    }
+  }
+
+  Future<void> removeUserFromRoom(String userId, String name) async {
+    if (!_isCurrentUserAdmin || state.roomInfo == null) return;
+    try {
+      final roomSid = state.roomMetadata?.roomSid ?? '';
+      final req = RemoveParticipantReq(
+        sid: roomSid,
+        roomId: state.roomId ?? '',
+        userId: userId,
+        msg: 'Bạn đã bị loại khỏi phòng bởi quản trị viên',
+        blockUser: false,
+      );
+      final res = await _apiService.removeParticipant(req);
+      if (!res.status) {
+        showNotification(res.msg);
+      }
+    } catch (e) {
+      if (kDebugMode) print('removeUserFromRoom error: $e');
+      showNotification('Failed to remove user');
+    }
+  }
+
   void showNotification(String msg) {
     state = state.copyWith(notification: msg);
     Future.delayed(const Duration(seconds: 3), () {

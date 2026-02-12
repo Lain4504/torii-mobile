@@ -2,23 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/providers/locale_provider.dart';
-import '../../../../core/localization/l10n/app_localizations.dart';
 import '../../../../core/widgets/zen_background.dart';
 import '../../../auth/providers/auth_providers.dart';
 
-/// Settings Page - Language and App Preferences
+/// Settings Page - App Preferences
 /// 
-/// A clean settings page for managing app preferences including language selection.
+/// A clean settings page for managing app preferences.
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final currentLocale = ref.watch(localeProvider);
-    final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: ZenBackground(
@@ -37,7 +31,7 @@ class SettingsPage extends ConsumerWidget {
                 onPressed: () => context.pop(),
               ),
               title: const Text(
-                'APP_SETTINGS',
+                'CÀI ĐẶT',
                 style: TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
                   fontWeight: AppTypography.black,
@@ -46,13 +40,6 @@ class SettingsPage extends ConsumerWidget {
                   letterSpacing: 2.0,
                 ),
               ),
-              // Assuming subtitle and trailing are intended for a custom header or a different widget,
-              // as SliverAppBar does not directly support these properties.
-              // For now, I'll add them as comments or integrate them into the title area if possible.
-              // If the intention was to replace SliverAppBar with a custom header, that would be a larger change.
-              // For faithful and syntactically correct change, I'll keep the title as a Text widget.
-              // subtitle: 'Edit your profile', // Not a direct property of SliverAppBar
-              // trailing: Text(user?.email ?? '', // Not a direct property of SliverAppBar
             ),
             SliverToBoxAdapter(
               child: Padding(
@@ -78,10 +65,6 @@ class SettingsPage extends ConsumerWidget {
                     // Support Section
                     _buildSupportSection(context, ref),
                     const SizedBox(height: AppSpacing.xxxl),
-                    
-                    // Language Section
-                    _buildLanguageSection(context, ref, currentLocale, l10n, theme),
-                    const SizedBox(height: AppSpacing.xxxl),
       
                     // Danger Zone
                     _buildDangerZone(context, ref),
@@ -101,7 +84,7 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'PAYMENTS',
+          'THANH TOÁN',
           style: TextStyle(
             fontSize: 10, 
             fontWeight: AppTypography.black, 
@@ -139,8 +122,8 @@ class SettingsPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Order History', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
-                          Text('View your exam and course purchases', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                          Text('Lịch sử đơn hàng', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                          Text('Xem lịch sử mua khóa học và bài thi', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                         ],
                       ),
                     ),
@@ -160,7 +143,7 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'SECURITY_SETTINGS',
+          'BẢO MẬT',
           style: TextStyle(
             fontSize: 10, 
             fontWeight: AppTypography.black, 
@@ -198,8 +181,8 @@ class SettingsPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Two-Factor Authentication', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
-                          Text('Secure your account with TOTP', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                          Text('Xác thực 2 yếu tố', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                          Text('Bảo mật tài khoản của bạn với TOTP', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                         ],
                       ),
                     ),
@@ -223,7 +206,7 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          isAuthenticated ? 'PROFILE_CONFIG' : 'GET_STARTED',
+          isAuthenticated ? 'CẤU HÌNH CÁ NHÂN' : 'BẮT ĐẦU',
           style: const TextStyle(
             fontSize: 10,
             fontWeight: AppTypography.black,
@@ -255,7 +238,7 @@ class SettingsPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(user?.displayName ?? 'User', style: const TextStyle(fontSize: 18, fontWeight: AppTypography.extraBold)),
+                          Text(user?.displayName ?? 'Người dùng', style: const TextStyle(fontSize: 18, fontWeight: AppTypography.extraBold)),
                           Text(user?.email ?? '', style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                         ],
                       ),
@@ -281,8 +264,8 @@ class SettingsPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Ready to start?', style: TextStyle(fontSize: 16, fontWeight: AppTypography.extraBold)),
-                          Text('Join Torii to track your progress', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                          Text('Sẵn sàng bắt đầu?', style: TextStyle(fontSize: 16, fontWeight: AppTypography.extraBold)),
+                          Text('Tham gia Torii để theo dõi tiến độ của bạn', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                         ],
                       ),
                     ),
@@ -294,7 +277,7 @@ class SettingsPage extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
                       ),
-                      child: const Text('LOG IN', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0)),
+                      child: const Text('ĐĂNG NHẬP', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0)),
                     ),
                   ],
                 ),
@@ -312,7 +295,7 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'ACCOUNT_ACTIONS',
+          'TÀI KHOẢN',
           style: TextStyle(
             fontSize: 10, 
             fontWeight: AppTypography.black, 
@@ -335,7 +318,7 @@ class SettingsPage extends ConsumerWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xxl)),
             ),
             child: const Text(
-              'LOG_OUT',
+              'ĐĂNG XUẤT',
               style: TextStyle(
                 color: Color(0xFFE63946), 
                 fontWeight: AppTypography.black, 
@@ -357,81 +340,27 @@ class SettingsPage extends ConsumerWidget {
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xxl)),
         title: const Text(
-          'LOG OUT',
+          'ĐĂNG XUẤT',
           style: TextStyle(fontSize: 16, fontWeight: AppTypography.black, letterSpacing: 1.0),
         ),
         content: const Text(
-          'Are you sure you want to log out from Torii?',
+          'Bạn có chắc chắn muốn đăng xuất khỏi Torii?',
           style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('CANCEL', style: TextStyle(color: AppColors.textTertiary, fontWeight: AppTypography.black, fontSize: 11)),
+            child: const Text('HỦY', style: TextStyle(color: AppColors.textTertiary, fontWeight: AppTypography.black, fontSize: 11)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               ref.read(authStateProvider.notifier).logout();
             },
-            child: const Text('LOG OUT', style: TextStyle(color: Color(0xFFE63946), fontWeight: AppTypography.black, fontSize: 11)),
+            child: const Text('ĐĂNG XUẤT', style: TextStyle(color: Color(0xFFE63946), fontWeight: AppTypography.black, fontSize: 11)),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildLanguageSection(
-    BuildContext context,
-    WidgetRef ref,
-    Locale currentLocale,
-    AppLocalizations l10n,
-    ThemeData theme,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.language.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 10, 
-            fontWeight: AppTypography.black, 
-            letterSpacing: 4.0, 
-            color: AppColors.textTertiary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
-            child: Column(
-              children: [
-                _LanguageOption(
-                  locale: const Locale('en'),
-                  label: l10n.english,
-                  currentLocale: currentLocale,
-                  onTap: () {
-                    ref.read(localeProvider.notifier).setLocale(const Locale('en'));
-                  },
-                ),
-                _LanguageOption(
-                  locale: const Locale('vi'),
-                  label: l10n.vietnamese,
-                  currentLocale: currentLocale,
-                  onTap: () {
-                    ref.read(localeProvider.notifier).setLocale(const Locale('vi'));
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -440,7 +369,7 @@ class SettingsPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'SUPPORT',
+          'HỖ TRỢ',
           style: TextStyle(
             fontSize: 10, 
             fontWeight: AppTypography.black, 
@@ -478,8 +407,8 @@ class SettingsPage extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('My Tickets', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
-                          Text('Manage support requests and refunds', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                          Text('Yêu cầu của tôi', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                          Text('Quản lý các yêu cầu hỗ trợ và hoàn tiền', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
                         ],
                       ),
                     ),
@@ -491,66 +420,6 @@ class SettingsPage extends ConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _LanguageOption extends StatelessWidget {
-  final Locale locale;
-  final String label;
-  final Locale currentLocale;
-  final VoidCallback onTap;
-
-  const _LanguageOption({
-    required this.locale,
-    required this.label,
-    required this.currentLocale,
-    required this.onTap,
-  });
-
-  bool get isSelected => locale.languageCode == currentLocale.languageCode;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: isSelected
-                        ? AppTypography.semiBold
-                        : AppTypography.regular,
-                  ),
-                ),
-              ),
-              if (isSelected)
-                Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.primary,
-                  size: AppIconSize.md,
-                )
-              else
-                Icon(
-                  Icons.radio_button_unchecked,
-                  color: AppColors.textTertiary,
-                  size: AppIconSize.md,
-                ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

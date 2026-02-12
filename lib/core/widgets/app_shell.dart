@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../constants/app_design_system.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/auth/models/auth_state.dart';
-import '../localization/l10n/app_localizations.dart';
 
 /// App Shell - Main Layout Wrapper
 /// 
@@ -101,7 +100,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.auto_stories_outlined,
                       activeIcon: Icons.auto_stories_rounded,
-                      label: 'Learning',
+                      label: 'Học tập',
                       isSelected: activeIndex == 0,
                       onTap: () => onTap('/my-learning'),
                       isDark: isDark,
@@ -109,7 +108,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.video_call_outlined,
                       activeIcon: Icons.video_call_rounded,
-                      label: 'Live',
+                      label: 'Trực tiếp',
                       isSelected: activeIndex == 1,
                       onTap: () => onTap('/live-schedule'),
                       isDark: isDark,
@@ -119,7 +118,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.school_outlined,
                       activeIcon: Icons.school_rounded,
-                      label: AppLocalizations.of(context)?.courses ?? 'Courses',
+                      label: 'Khóa học',
                       isSelected: activeIndex == 0,
                       onTap: () => onTap('/courses'),
                       isDark: isDark,
@@ -127,7 +126,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.forum_outlined,
                       activeIcon: Icons.forum_rounded,
-                      label: 'Community',
+                      label: 'Cộng đồng',
                       isSelected: activeIndex == 1,
                       onTap: () => onTap('/community'),
                       isDark: isDark,
@@ -148,7 +147,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.style_outlined,
                       activeIcon: Icons.style_rounded,
-                      label: 'Cards',
+                      label: 'Thẻ',
                       isSelected: activeIndex == 3,
                       onTap: () => onTap('/flashcards'),
                       isDark: isDark,
@@ -164,7 +163,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
-                      label: 'Profile',
+                      label: 'Cá nhân',
                       isSelected: activeIndex == 4,
                       onTap: () => onTap('/settings'),
                       isDark: isDark,
@@ -174,7 +173,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.quiz_outlined,
                       activeIcon: Icons.quiz_rounded,
-                      label: 'Exams',
+                      label: 'Bài thi',
                       isSelected: activeIndex == 3,
                       onTap: () => onTap('/exams'),
                       isDark: isDark,
@@ -190,7 +189,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
-                      label: AppLocalizations.of(context)?.live ?? 'Live',
+                      label: 'Trực tiếp',
                       isSelected: activeIndex == 4,
                       onTap: () => onTap('/flashcards-preview'),
                       isDark: isDark,

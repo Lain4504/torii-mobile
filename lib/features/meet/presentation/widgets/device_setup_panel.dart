@@ -11,6 +11,8 @@ class DeviceSetupPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(meetControllerProvider);
     final notifier = ref.read(meetControllerProvider.notifier);
+    final isWaiting =
+        state.localMetadata?.waitForApproval ?? false;
 
     return SafeArea(
       child: Padding(
@@ -24,60 +26,74 @@ class DeviceSetupPanel extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Setup your camera and microphone',
+              isWaiting
+                  ? 'You are in the waiting room. Please wait for the host to admit you.'
+                  : 'Setup your camera and microphone',
               style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
-            // Camera preview placeholder
-            Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1E2C),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white24),
-              ),
-              child: Center(
-                child: Icon(
-                  state.isCamEnabled ? Icons.videocam : Icons.videocam_off,
-                  size: 64,
-                  color: state.isCamEnabled ? Colors.blueAccent : Colors.white38,
+            if (isWaiting) ...[
+              const SizedBox(
+                height: 64,
+                width: 64,
+                child: CircularProgressIndicator(
+                  color: Colors.white70,
+                  strokeWidth: 3,
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _DeviceSetupChip(
-                  icon: state.isCamEnabled ? Icons.videocam : Icons.videocam_off,
-                  label: 'Camera',
-                  isOn: state.isCamEnabled,
-                  onTap: () => notifier.toggleCam(),
+            ] else ...[
+              // Camera preview placeholder
+              Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E2C),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white24),
                 ),
-                const SizedBox(width: 24),
-                _DeviceSetupChip(
-                  icon: state.isMicEnabled ? Icons.mic : Icons.mic_off,
-                  label: 'Microphone',
-                  isOn: state.isMicEnabled,
-                  onTap: () => notifier.toggleMic(),
+                child: Center(
+                  child: Icon(
+                    state.isCamEnabled ? Icons.videocam : Icons.videocam_off,
+                    size: 64,
+                    color: state.isCamEnabled ? Colors.blueAccent : Colors.white38,
+                  ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 48),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => notifier.startMediaConnection(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5C6BC0),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Text('Join', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               ),
-            ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _DeviceSetupChip(
+                    icon: state.isCamEnabled ? Icons.videocam : Icons.videocam_off,
+                    label: 'Camera',
+                    isOn: state.isCamEnabled,
+                    onTap: () => notifier.toggleCam(),
+                  ),
+                  const SizedBox(width: 24),
+                  _DeviceSetupChip(
+                    icon: state.isMicEnabled ? Icons.mic : Icons.mic_off,
+                    label: 'Microphone',
+                    isOn: state.isMicEnabled,
+                    onTap: () => notifier.toggleMic(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 48),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => notifier.startMediaConnection(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5C6BC0),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('Join', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
           ],
         ),
       ),

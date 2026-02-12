@@ -9,6 +9,7 @@ import 'package:torii_app/features/meet/presentation/widgets/participant_tile.da
 import 'package:torii_app/features/meet/presentation/widgets/join_meet_form.dart';
 import 'package:torii_app/features/meet/presentation/widgets/device_setup_panel.dart';
 import 'package:torii_app/features/meet/presentation/widgets/polls_bottom_sheet.dart';
+import 'package:torii_app/features/meet/presentation/widgets/participants_bottom_sheet.dart';
 
 class MeetingScreen extends ConsumerWidget {
   const MeetingScreen({super.key});
@@ -28,6 +29,15 @@ class MeetingScreen extends ConsumerWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const PollsBottomSheet(),
+    );
+  }
+
+  void _showParticipants(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ParticipantsBottomSheet(),
     );
   }
 
@@ -74,6 +84,10 @@ class MeetingScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.poll_outlined, size: 22),
                 onPressed: () => _showPolls(context),
+              ),
+              IconButton(
+                icon: const Icon(Icons.people_alt_outlined, size: 22),
+                onPressed: () => _showParticipants(context),
               ),
               IconButton(
                 icon: const Icon(Icons.chat_bubble_outline, size: 22),
