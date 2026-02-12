@@ -73,7 +73,8 @@ class ParticipantsBottomSheet extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Participants',
+                  'Người tham gia',
+
                   style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 Text(
@@ -88,7 +89,8 @@ class ParticipantsBottomSheet extends ConsumerWidget {
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: Center(
                   child: Text(
-                    'No participants.',
+                    'Chưa có người tham gia.',
+
                     style: TextStyle(color: Colors.white60),
                   ),
                 ),
@@ -168,7 +170,8 @@ class _ParticipantRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = item.isLocal ? '${item.name} (You)' : item.name;
+    final title = item.isLocal ? '${item.name} (Bạn)' : item.name;
+
 
     return Row(
       children: [
@@ -213,7 +216,8 @@ class _ParticipantRow extends StatelessWidget {
               ),
               if (item.waitForApproval)
                 const Text(
-                  'Waiting for approval',
+                  'Đang chờ duyệt',
+
                   style: TextStyle(color: Colors.orangeAccent, fontSize: 11),
                 ),
             ],
@@ -225,12 +229,14 @@ class _ParticipantRow extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.check, color: Colors.greenAccent, size: 20),
                 onPressed: onApprove,
-                tooltip: 'Approve',
+                tooltip: 'Duyệt',
+
               ),
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.redAccent, size: 20),
                 onPressed: onReject,
-                tooltip: 'Reject',
+                tooltip: 'Từ chối',
+
               ),
             ],
           )
@@ -258,27 +264,31 @@ class _ParticipantRow extends StatelessWidget {
               entries.add(
                 const PopupMenuItem(
                   value: _ParticipantAction.mute,
-                  child: Text('Mute microphone'),
+                  child: Text('Tắt micro'),
+
                 ),
               );
               if (item.raisedHand) {
                 entries.add(
                   const PopupMenuItem(
                     value: _ParticipantAction.lowerHand,
-                    child: Text('Lower hand'),
+                    child: Text('Hạ tay'),
+
                   ),
                 );
               }
               entries.add(
                 PopupMenuItem(
                   value: _ParticipantAction.togglePresenter,
-                  child: Text(item.isPresenter ? 'Remove presenter' : 'Make presenter'),
+                  child: Text(item.isPresenter ? 'Hủy quyền trình bày' : 'Cấp quyền trình bày'),
+
                 ),
               );
               entries.add(
                 const PopupMenuItem(
                   value: _ParticipantAction.remove,
-                  child: Text('Remove from room'),
+                  child: Text('Xóa khỏi phòng'),
+
                 ),
               );
               return entries;
