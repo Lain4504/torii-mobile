@@ -30,10 +30,10 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
       sessionProvider.select((s) => s.currentUser?.metadata?.waitForApproval ?? false),
     );
     final lockMicrophone = ref.watch(
-      sessionProvider.select((s) => s.currentUser?.metadata?.lockSettings?.lockMicrophone ?? false),
+      sessionProvider.select((s) => s.currentUser?.metadata?.lockSettings?.lockMic ?? false),
     );
     final lockWebcam = ref.watch(
-      sessionProvider.select((s) => s.currentUser?.metadata?.lockSettings?.lockWebcam ?? false),
+      sessionProvider.select((s) => s.currentUser?.metadata?.lockSettings?.lockCamera ?? false),
     );
 
     if (!isStartup) {
@@ -41,7 +41,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -172,12 +172,13 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
       
       // Default subjects
       final subjects = nats_msg.NatsSubjects(
-        room: 'room',
+        systemApiWorker: 'system.worker',
+        systemJsWorker: 'system.js',
+        systemPublic: 'system.public',
+        systemPrivate: 'system.private',
         chat: 'chat',
         whiteboard: 'whiteboard',
         dataChannel: 'data',
-        systemPublic: 'system.public',
-        systemWorker: 'system.worker',
       );
 
       await ref.read(sessionProvider.notifier).connect(
@@ -215,7 +216,6 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
         setCurrentMediaServerConn: (conn) {
           // Handled by SessionProvider
         },
-        ref: ref,
         initialAudioEnabled: _isMicEnabled,
         initialVideoEnabled: _isCameraEnabled,
       );

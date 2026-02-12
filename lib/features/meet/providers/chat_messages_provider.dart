@@ -8,7 +8,8 @@
 // - Chronological sorting
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+
+import 'package:torii_app/features/meet/data/models/chat_message.dart';
 
 // ============================================================================
 // STATE CLASSES
@@ -55,17 +56,17 @@ String _getChatKey(ChatMessage message, String currentUserId) {
     return 'public';
   }
   
-  if (message.fromUserId == currentUserId) {
-    return message.toUserId;
+    if (message.fromUserId == currentUserId) {
+    return message.toUserId ?? 'unknown';
   } else {
-    return message.fromUserId;
+    return message.fromUserId ?? 'unknown';
   }
 }
 
 /// Sort messages chronologically
 /// Matches: sortMessages() in chatMessagesSlice.ts
 int _sortMessages(ChatMessage a, ChatMessage b) {
-  return int.parse(a.sentAt).compareTo(int.parse(b.sentAt));
+  return a.createdAt.compareTo(b.createdAt);
 }
 
 // ============================================================================
@@ -84,7 +85,7 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
     required String currentUserId,
   }) {
     // Skip if message already exists
-    if (state.messageIds.containsKey(message.id)) {
+    if (state.messageIds.containsKey(message.messageId)) {
       return;
     }
     
@@ -101,7 +102,7 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
     
     // Add message
     newMessages[key] = List<ChatMessage>.from(newMessages[key]!)..add(message);
-    newMessageIds[message.id] = key;
+    newMessageIds[message.messageId] = key;
     
     // Sort messages
     newMessages[key]!.sort(_sortMessages);
@@ -124,7 +125,7 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
     
     // Group new messages by key, filtering duplicates
     for (final message in messages) {
-      if (state.messageIds.containsKey(message.id)) {
+      if (state.messageIds.containsKey(message.messageId)) {
         continue; // Skip duplicates
       }
       
@@ -147,7 +148,7 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
       newMessages[key] = List<ChatMessage>.from(newMessages[key]!)..addAll(messagesToAdd);
       
       for (final msg in messagesToAdd) {
-        newMessageIds[msg.id] = key;
+        newMessageIds[msg.messageId] = key;
       }
       
       newMessages[key]!.sort(_sortMessages);
@@ -172,7 +173,7 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
     // Remove message IDs
     final messagesToRemove = newMessages[key] ?? [];
     for (final msg in messagesToRemove) {
-      newMessageIds.remove(msg.id);
+      newMessageIds.remove(msg.messageId);
     }
     
     // Remove key

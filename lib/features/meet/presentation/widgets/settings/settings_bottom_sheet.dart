@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../providers/room_settings_provider.dart';
 
 /// Settings Bottom Sheet
 /// Displays application settings (Audio, Video, General)

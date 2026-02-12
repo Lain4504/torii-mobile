@@ -7,7 +7,8 @@
 // - Sorting and filtering
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+
+import 'package:torii_app/features/meet/data/models/user_metadata.dart';
 
 // ============================================================================
 // STATE CLASSES

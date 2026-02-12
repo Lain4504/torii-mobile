@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/bottom_icons_provider.dart';
-import 'mic_button.dart';
+import '../../../providers/session_provider.dart';
+import 'control_button.dart';
 
 /// Camera Button Widget
 /// Toggles camera on/off
@@ -15,14 +16,14 @@ class CameraButton extends ConsumerWidget {
       bottomIconsProvider.select((s) => s.isWebcamMuted),
     );
 
-    return _ControlButton(
+    return ControlButton(
       icon: isWebcamMuted ? Icons.videocam_off : Icons.videocam,
       label: isWebcamMuted ? 'Start Video' : 'Stop Video',
       isActive: !isWebcamMuted,
       onTap: () {
         ref.read(bottomIconsProvider.notifier).toggleWebcam();
         final isWebcamMuted = ref.read(bottomIconsProvider).isWebcamMuted;
-        ref.read(sessionProvider).livekitConn?.toggleVideo(!isWebcamMuted);
+        ref.read(sessionProvider.notifier).livekitConn?.toggleVideo(!isWebcamMuted);
       },
     );
   }

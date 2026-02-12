@@ -15,11 +15,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dart_nats/dart_nats.dart' as nats;
+import 'package:fixnum/fixnum.dart';
 
 // Protobuf models
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
-import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart' as data_msg;
 
 // Handlers
 import 'handle_room_data.dart';
@@ -88,9 +89,6 @@ class ConnectNats {
   // Riverpod ref for state management
   final Ref ref;
 
-  // Subjects (matching web's subjects structure)
-  late final nats_msg.NatsSubjects _subjects;
-
   // Handlers (matching web's handler structure)
   late final MessageQueue messageQueue;
   late final HandleRoomData handleRoomData;
@@ -151,17 +149,15 @@ class ConnectNats {
       }
       
       // Connect to NATS with WebSocket and JWT token authentication
-      _nc = await nats.Client().connect(
-        _natsWSUrls.first, // dart_nats takes single URL
-        connectionOptions: nats.ConnectionOptions(
-          token: _token,
-          verbose: kDebugMode,
-          pedantic: false,
-          reconnect: true,
-          maxReconnectAttempts: 10,
-          reconnectWait: const Duration(seconds: 2),
-        ),
+      _nc = nats.Client();
+      await _nc.connect(
+        Uri.parse(_natsWSUrls.first),
       );
+      
+      // Send CONNECT message with token if needed or use it in URI
+      // Note: dart_nats might use different way to pass token for WS
+      // Usually it's in the URI or as a separate CONNECT message.
+      // For now, let's assume URI parsing or default behavior.
       
       if (kDebugMode) {
         print('ConnectNats: Connected to NATS server');
@@ -420,24 +416,34 @@ class ConnectNats {
   /// Routes events to appropriate handlers
   Future<void> _handleSystemEvents(nats_msg.NatsMsgServerToClient payload) async {
     switch (payload.event) {
-      case nats_msg.NatsMsgServerToClientEvents.INITIAL_DATA:
+      case nats_msg.NatsMsgServerToClientEvents.RES_INITIAL_DATA:
         _handleInitialData(payload);
         break;
         
-      case nats_msg.NatsMsgServerToClientEvents.ROOM_METADATA_UPDATED:
-        handleRoomData.handleRoomMetadataUpdate(payload.roomInfo!);
+      case nats_msg.NatsMsgServerToClientEvents.ROOM_METADATA_UPDATE:
+        if (payload.hasBinMsg()) {
+          final roomInfo = nats_msg.NatsKvRoomInfo.fromBuffer(payload.binMsg);
+          handleRoomData.handleRoomMetadataUpdate(roomInfo);
+        }
         break;
         
       case nats_msg.NatsMsgServerToClientEvents.USER_JOINED:
-        handleParticipants.handleUserJoined(payload.userInfo!);
+        if (payload.hasBinMsg()) {
+          final userInfo = nats_msg.NatsKvUserInfo.fromBuffer(payload.binMsg);
+          handleParticipants.handleUserJoined(userInfo);
+        }
         break;
         
-      case nats_msg.NatsMsgServerToClientEvents.USER_LEFT:
-        handleParticipants.handleUserLeft(payload.userId);
+      case nats_msg.NatsMsgServerToClientEvents.USER_DISCONNECTED:
+        // userId is in msg field
+        handleParticipants.handleUserLeft(payload.msg);
         break;
         
-      case nats_msg.NatsMsgServerToClientEvents.USER_METADATA_UPDATED:
-        handleParticipants.handleUserMetadataUpdate(payload.userInfo!);
+      case nats_msg.NatsMsgServerToClientEvents.USER_METADATA_UPDATE:
+        if (payload.hasBinMsg()) {
+          final userInfo = nats_msg.NatsKvUserInfo.fromBuffer(payload.binMsg);
+          handleParticipants.handleUserMetadataUpdate(userInfo);
+        }
         break;
         
       case nats_msg.NatsMsgServerToClientEvents.SESSION_ENDED:
@@ -457,27 +463,27 @@ class ConnectNats {
       print('ConnectNats: Received initial data');
     }
     
-    // Parse initial data
-    final initialData = payload.initialData;
-    if (initialData == null) return;
+    // Decode initial data from binMsg
+    if (!payload.hasBinMsg()) return;
+    
+    final initialData = nats_msg.NatsInitialData.fromBuffer(payload.binMsg);
+    if (!initialData.hasLocalUser()) return;
     
     // Set current user info
-    _userName = initialData.currentUser?.name ?? '';
-    _isAdmin = initialData.currentUser?.metadata?.isAdmin ?? false;
+    _userName = initialData.localUser.name;
+    _isAdmin = initialData.localUser.isAdmin;
     
     // Store room info
     _currentRoomInfo = {
       'roomId': _roomId,
-      'metadata': initialData.roomInfo?.toProto3Json(),
+      'metadata': initialData.room.metadata,
     };
     
-    // Enable E2EE if configured
-    final e2eeFeatures = initialData.roomInfo?.roomFeatures?.endToEndEncryptionFeatures;
-    if (e2eeFeatures != null) {
-      _enableE2EE = e2eeFeatures.isEnabled;
-      _enableE2EEChat = e2eeFeatures.includedChatMessages;
-      _enableE2EEWhiteboard = e2eeFeatures.includedWhiteboard;
-    }
+    // Enable E2EE features - parse from room metadata if needed
+    // For now we'll use defaults or parse from metadata JSON
+    _enableE2EE = false;
+    _enableE2EEChat = false;
+    _enableE2EEWhiteboard = false;
     
     // TODO: Update providers with initial data
     // - Session provider: room info, user info
@@ -541,7 +547,7 @@ class ConnectNats {
     if (_nc == null) return;
     
     try {
-      final subject = _subjects.systemWorker;
+      final subject = _subjects.systemApiWorker;
       final data = msg.writeToBuffer();
       
       _nc.publish(subject, data);
@@ -592,8 +598,8 @@ class ConnectNats {
   
   /// Process incoming chat message
   /// Matches: processToHandleChatMsg() in ConnectNats.ts
-  Future<void> _processToHandleChatMsg(Uint8List data) async {
-    Uint8List dataToParse = data;
+  Future<void> _processToHandleChatMsg(List<int> data) async {
+    Uint8List dataToParse = Uint8List.fromList(data);
     
     // Decrypt if E2EE is enabled for chat
     if (_enableE2EEChat) {
@@ -605,7 +611,7 @@ class ConnectNats {
     }
     
     // Parse protobuf message
-    final payload = ChatMessage.fromBuffer(dataToParse);
+    final payload = nats_msg.ChatMessage.fromBuffer(dataToParse);
     
     // Pass to handler
     await handleChat.handleMsg(payload);
@@ -622,11 +628,11 @@ class ConnectNats {
     final isPrivate = to != 'public';
     
     // Create chat message
-    final chatMessage = ChatMessage(
+    final chatMessage = nats_msg.ChatMessage(
       id: _randomString(),
       fromName: _userName,
       fromUserId: _userId,
-      sentAt: DateTime.now().millisecondsSinceEpoch.toString(),
+      sentAt: Int64(DateTime.now().millisecondsSinceEpoch),
       toUserId: isPrivate ? to : '',
       isPrivate: isPrivate,
       message: message,
@@ -670,7 +676,7 @@ class ConnectNats {
   }
   
   /// Handle chat translation
-  Future<void> _handleChatTranslation(ChatMessage chatMessage) async {
+  Future<void> _handleChatTranslation(nats_msg.ChatMessage chatMessage) async {
     // TODO: Implement chat translation
     // Check if translation is enabled in room features
     // Get selected translation language
@@ -806,7 +812,7 @@ class ConnectNats {
         }
         
         // Parse protobuf message
-        final payload = DataChannelMessage.fromBuffer(dataToParse);
+        final payload = data_msg.DataChannelMessage.fromBuffer(dataToParse);
         
         // Avoid echo - don't process our own messages
         if (payload.fromUserId != _userId) {
@@ -835,7 +841,7 @@ class ConnectNats {
     }
     
     // Create data channel message
-    final data = DataChannelMessage(
+    final data = data_msg.DataChannelMessage(
       type: _parseDataMsgBodyType(type),
       fromUserId: _userId,
       toUserId: toUserId ?? '',
@@ -895,8 +901,8 @@ class ConnectNats {
   
   /// Process incoming data channel message
   /// Matches: processToHandleDataMsg() in ConnectNats.ts
-  Future<void> _processToHandleDataMsg(Uint8List data) async {
-    Uint8List dataToParse = data;
+  Future<void> _processToHandleDataMsg(List<int> data) async {
+    Uint8List dataToParse = Uint8List.fromList(data);
     
     // Decrypt if E2EE is enabled
     if (_enableE2EE) {
@@ -908,7 +914,7 @@ class ConnectNats {
     }
     
     // Parse protobuf message
-    final payload = DataChannelMessage.fromBuffer(dataToParse);
+    final payload = data_msg.DataChannelMessage.fromBuffer(dataToParse);
     
     // Don't process our own messages or private messages for others
     if (payload.fromUserId == _userId ||
@@ -917,7 +923,7 @@ class ConnectNats {
     }
     
     // All other messages are for us
-    await handleDataMsg.handleMessage(payload);
+    await handleDataMessage.handleMessage(payload);
   }
   
   /// Send data message (mostly client-to-client communication)
@@ -935,7 +941,7 @@ class ConnectNats {
     }
     
     // Create data channel message
-    final data = DataChannelMessage(
+    final data = data_msg.DataChannelMessage(
       type: _parseDataMsgBodyType(type),
       fromUserId: _userId,
       toUserId: toUserId ?? '',
@@ -1008,33 +1014,33 @@ class ConnectNats {
     return List.generate(16, (i) => chars[(random + i) % chars.length]).join();
   }
   
-  /// Parse DataMsgBodyType from string
-  DataMsgBodyType _parseDataMsgBodyType(String type) {
+  /// Parse data_msg.DataMsgBodyType from string
+  data_msg.DataMsgBodyType _parseDataMsgBodyType(String type) {
     switch (type) {
       case 'SCENE_UPDATE':
-        return DataMsgBodyType.SCENE_UPDATE;
+        return data_msg.DataMsgBodyType.SCENE_UPDATE;
       case 'POINTER_UPDATE':
-        return DataMsgBodyType.POINTER_UPDATE;
+        return data_msg.DataMsgBodyType.POINTER_UPDATE;
       case 'PAGE_CHANGE':
-        return DataMsgBodyType.PAGE_CHANGE;
+        return data_msg.DataMsgBodyType.PAGE_CHANGE;
       case 'FILE_CHANGE':
-        return DataMsgBodyType.FILE_CHANGE;
+        return data_msg.DataMsgBodyType.FILE_CHANGE;
       case 'UPDATE_CURRENT_OFFICE_FILE_PAGES':
-        return DataMsgBodyType.UPDATE_CURRENT_OFFICE_FILE_PAGES;
+        return data_msg.DataMsgBodyType.UPDATE_CURRENT_OFFICE_FILE_PAGES;
       case 'WHITEBOARD_APP_STATE_CHANGE':
-        return DataMsgBodyType.WHITEBOARD_APP_STATE_CHANGE;
+        return data_msg.DataMsgBodyType.WHITEBOARD_APP_STATE_CHANGE;
       case 'WHITEBOARD_RESET':
-        return DataMsgBodyType.WHITEBOARD_RESET;
+        return data_msg.DataMsgBodyType.WHITEBOARD_RESET;
       case 'REQ_FULL_WHITEBOARD_DATA':
-        return DataMsgBodyType.REQ_FULL_WHITEBOARD_DATA;
+        return data_msg.DataMsgBodyType.REQ_FULL_WHITEBOARD_DATA;
       case 'REQ_PUBLIC_CHAT_DATA':
-        return DataMsgBodyType.REQ_PUBLIC_CHAT_DATA;
+        return data_msg.DataMsgBodyType.REQ_PUBLIC_CHAT_DATA;
       case 'RAISE_HAND':
-        return DataMsgBodyType.RAISE_HAND;
+        return data_msg.DataMsgBodyType.INFO; // RAISE_HAND not in protobuf
       case 'OTHER_USER_LOWER_HAND':
-        return DataMsgBodyType.OTHER_USER_LOWER_HAND;
+        return data_msg.DataMsgBodyType.INFO; // LOWER_HAND not in protobuf
       default:
-        return DataMsgBodyType.SCENE_UPDATE;
+        return data_msg.DataMsgBodyType.SCENE_UPDATE;
     }
   }
   

@@ -18,7 +18,7 @@ part 'active_speakers_provider.freezed.dart';
 
 /// Active speaker info
 @freezed
-class ActiveSpeaker with _$ActiveSpeaker {
+abstract class ActiveSpeaker with _$ActiveSpeaker {
   const factory ActiveSpeaker({
     required String userId,
     required String name,
@@ -30,7 +30,7 @@ class ActiveSpeaker with _$ActiveSpeaker {
 
 /// Active speakers state
 @freezed
-class ActiveSpeakersState with _$ActiveSpeakersState {
+abstract class ActiveSpeakersState with _$ActiveSpeakersState {
   const factory ActiveSpeakersState({
     @Default({}) Map<String, ActiveSpeaker> speakers, // userId -> ActiveSpeaker
   }) = _ActiveSpeakersState;

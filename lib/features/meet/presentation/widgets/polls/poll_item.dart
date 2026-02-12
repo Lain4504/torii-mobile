@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/poll.dart';
-import '../../../../providers/session_provider.dart';
+import 'package:torii_app/features/meet/data/models/poll.dart';
+import '../../../providers/session_provider.dart';
 
 /// Poll Item Widget
 /// Display a single poll to vote

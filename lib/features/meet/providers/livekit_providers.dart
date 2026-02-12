@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'session_provider.dart';
-import '../core/livekit/connect_livekit.dart';
+
 
 // Stream provider for video subscribers
 final videoSubscribersProvider = StreamProvider<Map<String, Participant>>((ref) {

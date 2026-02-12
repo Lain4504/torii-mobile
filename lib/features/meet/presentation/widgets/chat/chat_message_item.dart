@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../providers/chat_messages_provider.dart';
+import 'package:torii_app/features/meet/data/models/chat_message.dart';
+import '../../../providers/chat_messages_provider.dart';
 import 'package:intl/intl.dart';
 
 /// Chat Message Item Widget

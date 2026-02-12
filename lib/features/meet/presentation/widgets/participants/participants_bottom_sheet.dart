@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../providers/participant_provider.dart';
-import '../../../../providers/session_provider.dart';
+import '../../../providers/participant_provider.dart';
+import '../../../providers/session_provider.dart';
 import 'participant_item.dart';
 
 /// Participants Bottom Sheet
@@ -39,7 +39,8 @@ class _ParticipantsBottomSheetState extends ConsumerState<ParticipantsBottomShee
 
   @override
   Widget build(BuildContext context) {
-    final participants = ref.watch(participantProvider);
+    final participantState = ref.watch(participantProvider);
+    final participants = participantState.allParticipants;
     final currentUser = ref.watch(sessionProvider.select((s) => s.currentUser));
     
     // Filter participants
@@ -71,7 +72,7 @@ class _ParticipantsBottomSheetState extends ConsumerState<ParticipantsBottomShee
                 const Icon(Icons.people_outline, size: 20),
                 const SizedBox(width: 8),
                 Text(
-                  'Participants (${participants.length})',
+                  'Participants (${participantState.totalParticipants})',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

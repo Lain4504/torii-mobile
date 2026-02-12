@@ -34,6 +34,8 @@ class WhiteboardState {
   final int refreshWhiteboardSignal;
   final int whiteboardResetSignal;
   final String allExcalidrawElements;
+  final bool isVisible;
+  final String tool;
   
   const WhiteboardState({
     this.totalPages = 10,
@@ -48,6 +50,8 @@ class WhiteboardState {
     this.refreshWhiteboardSignal = 0,
     this.whiteboardResetSignal = 0,
     this.allExcalidrawElements = '',
+    this.isVisible = false,
+    this.tool = 'pencil',
   });
   
   WhiteboardState copyWith({
@@ -63,6 +67,8 @@ class WhiteboardState {
     int? refreshWhiteboardSignal,
     int? whiteboardResetSignal,
     String? allExcalidrawElements,
+    bool? isVisible,
+    String? tool,
   }) {
     return WhiteboardState(
       totalPages: totalPages ?? this.totalPages,
@@ -77,6 +83,8 @@ class WhiteboardState {
       refreshWhiteboardSignal: refreshWhiteboardSignal ?? this.refreshWhiteboardSignal,
       whiteboardResetSignal: whiteboardResetSignal ?? this.whiteboardResetSignal,
       allExcalidrawElements: allExcalidrawElements ?? this.allExcalidrawElements,
+      isVisible: isVisible ?? this.isVisible,
+      tool: tool ?? this.tool,
     );
   }
 }
@@ -160,6 +168,18 @@ class WhiteboardNotifier extends StateNotifier<WhiteboardState> {
       currentOfficeFilePages: data['currentOfficeFilePages'] as String? ?? '',
       allExcalidrawElements: data['elements'] as String? ?? '',
     );
+  }
+  
+  void setIsVisible(bool visible) {
+    state = state.copyWith(isVisible: visible);
+  }
+  
+  void setTool(String tool) {
+    state = state.copyWith(tool: tool);
+  }
+  
+  void setCurrentPage(int page) {
+    state = state.copyWith(currentPage: page);
   }
 }
 

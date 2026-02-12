@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../providers/whiteboard_provider.dart';
+import '../../../providers/whiteboard_provider.dart';
 
 /// Whiteboard Toolbar Widget
 /// Drawing tools selection

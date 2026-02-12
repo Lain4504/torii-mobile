@@ -9,9 +9,11 @@
 // - Handle waiting room users
 // - Handle raise hand events
 
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
+import 'package:torii_app/features/meet/data/models/user_metadata.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/session_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
@@ -32,7 +34,7 @@ class HandleParticipants {
   
   /// Handle user joined event
   /// Matches: addRemoteParticipant() in HandleParticipants.ts
-  Future<void> handleUserJoined(UserInfo userInfo) async {
+  Future<void> handleUserJoined(nats_msg.NatsKvUserInfo userInfo) async {
     // Skip if it's the local user
     if (userInfo.userId == connectNats.userId) {
       return;
@@ -43,13 +45,18 @@ class HandleParticipants {
       return;
     }
     
+    // Parse metadata
+    final metadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
+        ? UserMetadata.fromJson(jsonDecode(userInfo.metadata))
+        : const UserMetadata();
+    
     // Add participant to provider
     ref?.read(participantProvider.notifier).addParticipant(
       ParticipantInfo(
         userId: userInfo.userId,
-        sid: userInfo.sid,
+        sid: userInfo.userSid,
         name: userInfo.name,
-        metadata: userInfo.metadata,
+        metadata: metadata,
       ),
     );
     
@@ -86,12 +93,17 @@ class HandleParticipants {
   
   /// Handle user metadata update
   /// Matches: handleParticipantMetadataUpdate() in HandleParticipants.ts
-  void handleUserMetadataUpdate(UserInfo userInfo) {
+  void handleUserMetadataUpdate(nats_msg.NatsKvUserInfo userInfo) {
+    // Parse metadata
+    final metadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
+        ? UserMetadata.fromJson(jsonDecode(userInfo.metadata))
+        : const UserMetadata();
+
     // Skip if it's the local user
     if (userInfo.userId == connectNats.userId) {
       // Update local user metadata
       // Dispatch to session provider
-      ref?.read(sessionProvider.notifier).updateCurrentUserMetadata(userInfo.metadata);
+      ref?.read(sessionProvider.notifier).updateCurrentUserMetadata(metadata);
       
       if (kDebugMode) {
         print('HandleParticipants: Local user metadata updated');
@@ -105,13 +117,13 @@ class HandleParticipants {
       userId: userInfo.userId,
       changes: {
         'name': userInfo.name,
-        'metadata': userInfo.metadata,
+        'metadata': metadata,
       },
     );
     
     // Handle raise hand updates
-    if (userInfo.metadata.raisedHand) {
-      _handleRaiseHand(userInfo);
+    if (metadata.raisedHand) {
+      _handleRaiseHand(userInfo.name);
     }
     
     if (kDebugMode) {
@@ -120,7 +132,7 @@ class HandleParticipants {
   }
   
   /// Handle raise hand event
-  void _handleRaiseHand(UserInfo userInfo) {
+  void _handleRaiseHand(String name) {
     // Only show notification if user is admin
     if (!connectNats.isAdmin) {
       return;
@@ -129,7 +141,7 @@ class HandleParticipants {
     // Show notification
     ref?.read(roomSettingsProvider.notifier).addUserNotification(
       UserNotification(
-        message: '${userInfo.name} đã giơ tay',
+        message: '$name đã giơ tay',
         typeOption: 'info',
       ),
     );
@@ -138,7 +150,7 @@ class HandleParticipants {
     ref?.read(bottomIconsProvider.notifier).updateIsActiveRaisehand(true);
     
     if (kDebugMode) {
-      print('HandleParticipants: ${userInfo.name} raised hand');
+      print('HandleParticipants: $name raised hand');
     }
   }
   

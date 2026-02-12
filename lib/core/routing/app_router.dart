@@ -47,8 +47,8 @@ import 'package:torii_app/features/course/views/pages/wishlist_page.dart';
 import 'package:torii_app/features/instructor/views/pages/instructor_profile_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_list_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_detail_page.dart';
-import 'package:torii_app/features/meet/presentation/screens/meet_landing_screen.dart';
-import 'package:torii_app/features/meet/presentation/screens/meeting_screen.dart';
+import 'package:torii_app/features/meet/presentation/screens/landing/join_meeting_screen.dart';
+import 'package:torii_app/features/meet/presentation/screens/room/meeting_room_screen.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -251,7 +251,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/meet',
-                builder: (context, state) => const MeetLandingScreen(),
+                builder: (context, state) => const JoinMeetingScreen(),
               ),
             ],
           ),
@@ -261,7 +261,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/meeting',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const MeetingScreen(),
+        builder: (context, state) => const MeetingRoomScreen(),
       ),
       GoRoute(
         path: '/login',

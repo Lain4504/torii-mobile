@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../providers/chat_messages_provider.dart';
-import '../../../../providers/session_provider.dart';
+import 'package:torii_app/features/meet/data/models/chat_message.dart';
+import '../../../providers/chat_messages_provider.dart';
+import '../../../providers/session_provider.dart';
 import 'chat_message_item.dart';
 
 /// Chat Message List Widget
@@ -34,7 +35,8 @@ class _ChatMessageListState extends ConsumerState<ChatMessageList> {
 
   @override
   Widget build(BuildContext context) {
-    final messages = ref.watch(chatMessagesProvider);
+    final chatState = ref.watch(chatMessagesProvider);
+    final messages = chatState.publicMessages;
     final currentUser = ref.watch(sessionProvider.select((s) => s.currentUser));
     
     // Auto-scroll to bottom when new messages arrive

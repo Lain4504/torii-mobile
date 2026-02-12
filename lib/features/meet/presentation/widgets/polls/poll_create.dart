@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/poll.dart';
-import '../../../../providers/polls_provider.dart';
-import '../../../../providers/session_provider.dart';
+import 'package:torii_app/features/meet/data/models/poll.dart';
+import '../../../providers/polls_provider.dart';
+import '../../../providers/session_provider.dart';
 
 /// Poll Create Widget
 /// Form to create a new poll
@@ -100,7 +100,7 @@ class _PollCreateState extends ConsumerState<PollCreate> {
       ref.read(pollsProvider.notifier).addPoll(newPoll);
 
       // 2. Send via NATS
-      await session.natsConn?.sendDataMessage(
+      await ref.read(sessionProvider.notifier).natsConn?.sendDataMessage(
         type: 'NEW_POLL_RESPONSE', // Using the available enum type
         msg: jsonEncode(newPoll.toJson()),
       );

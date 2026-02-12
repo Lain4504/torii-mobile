@@ -51,18 +51,18 @@ class LeaveButton extends ConsumerWidget {
   void _showLeaveDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Leave Meeting?'),
         content: const Text('Are you sure you want to leave this meeting?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              _leaveMeeting(ref);
+              Navigator.of(dialogContext).pop();
+              _leaveMeeting(context, ref);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Leave'),
@@ -81,7 +81,6 @@ class LeaveButton extends ConsumerWidget {
     
     if (context.mounted) {
       // Navigate back to landing/join screen
-      // Assuming MeetingRoomScreen was pushed on top of JoinMeetingScreen or LandingScreen
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }

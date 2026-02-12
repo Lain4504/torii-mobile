@@ -12,8 +12,10 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+import 'package:torii_app/features/meet/data/models/chat_message.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
+import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
+import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
 
 class HandleSystemData {
   final String userId;
@@ -49,8 +51,8 @@ class HandleSystemData {
       // Dispatch to room settings provider
       ref?.read(roomSettingsProvider.notifier).addUserNotification(
         UserNotification(
-          message: msg.message,
-          typeOption: 'info',
+          message: msg,
+          typeOption: typeOption,
         ),
       );
       // ref?.read(roomSettingsProvider.notifier).addUserNotification(
@@ -167,27 +169,18 @@ class HandleSystemData {
   /// Handle system chat message
   /// Matches: handleSysChatMsg() in HandleSystemData.tsx
   void handleSysChatMsg(String msg) {
-    final systemMessage = ChatMessage(
-      id: _randomString(),
-      sentAt: DateTime.now().millisecondsSinceEpoch.toString(),
-      isPrivate: false,
-      fromName: 'system',
-      fromUserId: 'system',
-      message: msg,
-      fromAdmin: true, // System message always from admin
-    );
-    
     // Dispatch to chat provider
     ref?.read(chatMessagesProvider.notifier).addChatMessage(
-      ChatMessage(
+      message: ChatMessage(
         messageId: DateTime.now().millisecondsSinceEpoch.toString(),
         senderId: 'system',
         senderName: 'System',
-        message: msg.message,
+        message: msg,
         isPrivate: false,
         createdAt: DateTime.now(),
         isSystemMsg: true,
       ),
+      currentUserId: userId,
     );
     // ref?.read(chatMessagesProvider.notifier).addChatMessage(
     //   message: systemMessage,

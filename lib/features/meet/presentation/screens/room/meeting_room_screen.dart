@@ -1,4 +1,10 @@
-import '../../../../providers/breakout_room_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/breakout_room_provider.dart';
+import '../../widgets/header/meeting_header.dart';
+import '../../widgets/main_area/video_grid.dart';
+import '../../widgets/footer/control_bar.dart';
+import '../../widgets/whiteboard/whiteboard_widget.dart';
 
 // ... existing imports ...
 
@@ -18,7 +24,7 @@ class MeetingRoomScreen extends ConsumerWidget {
     });
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Stack(
           children: [

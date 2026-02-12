@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../providers/session_provider.dart';
+import '../../../providers/polls_provider.dart';
 import 'poll_create.dart';
 import 'poll_item.dart';
 
@@ -67,12 +67,6 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
             ),
           ),
 
-import '../../../../providers/polls_provider.dart';
-
-// ... existing imports ...
-
-// ... existing code ...
-
           // Content
           Expanded(
             child: _isCreating 
@@ -81,8 +75,10 @@ import '../../../../providers/polls_provider.dart';
                 )
               : _buildPollList(context, ref),
           ),
-
-// ... existing code ...
+        ],
+      ),
+    );
+  }
 
   Widget _buildPollList(BuildContext context, WidgetRef ref) {
     final pollsState = ref.watch(pollsProvider);

@@ -10,11 +10,13 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import '../core/nats/connect_nats.dart';
 import '../core/livekit/connect_livekit.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:torii_app/features/meet/data/models/room_info.dart';
+import 'package:torii_app/features/meet/data/models/user_metadata.dart';
 
 part 'session_provider.freezed.dart';
 
@@ -23,34 +25,82 @@ part 'session_provider.freezed.dart';
 // ============================================================================
 
 /// Screen sharing state
-@freezed
-class ScreenSharingState with _$ScreenSharingState {
-  const factory ScreenSharingState({
-    @Default(false) bool isActive,
-    @Default('') String sharedBy,
-  }) = _ScreenSharingState;
+class ScreenSharingState {
+  final bool isActive;
+  final String sharedBy;
+
+  const ScreenSharingState({
+    this.isActive = false,
+    this.sharedBy = '',
+  });
+
+  ScreenSharingState copyWith({
+    bool? isActive,
+    String? sharedBy,
+  }) {
+    return ScreenSharingState(
+      isActive: isActive ?? this.isActive,
+      sharedBy: sharedBy ?? this.sharedBy,
+    );
+  }
 }
 
 /// Current user info
-@freezed
-class CurrentUser with _$CurrentUser {
-  const factory CurrentUser({
-    required String sid,
-    required String userId,
-    required String name,
-    @Default(false) bool isRecorder,
+class CurrentUser {
+  final String sid;
+  final String userId;
+  final String name;
+  final bool isRecorder;
+  final UserMetadata? metadata;
+
+  const CurrentUser({
+    required this.sid,
+    required this.userId,
+    required this.name,
+    this.isRecorder = false,
+    this.metadata,
+  });
+
+  CurrentUser copyWith({
+    String? sid,
+    String? userId,
+    String? name,
+    bool? isRecorder,
     UserMetadata? metadata,
-  }) = _CurrentUser;
+  }) {
+    return CurrentUser(
+      sid: sid ?? this.sid,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      isRecorder: isRecorder ?? this.isRecorder,
+      metadata: metadata ?? this.metadata,
+    );
+  }
 }
 
 /// Current room info
-@freezed
-class CurrentRoom with _$CurrentRoom {
-  const factory CurrentRoom({
-    required String sid,
-    required String roomId,
+class CurrentRoom {
+  final String sid;
+  final String roomId;
+  final RoomInfo? metadata;
+
+  const CurrentRoom({
+    required this.sid,
+    required this.roomId,
+    this.metadata,
+  });
+
+  CurrentRoom copyWith({
+    String? sid,
+    String? roomId,
     RoomInfo? metadata,
-  }) = _CurrentRoom;
+  }) {
+    return CurrentRoom(
+      sid: sid ?? this.sid,
+      roomId: roomId ?? this.roomId,
+      metadata: metadata ?? this.metadata,
+    );
+  }
 }
 
 /// User device type
@@ -62,7 +112,7 @@ enum UserDeviceType {
 
 /// Main session state
 @freezed
-class SessionState with _$SessionState {
+abstract class SessionState with _$SessionState {
   const factory SessionState({
     @Default('') String token,
     String? serverVersion,
@@ -75,6 +125,7 @@ class SessionState with _$SessionState {
     @Default(true) bool isStartup,
     @Default(0) int totalVideoSubscribers,
     @Default(0) int totalAudioSubscribers,
+    @Default(0) int totalParticipants,
     @Default(UserDeviceType.mobile) UserDeviceType userDeviceType,
     @Default(false) bool isCloud,
     @Default(false) bool isNatsConnected,
@@ -99,10 +150,11 @@ class SessionState with _$SessionState {
 /// Session state notifier
 /// Matches: sessionSlice reducers in sessionSlice.ts
 class SessionNotifier extends StateNotifier<SessionState> {
+  final Ref ref;
   ConnectNats? _connectNats;
   ConnectLivekit? _connectLivekit;
 
-  SessionNotifier() : super(SessionState.initial());
+  SessionNotifier(this.ref) : super(SessionState.initial());
   
   /// Add JWT token
   /// Matches: addToken
@@ -190,6 +242,10 @@ class SessionNotifier extends StateNotifier<SessionState> {
   void updateTotalAudioSubscribers(int count) {
     state = state.copyWith(totalAudioSubscribers: count);
   }
+
+  void updateTotalParticipants(int count) {
+    state = state.copyWith(totalParticipants: count);
+  }
   
   /// Update user device type
   /// Matches: updateUserDeviceType
@@ -209,7 +265,6 @@ class SessionNotifier extends StateNotifier<SessionState> {
     required Function(String, String) setErrorState,
     required Function(String) setRoomConnectionStatusState,
     required Function(dynamic) setCurrentMediaServerConn,
-    required Ref ref,
     bool initialAudioEnabled = false,
     bool initialVideoEnabled = false,
   }) async {
@@ -284,7 +339,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
 /// Session provider
 /// Matches: sessionSlice in Redux store
 final sessionProvider = StateNotifierProvider<SessionNotifier, SessionState>((ref) {
-  return SessionNotifier();
+  return SessionNotifier(ref);
 });
 
 // ============================================================================

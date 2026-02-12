@@ -10,9 +10,17 @@
 // - Update session provider
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
+import 'package:torii_app/features/meet/data/models/room_info.dart';
+import 'package:torii_app/features/meet/data/models/user_metadata.dart';
+import 'package:torii_app/features/meet/data/models/chat_message.dart';
+import 'package:torii_app/features/meet/providers/session_provider.dart';
+import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
+import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
+import 'package:torii_app/features/meet/providers/whiteboard_provider.dart';
 
 class HandleRoomData {
   final String roomId;
@@ -38,11 +46,16 @@ class HandleRoomData {
   
   /// Set initial room info
   /// Matches: setRoomInfo() in HandleRoomData.ts
-  Future<Map<String, dynamic>> setRoomInfo(RoomInfo info) async {
+  Future<Map<String, dynamic>> setRoomInfo(nats_msg.NatsKvRoomInfo info) async {
+    // Parse metadata
+    final metadata = info.hasMetadata() && info.metadata.isNotEmpty
+        ? RoomInfo.fromJson(jsonDecode(info.metadata))
+        : const RoomInfo();
+
     _currentRoom = {
       'roomId': info.roomId,
       'sid': info.roomSid,
-      'metadata': null,
+      'metadata': metadata.toJson(),
     };
     
     // Dispatch to session provider
@@ -50,7 +63,7 @@ class HandleRoomData {
       CurrentRoom(
         sid: info.roomSid,
         roomId: info.roomId,
-        metadata: info,
+        metadata: metadata,
       ),
     );
     
@@ -61,14 +74,16 @@ class HandleRoomData {
   
   /// Handle room metadata update
   /// Matches: updateRoomMetadata() in HandleRoomData.ts
-  Future<void> handleRoomMetadataUpdate(RoomInfo roomInfo) async {
+  Future<void> handleRoomMetadataUpdate(nats_msg.NatsKvRoomInfo roomInfo) async {
     try {
-      final metadata = roomInfo;
+      final metadata = roomInfo.hasMetadata() && roomInfo.metadata.isNotEmpty
+          ? RoomInfo.fromJson(jsonDecode(roomInfo.metadata))
+          : const RoomInfo();
       
       // Check if metadata actually changed
       if (_currentRoom?['metadata'] == null ||
           _currentRoom?['metadata']['metadataId'] != metadata.metadataId) {
-        _currentRoom?['metadata'] = metadata.toProto3Json();
+        _currentRoom?['metadata'] = metadata.toJson();
         await _updateMetadata(metadata);
       }
     } catch (e) {
@@ -117,16 +132,8 @@ class HandleRoomData {
   /// Show recording notification
   void _showRecordingNotification(RoomInfo metadata) {
     // Get current recording status from provider
-    final isActiveRecording = ref?.read(sessionProvider).isActiveRecording ?? false;
-    // final isActiveRecording = ref?.read(sessionProvider).isActiveRecording ?? false;
-    final isActiveRecording = false; // Placeholder
-    
-    // Avoid notification if user is recorder
-    // Check if current user is recorder
-    final isRecorder = ref?.read(sessionProvider).currentUser?.isRecorder ?? false;
-    // if (ref?.read(sessionProvider).currentUser?.isRecorder ?? false) {
-    //   return;
-    // }
+    final session = ref?.read(sessionProvider);
+    final isActiveRecording = session?.isActiveRecording ?? false;
     
     if (!isActiveRecording && metadata.isRecording) {
       _showNotification('Phiên họp đang được ghi âm/ghi hình', 'info');
@@ -138,16 +145,8 @@ class HandleRoomData {
   /// Show RTMP broadcasting notification
   void _showRTMPNotification(RoomInfo metadata) {
     // Get current RTMP status from provider
-    final isActiveRtmp = ref?.read(sessionProvider).isActiveRtmpBroadcasting;
-    // final isActiveRtmp = ref?.read(sessionProvider).isActiveRtmpBroadcasting ?? false;
-    final isActiveRtmp = false; // Placeholder
-    
-    // Avoid notification if user is recorder
-    // Check if current user is recorder
-    final isRecorder = ref?.read(sessionProvider).currentUser?.isRecorder ?? false;
-    // if (ref?.read(sessionProvider).currentUser?.isRecorder ?? false) {
-    //   return;
-    // }
+    final session = ref?.read(sessionProvider);
+    final isActiveRtmp = session?.isActiveRtmpBroadcasting ?? false;
     
     if (!isActiveRtmp && metadata.isActiveRtmp) {
       _showNotification('Đã bắt đầu phát sóng trực tiếp (RTMP)', 'info');
@@ -170,28 +169,18 @@ class HandleRoomData {
     
     _welcomeMessage = welcomeMsg;
     
-    // Create system chat message
-    final systemMessage = ChatMessage(
-      id: '1',
-      sentAt: '1', // To make sure it's always on top
-      isPrivate: false,
-      fromName: 'system',
-      fromUserId: 'system',
-      message: _welcomeMessage!,
-      fromAdmin: true, // System message always from admin
-    );
-    
     // Dispatch to chat provider
     ref?.read(chatMessagesProvider.notifier).addChatMessage(
-      ChatMessage(
+      message: ChatMessage(
         messageId: DateTime.now().millisecondsSinceEpoch.toString(),
         senderId: 'system',
         senderName: 'System',
-        message: msg.message,
+        message: _welcomeMessage!,
         isPrivate: false,
         createdAt: DateTime.now(),
         isSystemMsg: true,
       ),
+      currentUserId: userId,
     );
     // ref?.read(chatMessagesProvider.notifier).addChatMessage(
     //   message: systemMessage,
@@ -214,8 +203,6 @@ class HandleRoomData {
     
     // Check if current user is presenter
     final isPresenter = ref?.read(sessionProvider).currentUser?.metadata?.isPresenter ?? false;
-    // final isPresenter = ref?.read(sessionProvider).currentUser?.metadata?.isPresenter ?? false;
-    final isPresenter = false; // Placeholder
     
     if (!isPresenter) {
       _checkedPreloadedWhiteboardFile = true;
@@ -247,34 +234,22 @@ class HandleRoomData {
     }
     
     // Check if file already exists in whiteboard provider
-    final existingFile = ref?.read(whiteboardProvider).whiteboardOfficeFiles
-        .firstWhere(
-          (f) => f.fileId == file.fileId,
-          orElse: () => WhiteboardOfficeFile(
+    final whiteboardFiles = ref?.read(whiteboardProvider).whiteboardUploadedOfficeFiles ?? [];
+    final existingFile = whiteboardFiles.isEmpty ? null : whiteboardFiles.firstWhere(
+          (f) => f.fileName == whiteboard.fileName,
+          orElse: () => const WhiteboardOfficeFile(
             fileId: '',
             fileName: '',
             filePath: '',
-            currentPage: 0,
             totalPages: 0,
-            isActive: false,
           ),
         );
-    final fileExists = existingFile?.fileId.isNotEmpty ?? false;
-    // final whiteboardFiles = ref?.read(whiteboardProvider).whiteboardUploadedOfficeFiles ?? [];
-    // final exists = whiteboardFiles.any((f) => f.fileId == whiteboard.whiteboardFileId);
     
-    // if (!exists) {
-    //   final file = {
-    //     'status': true,
-    //     'msg': '',
-    //     'fileId': whiteboard.whiteboardFileId,
-    //     'fileName': whiteboard.fileName,
-    //     'filePath': whiteboard.filePath,
-    //     'totalPages': whiteboard.totalPages,
-    //   };
-    //   // Create and register office file
-    //   ref?.read(whiteboardProvider.notifier).createAndRegisterOfficeFile(file);
-    // }
+    final fileExists = existingFile != null && existingFile.fileId.isNotEmpty;
+    
+    if (!fileExists) {
+        // TODO: Implement join logic
+    }
     
     _checkedPreloadedWhiteboardFile = true;
     
@@ -288,14 +263,10 @@ class HandleRoomData {
     // Dispatch to room settings provider
     ref?.read(roomSettingsProvider.notifier).addUserNotification(
       UserNotification(
-        message: msg.message,
-        typeOption: msg.type.name.toLowerCase(),
+        message: message,
+        typeOption: type,
       ),
     );
-    // ref?.read(roomSettingsProvider.notifier).addUserNotification(
-    //   message: message,
-    //   typeOption: type,
-    // );
     
     if (kDebugMode) {
       print('HandleRoomData: Notification ($type): $message');

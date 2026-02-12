@@ -21,8 +21,8 @@ class VideoTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Check if this participant is speaking
     final activeSpeakers = ref.watch(activeSpeakersProvider);
-    final isSpeaking = activeSpeakers.any(
-      (speaker) => speaker.userId == participant.userId && speaker.isSpeaking,
+    final isSpeaking = activeSpeakers.speakers.values.any(
+      (speaker) => speaker.userId == participant.identity && speaker.isSpeaking,
     );
 
     return Container(
@@ -54,37 +54,22 @@ class VideoTile extends ConsumerWidget {
 
   Widget _buildVideoContent(BuildContext context) {
     // Check if participant has video track
-    final hasVideo = participant.videoTrackSid != null && 
-                     participant.videoTrackSid!.isNotEmpty;
+    TrackPublication? videoPub;
+    
+    // Check track publications
+    for (var pub in participant.videoTrackPublications) {
+      if (pub.source == TrackSource.camera || pub.kind.name.toLowerCase() == 'video') {
+        videoPub = pub;
+        break;
+      }
+    }
 
-    if (hasVideo) {
-      // Find camera track
-      TrackPublication? videoPub;
-      
-      // Check track publications
-      for (var pub in participant.videoTrackPublications) {
-        if (pub.source == TrackSource.camera) {
-          videoPub = pub;
-          break;
-        }
-      }
-      
-      if (videoPub != null && videoPub.track != null) {
-        return VideoTrackRenderer(
-          videoPub.track as VideoTrack,
-          fit: BoxFit.cover,
-        );
-      }
-      
-      // Fallback if track is not available yet
-      return Container(
-        color: Colors.black,
-        child: const Center(
-          child: CircularProgressIndicator(
-            color: Colors.white24,
-            strokeWidth: 2,
-          ),
-        ),
+    final hasVideo = videoPub != null && videoPub.subscribed;
+
+    if (hasVideo && videoPub.track is VideoTrack) {
+      return VideoTrackRenderer(
+        videoPub.track as VideoTrack,
+        fit: VideoViewFit.cover,
       );
     }
 
@@ -96,7 +81,7 @@ class VideoTile extends ConsumerWidget {
           radius: isSmall ? 24 : 48,
           backgroundColor: Theme.of(context).colorScheme.primary,
           child: Text(
-            _getInitials(participant.name),
+            _getInitials(participant.name ?? participant.identity),
             style: TextStyle(
               fontSize: isSmall ? 16 : 32,
               fontWeight: FontWeight.bold,
@@ -109,6 +94,15 @@ class VideoTile extends ConsumerWidget {
   }
 
   Widget _buildOverlay(BuildContext context) {
+    // Find audio track
+    bool isMicOn = false;
+    for (var pub in participant.audioTrackPublications) {
+       if (pub.subscribed && !pub.muted) {
+         isMicOn = true;
+         break;
+       }
+    }
+
     return Positioned(
       left: 0,
       right: 0,
@@ -129,20 +123,16 @@ class VideoTile extends ConsumerWidget {
           children: [
             // Microphone status
             Icon(
-              participant.audioTrackSid != null && participant.audioTrackSid!.isNotEmpty
-                  ? Icons.mic
-                  : Icons.mic_off,
+              isMicOn ? Icons.mic : Icons.mic_off,
               size: isSmall ? 12 : 16,
-              color: participant.audioTrackSid != null && participant.audioTrackSid!.isNotEmpty
-                  ? Colors.white
-                  : Colors.red,
+              color: isMicOn ? Colors.white : Colors.red,
             ),
             const SizedBox(width: 4),
             
             // Name
             Expanded(
               child: Text(
-                participant.name,
+                participant.name ?? participant.identity,
                 style: TextStyle(
                   fontSize: isSmall ? 10 : 14,
                   fontWeight: FontWeight.w500,
@@ -154,28 +144,27 @@ class VideoTile extends ConsumerWidget {
             ),
             
             // Connection quality indicator
-            if (participant.connectionQuality != null)
-              _buildConnectionQuality(context, participant.connectionQuality!),
+            _buildConnectionQuality(context, participant.connectionQuality),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildConnectionQuality(BuildContext context, String quality) {
+  Widget _buildConnectionQuality(BuildContext context, ConnectionQuality quality) {
     Color color;
     int bars;
     
-    switch (quality.toLowerCase()) {
-      case 'excellent':
+    switch (quality) {
+      case ConnectionQuality.excellent:
         color = Colors.green;
         bars = 3;
         break;
-      case 'good':
+      case ConnectionQuality.good:
         color = Colors.yellow;
         bars = 2;
         break;
-      case 'poor':
+      case ConnectionQuality.poor:
         color = Colors.red;
         bars = 1;
         break;

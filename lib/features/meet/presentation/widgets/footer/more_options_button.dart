@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../chat/chat_bottom_sheet.dart';
-import '../../participants/participants_bottom_sheet.dart';
-import '../../settings/settings_bottom_sheet.dart';
-import '../../polls/polls_bottom_sheet.dart';
-import '../../../../providers/whiteboard_provider.dart';
+import '../chat/chat_bottom_sheet.dart';
+import '../participants/participants_bottom_sheet.dart';
+import '../settings/settings_bottom_sheet.dart';
+import '../polls/polls_bottom_sheet.dart';
+import '../../../providers/whiteboard_provider.dart';
 
 /// More Options Button Widget
 /// Shows menu with additional options (chat, participants, settings, etc.)

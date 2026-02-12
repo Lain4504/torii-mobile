@@ -59,7 +59,7 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
 
   Future<void> _enableMicrophone() async {
     try {
-      _audioTrack = await LocalAudioTrack.createTrack();
+      _audioTrack = await LocalAudioTrack.create();
       setState(() {
         _isMicEnabled = true;
       });

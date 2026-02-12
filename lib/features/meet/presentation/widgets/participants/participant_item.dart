@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../../providers/participant_provider.dart';
+import '../../../providers/participant_provider.dart';
 
 /// Participant Item Widget
 /// Displays single participant info with status icons
 /// 1:1 clone of apps/meet/src/components/participants/participantItem.tsx
 class ParticipantItem extends StatelessWidget {
-  final Participant participant;
+  final ParticipantInfo participant;
   final bool isMe;
 
   const ParticipantItem({
@@ -17,9 +17,9 @@ class ParticipantItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Check audio/video status
-    final hasAudio = participant.audioTrackSid != null && participant.audioTrackSid!.isNotEmpty;
-    final hasVideo = participant.videoTrackSid != null && participant.videoTrackSid!.isNotEmpty;
-    final isRaisedHand = participant.metadata?.raisedHand ?? false;
+    final hasAudio = true; // Placeholder: could be tracked in ParticipantInfo
+    final hasVideo = true; // Placeholder: could be tracked in ParticipantInfo
+    final isRaisedHand = participant.metadata.isHandRaised;
 
     return Row(
       children: [

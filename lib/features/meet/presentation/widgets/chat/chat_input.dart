@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../providers/chat_messages_provider.dart';
-import '../../../../providers/session_provider.dart';
+import '../../../providers/chat_messages_provider.dart';
+import '../../../providers/session_provider.dart';
 
 /// Chat Input Widget
 /// Text field for sending chat messages

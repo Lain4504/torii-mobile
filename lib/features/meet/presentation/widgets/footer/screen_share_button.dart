@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/bottom_icons_provider.dart';
-import 'mic_button.dart';
+import 'control_button.dart';
 
 /// Screen Share Button Widget
 /// Toggles screen sharing on/off
@@ -15,7 +15,7 @@ class ScreenShareButton extends ConsumerWidget {
       bottomIconsProvider.select((s) => s.isScreenSharing),
     );
 
-    return _ControlButton(
+    return ControlButton(
       icon: isScreenSharing ? Icons.stop_screen_share : Icons.screen_share,
       label: isScreenSharing ? 'Stop Share' : 'Share',
       isActive: isScreenSharing,

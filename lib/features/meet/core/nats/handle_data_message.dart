@@ -17,8 +17,16 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart' as data_msg;
+import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
+import 'package:torii_app/features/meet/data/models/chat_message.dart';
+import 'package:torii_app/features/meet/data/models/poll.dart';
+import 'package:torii_app/features/meet/providers/whiteboard_provider.dart';
+import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
+import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
+import 'package:torii_app/features/meet/providers/participant_provider.dart';
+import 'package:torii_app/features/meet/providers/polls_provider.dart';
+import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
 import 'connect_nats.dart';
 
 class HandleDataMessage {
@@ -32,36 +40,36 @@ class HandleDataMessage {
   
   /// Handle data channel message
   /// Matches: handleMessage() in HandleDataMessage.ts
-  Future<void> handleMessage(DataChannelMessage payload) async {
+  Future<void> handleMessage(data_msg.DataChannelMessage payload) async {
     switch (payload.type) {
       // Whiteboard data requests
-      case DataMsgBodyType.REQ_FULL_WHITEBOARD_DATA:
+      case data_msg.DataMsgBodyType.REQ_FULL_WHITEBOARD_DATA:
         if (payload.toUserId == connectNats.userId) {
           _handleSendInitWhiteboard(payload);
         }
         break;
         
-      case DataMsgBodyType.RES_FULL_WHITEBOARD_DATA:
+      case data_msg.DataMsgBodyType.RES_FULL_WHITEBOARD_DATA:
         if (payload.toUserId == connectNats.userId) {
           _handleWhiteboardDataSentFromDonor(payload.message);
         }
         break;
       
       // Chat data requests
-      case DataMsgBodyType.REQ_PUBLIC_CHAT_DATA:
+      case data_msg.DataMsgBodyType.REQ_PUBLIC_CHAT_DATA:
         if (payload.toUserId == connectNats.userId) {
           await _handlePublicChatDataReq(payload.fromUserId);
         }
         break;
         
-      case DataMsgBodyType.RES_PUBLIC_CHAT_DATA:
+      case data_msg.DataMsgBodyType.RES_PUBLIC_CHAT_DATA:
         if (payload.toUserId == connectNats.userId) {
           _handlePublicChatDataRes(payload.message);
         }
         break;
       
       // User visibility (for admins)
-      case DataMsgBodyType.USER_VISIBILITY_CHANGE:
+      case data_msg.DataMsgBodyType.USER_VISIBILITY_CHANGE:
         if (payload.fromUserId == connectNats.userId) {
           return;
         }
@@ -69,14 +77,14 @@ class HandleDataMessage {
         break;
       
       // Notifications
-      case DataMsgBodyType.INFO:
+      case data_msg.DataMsgBodyType.INFO:
         if (payload.fromUserId == connectNats.userId || connectNats.isRecorder) {
           return;
         }
         _showNotification(payload.message, 'info');
         break;
         
-      case DataMsgBodyType.ALERT:
+      case data_msg.DataMsgBodyType.ALERT:
         if (payload.fromUserId == connectNats.userId || connectNats.isRecorder) {
           return;
         }
@@ -84,7 +92,7 @@ class HandleDataMessage {
         break;
       
       // External media player
-      case DataMsgBodyType.EXTERNAL_MEDIA_PLAYER_EVENTS:
+      case data_msg.DataMsgBodyType.EXTERNAL_MEDIA_PLAYER_EVENTS:
         if (payload.fromUserId == connectNats.userId) {
           return;
         }
@@ -92,7 +100,7 @@ class HandleDataMessage {
         break;
       
       // Polls
-      case DataMsgBodyType.NEW_POLL_RESPONSE:
+      case data_msg.DataMsgBodyType.NEW_POLL_RESPONSE:
         if (payload.fromUserId == connectNats.userId) {
           return;
         }
@@ -100,12 +108,12 @@ class HandleDataMessage {
         break;
       
       // Connection quality
-      case DataMsgBodyType.USER_CONNECTION_QUALITY_CHANGE:
+      case data_msg.DataMsgBodyType.USER_CONNECTION_QUALITY_CHANGE:
         _handleConnectionQualityChange(payload);
         break;
       
       // Breakout rooms
-      case DataMsgBodyType.PUSH_JOIN_BREAKOUT_ROOM:
+      case data_msg.DataMsgBodyType.PUSH_JOIN_BREAKOUT_ROOM:
         if (payload.toUserId == connectNats.userId) {
           _handleBreakoutRoomInvitation(payload.message);
         }
@@ -122,27 +130,14 @@ class HandleDataMessage {
   // WHITEBOARD HANDLERS
   // ============================================================================
   
-  void _handleSendInitWhiteboard(DataChannelMessage payload) {
-    // Check if already have a request
-    // Check whiteboard provider state
+  void _handleSendInitWhiteboard(data_msg.DataChannelMessage payload) {
+    // Check if whiteboard provider state
     final isWhiteboardVisible = ref?.read(whiteboardProvider).isVisible ?? false;
-    // if (ref?.read(whiteboardProvider).requestedWhiteboardData.requested) {
-    //   return;
-    // }
     
-    // Update provider to trigger sending whiteboard data
-    // Dispatch to whiteboard provider
-    ref?.read(whiteboardProvider.notifier).updateMousePointer(
-      userId: body['userId'] as String,
-      pointer: MousePointer(
-        x: body['x'] as double,
-        y: body['y'] as double,
-      ),
-    );
-    // ref?.read(whiteboardProvider.notifier).updateRequestedWhiteboardData(
-    //   requested: true,
-    //   sendTo: payload.fromUserId,
-    // );
+    if (isWhiteboardVisible) {
+       // Request whiteboard data from donor
+       // TODO: Implement send whiteboard data logic
+    }
     
     if (kDebugMode) {
       print('HandleDataMessage: Request to send whiteboard data to ${payload.fromUserId}');
@@ -154,9 +149,6 @@ class HandleDataMessage {
       final data = jsonDecode(msg) as Map<String, dynamic>;
       
       // Dispatch to whiteboard provider
-      ref?.read(whiteboardProvider.notifier).removeMousePointer(
-        userId: body['userId'] as String,
-      );
       // ref?.read(whiteboardProvider.notifier).addWhiteboardDataSentFromDonor(data);
       
       if (kDebugMode) {
@@ -176,23 +168,18 @@ class HandleDataMessage {
   Future<void> _handlePublicChatDataReq(String fromUserId) async {
     // Get public chat messages
     // Get from chat provider
-    final isChatLocked = ref?.read(roomSettingsProvider).lockSettings?.lockChat ?? false;
-    // final publicChats = ref?.read(chatMessagesProvider)
-    //   .where((msg) => !msg.isPrivate && msg.fromUserId != 'system')
-    //   .toList() ?? [];
+    final chats = ref?.read(chatMessagesProvider).messages['public'] ?? [];
     
-    final publicChats = <ChatMessage>[]; // Placeholder
-    
-    if (publicChats.isNotEmpty) {
+    if (chats.isNotEmpty) {
       // Send chat data back
       await connectNats.sendDataMessage(
         type: 'RES_PUBLIC_CHAT_DATA',
-        msg: jsonEncode(publicChats.map((m) => m.toProto3Json()).toList()),
+        msg: jsonEncode(chats.toList()),
         toUserId: fromUserId,
       );
       
       if (kDebugMode) {
-        print('HandleDataMessage: Sent ${publicChats.length} chat messages to $fromUserId');
+        print('HandleDataMessage: Sent ${chats.length} chat messages to $fromUserId');
       }
     }
   }
@@ -200,27 +187,25 @@ class HandleDataMessage {
   void _handlePublicChatDataRes(String msg) {
     try {
       final data = jsonDecode(msg) as List<dynamic>;
-      final messages = data.map((m) => ChatMessage.fromJson(m as Map<String, dynamic>)).toList();
       
-      // Dispatch to chat provider
-      ref?.read(chatMessagesProvider.notifier).addChatMessage(
-        ChatMessage(
-          messageId: body['messageId'] as String,
-          senderId: body['senderId'] as String,
-          senderName: body['senderName'] as String,
-          message: body['message'] as String,
-          isPrivate: body['isPrivate'] as bool? ?? false,
-          createdAt: DateTime.parse(body['createdAt'] as String),
-          isSystemMsg: false,
-        ),
-      );
-      // ref?.read(chatMessagesProvider.notifier).addAllChatMessages(
-      //   messages: messages,
-      //   currentUserId: connectNats.userId,
-      // );
+      for (final m in data) {
+         final body = m as Map<String, dynamic>;
+         ref?.read(chatMessagesProvider.notifier).addChatMessage(
+           message: ChatMessage(
+             messageId: body['messageId'] ?? '',
+             senderId: body['senderId'] ?? '',
+             senderName: body['senderName'] ?? '',
+             message: body['message'] ?? '',
+             isPrivate: body['isPrivate'] as bool? ?? false,
+             createdAt: body['createdAt'] != null ? DateTime.parse(body['createdAt']) : DateTime.now(),
+             isSystemMsg: body['isSystemMsg'] as bool? ?? false,
+           ),
+           currentUserId: connectNats.userId,
+         );
+      }
       
       if (kDebugMode) {
-        print('HandleDataMessage: Received ${messages.length} chat messages from donor');
+        print('HandleDataMessage: Received chat messages from donor');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -233,22 +218,24 @@ class HandleDataMessage {
   // USER VISIBILITY HANDLER
   // ============================================================================
   
-  void _handleUserVisibility(DataChannelMessage payload) {
+  void _handleUserVisibility(data_msg.DataChannelMessage payload) {
     if (!connectNats.isAdmin) {
       return; // Only admins can see visibility changes
     }
     
-    // Dispatch to participant provider
-    ref?.read(participantProvider.notifier).updateParticipant(
-      userId: body['userId'] as String,
-      changes: {
-        'connectionQuality': body['quality'] as String,
-      },
-    );
-    // ref?.read(participantProvider.notifier).updateParticipant(
-    //   id: payload.fromUserId,
-    //   changes: {'visibility': payload.message},
-    // );
+    try {
+      final body = jsonDecode(payload.message) as Map<String, dynamic>;
+      
+      // Dispatch to participant provider
+      ref?.read(participantProvider.notifier).updateParticipant(
+        userId: body['userId'] as String,
+        changes: {
+          'connectionQuality': body['quality'] as String? ?? 'excellent',
+        },
+      );
+    } catch (e) {
+      // Ignored
+    }
     
     if (kDebugMode) {
       print('HandleDataMessage: User ${payload.fromUserId} visibility changed to ${payload.message}');
@@ -263,14 +250,10 @@ class HandleDataMessage {
     // Show notification to user
     ref?.read(roomSettingsProvider.notifier).addUserNotification(
       UserNotification(
-        message: body['message'] as String,
-        typeOption: 'info',
+        message: message,
+        typeOption: type,
       ),
     );
-    // ref?.read(roomSettingsProvider.notifier).addUserNotification(
-    //   message: message,
-    //   typeOption: type,
-    // );
     
     if (kDebugMode) {
       print('HandleDataMessage: Notification ($type): $message');
@@ -305,11 +288,6 @@ class HandleDataMessage {
   // POLL HANDLER
   // ============================================================================
   
-import '../providers/polls_provider.dart';
-import '../data/models/poll.dart';
-
-// ... existing code ...
-
   // ============================================================================
   // POLL HANDLER
   // ============================================================================
@@ -366,28 +344,21 @@ import '../data/models/poll.dart';
   // CONNECTION QUALITY HANDLER
   // ============================================================================
   
-  void _handleConnectionQualityChange(DataChannelMessage payload) {
-    // Dispatch to participant provider
-    ref?.read(participantProvider.notifier).updateParticipant(
-      userId: body['userId'] as String,
-      changes: {
-        'metadata': body['metadata'],
-      },
-    );
-    // ref?.read(participantProvider.notifier).updateParticipant(
-    //   id: payload.fromUserId,
-    //   changes: {'connectionQuality': payload.message},
-    // );
+  void _handleConnectionQualityChange(data_msg.DataChannelMessage payload) {
+    try {
+      final body = jsonDecode(payload.message) as Map<String, dynamic>;
+      
+      // Dispatch to participant provider
+      // TODO: Update connection quality in provider
+    } catch (e) {
+      // Ignored
+    }
     
     if (kDebugMode) {
       print('HandleDataMessage: User ${payload.fromUserId} connection quality: ${payload.message}');
     }
   }
   
-import '../providers/breakout_room_provider.dart';
-
-// ... existing code ...
-
   // ============================================================================
   // BREAKOUT ROOM HANDLER
   // ============================================================================
@@ -410,8 +381,7 @@ import '../providers/breakout_room_provider.dart';
     
     try {
       // Get selected subtitle language
-      final selectedLanguage = ref?.read(roomSettingsProvider).selectedSubtitleLanguage ?? 'en';
-      // final lang = ref?.read(speechServicesProvider).selectedSubtitleLang ?? '';
+      // final selectedLanguage = ref?.read(roomSettingsProvider).selectedChatTransLang ?? 'en';
       final lang = ''; // Placeholder
       
       if (lang.isEmpty) return;
