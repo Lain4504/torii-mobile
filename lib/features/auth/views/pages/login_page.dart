@@ -75,7 +75,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -106,7 +106,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           verticalOffset: 20,
                           child: Column(
                             children: [
-                              ZenTextField(
+                              AppTextField(
                                 label: 'Email',
                                 controller: _emailController,
                                 hintText: 'your.email@example.com',
@@ -115,7 +115,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 validator: (val) => (val == null || !val.contains('@')) ? 'Vui lòng nhập email hợp lệ' : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
-                              ZenTextField(
+                              AppTextField(
                                 label: 'Mật khẩu',
                                 controller: _passwordController,
                                 hintText: '••••••••',
@@ -160,7 +160,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         
                         EntryAnimation(
                           index: 5,
-                          child: ZenButton(
+                          child: AppButton(
                             text: 'Đăng nhập',
                             onPressed: _login,
                             isLoading: isLoading,

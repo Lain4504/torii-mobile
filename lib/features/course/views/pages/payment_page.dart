@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../../core/widgets/zen_background.dart';
+import '../../../../core/widgets/app_background.dart';
 
 class PaymentPage extends StatelessWidget {
   const PaymentPage({super.key});
@@ -11,7 +11,7 @@ class PaymentPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: Column(
           children: [
             AppBar(

@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_design_system.dart';
 
-enum ZenButtonType { primary, secondary, ghost }
+enum AppButtonType { primary, secondary, ghost }
 
-class ZenButton extends StatelessWidget {
+class AppButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool isFullWidth;
-  final ZenButtonType type; // Replaces simple isPrimary boolean for more variants
+  final AppButtonType type; // Replaces simple isPrimary boolean for more variants
   final IconData? icon;
   final bool isLoading;
   final EdgeInsets? padding;
   final double? height;
   final double? fontSize;
 
-  const ZenButton({
+  const AppButton({
+
     super.key,
     required this.text,
     this.onPressed,
     this.isFullWidth = false,
-    this.type = ZenButtonType.primary,
+    this.type = AppButtonType.primary,
+
     this.icon,
     this.isLoading = false,
     this.padding,
@@ -43,7 +45,7 @@ class ZenButton extends StatelessWidget {
     List<BoxShadow>? shadows;
 
     switch (type) {
-      case ZenButtonType.primary:
+      case AppButtonType.primary:
         bgGradient = !disabled ? AppColors.primaryGradient : null;
         bgColor = disabled ? AppColors.grey300 : null;
         textColor = Colors.white;
@@ -57,22 +59,23 @@ class ZenButton extends StatelessWidget {
               ] 
             : null;
         break;
-      case ZenButtonType.secondary:
+      case AppButtonType.secondary:
         bgColor = Colors.transparent;
         border = Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 1.5);
         textColor = AppColors.primary;
         break;
-      case ZenButtonType.ghost:
+      case AppButtonType.ghost:
         bgColor = Colors.transparent;
         textColor = AppColors.textSecondary; // Ghost usually subtle
         break;
     }
 
+
     final button = AnimatedContainer(
       duration: AppDuration.fast,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.full),
+        borderRadius: BorderRadius.circular(AppRadius.button),
         gradient: bgGradient,
         color: bgColor,
         border: border,
@@ -82,7 +85,7 @@ class ZenButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: disabled ? null : onPressed,
-          borderRadius: BorderRadius.circular(AppRadius.full),
+          borderRadius: BorderRadius.circular(AppRadius.button),
           child: Padding(
             padding: padding ?? const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
@@ -119,6 +122,7 @@ class ZenButton extends StatelessWidget {
         ),
       ),
     );
+
 
     if (isFullWidth) {
       return SizedBox(width: double.infinity, child: button);

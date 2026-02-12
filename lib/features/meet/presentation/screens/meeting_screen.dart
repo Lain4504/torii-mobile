@@ -50,8 +50,9 @@ class MeetingScreen extends ConsumerWidget {
       appBar: meetState.status == MeetStatus.connected 
         ? AppBar(
             title: Text(
-              meetState.roomInfo?.roomId ?? 'Meeting',
+              meetState.roomInfo?.roomId ?? 'Cuộc họp',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+
             ),
             centerTitle: true,
             backgroundColor: const Color(0xFF1A1A26).withOpacity(0.8),
@@ -149,7 +150,8 @@ class MeetingScreen extends ConsumerWidget {
             children: [
               const CircularProgressIndicator(color: Colors.white),
               const SizedBox(height: 16),
-              Text(state.statusMessage ?? 'Connecting...', style: const TextStyle(color: Colors.white)),
+              Text(state.statusMessage ?? 'Đang kết nối...', style: const TextStyle(color: Colors.white)),
+
             ],
           ),
         );
@@ -163,7 +165,8 @@ class MeetingScreen extends ConsumerWidget {
             children: [
               const CircularProgressIndicator(color: Colors.white),
               const SizedBox(height: 16),
-              Text(state.statusMessage ?? 'Connecting to media...', style: const TextStyle(color: Colors.white)),
+              Text(state.statusMessage ?? 'Đang kết nối phương tiện...', style: const TextStyle(color: Colors.white)),
+
             ],
           ),
         );
@@ -179,17 +182,20 @@ class MeetingScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error, color: Colors.red, size: 64),
               const SizedBox(height: 16),
-              Text(state.errorMessage ?? 'Unknown Error', style: const TextStyle(color: Colors.white)),
+              Text(state.errorMessage ?? 'Lỗi không xác định', style: const TextStyle(color: Colors.white)),
+
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.read(meetControllerProvider.notifier).joinMeeting(),
-                child: const Text('Retry'),
+                child: const Text('Thử lại'),
+
               ),
             ],
           ),
         );
       default:
-        return const Center(child: Text('Disconnected', style: TextStyle(color: Colors.white)));
+        return const Center(child: Text('Đã ngắt kết nối', style: TextStyle(color: Colors.white)));
+
     }
   }
 
@@ -243,7 +249,8 @@ class MeetingScreen extends ConsumerWidget {
     if (participants.isEmpty) {
       return const Center(
         child: Text(
-          "You're in the room. Camera will appear here.",
+          "Bạn đã vào phòng. Camera sẽ hiển thị ở đây.",
+
           style: TextStyle(color: Colors.white70, fontSize: 14),
           textAlign: TextAlign.center,
         ),

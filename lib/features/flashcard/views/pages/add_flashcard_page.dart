@@ -110,7 +110,7 @@ class _AddFlashcardPageState extends ConsumerState<AddFlashcardPage> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: ZenBackground(
+      body: AppBackground(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Form(
@@ -122,7 +122,7 @@ class _AddFlashcardPageState extends ConsumerState<AddFlashcardPage> {
                 
                 EntryAnimation(
                   index: 1,
-                  child: ZenTextField(
+                  child: AppTextField(
                     label: 'FRONT (QUESTION)',
                     controller: _frontController,
                     hintText: 'e.g. 猫',
@@ -134,7 +134,7 @@ class _AddFlashcardPageState extends ConsumerState<AddFlashcardPage> {
                 
                 EntryAnimation(
                   index: 2,
-                  child: ZenTextField(
+                  child: AppTextField(
                     label: 'READING (OPTIONAL)',
                     controller: _readingController,
                     hintText: 'e.g. Neko',
@@ -145,7 +145,7 @@ class _AddFlashcardPageState extends ConsumerState<AddFlashcardPage> {
 
                 EntryAnimation(
                   index: 3,
-                  child: ZenTextField(
+                  child: AppTextField(
                     label: 'BACK (ANSWER)',
                     controller: _backController,
                     hintText: 'e.g. Cat',
@@ -157,7 +157,7 @@ class _AddFlashcardPageState extends ConsumerState<AddFlashcardPage> {
 
                 EntryAnimation(
                   index: 4,
-                  child: ZenButton(
+                  child: AppButton(
                     text: _isEditing ? 'UPDATE CARD' : 'ADD CARD',
                     onPressed: _submit,
                     isLoading: isLoading,

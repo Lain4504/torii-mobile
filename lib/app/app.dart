@@ -19,7 +19,6 @@ class ToriiApp extends ConsumerWidget {
       themeMode: themeMode,
       themeAnimationDuration: const Duration(milliseconds: 500),
       themeAnimationCurve: Curves.easeInOut,
-      locale: const Locale('vi'),
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/zen_background.dart';
+import '../../../../core/widgets/app_background.dart';
 import '../../../auth/providers/auth_providers.dart';
 
 /// Settings Page - App Preferences
@@ -15,7 +15,7 @@ class SettingsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -97,14 +97,14 @@ class SettingsPage extends ConsumerWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
           ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () => context.push('/payment/history'),
-              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              borderRadius: BorderRadius.circular(AppRadius.card),
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Row(
@@ -156,14 +156,14 @@ class SettingsPage extends ConsumerWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
           ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () => context.push('/settings/security'),
-              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              borderRadius: BorderRadius.circular(AppRadius.card),
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Row(
@@ -219,7 +219,7 @@ class SettingsPage extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
           ),
           child: isAuthenticated
@@ -308,14 +308,14 @@ class SettingsPage extends ConsumerWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             color: const Color(0xFFE63946).withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(color: const Color(0xFFE63946).withValues(alpha: 0.1)),
           ),
           child: TextButton(
             onPressed: () => _showLogoutConfirm(context, ref),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 20),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xxl)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
             ),
             child: const Text(
               'ĐĂNG XUẤT',
@@ -338,7 +338,7 @@ class SettingsPage extends ConsumerWidget {
       builder: (context) => AlertDialog(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xxl)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
         title: const Text(
           'ĐĂNG XUẤT',
           style: TextStyle(fontSize: 16, fontWeight: AppTypography.black, letterSpacing: 1.0),
@@ -382,14 +382,14 @@ class SettingsPage extends ConsumerWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
           ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () => context.push('/settings/tickets'),
-              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              borderRadius: BorderRadius.circular(AppRadius.card),
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Row(

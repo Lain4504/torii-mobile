@@ -15,7 +15,7 @@ class MyLearningPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -27,7 +27,8 @@ class MyLearningPage extends ConsumerWidget {
               elevation: 0,
               centerTitle: true,
               title: const Text(
-                'MY_LEARNING',
+                'DỰ ÁN CÁ NHÂN',
+
                 style: TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
                   fontWeight: AppTypography.black,
@@ -54,7 +55,8 @@ class MyLearningPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ENROLLED_COURSES',
+                       'KHÓA HỌC ĐÃ ĐĂNG KÝ',
+
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: AppTypography.black,
@@ -64,7 +66,8 @@ class MyLearningPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Active Lessons',
+                       'Đang học',
+
                       style: TextStyle(
                         fontFamily: AppTypography.fontFamilySerif,
                         fontSize: 32, 
@@ -80,7 +83,7 @@ class MyLearningPage extends ConsumerWidget {
 
             if (state.isLoading)
               const SliverFillRemaining(
-                child: Center(child: ZenLoading(text: 'Accessing Depositories...')),
+                child: Center(child: AppLoading(text: 'Accessing Depositories...')),
               )
             else if (state.myCourses.isEmpty)
               SliverFillRemaining(
@@ -93,7 +96,8 @@ class MyLearningPage extends ConsumerWidget {
                         Icon(Icons.auto_stories_rounded, size: 64, color: AppColors.primary.withValues(alpha: 0.1)),
                         const SizedBox(height: 24),
                         const Text(
-                          'NO SYNCED PROTOCOLS',
+                           'CHƯA CÓ DỮ LIỆU HỌC TẬP',
+
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: AppTypography.black,
@@ -102,7 +106,8 @@ class MyLearningPage extends ConsumerWidget {
                         ),
                         const SizedBox(height: 12),
                         const Text(
-                          'Your learning matrix is currently empty. Begin by enrolling in a curriculum.',
+                           'Bạn chưa đăng ký khóa học nào. Hãy khám phá thư viện để bắt đầu.',
+
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 13,
@@ -111,8 +116,9 @@ class MyLearningPage extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 40),
-                        ZenButton(
-                          text: 'OPEN CATALOG', 
+                        AppButton(
+                            text: 'KHÁM PHÁ THƯ VIỆN', 
+ 
                           onPressed: () => context.go('/courses'),
                           isFullWidth: true,
                         ),

@@ -73,7 +73,8 @@ class _ChatBottomSheetState extends ConsumerState<ChatBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'CONVERSATION', 
+                      'TRÒ CHUYỆN', 
+ 
                       style: TextStyle(
                         color: Colors.white70, 
                         fontSize: 16, 
@@ -166,7 +167,8 @@ class _ChatBottomSheetState extends ConsumerState<ChatBottomSheet> {
                         controller: _controller,
                         style: const TextStyle(color: Colors.white, fontSize: 15),
                         decoration: InputDecoration(
-                          hintText: 'Share your thoughts...',
+                          hintText: 'Nhập tin nhắn...',
+
                           hintStyle: const TextStyle(color: Colors.white38),
                           filled: true,
                           fillColor: const Color(0xFF2E2E3E),

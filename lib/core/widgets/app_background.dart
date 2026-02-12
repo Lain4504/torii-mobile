@@ -2,27 +2,19 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../constants/app_design_system.dart';
 
-/// Zen Background Pattern - Rhythmic vertical lines inspired by Shoji screens
-class ZenPatternPainter extends CustomPainter {
-  final Color? color;
-  final double spacing;
-  final double strokeWidth;
-
-  ZenPatternPainter({
-    this.color,
-    this.spacing = 80.0,
-    this.strokeWidth = 0.5,
-  });
-
+/// Pattern Painter - Dots grid instead of shoji lines
+class ModernPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color ?? AppColors.primary.withValues(alpha: 0.03)
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
+      ..color = AppColors.primary.withValues(alpha: 0.05)
+      ..style = PaintingStyle.fill;
 
+    const spacing = 32.0;
     for (double i = 0; i < size.width; i += spacing) {
-      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+      for (double j = 0; j < size.height; j += spacing) {
+        canvas.drawCircle(Offset(i, j), 1.0, paint);
+      }
     }
   }
 
@@ -30,13 +22,15 @@ class ZenPatternPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+
 /// Zen Background Widget - A premium background with soft glows and patterns
-class ZenBackground extends StatelessWidget {
+class AppBackground extends StatelessWidget {
+
   final Widget child;
   final List<Widget>? overlay;
   final bool animate;
 
-  const ZenBackground({
+  const AppBackground({
     super.key,
     required this.child,
     this.overlay,
@@ -77,9 +71,10 @@ class ZenBackground extends StatelessWidget {
         // Pattern
         Positioned.fill(
           child: CustomPaint(
-            painter: ZenPatternPainter(),
+            painter: ModernPatternPainter(),
           ),
         ),
+
         
         // Optional Overlays
         if (overlay != null) ...overlay!,

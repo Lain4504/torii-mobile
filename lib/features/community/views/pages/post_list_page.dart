@@ -17,7 +17,7 @@ class PostListPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -70,7 +70,7 @@ class PostListPage extends ConsumerWidget {
                 ),
               ),
               loading: () => const SliverFillRemaining(
-                child: Center(child: ZenLoading(text: 'Loading posts...')),
+                child: Center(child: AppLoading(text: 'Loading posts...')),
               ),
               error: (err, stack) => SliverFillRemaining(
                 child: Center(
@@ -99,7 +99,7 @@ class _PostCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
@@ -111,7 +111,7 @@ class _PostCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () => context.push('/community/${post.id}', extra: post),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(

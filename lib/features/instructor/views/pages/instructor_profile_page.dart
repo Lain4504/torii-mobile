@@ -12,7 +12,7 @@ class InstructorProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -164,7 +164,8 @@ class InstructorProfilePage extends StatelessWidget {
             fontSize: 10,
             fontWeight: AppTypography.black,
             letterSpacing: 2.0,
-            color: AppColors.textTertiary,
+           color: AppColors.primary,
+
           ),
         ),
         const SizedBox(height: 12),
@@ -189,7 +190,8 @@ class InstructorProfilePage extends StatelessWidget {
             fontSize: 10,
             fontWeight: AppTypography.black,
             letterSpacing: 2.0,
-            color: AppColors.textTertiary,
+             color: AppColors.primary,
+
           ),
         ),
         const SizedBox(width: 8),
@@ -228,10 +230,12 @@ class _InstructorCourseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+        boxShadow: AppElevation.softShadow,
       ),
+
       child: Row(
         children: [
           Container(

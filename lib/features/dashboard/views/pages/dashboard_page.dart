@@ -36,9 +36,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: myLearning.isLoading && myLearning.myCourses.isEmpty
-            ? const ZenLoadingScreen(text: 'Initializing Neural Matrix...')
+            ? const Center(child: CircularProgressIndicator())
+
+
+
             : RefreshIndicator(
                 onRefresh: () => ref.read(myLearningProvider.notifier).loadData(),
                 color: AppColors.primary,
@@ -108,12 +111,12 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'LAST UPDATED: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+            'CẬP NHẬT LÚC: ${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}',
             style: TextStyle(
-              fontSize: 9,
-              color: AppColors.primary.withValues(alpha: 0.4),
+              fontSize: 10,
+              color: AppColors.primary,
               fontWeight: AppTypography.black,
-              letterSpacing: 2.0,
+              letterSpacing: 1.5,
             ),
           ),
           const SizedBox(height: 2),
@@ -200,7 +203,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
               border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
             ),
             child: Text(
-              'ACTIVE_LESSONS',
+              'BÀI HỌC HOẠT ĐỘNG',
+
               style: TextStyle(
                 fontSize: 8,
                 fontWeight: AppTypography.black,
@@ -211,7 +215,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Welcome back, ${user?.displayName ?? 'Learner'}',
+            'Chào mừng trở lại, ${user?.displayName ?? 'Người học'}',
+
             style: const TextStyle(
               fontFamily: AppTypography.fontFamilySerif,
               fontSize: 34,
@@ -232,25 +237,22 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(AppRadius.xxl),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.04),
-              blurRadius: 40,
-              offset: const Offset(0, 15),
-            ),
-          ],
-          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+          boxShadow: AppElevation.cardShadow,
         ),
+
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _StatItem(label: 'STREAK', value: '${stats['streak'] ?? 0}', icon: Icons.local_fire_department_rounded, color: const Color(0xFFE63946)),
+            _StatItem(label: 'CHUỖI', value: '${stats['streak'] ?? 0}', icon: Icons.local_fire_department_rounded, color: const Color(0xFFE63946)),
+
             _buildDivider(),
             _StatItem(label: 'ZEN XP', value: '${stats['totalXp'] ?? 0}', icon: Icons.bolt_rounded, color: AppColors.primary),
             _buildDivider(),
-            _StatItem(label: 'MASTERY', value: '${stats['masteryLevel'] ?? 'N5'}', icon: Icons.auto_awesome_rounded, color: AppColors.accent),
+            _StatItem(label: 'THÀNH THẠO', value: '${stats['masteryLevel'] ?? 'N5'}', icon: Icons.auto_awesome_rounded, color: AppColors.accent),
+
           ],
         ),
       ),
@@ -270,7 +272,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'CONTINUE_LEARNING',
+            'TIẾP TỤC HỌC',
+
             style: TextStyle(
               fontSize: 10, 
               fontWeight: AppTypography.black, 
@@ -279,27 +282,24 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             ),
           ),
           const SizedBox(height: 16),
-          _GlassContainer(
+          _BlockContainer( // Replaced _GlassContainer
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Row(
               children: [
+                // ... rest of row content
+
                 Container(
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        blurRadius: 15, offset: const Offset(0, 5),
-                      ),
-                    ],
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: const Center(
                     child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
                   ),
                 ),
+
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -313,7 +313,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'RESUME: MODULE 3',
+                        'TIẾP TỤC: MODULE 3',
+
                         style: TextStyle(
                           fontSize: 9, 
                           fontWeight: AppTypography.black, 
@@ -349,12 +350,14 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'MY_COURSES',
+                'KHÓA HỌC CỦA TÔI',
+
                 style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 3.0, color: AppColors.primary),
               ),
               TextButton(
                 onPressed: () => context.push('/my-learning'),
-                child: const Text('SEE ALL', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, color: AppColors.primary)),
+                child: const Text('XEM TẤT CẢ', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, color: AppColors.primary)),
+
               ),
             ],
           ),
@@ -363,9 +366,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
            const Center(
              child: Padding(
                padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
-               child: ZenLoading(text: 'Accessing Neural Record...'),
+               child: CircularProgressIndicator(),
              ),
            )
+
         else if (state.myCourses.isEmpty)
            _buildEmptyLearning(context)
         else
@@ -392,27 +396,26 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
   Widget _buildEmptyLearning(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.xl),
-      child: _GlassContainer(
+      child: _BlockContainer(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           children: [
             const Icon(Icons.auto_stories_rounded, size: 48, color: AppColors.textTertiary),
             const SizedBox(height: 16),
             const Text(
-              'NO COURSES ENROLLED',
+              'CHƯA ĐĂNG KÝ KHÓA HỌC NÀO',
               style: TextStyle(fontWeight: AppTypography.black, letterSpacing: 1.0),
             ),
             const SizedBox(height: 8),
             const Text(
-              'Start your journey by enrolling in a course.',
+              'Bắt đầu hành trình của bạn bằng cách đăng ký một khóa học.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 24),
-            ZenButton(
-              text: 'EXPLORE CATALOG', 
+            ElevatedButton(
               onPressed: () => context.go('/courses'),
-              isFullWidth: true,
+              child: const Text('KHÁM PHÁ DANH MỤC'),
             ),
           ],
         ),
@@ -427,7 +430,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'QUICK_PROTOCOLS',
+            'TRUY CẬP NHANH',
+
             style: TextStyle(
               fontSize: 10, 
               fontWeight: AppTypography.black, 
@@ -438,11 +442,14 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _ShortcutTile(Icons.psychology_rounded, 'Recall', () => context.push('/flashcards'))),
+              Expanded(child: _ShortcutTile(Icons.psychology_rounded, 'Ôn tập', () => context.push('/flashcards'))),
+
               const SizedBox(width: AppSpacing.md),
-              Expanded(child: _ShortcutTile(Icons.assignment_turned_in_rounded, 'Tests', () => context.push('/exams'))),
+              Expanded(child: _ShortcutTile(Icons.assignment_turned_in_rounded, 'Kiểm tra', () => context.push('/exams'))),
+
               const SizedBox(width: AppSpacing.md),
-              Expanded(child: _ShortcutTile(Icons.groups_rounded, 'Social', () => context.push('/community'))),
+              Expanded(child: _ShortcutTile(Icons.groups_rounded, 'Cộng đồng', () => context.push('/community'))),
+
             ],
           ),
         ],
@@ -472,32 +479,27 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _GlassContainer extends StatelessWidget {
+class _BlockContainer extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;
 
-  const _GlassContainer({required this.child, required this.padding});
+  const _BlockContainer({required this.child, required this.padding});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.02),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5), width: 1.5),
+        boxShadow: AppElevation.cardShadow,
       ),
       child: child,
     );
   }
 }
+
 
 class _ShortcutTile extends StatelessWidget {
   final IconData icon;
@@ -517,17 +519,12 @@ class _ShortcutTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 24),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
-            border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.02),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5), width: 1.5),
+            boxShadow: AppElevation.softShadow,
           ),
+
           child: Column(
             children: [
               Icon(icon, color: AppColors.primary, size: 26),
@@ -559,10 +556,11 @@ class _HeaderAction extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
+        color: AppColors.surface,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8)),
       ),
+
       child: IconButton(
         icon: Icon(icon, size: 20, color: AppColors.textPrimary),
         onPressed: onPressed,

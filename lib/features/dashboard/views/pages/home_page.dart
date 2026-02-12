@@ -8,7 +8,8 @@ import 'package:torii_app/features/course/providers/course_providers.dart';
 import 'package:torii_app/features/course/views/widgets/course_card.dart';
 import 'package:torii_app/core/theme/theme_provider.dart';
 
-/// Home Page - Premium Zen UI Rebuild
+/// Home Page - Modern Vibrant Educational UI
+
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -38,7 +39,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -88,10 +89,10 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ),
             
-            // Zen Spacing
             const SliverToBoxAdapter(
               child: SizedBox(height: AppSpacing.xxxl),
             ),
+
           ],
         ),
       ),
@@ -276,19 +277,14 @@ class _HomePageState extends ConsumerState<HomePage> {
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(AppRadius.xxl),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.04),
-              blurRadius: 40,
-              offset: const Offset(0, 15),
-            ),
-          ],
-          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          boxShadow: AppElevation.cardShadow,
+          border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
         ),
+
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           child: Column(
             children: [
               // Stats Bar
@@ -302,7 +298,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                   children: [
                     _buildStatItem(Icons.local_fire_department_rounded, '7', 'CHUỖI', const Color(0xFFE63946)),
                     _buildVerticalDivider(),
-                    _buildStatItem(Icons.bolt_rounded, '1.2k', 'ZEN XP', AppColors.primary),
+                    _buildStatItem(Icons.bolt_rounded, '1.2k', 'XP', AppColors.primary),
+
                     _buildVerticalDivider(),
                     _buildStatItem(Icons.emoji_events_rounded, 'N4', 'JLPT', AppColors.accent),
                   ],
@@ -405,10 +402,11 @@ class _HomePageState extends ConsumerState<HomePage> {
             childAspectRatio: 1.25,
             children: [
               _QuickActionTile(Icons.map_outlined, 'Khóa học', AppColors.primary, () => context.go('/courses')),
-              _QuickActionTile(Icons.psychology_outlined, 'Thẻ ghi nhớ', AppColors.accent, () => user == null ? _showLoginPrompt(context) : context.go('/flashcards')),
-              _QuickActionTile(Icons.assignment_turned_in_outlined, 'Bài kiểm tra', const Color(0xFF7D58A1), () => user == null ? _showLoginPrompt(context) : context.go('/exams')),
-              _QuickActionTile(Icons.videocam_outlined, 'Lớp trực tiếp', const Color(0xFFE63946), () => user == null ? _showLoginPrompt(context) : context.go('/live-classes')),
+              _QuickActionTile(Icons.psychology_outlined, 'Thẻ ghi nhớ', AppColors.accentDark, () => user == null ? _showLoginPrompt(context) : context.go('/flashcards')),
+              _QuickActionTile(Icons.assignment_turned_in_outlined, 'Kiểm tra', const Color(0xFF7D58A1), () => user == null ? _showLoginPrompt(context) : context.go('/exams')),
+              _QuickActionTile(Icons.videocam_outlined, 'Lớp học', const Color(0xFFE63946), () => user == null ? _showLoginPrompt(context) : context.go('/live-classes')),
             ],
+
           ),
         ],
       ),
@@ -434,10 +432,12 @@ class _HomePageState extends ConsumerState<HomePage> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.xxl),
-              border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+              boxShadow: AppElevation.softShadow,
             ),
+
             child: Row(
               children: [
                 Container(
@@ -513,7 +513,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
-                child: ZenLoading(text: 'Đang tải dữ liệu...'),
+                child: AppLoading(text: 'Đang tải dữ liệu...'),
               ),
             )
           else
@@ -537,8 +537,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   void _showLoginPrompt(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxxl))),
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card))),
+
       builder: (context) => Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
@@ -556,7 +557,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               style: TextStyle(fontSize: 14, height: 1.6, fontWeight: AppTypography.medium, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 40),
-            ZenButton(
+            AppButton(
               text: 'ĐĂNG NHẬP NGAY',
               onPressed: () {
                 Navigator.pop(context);
@@ -593,7 +594,8 @@ class _HeaderIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(right: AppSpacing.sm),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.8), shape: BoxShape.circle, border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5))),
+      decoration: BoxDecoration(color: AppColors.surface, shape: BoxShape.circle, border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8))),
+
       child: IconButton(icon: Icon(icon, size: 20, color: AppColors.textPrimary), onPressed: onPressed),
     );
   }
@@ -610,17 +612,21 @@ class _QuickActionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(AppRadius.lg),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadius.card),
+
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.xl),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+            boxShadow: AppElevation.softShadow,
           ),
+
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

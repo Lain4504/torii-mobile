@@ -43,7 +43,8 @@ class MeetLandingScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Text(
-                      state.statusMessage ?? 'Connecting...',
+                      state.statusMessage ?? 'Đang kết nối...',
+
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white70,
@@ -71,7 +72,8 @@ class MeetLandingScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Text(
-                      state.statusMessage ?? 'Connecting to media...',
+                      state.statusMessage ?? 'Đang kết nối phương tiện...',
+
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white70,

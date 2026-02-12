@@ -80,7 +80,7 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -190,7 +190,7 @@ class _LiveClassSchedulePageState extends State<LiveClassSchedulePage> {
                 color: isSelected 
                     ? AppColors.primary 
                     : Colors.white.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(AppRadius.xxl),
+                borderRadius: BorderRadius.circular(AppRadius.card),
                 border: Border.all(
                   color: isSelected 
                       ? AppColors.primary 
@@ -299,7 +299,7 @@ class _LiveClassCard extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
@@ -422,7 +422,7 @@ class _LiveClassCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   
-                  ZenButton(
+                  AppButton(
                     text: isLive ? 'ESTABLISH LINK' : 'SET REMINDER',
                     onPressed: () {},
                     isFullWidth: true,

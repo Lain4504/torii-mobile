@@ -11,7 +11,8 @@ import '../../../auth/providers/auth_providers.dart';
 import '../../../review/views/review_icon_button.dart';
 import '../../../review/providers/review_provider.dart';
 
-/// Course Detail Page - Premium Zen UI Rebuild
+/// Course Detail Page - Modern Vibrant Educational UI
+
 class CourseDetailPage extends ConsumerWidget {
   final String courseId;
 
@@ -24,13 +25,13 @@ class CourseDetailPage extends ConsumerWidget {
     final state = ref.watch(courseDetailProvider(courseId));
 
     if (state.isLoading && state.course == null) {
-      return const ZenLoadingScreen(text: 'Loading course...');
+      return const AppLoadingScreen(text: 'Loading course...');
     }
 
     if (state.error != null && state.course == null) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        body: ZenBackground(
+        body: AppBackground(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -47,7 +48,7 @@ class CourseDetailPage extends ConsumerWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                ZenButton(
+                AppButton(
                   text: 'TRY AGAIN',
                   onPressed: () {
                     ref
@@ -72,7 +73,7 @@ class CourseDetailPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -136,7 +137,8 @@ class CourseDetailPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSectionTitle('Course Overview'),
+                             _buildSectionTitle('Tổng quan khóa học'),
+
                             const SizedBox(height: AppSpacing.md),
                             Text(
                               course.description!,
@@ -158,7 +160,8 @@ class CourseDetailPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSectionTitle('What you\'ll learn'),
+                             _buildSectionTitle('Bạn sẽ học được gì'),
+
                             const SizedBox(height: AppSpacing.lg),
                             _buildLearningPoints(theme, course),
                           ],
@@ -169,7 +172,8 @@ class CourseDetailPage extends ConsumerWidget {
 
                     EntryAnimation(
                       delay: const Duration(milliseconds: 500),
-                      child: _buildSectionTitle('Course Content'),
+                      child: _buildSectionTitle('Nội dung chương trình'),
+
                     ),
                     const SizedBox(height: AppSpacing.lg),
 
@@ -179,7 +183,7 @@ class CourseDetailPage extends ConsumerWidget {
                           padding: EdgeInsets.symmetric(
                             vertical: AppSpacing.xxxl,
                           ),
-                          child: ZenLoading(
+                          child: AppLoading(
                             text: 'Syncing curriculum blocks...',
                           ),
                         ),
@@ -252,16 +256,11 @@ class CourseDetailPage extends ConsumerWidget {
       leading: Container(
         margin: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.9),
+          color: AppColors.surface,
           shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          boxShadow: AppElevation.softShadow,
         ),
+
         child: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -319,7 +318,8 @@ class CourseDetailPage extends ConsumerWidget {
                           duration: const Duration(seconds: 2),
                           backgroundColor: result
                               ? AppColors.success
-                              : AppColors.textSecondary,
+                              : AppColors.primary,
+
                         ),
                       );
                     }
@@ -545,17 +545,12 @@ class CourseDetailPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.04),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+        boxShadow: AppElevation.cardShadow,
       ),
+
       child: Row(
         children: [
           _buildStatItem(Icons.timer_rounded, duration, 'HOURS'),
@@ -726,17 +721,12 @@ class CourseDetailPage extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.02),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+        boxShadow: AppElevation.softShadow,
       ),
+
       child: Row(
         children: [
           Text(
@@ -818,7 +808,7 @@ class CourseDetailPage extends ConsumerWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
-          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withValues(alpha: isDark ? 0.1 : 0.08),
@@ -895,7 +885,7 @@ class CourseDetailPage extends ConsumerWidget {
               const SizedBox(width: 16),
               Expanded(
                 flex: 6,
-                child: ZenButton(
+                child: AppButton(
                   text: course.isEnrolled ? 'RESUME' : 'ENROLL NOW',
                   onPressed: () async {
                     if (course.isEnrolled) {

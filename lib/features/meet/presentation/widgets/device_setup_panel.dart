@@ -21,14 +21,17 @@ class DeviceSetupPanel extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              state.roomMetadata?.roomId ?? state.roomId ?? 'Meeting',
+              state.roomMetadata?.roomId ?? state.roomId ?? 'Cuộc họp',
+
               style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
               isWaiting
-                  ? 'You are in the waiting room. Please wait for the host to admit you.'
-                  : 'Setup your camera and microphone',
+                  ? 'Bạn đang ở trong phòng chờ. Vui lòng đợi người chủ trì chấp nhận.'
+                  : 'Cài đặt camera và micro',
+
+
               style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14),
               textAlign: TextAlign.center,
             ),
@@ -66,14 +69,16 @@ class DeviceSetupPanel extends ConsumerWidget {
                 children: [
                   _DeviceSetupChip(
                     icon: state.isCamEnabled ? Icons.videocam : Icons.videocam_off,
-                    label: 'Camera',
+                    label: 'Máy ảnh',
+
                     isOn: state.isCamEnabled,
                     onTap: () => notifier.toggleCam(),
                   ),
                   const SizedBox(width: 24),
                   _DeviceSetupChip(
                     icon: state.isMicEnabled ? Icons.mic : Icons.mic_off,
-                    label: 'Microphone',
+                    label: 'Micro',
+
                     isOn: state.isMicEnabled,
                     onTap: () => notifier.toggleMic(),
                   ),
@@ -90,7 +95,8 @@ class DeviceSetupPanel extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: const Text('Join', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  child: const Text('Tham gia', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+
                 ),
               ),
             ],

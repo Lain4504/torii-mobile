@@ -10,7 +10,7 @@ class DownloadsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -53,10 +53,10 @@ class DownloadsPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ZenButton(
+          AppButton(
             text: 'BACK',
             onPressed: () => context.pop(),
-            type: ZenButtonType.ghost,
+            type: AppButtonType.ghost,
           ),
           const Text(
             'DOWNLOADS',

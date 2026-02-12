@@ -75,13 +75,13 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     if (asyncAuth.asData?.value.status == AuthStatus.authenticated) {
       return const Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(child: ZenLoading(text: 'FINALIZING...')),
+        body: Center(child: AppLoading(text: 'FINALIZING...')),
       );
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -187,7 +187,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
               
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.xl),
-                child: ZenButton(
+                child: AppButton(
                   text: 'VERIFY SECURITY',
                   onPressed: () {
                      if (_isBackupCode) {
@@ -291,7 +291,7 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     required double letterSpacing,
     required ValueChanged<String> onChanged,
   }) {
-    // Mimic ZenTextField stying but focused on single centered input
+    // Mimic AppTextField stying but focused on single centered input
     return Container(
       height: 60,
       decoration: BoxDecoration(

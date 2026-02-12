@@ -34,7 +34,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: Column(
           children: [
             Expanded(
@@ -108,7 +108,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                       ),
                     ),
                     loading: () => const SliverToBoxAdapter(
-                      child: Center(child: ZenLoading(text: 'Accessing Communications...')),
+                      child: Center(child: AppLoading(text: 'Accessing Communications...')),
                     ),
                     error: (err, stack) => SliverToBoxAdapter(
                       child: Center(
@@ -143,7 +143,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withValues(alpha: 0.05),

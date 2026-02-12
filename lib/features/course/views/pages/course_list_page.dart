@@ -51,7 +51,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -76,7 +76,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                        Text(
-                        'COLLECTION',
+                        'BỘ SƯU TẬP',
+
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: AppTypography.semiBold,
@@ -86,7 +87,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        'Explore Courses',
+                        'Khám phá Khóa học',
+
                         style: TextStyle(
                           fontFamily: AppTypography.fontFamilySerif,
                           fontWeight: AppTypography.medium,
@@ -127,7 +129,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                 child: Row(
                   children: [
                     Text(
-                      'AVAILABLE COURSES'.toUpperCase(),
+                      'KHÓA HỌC HIỆN CÓ',
+
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: AppTypography.semiBold,
@@ -161,7 +164,9 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             // Course List
             if (state.isLoading)
               const SliverFillRemaining(
-                child: Center(child: ZenLoading(text: 'Preparing your library...')),
+                child: Center(child: CircularProgressIndicator()),
+
+
               )
             else if (state.error != null)
               SliverFillRemaining(
@@ -204,17 +209,12 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
   Widget _buildSearchBar(ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+        boxShadow: AppElevation.softShadow,
       ),
+
       child: TextField(
         controller: _searchController,
         onChanged: (_) => setState(() {}),
@@ -224,7 +224,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
           color: AppColors.textPrimary,
         ),
         decoration: InputDecoration(
-          hintText: 'Find your path...',
+          hintText: 'Tìm khóa học...',
+
           hintStyle: TextStyle(
             color: AppColors.textTertiary.withValues(alpha: 0.5),
             fontWeight: AppTypography.regular,
@@ -258,7 +259,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
         children: [
           // Level Filter
           _FilterChip(
-            label: _selectedLevel != null ? 'JLPT ${_selectedLevel!.name.toUpperCase()}' : 'Level',
+            label: _selectedLevel != null ? 'JLPT ${_selectedLevel!.name.toUpperCase()}' : 'Cấp độ',
+
             isSelected: _selectedLevel != null,
             onTap: () => _showLevelPicker(),
           ),
@@ -267,10 +269,11 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
           // Type Filter
           _FilterChip(
             label: _selectedType == CourseType.vod 
-                ? 'Video Courses' 
+                ? 'Khóa học Video' 
                 : _selectedType == CourseType.liveClass 
-                    ? 'Live Classes' 
-                    : 'Format',
+                    ? 'Lớp học Trực tiếp' 
+                    : 'Định dạng',
+
             isSelected: _selectedType != null,
             onTap: () => _showTypePicker(),
           ),
@@ -281,7 +284,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             TextButton.icon(
               onPressed: _clearFilters,
               icon: const Icon(Icons.history_rounded, size: 16),
-              label: const Text('RESET FILTERS'),
+              label: const Text('ĐẶT LẠI BỘ LỌC'),
+
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 textStyle: const TextStyle(
@@ -291,6 +295,7 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
                 ),
               ),
             ),
+
           ],
         ],
       ),
@@ -303,12 +308,15 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
       useRootNavigator: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+
       ),
       builder: (context) => _PickerSheet(
-        title: 'Select Difficulty',
+        title: 'Chọn Cấp độ',
+
         items: [
-          _PickerItem(label: 'All Levels', value: null),
+          _PickerItem(label: 'Tất cả Cấp độ', value: null),
+
           ...JLPTLevel.values.map((l) => _PickerItem(
             label: l.name.toUpperCase(),
             value: l,
@@ -329,14 +337,17 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
       useRootNavigator: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+
       ),
       builder: (context) => _PickerSheet(
-        title: 'Select Learning Format',
+        title: 'Chọn Định dạng Học',
+
         items: [
-          _PickerItem(label: 'Unified Library', value: null),
-          _PickerItem(label: 'Video Archive', value: CourseType.vod),
-          _PickerItem(label: 'Live Sessions', value: CourseType.liveClass),
+          _PickerItem(label: 'Thư viện Tổng hợp', value: null),
+          _PickerItem(label: 'Kho Video', value: CourseType.vod),
+          _PickerItem(label: 'Phiên Trực tiếp', value: CourseType.liveClass),
+
         ],
         selectedValue: _selectedType,
         onSelect: (value) {
@@ -369,7 +380,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             ),
             const SizedBox(height: AppSpacing.lg),
             const Text(
-              'CONNECTION SEVERED',
+              'MẤT KẾT NỐI',
+
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: AppTypography.black,
@@ -388,10 +400,11 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.xl),
-            ZenButton(
-              text: 'RE-ESTABLISH LINK',
+            ElevatedButton(
               onPressed: () => ref.read(courseListProvider.notifier).loadCourses(),
+              child: const Text('KẾT NỐI LẠI'),
             ),
+
           ],
         ),
       ),
@@ -412,7 +425,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             ),
             const SizedBox(height: AppSpacing.lg),
             const Text(
-              'No Results Found',
+              'Không tìm thấy kết quả',
+
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: AppTypography.semiBold,
@@ -422,7 +436,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
             ),
             const SizedBox(height: AppSpacing.sm),
             const Text(
-              'No courses match your current search parameters.',
+              'Không có khóa học nào khớp với tìm kiếm của bạn.',
+
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textTertiary,
@@ -434,7 +449,8 @@ class _CourseCatalogPageState extends ConsumerState<CourseCatalogPage> {
               const SizedBox(height: AppSpacing.xl),
               TextButton(
                 onPressed: _clearFilters,
-                child: const Text('CLEAR FILTERS', style: TextStyle(fontWeight: AppTypography.semiBold, letterSpacing: 1.0)),
+                child: const Text('XÓA BỘ LỌC', style: TextStyle(fontWeight: AppTypography.semiBold, letterSpacing: 1.0)),
+
               ),
             ],
           ],
@@ -461,23 +477,22 @@ class _FilterChip extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.chip),
+
         child: Container(
-          padding: const EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: isSelected 
-                ? AppColors.primary
-                : AppColors.grey100.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(AppRadius.full),
+            color: isSelected ? AppColors.primary : AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.chip),
             border: Border.all(
-              color: isSelected 
-                  ? AppColors.primary
-                  : AppColors.grey200.withValues(alpha: 0.5),
+              color: isSelected ? AppColors.primary : AppColors.grey200.withValues(alpha: 0.8),
+              width: 1.5,
             ),
           ),
+
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

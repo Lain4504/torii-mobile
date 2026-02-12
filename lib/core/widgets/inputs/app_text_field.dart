@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_design_system.dart';
 
-class ZenTextField extends StatelessWidget {
+class AppTextField extends StatelessWidget {
+
   final String label;
   final TextEditingController controller;
   final String hintText;
@@ -16,7 +17,8 @@ class ZenTextField extends StatelessWidget {
   final bool readOnly;
   final int maxLines;
 
-  const ZenTextField({
+  const AppTextField({
+
     super.key,
     required this.label,
     required this.controller,
@@ -53,15 +55,10 @@ class ZenTextField extends StatelessWidget {
         Container(
           height: maxLines > 1 ? null : 60,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.full),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.01),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(AppRadius.input),
+            boxShadow: AppElevation.softShadow,
           ),
+
           child: Center(
             child: TextFormField(
               maxLines: maxLines,
@@ -95,23 +92,24 @@ class ZenTextField extends StatelessWidget {
                 ),
                 suffixIcon: suffixIcon,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  borderRadius: BorderRadius.circular(AppRadius.input),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  borderRadius: BorderRadius.circular(AppRadius.input),
                   borderSide: BorderSide(
-                    color: AppColors.grey300.withValues(alpha: 0.4),
-                    width: 1,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.full),
-                  borderSide: BorderSide(
-                    color: AppColors.primary.withValues(alpha: 0.6),
+                    color: AppColors.grey200.withValues(alpha: 0.8),
                     width: 1.5,
                   ),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.input),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 2,
+                  ),
+                ),
+
                 contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               ),
               validator: validator,

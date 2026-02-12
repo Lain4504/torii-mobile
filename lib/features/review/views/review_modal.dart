@@ -252,7 +252,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
   /// Reviews list tab
   Widget _buildReviewsList(ReviewState state, bool isDark) {
     if (state.isLoading && state.reviews.isEmpty) {
-      return const Center(child: ZenLoading(text: 'Loading reviews...'));
+      return const Center(child: AppLoading(text: 'Loading reviews...'));
     }
 
     if (state.error != null && state.reviews.isEmpty) {
@@ -278,7 +278,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              ZenButton(
+              AppButton(
                 text: 'TRY AGAIN',
                 onPressed: () {
                   final params = ReviewParams(
@@ -329,7 +329,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              ZenButton(
+              AppButton(
                 text: 'WRITE REVIEW',
                 onPressed: () => _tabController.animateTo(1),
               ),
@@ -361,7 +361,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(AppSpacing.lg),
-                    child: ZenLoading(text: 'Loading more...'),
+                    child: AppLoading(text: 'Loading more...'),
                   ),
                 );
               }
@@ -385,7 +385,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
           color: isDark
               ? AppColors.surfaceVariantDark.withValues(alpha: 0.3)
               : Colors.white.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(
             color: isDark
                 ? AppColors.borderDark.withValues(alpha: 0.2)
@@ -503,7 +503,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
         color: isDark
             ? AppColors.surfaceVariantDark.withValues(alpha: 0.3)
             : Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
           color: isDark
               ? AppColors.borderDark.withValues(alpha: 0.2)
@@ -671,7 +671,7 @@ class _ReviewModalState extends ConsumerState<ReviewModal>
           // Submit button
           SizedBox(
             width: double.infinity,
-            child: ZenButton(
+            child: AppButton(
               text: state.isSubmitting ? 'SUBMITTING...' : 'SUBMIT REVIEW',
               onPressed: state.isSubmitting ? null : _submitReview,
             ),

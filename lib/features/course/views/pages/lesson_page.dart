@@ -186,13 +186,13 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
 
     // Only show loading if we don't have initial lesson and API is loading
     if (state.isLoading && !hasInitialLesson && lesson == null) {
-      return const ZenLoadingScreen(text: 'Loading lesson...');
+      return const AppLoadingScreen(text: 'Loading lesson...');
     }
 
     if (state.error != null && lesson == null) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        body: ZenBackground(
+        body: AppBackground(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -205,7 +205,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                ZenButton(
+                AppButton(
                   text: 'TRY AGAIN',
                   onPressed: () {
                     ref.read(lessonDetailProvider(widget.lessonId).notifier).loadLessonDetail(widget.lessonId);
@@ -219,7 +219,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
     }
 
     if (lesson == null) {
-      return const ZenLoadingScreen(text: 'Lesson not found...');
+      return const AppLoadingScreen(text: 'Lesson not found...');
     }
 
     // Initialize video if lesson is video type and has videoUrl
@@ -236,7 +236,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -553,7 +553,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(AppRadius.xxl),
+                borderRadius: BorderRadius.circular(AppRadius.card),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.primary.withValues(alpha: 0.03),
@@ -608,7 +608,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.xxl),
+                borderRadius: BorderRadius.circular(AppRadius.card),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.primary.withValues(alpha: 0.02),

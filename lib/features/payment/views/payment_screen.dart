@@ -124,10 +124,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: state.isLoading && order == null
-              ? const Center(child: ZenLoading(text: 'Đang tạo đơn hàng...'))
+              ? const Center(child: AppLoading(text: 'Đang tạo đơn hàng...'))
               : state.error != null && order == null
                   ? Center(
                       child: Column(
@@ -137,7 +137,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                           const SizedBox(height: 16),
                           Text(state.error!),
                           const SizedBox(height: 24),
-                          ZenButton(
+                          AppButton(
                             text: 'THỬ LẠI',
                             onPressed: () => _createOrder(),
                           ),
@@ -210,10 +210,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ],
 
               // Cancel Button
-              ZenButton(
+              AppButton(
                 text: 'HỦY GIAO DỊCH',
                 onPressed: _cancelOrder,
-                type: ZenButtonType.secondary,
+                type: AppButtonType.secondary,
               ),
             ]),
           ),
@@ -228,7 +228,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       decoration: BoxDecoration(
         // Enhanced glassmorphic effect
         color: Colors.white.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.15),
           width: 1.5,
@@ -351,7 +351,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.12),
           width: 1.5,
@@ -496,7 +496,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
       ),
       child: Column(
@@ -511,7 +511,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          ZenButton(
+          AppButton(
             text: 'MỞ TRANG THANH TOÁN',
             onPressed: () async {
               final checkoutUrl = order.checkoutUrl;

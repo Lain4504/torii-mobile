@@ -57,9 +57,9 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           ),
         ),
       ),
-      body: ZenBackground(
+      body: AppBackground(
         child: state.isLoading && state.status == null
-            ? const Center(child: ZenLoading(text: 'Loading...'))
+            ? const Center(child: AppLoading(text: 'Loading...'))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
@@ -89,7 +89,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: isEnabled ? AppColors.primary.withValues(alpha: 0.02) : Colors.white.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(AppRadius.xxl),
+          borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(color: (isEnabled ? AppColors.primary : AppColors.grey300).withValues(alpha: 0.2)),
           boxShadow: [
             BoxShadow(
@@ -149,7 +149,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           ),
           const SizedBox(height: 16),
           if (state.setupData == null)
-            ZenButton(
+            AppButton(
               text: 'Enable Two-Factor Authentication',
               onPressed: () => ref.read(twoFactorProvider.notifier).startSetup(),
               isLoading: state.isLoading,
@@ -170,7 +170,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(color: AppColors.grey200),
           ),
           child: Column(
@@ -206,7 +206,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           style: TextStyle(fontWeight: AppTypography.black, fontSize: 10, letterSpacing: 2.0),
         ),
         const SizedBox(height: 16),
-        ZenTextField(
+        AppTextField(
           label: 'Authenticator Code',
           hintText: '000000',
           controller: _otpController,
@@ -219,7 +219,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           },
         ),
         const SizedBox(height: 24),
-        ZenButton(
+        AppButton(
           text: 'ACTIVATE 2FA',
           onPressed: () => ref.read(twoFactorProvider.notifier).enable(_otpController.text),
           isLoading: state.isLoading,
@@ -248,7 +248,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
             padding: const EdgeInsets.all(AppSpacing.xl),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.8),
-              borderRadius: BorderRadius.circular(AppRadius.xxl),
+              borderRadius: BorderRadius.circular(AppRadius.card),
               border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
             ),
             child: Column(
@@ -258,7 +258,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                     style: TextStyle(fontSize: 12, height: 1.5),
                 ),
                 const SizedBox(height: 16),
-                ZenButton(
+                AppButton(
                   text: 'REGENERATE_BACKUP_CODES',
                   onPressed: () => _showRegenerateDialog(state),
                   isPrimary: false,
@@ -283,7 +283,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
             style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: Color(0xFFE63946)),
           ),
           const SizedBox(height: 16),
-          ZenButton(
+          AppButton(
             text: 'DISABLE_TWO_FACTOR',
             onPressed: () => _showDisableDialog(),
             isPrimary: false,

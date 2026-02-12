@@ -29,7 +29,8 @@ class PollsBottomSheet extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Polls',
+                  'Bình chọn',
+
                   style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 IconButton(
@@ -44,7 +45,8 @@ class PollsBottomSheet extends ConsumerWidget {
                 padding: EdgeInsets.symmetric(vertical: 24),
                 child: Center(
                   child: Text(
-                    'No polls yet.',
+                    'Chưa có bình chọn nào.',
+
                     style: TextStyle(color: Colors.white60),
                   ),
                 ),
@@ -160,14 +162,16 @@ class _PollCardState extends State<_PollCard> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Vote'),
+                    : const Text('Bình chọn'),
+
               ),
             )
           else
             const Align(
               alignment: Alignment.centerRight,
               child: Text(
-                'Poll closed',
+                'Đã đóng',
+
                 style: TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ),

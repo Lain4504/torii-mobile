@@ -12,7 +12,7 @@ import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart
 import 'package:torii_app/features/meet/data/models/proto/wajlc_analytics.pb.dart' as analytics;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart' as data_msg;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_gen_token.pb.dart' as gen_token;
-import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls;
+import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls_proto;
 
 enum MeetStatus { initial, signaling, natsConnecting, natsConnected, deviceSetup, mediaConnecting, connected, disconnected, error }
 
@@ -37,7 +37,7 @@ class MeetState {
   final Map<String, gen_token.UserMetadata> participantsMetadata;
   final bool isRecording;
   final String? notification;
-  final List<polls.PollInfo> polls;
+  final List<polls_proto.PollInfo> polls;
 
   MeetState({
     this.status = MeetStatus.initial,
@@ -86,7 +86,7 @@ class MeetState {
     bool? isRecording,
     String? notification,
     bool clearNotification = false,
-    List<polls.PollInfo>? polls,
+    List<polls_proto.PollInfo>? polls,
   }) {
     return MeetState(
       status: status ?? this.status,
@@ -697,15 +697,15 @@ class MeetNotifier extends StateNotifier<MeetState> {
   /// Public method to allow UI to trigger manual refresh.
   Future<void> refreshPollsPublic() async => _refreshPolls();
 
-  Future<void> submitPollVote(polls.PollInfo poll, int optionId) async {
+  Future<void> submitPollVote(polls_proto.PollInfo poll, int optionId) async {
     if (state.roomId == null || state.userId == null || state.localUser == null) return;
     try {
-      final req = polls.SubmitPollResponseReq(
+      final req = polls_proto.SubmitPollResponseReq(
         roomId: state.roomId!,
         userId: state.userId!,
         name: state.localUser!.name,
         pollId: poll.id,
-        selectedOption: optionId,
+        selectedOption: Int64(optionId),
       );
       final res = await _apiService.submitPollResponse(req);
       if (!res.status) {
@@ -805,8 +805,8 @@ class MeetNotifier extends StateNotifier<MeetState> {
     if (!_isCurrentUserAdmin || state.roomId == null) return;
     try {
       final task = makePresenter
-          ? SwitchPresenterTasks.PROMOTE_TO_PRESENTER
-          : SwitchPresenterTasks.DEMOTE_FROM_PRESENTER;
+          ? SwitchPresenterTask.PROMOTE
+          : SwitchPresenterTask.DEMOTE;
       final req = SwitchPresenterReq(
         roomId: state.roomId!,
         userId: state.userId ?? '',

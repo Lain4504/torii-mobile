@@ -227,7 +227,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       // Action Button
                       EntryAnimation(
                         delay: const Duration(milliseconds: 500),
-                        child: ZenButton(
+                        child: AppButton(
                           text: _currentPage == _pages.length - 1 
                               ? 'GET STARTED' 
                               : 'CONTINUE',

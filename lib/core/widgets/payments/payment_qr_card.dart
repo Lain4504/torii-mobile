@@ -156,7 +156,7 @@ class _PaymentQRCardState extends State<PaymentQRCard>
       decoration: BoxDecoration(
         // Glassmorphic effect
         color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
           color: AppColors.primary.withValues(alpha: 0.1),
           width: 1.5,

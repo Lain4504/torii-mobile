@@ -139,20 +139,21 @@ class AppSpacing {
 class AppRadius {
   AppRadius._();
   
-  static const double xs = 4.0;
-  static const double sm = 8.0;
-  static const double md = 12.0;
-  static const double lg = 16.0;
-  static const double xl = 24.0;
-  static const double xxl = 32.0;
-  static const double xxxl = 48.0;
+  static const double xs = 2.0;
+  static const double sm = 4.0;
+  static const double md = 8.0;
+  static const double lg = 12.0;
+  static const double xl = 16.0;
+  static const double xxl = 24.0;
+  static const double xxxl = 32.0;
   static const double full = 9999.0;
   
   // Semantic
-  static const double card = 32.0;
-  static const double button = 16.0;
-  static const double input = 16.0;
+  static const double card = 16.0; // Reduced from 32 for block style
+  static const double button = 12.0;
+  static const double input = 12.0;
   static const double chip = 9999.0;
+
 }
 
 // ============================================================================
@@ -163,9 +164,10 @@ class AppTypography {
   AppTypography._();
 
   // Font Family
-  static const String fontFamily = 'Outfit'; // Premium Modern Sans
-  static const String fontFamilySerif = 'Noto Serif JP'; // Japanese Serif for headings
+  static const String fontFamily = 'Nunito'; // Matches Web
+  static const String fontFamilySerif = 'Nunito'; // Web uses Nunito for headings too
   static const String fontFamilyJapanese = 'Noto Sans JP';
+
 
   // Font Sizes - Modular Scale
   static const double fontSizeXs = 12.0;
@@ -216,47 +218,36 @@ class AppElevation {
   static const double lg = 8.0;
   static const double xl = 12.0;
   
-  // Soft Shadows - Light Mode
+  // Vibrant Shadows (Web-like)
   static List<BoxShadow> softShadow = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.03),
-      blurRadius: 8,
-      offset: const Offset(0, 2),
-    ),
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.02),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
+      color: Colors.black.withValues(alpha: 0.05),
+      blurRadius: 10,
+      offset: const Offset(0, 4),
     ),
   ];
   
   static List<BoxShadow> mediumShadow = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.05),
-      blurRadius: 12,
-      offset: const Offset(0, 4),
-    ),
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.03),
-      blurRadius: 32,
-      offset: const Offset(0, 12),
+      color: Colors.black.withValues(alpha: 0.08),
+      blurRadius: 16,
+      offset: const Offset(0, 6),
     ),
   ];
   
   static List<BoxShadow> cardShadow = [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.04),
-      blurRadius: 16,
+      color: Colors.black.withValues(alpha: 0.06),
+      blurRadius: 12,
       offset: const Offset(0, 4),
     ),
   ];
-  
-  // Dark Mode Shadows
+
   static List<BoxShadow> darkSoftShadow = [
     BoxShadow(
       color: Colors.black.withValues(alpha: 0.2),
-      blurRadius: 8,
-      offset: const Offset(0, 2),
+      blurRadius: 10,
+      offset: const Offset(0, 4),
     ),
   ];
 }

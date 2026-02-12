@@ -55,21 +55,24 @@ class MeetingControls extends ConsumerWidget {
               icon: state.localMetadata?.raisedHand ?? false ? Icons.back_hand : Icons.back_hand_outlined,
               color: state.localMetadata?.raisedHand ?? false ? Colors.yellowAccent : Colors.white70,
               onPressed: () => notifier.toggleHandRaise(),
-              label: 'Hand',
+              label: 'Giơ tay',
+
             ),
             // Speaker Toggle
             _ControlButton(
               icon: state.isSpeakerphoneOn ? Icons.volume_up : Icons.phone_android,
               color: state.isSpeakerphoneOn ? Colors.purple : Colors.grey,
               onPressed: () => notifier.toggleSpeakerphone(),
-              label: 'Speaker',
+              label: 'Loa',
+
             ),
             // Leave Button
             _ControlButton(
               icon: Icons.call_end,
               color: Colors.red,
               onPressed: () => _confirmLeave(context, notifier),
-              label: 'Leave',
+              label: 'Rời',
+
             ),
           ],
         ),
@@ -81,12 +84,15 @@ class MeetingControls extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Leave Meeting'),
-        content: const Text('Are you sure you want to leave the meeting?'),
+        title: const Text('Rời cuộc họp'),
+
+        content: const Text('Bạn có chắc chắn muốn rời cuộc họp không?'),
+
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Hủy'),
+
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
@@ -94,7 +100,8 @@ class MeetingControls extends ConsumerWidget {
               notifier.leaveMeeting();
               Navigator.pop(context);
             },
-            child: const Text('Leave'),
+            child: const Text('Rời'),
+
           ),
         ],
       ),

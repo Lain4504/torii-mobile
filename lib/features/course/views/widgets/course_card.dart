@@ -15,7 +15,7 @@ class CourseCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.xxl),
+      borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -40,7 +40,7 @@ class CourseCard extends StatelessWidget {
                 context.push('/courses/${course.id}');
               }
             },
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,8 +166,8 @@ class CourseCard extends StatelessWidget {
           // High Quality Image Placeholder/Network
           ClipRRect(
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(AppRadius.xxl),
-              topRight: Radius.circular(AppRadius.xxl),
+              topLeft: Radius.circular(AppRadius.card),
+              topRight: Radius.circular(AppRadius.card),
               bottomLeft: Radius.circular(0),
               bottomRight: Radius.circular(0),
             ),

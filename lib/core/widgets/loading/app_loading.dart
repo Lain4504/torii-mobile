@@ -6,12 +6,13 @@ import '../animations/entry_animation.dart';
 /// 
 /// A premium, minimalist loading indicator with smooth animations.
 /// Inspired by the Japanese aesthetic of "Ma" (negative space).
-class ZenLoading extends StatefulWidget {
+class AppLoading extends StatefulWidget {
   final String? text;
   final double size;
   final Color? color;
 
-  const ZenLoading({
+  const AppLoading({
+
     super.key,
     this.text,
     this.size = 48.0,
@@ -19,10 +20,10 @@ class ZenLoading extends StatefulWidget {
   });
 
   @override
-  State<ZenLoading> createState() => _ZenLoadingState();
+  State<AppLoading> createState() => _AppLoadingState();
 }
 
-class _ZenLoadingState extends State<ZenLoading> with SingleTickerProviderStateMixin {
+class _AppLoadingState extends State<AppLoading> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -81,16 +82,18 @@ class _ZenLoadingState extends State<ZenLoading> with SingleTickerProviderStateM
 }
 
 /// Full screen variant of Zen Loading
-class ZenLoadingScreen extends StatelessWidget {
+class AppLoadingScreen extends StatelessWidget {
+
   final String? text;
-  const ZenLoadingScreen({super.key, this.text});
+  const AppLoadingScreen({
+super.key, this.text});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: EntryAnimation(
-        child: ZenLoading(text: text ?? 'Initializing System...'),
+        child: AppLoading(text: text ?? 'Initializing System...'),
       ),
     );
   }

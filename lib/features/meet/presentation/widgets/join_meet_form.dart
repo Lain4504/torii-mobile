@@ -49,14 +49,16 @@ class _JoinMeetFormState extends ConsumerState<JoinMeetForm> {
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(16),
+
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 color: const Color(0xFF1E1E2C).withOpacity(0.7),
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(16),
+
                 border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
                 boxShadow: [
                   BoxShadow(
@@ -102,7 +104,8 @@ class _JoinMeetFormState extends ConsumerState<JoinMeetForm> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Enter details to join the session',
+                    'Nhập thông tin để tham gia phiên học',
+
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.5),
                       fontSize: 14,
@@ -113,7 +116,8 @@ class _JoinMeetFormState extends ConsumerState<JoinMeetForm> {
                   // Room ID Input
                   _buildTextField(
                     controller: _roomController,
-                    label: 'ROOM ID',
+                    label: 'MÃ PHÒNG',
+
                     icon: Icons.meeting_room_outlined,
                     enabled: !isLoading,
                   ),
@@ -122,7 +126,8 @@ class _JoinMeetFormState extends ConsumerState<JoinMeetForm> {
                   // Name Input
                   _buildTextField(
                     controller: _nameController,
-                    label: 'YOUR NAME',
+                    label: 'TÊN CỦA BẠN',
+
                     icon: Icons.person_outline,
                     enabled: !isLoading,
                   ),
@@ -144,7 +149,8 @@ class _JoinMeetFormState extends ConsumerState<JoinMeetForm> {
                              Icon(Icons.admin_panel_settings_outlined, 
                                color: _isAdmin ? Colors.blueAccent : Colors.white24, size: 20),
                              const SizedBox(width: 12),
-                             const Text('JOIN AS ADMIN', 
+                             const Text('THAM GIA LÀ QUẢN TRỊ VIÊN', 
+ 
                                style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
                            ],
                          ),
@@ -167,7 +173,8 @@ class _JoinMeetFormState extends ConsumerState<JoinMeetForm> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3F51B5),
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
                         elevation: 8,
                         shadowColor: const Color(0xFF3F51B5).withOpacity(0.5),
                       ),
@@ -178,7 +185,8 @@ class _JoinMeetFormState extends ConsumerState<JoinMeetForm> {
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                           )
                         : const Text(
-                            'JOIN SESSION',
+                            'THAM GIA',
+
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                           ),
                     ),
