@@ -13,6 +13,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import '../core/nats/connect_nats.dart';
+import '../core/livekit/connect_livekit.dart';
+import 'package:flutter/foundation.dart';
 
 part 'session_provider.freezed.dart';
 
@@ -75,6 +77,7 @@ class SessionState with _$SessionState {
     @Default(0) int totalAudioSubscribers,
     @Default(UserDeviceType.mobile) UserDeviceType userDeviceType,
     @Default(false) bool isCloud,
+    @Default(false) bool isNatsConnected,
   }) = _SessionState;
   
   /// Factory for initial state
@@ -97,6 +100,7 @@ class SessionState with _$SessionState {
 /// Matches: sessionSlice reducers in sessionSlice.ts
 class SessionNotifier extends StateNotifier<SessionState> {
   ConnectNats? _connectNats;
+  ConnectLivekit? _connectLivekit;
 
   SessionNotifier() : super(SessionState.initial());
   
@@ -104,6 +108,12 @@ class SessionNotifier extends StateNotifier<SessionState> {
   /// Matches: addToken
   void addToken(String token) {
     state = state.copyWith(token: token);
+  }
+  
+  /// Update NATS connection status
+  /// Matches: updateIsNatsServerConnected
+  void updateIsNatsServerConnected(bool isConnected) {
+    state = state.copyWith(isNatsConnected: isConnected);
   }
   
   /// Add server version
@@ -200,6 +210,8 @@ class SessionNotifier extends StateNotifier<SessionState> {
     required Function(String) setRoomConnectionStatusState,
     required Function(dynamic) setCurrentMediaServerConn,
     required Ref ref,
+    bool initialAudioEnabled = false,
+    bool initialVideoEnabled = false,
   }) async {
     // Initialize ConnectNats
     _connectNats = ConnectNats(
@@ -215,22 +227,58 @@ class SessionNotifier extends StateNotifier<SessionState> {
       ref: ref,
     );
 
+    // Initialize ConnectLivekit
+    _connectLivekit = ConnectLivekit(
+      ref: ref,
+      localUserId: userId,
+      onError: setErrorState,
+      onConnectionStatusChange: (status) {
+        // Handle LiveKit connection status changes
+        if (kDebugMode) {
+          print('SessionProvider: LiveKit status - $status');
+        }
+      },
+      natsConn: _connectNats,
+      initialAudioEnabled: initialAudioEnabled,
+      initialVideoEnabled: initialVideoEnabled,
+    );
+
+    // Link NATS and LiveKit
+    _connectNats!.setMediaServerConn(_connectLivekit!);
+
     // Update state with token
     addToken(token);
 
     // Open connection
     await _connectNats!.openConn();
+    
+    // Note: LiveKit connection should be triggered when Room Info is received
+    // and contains LiveKit URL/Token. specific logic depends on backend implementation.
+    // For now, we assume NATS connection success is enough to proceed.
   }
 
   /// Disconnect from session
   Future<void> disconnect() async {
+    if (_connectLivekit != null) {
+      await _connectLivekit!.disconnectRoom(true);
+      _connectLivekit!.dispose();
+      _connectLivekit = null;
+    }
+    
     if (_connectNats != null) {
       await _connectNats!.endSession('User requested disconnect');
       _connectNats = null;
     }
+    
     // Reset state
     state = SessionState.initial();
   }
+
+  /// Get the LiveKit connection instance
+  ConnectLivekit? get livekitConn => _connectLivekit;
+  
+  /// Get the NATS connection instance
+  ConnectNats? get natsConn => _connectNats;
 }
 
 /// Session provider

@@ -74,6 +74,12 @@ abstract class IConnectLivekit {
   /// Remove video subscriber
   void removeVideoSubscriber(String userId);
 
+  /// Toggle audio
+  Future<void> toggleAudio(bool enable);
+
+  /// Toggle video
+  Future<void> toggleVideo(bool enable);
+
   /// Add screen share track
   void addScreenShareTrack(String userId, TrackPublication track);
 

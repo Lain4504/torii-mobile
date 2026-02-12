@@ -9,11 +9,15 @@ import '../../../providers/room_settings_provider.dart';
 class DevicePreview extends ConsumerStatefulWidget {
   final bool lockMicrophone;
   final bool lockWebcam;
+  final Function(bool)? onMicToggled;
+  final Function(bool)? onCameraToggled;
 
   const DevicePreview({
     super.key,
     required this.lockMicrophone,
     required this.lockWebcam,
+    this.onMicToggled,
+    this.onCameraToggled,
   });
 
   @override
@@ -47,6 +51,7 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
       setState(() {
         _isCameraEnabled = true;
       });
+      widget.onCameraToggled?.call(true);
     } catch (e) {
       debugPrint('Failed to enable camera: $e');
     }
@@ -58,6 +63,7 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
       setState(() {
         _isMicEnabled = true;
       });
+      widget.onMicToggled?.call(true);
     } catch (e) {
       debugPrint('Failed to enable microphone: $e');
     }
@@ -69,6 +75,7 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
     setState(() {
       _isCameraEnabled = false;
     });
+    widget.onCameraToggled?.call(false);
   }
 
   Future<void> _disableMicrophone() async {
@@ -77,6 +84,7 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
     setState(() {
       _isMicEnabled = false;
     });
+    widget.onMicToggled?.call(false);
   }
 
   @override

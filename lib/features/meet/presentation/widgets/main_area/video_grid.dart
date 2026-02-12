@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:livekit_client/livekit_client.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/session_provider.dart';
+import '../../../providers/livekit_providers.dart';
 import 'video_tile.dart';
 
 /// Video Grid Widget
@@ -12,7 +12,20 @@ class VideoGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final participants = ref.watch(participantProvider);
+    // Get LiveKit participants
+    final remoteParticipantsAsync = ref.watch(videoSubscribersProvider);
+    final localParticipant = ref.watch(localParticipantProvider);
+    
+    // Combine participants
+    final participants = <Participant>[];
+    if (localParticipant != null) {
+      participants.add(localParticipant);
+    }
+    
+    remoteParticipantsAsync.whenData((remoteMap) {
+      participants.addAll(remoteMap.values);
+    });
+    
     final screenSharing = ref.watch(
       sessionProvider.select((s) => s.screenSharing),
     );
@@ -20,6 +33,11 @@ class VideoGrid extends ConsumerWidget {
     // If someone is screen sharing, show screen share prominently
     if (screenSharing.isActive) {
       return _buildScreenShareLayout(context, ref, participants);
+    }
+    
+    // Check if loading or error
+    if (remoteParticipantsAsync.isLoading && participants.isEmpty) {
+       return const Center(child: CircularProgressIndicator());
     }
 
     // Normal grid layout

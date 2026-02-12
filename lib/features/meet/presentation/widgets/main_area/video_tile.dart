@@ -58,15 +58,31 @@ class VideoTile extends ConsumerWidget {
                      participant.videoTrackSid!.isNotEmpty;
 
     if (hasVideo) {
-      // TODO: Render actual LiveKit video track
-      // This will be implemented when integrating with LiveKit
+      // Find camera track
+      TrackPublication? videoPub;
+      
+      // Check track publications
+      for (var pub in participant.videoTrackPublications) {
+        if (pub.source == TrackSource.camera) {
+          videoPub = pub;
+          break;
+        }
+      }
+      
+      if (videoPub != null && videoPub.track != null) {
+        return VideoTrackRenderer(
+          videoPub.track as VideoTrack,
+          fit: BoxFit.cover,
+        );
+      }
+      
+      // Fallback if track is not available yet
       return Container(
         color: Colors.black,
         child: const Center(
-          child: Icon(
-            Icons.person,
-            size: 64,
+          child: CircularProgressIndicator(
             color: Colors.white24,
+            strokeWidth: 2,
           ),
         ),
       );

@@ -64,14 +64,9 @@ class ConnectLivekit implements IConnectLivekit {
   late final HandleMediaTracks handleMediaTracks;
   
   // State
-  bool _wasNormalDisconnected = false;
-  
-  // Event emitters (simplified - using Stream controllers)
-  final _screenShareStatusController = StreamController<bool>.broadcast();
-  final _videoStatusController = StreamController<bool>.broadcast();
-  final _audioSubscribersController = StreamController<Map<String, RemoteParticipant>>.broadcast();
-  final _videoSubscribersController = StreamController<Map<String, Participant>>.broadcast();
-  final _screenShareTracksController = StreamController<Map<String, List<TrackPublication>>>.broadcast();
+  // Initial media state
+  final bool initialAudioEnabled;
+  final bool initialVideoEnabled;
   
   /// Constructor
   /// Matches: constructor() in ConnectLivekit.ts
@@ -83,6 +78,8 @@ class ConnectLivekit implements IConnectLivekit {
     this.enabledE2EE = false,
     this.encryptionKey,
     ConnectNats? natsConn,
+    this.initialAudioEnabled = false,
+    this.initialVideoEnabled = false,
   }) : _natsConn = natsConn {
     // Initialize media tracks handler
     handleMediaTracks = HandleMediaTracks(connectLivekit: this, ref: ref);
@@ -134,6 +131,14 @@ class ConnectLivekit implements IConnectLivekit {
       
       // Connect to room
       await _room.connect(url, token);
+      
+      // Apply initial media state
+      if (initialAudioEnabled) {
+        await _room.localParticipant?.setMicrophoneEnabled(true);
+      }
+      if (initialVideoEnabled) {
+        await _room.localParticipant?.setCameraEnabled(true);
+      }
       
       // Initialize participants
       await _initiateParticipants();
@@ -566,6 +571,38 @@ class ConnectLivekit implements IConnectLivekit {
     _videoSubscribersController.add(Map.from(_videoSubscribersMap));
   }
   
+  /// Toggle audio
+  /// Matches: toggleAudio() in ConnectLivekit.ts
+  @override
+  Future<void> toggleAudio(bool enable) async {
+    if (_room.localParticipant != null) {
+      await _room.localParticipant!.setMicrophoneEnabled(enable);
+      
+      // Update local participant state in provider if needed
+      // (LiveKit events should handle this automatically via _onTrackEvent)
+      
+      if (kDebugMode) {
+        print('ConnectLivekit: Audio toggled to $enable');
+      }
+    }
+  }
+
+  /// Toggle video
+  /// Matches: toggleVideo() in ConnectLivekit.ts
+  @override
+  Future<void> toggleVideo(bool enable) async {
+    if (_room.localParticipant != null) {
+      await _room.localParticipant!.setCameraEnabled(enable);
+      
+      // Update local participant state in provider if needed
+      // (LiveKit events should handle this automatically via _onTrackEvent)
+      
+      if (kDebugMode) {
+        print('ConnectLivekit: Video toggled to $enable');
+      }
+    }
+  }
+
   /// Dispose resources
   void dispose() {
     _screenShareStatusController.close();

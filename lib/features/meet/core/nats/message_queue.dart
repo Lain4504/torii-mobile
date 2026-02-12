@@ -50,8 +50,10 @@ class MessageQueue {
       final message = _queue.first;
       
       try {
-        // TODO: Send message via JetStream
-        // await _js.publish(message.subject, message.data);
+        // Send message via JetStream
+        // Note: dart_nats JetStream publish returns a Future<PubAck>
+        // We await it to ensure the message was accepted by the stream
+        await _js.publish(message.subject, message.data);
         
         _queue.removeFirst();
         

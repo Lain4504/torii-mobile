@@ -72,11 +72,17 @@ class LeaveButton extends ConsumerWidget {
     );
   }
 
-  void _leaveMeeting(WidgetRef ref) {
+  Future<void> _leaveMeeting(BuildContext context, WidgetRef ref) async {
+    // Disconnect from LiveKit and NATS
+    await ref.read(sessionProvider.notifier).disconnect();
+    
     // Reset to startup state
     ref.read(sessionProvider.notifier).toggleStartup(true);
     
-    // TODO: Disconnect from LiveKit and NATS
-    // This will be implemented when integrating with LiveKit/NATS
+    if (context.mounted) {
+      // Navigate back to landing/join screen
+      // Assuming MeetingRoomScreen was pushed on top of JoinMeetingScreen or LandingScreen
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 }

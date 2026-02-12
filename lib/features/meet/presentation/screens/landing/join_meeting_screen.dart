@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/session_provider.dart';
 import '../../../providers/room_settings_provider.dart';
 import '../../../core/nats/connect_nats.dart';
+import 'package:flutter/foundation.dart';
 import '../../widgets/landing/join_form.dart';
 import '../../widgets/landing/device_preview.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 
 /// Join Meeting Screen
 /// 1:1 clone of apps/meet/src/components/landing/index.tsx
@@ -17,7 +19,9 @@ class JoinMeetingScreen extends ConsumerStatefulWidget {
 
 class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
   String? _loadingMessage;
-  bool _isReadyToConnect = false;
+  bool _isLoading = false;
+  bool _isMicEnabled = false;
+  bool _isCameraEnabled = false;
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +106,8 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                               DevicePreview(
                                 lockMicrophone: lockMicrophone,
                                 lockWebcam: lockWebcam,
+                                onMicToggled: (val) => _isMicEnabled = val,
+                                onCameraToggled: (val) => _isCameraEnabled = val,
                               ),
                               const SizedBox(height: 24),
                               JoinForm(
@@ -122,6 +128,8 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                               child: DevicePreview(
                                 lockMicrophone: lockMicrophone,
                                 lockWebcam: lockWebcam,
+                                onMicToggled: (val) => _isMicEnabled = val,
+                                onCameraToggled: (val) => _isCameraEnabled = val,
                               ),
                             ),
                             const SizedBox(width: 32),
@@ -148,13 +156,83 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
     );
   }
 
-  void _handleJoin() {
+  void _handleJoin() async {
     setState(() {
-      _isReadyToConnect = true;
-      _loadingMessage = 'Đang hoàn tất cài đặt...';
+      _isLoading = true;
+      _loadingMessage = 'Đang kết nối đến máy chủ...';
     });
     
-    // TODO: Call ConnectNats.finalizeAppConn()
-    // This will be implemented when integrating with NATS
+    try {
+      // TODO: Get these values from arguments or API
+      const natsWSUrls = ['wss://nats.torii.edu.vn']; // Placeholder
+      const token = 'test-token'; // Placeholder
+      const roomId = 'test-room'; 
+      final userId = 'user-${DateTime.now().millisecondsSinceEpoch}';
+      const roomStreamName = 'ROOM_test-room';
+      
+      // Default subjects
+      final subjects = nats_msg.NatsSubjects(
+        room: 'room',
+        chat: 'chat',
+        whiteboard: 'whiteboard',
+        dataChannel: 'data',
+        systemPublic: 'system.public',
+        systemWorker: 'system.worker',
+      );
+
+      await ref.read(sessionProvider.notifier).connect(
+        natsWSUrls: natsWSUrls,
+        token: token,
+        roomId: roomId,
+        userId: userId,
+        roomStreamName: roomStreamName,
+        subjects: subjects,
+        setErrorState: (title, message) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('$title: $message'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            setState(() {
+              _isLoading = false;
+              _loadingMessage = null;
+            });
+          }
+        },
+        setRoomConnectionStatusState: (status) {
+          if (kDebugMode) {
+            print('Connection Status: $status');
+          }
+          if (status == 'receiving-data') {
+             // Connection successful
+             if (mounted) {
+               ref.read(sessionProvider.notifier).toggleStartup(false);
+             }
+          }
+        },
+        setCurrentMediaServerConn: (conn) {
+          // Handled by SessionProvider
+        },
+        ref: ref,
+        initialAudioEnabled: _isMicEnabled,
+        initialVideoEnabled: _isCameraEnabled,
+      );
+      
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi kết nối: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _isLoading = false;
+          _loadingMessage = null;
+        });
+      }
+    }
   }
 }

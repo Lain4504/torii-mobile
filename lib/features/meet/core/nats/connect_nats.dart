@@ -31,7 +31,12 @@ import 'handle_system_data.dart';
 import 'message_queue.dart';
 
 // LiveKit
+// LiveKit
 import '../livekit/connect_livekit.dart';
+
+// Providers
+import '../../providers/session_provider.dart';
+import '../../providers/room_settings_provider.dart';
 
 // Constants matching web
 const int kRenewTokenFrequent = 3 * 60 * 1000; // 3 minutes
@@ -179,7 +184,8 @@ class ConnectNats {
     messageQueue.setIsConnected(true);
     
     // Update state: NATS connected
-    // TODO: Dispatch to provider: updateIsNatsServerConnected(true)
+    // Update state: NATS connected
+    ref.read(sessionProvider.notifier).updateIsNatsServerConnected(true);
     
     // Start monitoring
     unawaited(_monitorConnStatus());
@@ -222,7 +228,7 @@ class ConnectNats {
     final cleanupFutures = <Future<void>>[];
     
     if (_mediaServerConn != null) {
-      // cleanupFutures.add(_mediaServerConn.disconnectRoom(true));
+      cleanupFutures.add(_mediaServerConn!.disconnectRoom(true));
     }
     
     if (_nc != null) {
@@ -303,23 +309,33 @@ class ConnectNats {
       switch (status) {
         case nats.Status.disconnected:
         case nats.Status.closed:
-          // TODO: Dispatch updateIsNatsServerConnected(false)
+          ref.read(sessionProvider.notifier).updateIsNatsServerConnected(false);
           messageQueue.setIsConnected(false);
           break;
           
         case nats.Status.reconnecting:
           if (!_isRoomReconnecting) {
-            // TODO: Show toast "Mất kết nối - Đang kết nối lại"
+            ref.read(roomSettingsProvider.notifier).addUserNotification(
+              const UserNotification(
+                message: 'Mất kết nối - Đang kết nối lại',
+                typeOption: 'warning',
+              ),
+            );
             _isRoomReconnecting = true;
           }
           break;
           
         case nats.Status.connected:
           if (_isRoomReconnecting) {
-            // TODO: Dismiss toast
+            ref.read(roomSettingsProvider.notifier).addUserNotification(
+              const UserNotification(
+                message: 'Đã kết nối lại',
+                typeOption: 'info',
+              ),
+            );
             _isRoomReconnecting = false;
           }
-          // TODO: Dispatch updateIsNatsServerConnected(true)
+          ref.read(sessionProvider.notifier).updateIsNatsServerConnected(true);
           messageQueue.setIsConnected(true);
           break;
       }

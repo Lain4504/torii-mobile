@@ -20,7 +20,8 @@ class MicButton extends ConsumerWidget {
       isActive: !isMicMuted,
       onTap: () {
         ref.read(bottomIconsProvider.notifier).toggleMic();
-        // TODO: Integrate with LiveKit to actually mute/unmute
+        final isMicMuted = ref.read(bottomIconsProvider).isMicMuted;
+        ref.read(sessionProvider).livekitConn?.toggleAudio(!isMicMuted);
       },
     );
   }

@@ -67,43 +67,26 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
             ),
           ),
 
+import '../../../../providers/polls_provider.dart';
+
+// ... existing imports ...
+
+// ... existing code ...
+
           // Content
           Expanded(
             child: _isCreating 
-              ? const PollCreate()
+              ? PollCreate(
+                  onPollCreated: () => setState(() => _isCreating = false),
+                )
               : _buildPollList(context, ref),
           ),
 
-          // Create button (only if not creating and has permission)
-          if (!_isCreating)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => setState(() => _isCreating = true),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create a poll'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+// ... existing code ...
 
   Widget _buildPollList(BuildContext context, WidgetRef ref) {
-    // TODO: Get polls from provider
-    // final polls = ref.watch(pollsProvider);
-    final polls = []; // Placeholder
+    final pollsState = ref.watch(pollsProvider);
+    final polls = pollsState.polls;
 
     if (polls.isEmpty) {
       return Center(
@@ -139,9 +122,9 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
       padding: const EdgeInsets.all(16),
       itemCount: polls.length,
       itemBuilder: (context, index) {
-        return const Padding(
-          padding: EdgeInsets.only(bottom: 16),
-          // child: PollItem(poll: polls[index]),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: PollItem(poll: polls[index]),
         );
       },
     );

@@ -305,13 +305,60 @@ class HandleDataMessage {
   // POLL HANDLER
   // ============================================================================
   
-  void _handleNewPollResponse(String pollId) {
-    // Invalidate poll cache to refresh
-    // ref?.read(pollsProvider.notifier).invalidateCache();
-    // ref?.read(pollsProvider.notifier).invalidatePoll(pollId);
+import '../providers/polls_provider.dart';
+import '../data/models/poll.dart';
+
+// ... existing code ...
+
+  // ============================================================================
+  // POLL HANDLER
+  // ============================================================================
+  
+  void _handleNewPollResponse(String msg) {
+    if (msg.isEmpty) return;
     
-    if (kDebugMode) {
-      print('HandleDataMessage: New poll response for poll $pollId');
+    try {
+      final data = jsonDecode(msg) as Map<String, dynamic>;
+      
+      // Determine if it's a new poll or a vote based on fields
+      if (data.containsKey('question')) {
+        // It's a new poll
+        final poll = Poll.fromJson(data);
+        ref?.read(pollsProvider.notifier).addPoll(poll);
+        
+        _showNotification('New poll: ${poll.question}', 'info');
+        
+        if (kDebugMode) {
+          print('HandleDataMessage: Received new poll ${poll.id}');
+        }
+      } else if (data.containsKey('pollId') && data.containsKey('optionId')) {
+        // It's a vote
+        final pollId = data['pollId'] as String;
+        final optionId = data['optionId'] as String;
+        final userId = data['userId'] as String;
+        
+        // This is a simplified vote handling. In a real app, you might receive the full updated votes list.
+        // attempting to find the poll and add the vote locally
+        // But ideally, the message should contain the full list of voters for that option or similar.
+        // For now, let's assume we receive the updated list of voters for that option or just the single vote.
+        
+        // If the payload has 'votes' list (userIds)
+        if (data.containsKey('votes')) {
+             final votes = (data['votes'] as List<dynamic>).map((e) => e as String).toList();
+             ref?.read(pollsProvider.notifier).updateVotes(pollId, optionId, votes);
+        } else {
+             // Fallback: manually fetch poll or add this single user (complex without current state knowledge)
+             // For now, we'll assume the message contains 'votes' as List<String>
+        }
+
+        if (kDebugMode) {
+           print('HandleDataMessage: Received vote for poll $pollId');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('HandleDataMessage: Failed to parse poll message - $e');
+      }
     }
   }
   
@@ -337,14 +384,17 @@ class HandleDataMessage {
     }
   }
   
+import '../providers/breakout_room_provider.dart';
+
+// ... existing code ...
+
   // ============================================================================
   // BREAKOUT ROOM HANDLER
   // ============================================================================
   
   void _handleBreakoutRoomInvitation(String roomId) {
     // Dispatch to breakout room provider
-    // ref?.read(breakoutRoomProvider.notifier).updateBreakoutRoom(roomId, body);
-    // ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(roomId);
+    ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(roomId);
     
     if (kDebugMode) {
       print('HandleDataMessage: Received breakout room invitation for $roomId');

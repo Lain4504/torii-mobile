@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../widgets/header/meeting_header.dart';
-import '../../widgets/main_area/video_grid.dart';
-import '../../widgets/footer/control_bar.dart';
-import '../../widgets/whiteboard/whiteboard_widget.dart';
+import '../../../../providers/breakout_room_provider.dart';
+
+// ... existing imports ...
 
 /// Meeting Room Screen
 /// 1:1 clone of apps/meet/src/components/app/index.tsx (main meeting view)
@@ -12,6 +9,14 @@ class MeetingRoomScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Listen for breakout room invitations
+    ref.listen(breakoutRoomProvider, (previous, next) {
+      if (next.receivedInvitationFor != null && 
+          next.receivedInvitationFor != previous?.receivedInvitationFor) {
+        _showBreakoutInvitation(context, ref, next.receivedInvitationFor!);
+      }
+    });
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       body: SafeArea(
@@ -38,6 +43,39 @@ class MeetingRoomScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showBreakoutInvitation(BuildContext context, WidgetRef ref, String roomId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Breakout Room Invitation'),
+        content: Text('You have been invited to join breakout room $roomId'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Decline
+              ref.read(breakoutRoomProvider.notifier).clearInvitation();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Decline'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Accept
+              ref.read(breakoutRoomProvider.notifier).clearInvitation();
+              Navigator.of(context).pop();
+              // TODO: Implement join logic
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Joining breakout room...')),
+              );
+            },
+            child: const Text('Join'),
+          ),
+        ],
       ),
     );
   }
