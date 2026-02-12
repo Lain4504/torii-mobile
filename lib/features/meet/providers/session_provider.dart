@@ -11,6 +11,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
+import '../core/nats/connect_nats.dart';
 
 part 'session_provider.freezed.dart';
 
@@ -94,6 +96,8 @@ class SessionState with _$SessionState {
 /// Session state notifier
 /// Matches: sessionSlice reducers in sessionSlice.ts
 class SessionNotifier extends StateNotifier<SessionState> {
+  ConnectNats? _connectNats;
+
   SessionNotifier() : super(SessionState.initial());
   
   /// Add JWT token
@@ -183,16 +187,51 @@ class SessionNotifier extends StateNotifier<SessionState> {
     state = state.copyWith(userDeviceType: deviceType);
   }
   
-  /// Update is cloud
-  /// Matches: updateIsCloud
-  void updateIsCloud(bool isCloud) {
-    state = state.copyWith(isCloud: isCloud);
+  /// Connect to NATS and LiveKit
+  /// This initializes the ConnectNats service and starts the connection process
+  Future<void> connect({
+    required List<String> natsWSUrls,
+    required String token,
+    required String roomId,
+    required String userId,
+    required String roomStreamName,
+    required nats_msg.NatsSubjects subjects,
+    required Function(String, String) setErrorState,
+    required Function(String) setRoomConnectionStatusState,
+    required Function(dynamic) setCurrentMediaServerConn,
+    required Ref ref,
+  }) async {
+    // Initialize ConnectNats
+    _connectNats = ConnectNats(
+      natsWSUrls: natsWSUrls,
+      token: token,
+      roomId: roomId,
+      userId: userId,
+      roomStreamName: roomStreamName,
+      subjects: subjects,
+      setErrorState: setErrorState,
+      setRoomConnectionStatusState: setRoomConnectionStatusState,
+      setCurrentMediaServerConn: setCurrentMediaServerConn,
+      ref: ref,
+    );
+
+    // Update state with token
+    addToken(token);
+
+    // Open connection
+    await _connectNats!.openConn();
+  }
+
+  /// Disconnect from session
+  Future<void> disconnect() async {
+    if (_connectNats != null) {
+      await _connectNats!.endSession('User requested disconnect');
+      _connectNats = null;
+    }
+    // Reset state
+    state = SessionState.initial();
   }
 }
-
-// ============================================================================
-// PROVIDER
-// ============================================================================
 
 /// Session provider
 /// Matches: sessionSlice in Redux store
