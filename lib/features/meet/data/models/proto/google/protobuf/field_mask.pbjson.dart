@@ -1,6 +1,6 @@
 // This is a generated file - do not edit.
 //
-// Generated from google/protobuf/empty.proto.
+// Generated from google/protobuf/field_mask.proto.
 
 // @dart = 3.3
 
@@ -14,11 +14,14 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-@$core.Deprecated('Use emptyDescriptor instead')
-const Empty$json = {
-  '1': 'Empty',
+@$core.Deprecated('Use fieldMaskDescriptor instead')
+const FieldMask$json = {
+  '1': 'FieldMask',
+  '2': [
+    {'1': 'paths', '3': 1, '4': 3, '5': 9, '10': 'paths'},
+  ],
 };
 
-/// Descriptor for `Empty`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List emptyDescriptor =
-    $convert.base64Decode('CgVFbXB0eQ==');
+/// Descriptor for `FieldMask`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List fieldMaskDescriptor =
+    $convert.base64Decode('CglGaWVsZE1hc2sSFAoFcGF0aHMYASADKAlSBXBhdGhz');

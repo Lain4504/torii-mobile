@@ -259,11 +259,7 @@ class MeetNotifier extends StateNotifier<MeetState> {
       
       if (!isActive) {
         state = state.copyWith(statusMessage: 'Creating room...');
-        final created = await _apiService.createRoom(roomId);
-        if (!created) {
-          state = state.copyWith(status: MeetStatus.error, errorMessage: 'Failed to create room');
-          return;
-        }
+        await _apiService.createRoom(roomId);
       }
       
       // 2. Get token
@@ -277,13 +273,15 @@ class MeetNotifier extends StateNotifier<MeetState> {
       );
       
       if (token == null) {
-        state = state.copyWith(status: MeetStatus.error, errorMessage: 'Failed to get join token');
-        return;
+        throw MeetApiException('Failed to retrieve join token');
       }
       
       // 3. Join with token
       await joinMeetingWithToken(token);
       
+    } on MeetApiException catch (e) {
+      if (kDebugMode) print('joinRoomById MeetApiException: $e');
+      state = state.copyWith(status: MeetStatus.error, errorMessage: e.message);
     } catch (e) {
       if (kDebugMode) print('joinRoomById error: $e');
       state = state.copyWith(status: MeetStatus.error, errorMessage: e.toString());
@@ -686,9 +684,9 @@ class MeetNotifier extends StateNotifier<MeetState> {
     if (state.roomId == null) return;
     try {
       final res = await _apiService.listPolls();
-      if (res.status) {
-        state = state.copyWith(polls: res.polls);
-      }
+      state = state.copyWith(polls: res.polls);
+    } on MeetApiException catch (e) {
+      if (kDebugMode) print('Failed to refresh polls (MeetApiException): ${e.message}');
     } catch (e) {
       if (kDebugMode) print('Failed to refresh polls: $e');
     }
@@ -707,13 +705,12 @@ class MeetNotifier extends StateNotifier<MeetState> {
         pollId: poll.id,
         selectedOption: Int64(optionId),
       );
-      final res = await _apiService.submitPollResponse(req);
-      if (!res.status) {
-        showNotification(res.msg);
-        return;
-      }
+      await _apiService.submitPollResponse(req);
       // Backend will broadcast NEW_POLL_RESPONSE; we also optimistically refresh.
       await _refreshPolls();
+    } on MeetApiException catch (e) {
+      if (kDebugMode) print('submitPollVote MeetApiException: ${e.message}');
+      showNotification(e.message);
     } catch (e) {
       if (kDebugMode) print('submitPollVote error: $e');
       showNotification('Failed to submit vote');
@@ -731,10 +728,10 @@ class MeetNotifier extends StateNotifier<MeetState> {
     if (!_isCurrentUserAdmin) return;
     try {
       final req = ApproveWaitingUsersReq(roomId: state.roomId, userId: userId);
-      final res = await _apiService.approveWaitingUsers(req);
-      if (!res.status) {
-        showNotification(res.msg);
-      }
+      await _apiService.approveWaitingUsers(req);
+    } on MeetApiException catch (e) {
+      if (kDebugMode) print('approveWaitingUser MeetApiException: ${e.message}');
+      showNotification(e.message);
     } catch (e) {
       if (kDebugMode) print('approveWaitingUser error: $e');
       showNotification('Failed to approve user');
@@ -752,10 +749,10 @@ class MeetNotifier extends StateNotifier<MeetState> {
         msg: 'Bạn đã bị từ chối truy cập vào phòng',
         blockUser: false,
       );
-      final res = await _apiService.removeParticipant(req);
-      if (!res.status) {
-        showNotification(res.msg);
-      }
+      await _apiService.removeParticipant(req);
+    } on MeetApiException catch (e) {
+      if (kDebugMode) print('rejectWaitingUser MeetApiException: ${e.message}');
+      showNotification(e.message);
     } catch (e) {
       if (kDebugMode) print('rejectWaitingUser error: $e');
       showNotification('Failed to reject user');
@@ -773,10 +770,10 @@ class MeetNotifier extends StateNotifier<MeetState> {
         muted: true,
         requestedUserId: state.userId ?? '',
       );
-      final res = await _apiService.muteUnmuteTrack(req);
-      if (!res.status) {
-        showNotification(res.msg);
-      }
+      await _apiService.muteUnmuteTrack(req);
+    } on MeetApiException catch (e) {
+      if (kDebugMode) print('muteUser MeetApiException: ${e.message}');
+      showNotification(e.message);
     } catch (e) {
       if (kDebugMode) print('muteUser error: $e');
       showNotification('Failed to mute user');
@@ -813,10 +810,10 @@ class MeetNotifier extends StateNotifier<MeetState> {
         requestedUserId: userId,
         task: task,
       );
-      final res = await _apiService.switchPresenter(req);
-      if (!res.status) {
-        showNotification(res.msg);
-      }
+      await _apiService.switchPresenter(req);
+    } on MeetApiException catch (e) {
+      if (kDebugMode) print('switchPresenterForUser MeetApiException: ${e.message}');
+      showNotification(e.message);
     } catch (e) {
       if (kDebugMode) print('switchPresenterForUser error: $e');
       showNotification('Failed to update presenter');
@@ -834,10 +831,10 @@ class MeetNotifier extends StateNotifier<MeetState> {
         msg: 'Bạn đã bị loại khỏi phòng bởi quản trị viên',
         blockUser: false,
       );
-      final res = await _apiService.removeParticipant(req);
-      if (!res.status) {
-        showNotification(res.msg);
-      }
+      await _apiService.removeParticipant(req);
+    } on MeetApiException catch (e) {
+      if (kDebugMode) print('removeUserFromRoom MeetApiException: ${e.message}');
+      showNotification(e.message);
     } catch (e) {
       if (kDebugMode) print('removeUserFromRoom error: $e');
       showNotification('Failed to remove user');

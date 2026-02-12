@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/presentation/providers/meet_provider.dart';
+import 'package:torii_app/features/meet/presentation/widgets/chat_bottom_sheet.dart';
+import 'package:torii_app/features/meet/presentation/widgets/polls_bottom_sheet.dart';
+import 'package:torii_app/features/meet/presentation/widgets/participants_bottom_sheet.dart';
 
 class MeetingControls extends ConsumerWidget {
   const MeetingControls({super.key});
@@ -11,14 +14,14 @@ class MeetingControls extends ConsumerWidget {
     final notifier = ref.read(meetControllerProvider.notifier);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A).withOpacity(0.95),
+        color: const Color(0xFF1A1A1A).withValues(alpha: 0.95),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -50,33 +53,134 @@ class MeetingControls extends ConsumerWidget {
               onPressed: () => notifier.toggleCam(),
               label: 'Cam',
             ),
-            // Hand Raise
+            // Chat
             _ControlButton(
-              icon: state.localMetadata?.raisedHand ?? false ? Icons.back_hand : Icons.back_hand_outlined,
-              color: state.localMetadata?.raisedHand ?? false ? Colors.yellowAccent : Colors.white70,
-              onPressed: () => notifier.toggleHandRaise(),
-              label: 'Giơ tay',
-
+              icon: Icons.chat_bubble_outline,
+              color: Colors.white70,
+              onPressed: () => _showChat(context),
+              label: 'Chat',
             ),
-            // Speaker Toggle
+            // Participants
             _ControlButton(
-              icon: state.isSpeakerphoneOn ? Icons.volume_up : Icons.phone_android,
-              color: state.isSpeakerphoneOn ? Colors.purple : Colors.grey,
-              onPressed: () => notifier.toggleSpeakerphone(),
-              label: 'Loa',
-
+              icon: Icons.people_alt_outlined,
+              color: Colors.white70,
+              onPressed: () => _showParticipants(context),
+              label: 'Mọi người',
             ),
-            // Leave Button
-            _ControlButton(
-              icon: Icons.call_end,
-              color: Colors.red,
-              onPressed: () => _confirmLeave(context, notifier),
-              label: 'Rời',
-
+            // More Menu
+            PopupMenuButton<String>(
+              offset: const Offset(0, -180),
+              color: const Color(0xFF2E2E3E),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              icon: _ControlButtonIcon(
+                icon: Icons.more_horiz,
+                color: Colors.white70,
+                label: 'Thêm',
+              ),
+              onSelected: (value) {
+                switch (value) {
+                  case 'hand':
+                    notifier.toggleHandRaise();
+                    break;
+                  case 'speaker':
+                    notifier.toggleSpeakerphone();
+                    break;
+                  case 'polls':
+                    _showPolls(context);
+                    break;
+                  case 'leave':
+                    _confirmLeave(context, notifier);
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'hand',
+                  child: Row(
+                    children: [
+                      Icon(
+                        state.localMetadata?.raisedHand ?? false ? Icons.back_hand : Icons.back_hand_outlined,
+                        color: state.localMetadata?.raisedHand ?? false ? Colors.yellowAccent : Colors.white70,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        state.localMetadata?.raisedHand ?? false ? 'Hạ tay' : 'Giơ tay',
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'speaker',
+                  child: Row(
+                    children: [
+                      Icon(
+                        state.isSpeakerphoneOn ? Icons.volume_up : Icons.phone_android,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        state.isSpeakerphoneOn ? 'Loa ngoài: Bật' : 'Loa ngoài: Tắt',
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'polls',
+                  child: Row(
+                    children: [
+                      Icon(Icons.poll_outlined, color: Colors.white70, size: 20),
+                      const SizedBox(width: 12),
+                      Text('Bình chọn', style: TextStyle(color: Colors.white, fontSize: 14)),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(height: 1),
+                PopupMenuItem(
+                  value: 'leave',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.call_end, color: Colors.redAccent, size: 20),
+                      const SizedBox(width: 12),
+                      const Text('Rời cuộc họp', style: TextStyle(color: Colors.redAccent, fontSize: 14)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showChat(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ChatBottomSheet(),
+    );
+  }
+
+  void _showPolls(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const PollsBottomSheet(),
+    );
+  }
+
+  void _showParticipants(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ParticipantsBottomSheet(),
     );
   }
 
@@ -85,14 +189,11 @@ class MeetingControls extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Rời cuộc họp'),
-
         content: const Text('Bạn có chắc chắn muốn rời cuộc họp không?'),
-
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Hủy'),
-
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
@@ -101,10 +202,50 @@ class MeetingControls extends ConsumerWidget {
               Navigator.pop(context);
             },
             child: const Text('Rời'),
-
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ControlButtonIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+
+  const _ControlButtonIcon({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+            border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -134,9 +275,9 @@ class _ControlButton extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               shape: BoxShape.circle,
-              border: Border.all(color: color.withOpacity(0.4), width: 1.5),
+              border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
             ),
             child: Icon(icon, color: color, size: 28),
           ),
