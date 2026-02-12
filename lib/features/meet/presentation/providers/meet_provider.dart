@@ -12,6 +12,7 @@ import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart
 import 'package:torii_app/features/meet/data/models/proto/wajlc_analytics.pb.dart' as analytics;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart' as data_msg;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_gen_token.pb.dart' as gen_token;
+import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls;
 
 enum MeetStatus { initial, signaling, natsConnecting, natsConnected, deviceSetup, mediaConnecting, connected, disconnected, error }
 
@@ -36,6 +37,7 @@ class MeetState {
   final Map<String, gen_token.UserMetadata> participantsMetadata;
   final bool isRecording;
   final String? notification;
+  final List<polls.PollInfo> polls;
 
   MeetState({
     this.status = MeetStatus.initial,
@@ -58,6 +60,7 @@ class MeetState {
     this.participantsMetadata = const {},
     this.isRecording = false,
     this.notification,
+    this.polls = const [],
   });
 
   MeetState copyWith({
@@ -83,6 +86,7 @@ class MeetState {
     bool? isRecording,
     String? notification,
     bool clearNotification = false,
+    List<polls.PollInfo>? polls,
   }) {
     return MeetState(
       status: status ?? this.status,
@@ -105,6 +109,7 @@ class MeetState {
       participantsMetadata: participantsMetadata ?? this.participantsMetadata,
       isRecording: isRecording ?? this.isRecording,
       notification: clearNotification ? null : (notification ?? this.notification),
+      polls: polls ?? this.polls,
     );
   }
 }
@@ -402,9 +407,11 @@ class MeetNotifier extends StateNotifier<MeetState> {
 
       case nats_msg.NatsMsgServerToClientEvents.POLL_CREATED:
         showNotification('A new poll has been created!');
+        _refreshPolls();
         break;
       case nats_msg.NatsMsgServerToClientEvents.POLL_CLOSED:
         showNotification('The poll has been closed.');
+        _refreshPolls();
         break;
       case nats_msg.NatsMsgServerToClientEvents.JOIN_BREAKOUT_ROOM:
         showNotification('Join breakout room: ${payload.msg}');
@@ -661,6 +668,10 @@ class MeetNotifier extends StateNotifier<MeetState> {
       case data_msg.DataMsgBodyType.USER_VISIBILITY_CHANGE:
         // Admin logic
         break;
+      case data_msg.DataMsgBodyType.NEW_POLL_RESPONSE:
+        // A user submitted a poll response, refresh polls list
+        _refreshPolls();
+        break;
       default:
         break;
     }
@@ -669,6 +680,44 @@ class MeetNotifier extends StateNotifier<MeetState> {
   void _handleWhiteboardMessage(data_msg.DataChannelMessage payload) {
     // Basic whiteboard message handling (log for now)
     if (kDebugMode) print('Whiteboard Message from ${payload.fromUserId}');
+  }
+
+  Future<void> _refreshPolls() async {
+    if (state.roomId == null) return;
+    try {
+      final res = await _apiService.listPolls();
+      if (res.status) {
+        state = state.copyWith(polls: res.polls);
+      }
+    } catch (e) {
+      if (kDebugMode) print('Failed to refresh polls: $e');
+    }
+  }
+
+  /// Public method to allow UI to trigger manual refresh.
+  Future<void> refreshPollsPublic() async => _refreshPolls();
+
+  Future<void> submitPollVote(polls.PollInfo poll, int optionId) async {
+    if (state.roomId == null || state.userId == null || state.localUser == null) return;
+    try {
+      final req = polls.SubmitPollResponseReq(
+        roomId: state.roomId!,
+        userId: state.userId!,
+        name: state.localUser!.name,
+        pollId: poll.id,
+        selectedOption: optionId,
+      );
+      final res = await _apiService.submitPollResponse(req);
+      if (!res.status) {
+        showNotification(res.msg);
+        return;
+      }
+      // Backend will broadcast NEW_POLL_RESPONSE; we also optimistically refresh.
+      await _refreshPolls();
+    } catch (e) {
+      if (kDebugMode) print('submitPollVote error: $e');
+      showNotification('Failed to submit vote');
+    }
   }
 
   void showNotification(String msg) {

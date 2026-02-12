@@ -4,9 +4,11 @@ import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:torii_app/core/config/app_config.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls;
 import 'package:torii_app/services/auth/token_service.dart';
 
 final meetApiServiceProvider = Provider<MeetApiService>((ref) {
@@ -62,6 +64,18 @@ class MeetApiService {
 
   void setManualToken(String? token) {
     _manualToken = token;
+  }
+
+  Future<T> _postProto<T extends $pb.GeneratedMessage>({
+    required String path,
+    required $pb.GeneratedMessage request,
+    required T Function(List<int> bytes) fromBuffer,
+  }) async {
+    final response = await _dio.post(
+      path,
+      data: request.writeToBuffer(),
+    );
+    return fromBuffer(response.data as List<int>);
   }
 
   Future<VerifyTokenRes> verifyToken({bool isProduction = false}) async {
@@ -174,5 +188,90 @@ class MeetApiService {
       if (kDebugMode) print('getJoinToken error: $e');
       return null;
     }
+  }
+
+  // --- Polls (protobuf, /api/polls/*) ---
+
+  Future<polls.PollResponse> listPolls() async {
+    // RoomId is taken from JWT on the server side; no body is required.
+    final response = await _dio.get('/api/polls/listPolls');
+    return polls.PollResponse.fromBuffer(response.data as List<int>);
+  }
+
+  Future<polls.PollResponse> createPoll(polls.CreatePollReq req) async {
+    return _postProto(
+      path: '/api/polls/create',
+      request: req,
+      fromBuffer: (bytes) => polls.PollResponse.fromBuffer(bytes),
+    );
+  }
+
+  Future<polls.PollResponse> submitPollResponse(polls.SubmitPollResponseReq req) async {
+    return _postProto(
+      path: '/api/polls/submitResponse',
+      request: req,
+      fromBuffer: (bytes) => polls.PollResponse.fromBuffer(bytes),
+    );
+  }
+
+  Future<polls.PollResponse> closePoll(String pollId) async {
+    final req = polls.ClosePollReq(pollId: pollId);
+    return _postProto(
+      path: '/api/polls/closePoll',
+      request: req,
+      fromBuffer: (bytes) => polls.PollResponse.fromBuffer(bytes),
+    );
+  }
+
+  // --- Waiting room (protobuf, /api/waitingRoom/*) ---
+
+  Future<CommonResponse> approveWaitingUsers(ApproveWaitingUsersReq req) async {
+    return _postProto(
+      path: '/api/waitingRoom/approveUsers',
+      request: req,
+      fromBuffer: (bytes) => CommonResponse.fromBuffer(bytes),
+    );
+  }
+
+  Future<CommonResponse> updateWaitingRoomMessage(UpdateWaitingRoomMessageReq req) async {
+    return _postProto(
+      path: '/api/waitingRoom/updateMsg',
+      request: req,
+      fromBuffer: (bytes) => CommonResponse.fromBuffer(bytes),
+    );
+  }
+
+  // --- Participant controls (protobuf, /api/*) ---
+
+  Future<CommonResponse> updateUserLockSettings(UpdateUserLockSettingsReq req) async {
+    return _postProto(
+      path: '/api/updateLockSettings',
+      request: req,
+      fromBuffer: (bytes) => CommonResponse.fromBuffer(bytes),
+    );
+  }
+
+  Future<CommonResponse> muteUnmuteTrack(MuteUnMuteTrackReq req) async {
+    return _postProto(
+      path: '/api/muteUnmuteTrack',
+      request: req,
+      fromBuffer: (bytes) => CommonResponse.fromBuffer(bytes),
+    );
+  }
+
+  Future<CommonResponse> removeParticipant(RemoveParticipantReq req) async {
+    return _postProto(
+      path: '/api/removeParticipant',
+      request: req,
+      fromBuffer: (bytes) => CommonResponse.fromBuffer(bytes),
+    );
+  }
+
+  Future<CommonResponse> switchPresenter(SwitchPresenterReq req) async {
+    return _postProto(
+      path: '/api/switchPresenter',
+      request: req,
+      fromBuffer: (bytes) => CommonResponse.fromBuffer(bytes),
+    );
   }
 }
