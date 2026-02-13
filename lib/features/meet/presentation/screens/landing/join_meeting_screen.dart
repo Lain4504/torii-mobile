@@ -308,7 +308,9 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
           if (kDebugMode) {
             print('Connection Status: $status');
           }
-          if (status == 'receiving-data') {
+          // Chỉ cho phép vào phòng khi backend báo trạng thái "ready"
+          // (tương đương media-server-conn-established trên web).
+          if (status == 'ready') {
             if (mounted) {
               ref.read(sessionProvider.notifier).toggleStartup(false);
             }

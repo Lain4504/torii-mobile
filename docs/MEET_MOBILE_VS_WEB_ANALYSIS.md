@@ -21,28 +21,28 @@ Clone 1:1 logic core và build UI phù hợp mobile cho meet frontend, đảm b�
 
 ### 2.1 Join / Token flow
 - **Web**: `verifyToken()` lấy token từ URL → gọi API verifyToken (protobuf) → nhận `natsWsUrls`, `roomId`, `userId`, `roomStreamName`, `natsSubjects` → `startNatsConn()`.
-- **Mobile**: `JoinMeetingScreen._handleJoin()` dùng **placeholder** (`natsWSUrls`, `token`, `roomId` hardcode). **MeetApiService.verifyToken()** đã có nhưng không được gọi.
-- **Cần**: Gọi `MeetApiService.verifyToken()` (với token từ deep link / auth), parse `VerifyTokenRes` và truyền vào `sessionProvider.notifier.connect()`.
+- **Mobile**: `JoinMeetingScreen._handleJoin()` nhận `JoinMeetingArgs.token` từ `ModalRoute.settings.arguments`, gọi `MeetApiService.verifyToken()` (với token này), parse `VerifyTokenRes` để lấy `natsWsUrls`, `roomId`, `userId`, `roomStreamName`, `natsSubjects`, `serverVersion`, sau đó truyền tất cả vào `sessionProvider.notifier.connect()`. Chỉ còn fallback placeholder trong `kDebugMode` khi không có token.
+- **Trạng thái**: ✅ ĐÃ ĐỒNG BỘ (1:1 với web về luồng verifyToken + startNatsConn).
 
 ### 2.2 Connection status → isAppReady
-- **Web**: `roomConnectionStatus === 'ready'` mới tắt loading; `setIsAppReady(true)` khi user bấm Join và **media-server-conn-established**.
-- **Mobile**: Chỉ khi `status == 'receiving-data'` thì `toggleStartup(false)` → vào phòng. Chưa tách rõ “NATS ready” vs “LiveKit established”; có thể vào màn hình phòng trước khi media sẵn sàng.
-- **Cần**: Đồng bộ flow: chỉ coi “vào phòng” khi đã có trạng thái tương đương media-server-conn-established (LiveKit connected) nếu backend hỗ trợ.
+- **Web**: `openConn()` đặt `roomConnectionStatus = 'receiving-data'`; sau `RES_INITIAL_DATA` thì gọi `setRoomConnectionStatus('ready')`. Màn Landing chỉ tắt loading / `setIsAppReady(true)` khi **media-server-conn-established** (LiveKit đã connect).
+- **Mobile**: `ConnectNats.openConn()` đặt `status = 'receiving-data'`, sau `RES_INITIAL_DATA` (`_handleInitialData`) thì gọi `_setRoomConnectionStatusState('ready')` và `updateIsNatsServerConnected(true)`. `JoinMeetingScreen._handleJoin()` chỉ khi `status == 'ready'` mới `toggleStartup(false)` → vào phòng (trước đây là `'receiving-data'`).
+- **Trạng thái**: ✅ ĐÃ ĐỒNG BỘ ở mức NATS + initial data (`'ready'` giống web). Phần tách riêng trạng thái LiveKit (`media-server-conn-established`) sẽ được map sau khi backend/mobile hoàn thiện callback tương đương.
 
 ### 2.3 Initial data (RES_INITIAL_DATA)
-- **Web**: Initial data cập nhật room, user, participants, v.v. vào store.
-- **Mobile**: `ConnectNats._handleInitialData()` set `_userName`, `_isAdmin`, `_currentRoomInfo` nhưng **TODO**: “Update providers with initial data” → không cập nhật sessionProvider (currentUser, currentRoom), participantProvider (danh sách user), chat.
-- **Cần**: Trong `_handleInitialData` parse `NatsInitialData`, gọi `sessionProvider.addCurrentUser`, `sessionProvider.addCurrentRoom` (nếu có), và participantProvider với danh sách từ initial data (nếu backend gửi).
+- **Web**: `handleInitialData()` parse `NatsInitialData`, cập nhật room (`handleRoomData.setRoomInfo` → `currentRoom` + metadata), current user (`handleParticipants.addLocalParticipantInfo` → `currentUser` + participants), sau đó khởi tạo media server (LiveKit).
+- **Mobile**: `_handleInitialData()` parse `NatsInitialData` từ `payload.binMsg`, gọi `handleRoomData.setRoomInfo(initialData.room)` (cập nhật `currentRoom` + metadata trong `sessionProvider`), `handleParticipants.addLocalParticipantInfo(initialData.localUser)` (cập nhật `sessionProvider.currentUser` + `participantProvider`), set `_userName`/`_isAdmin` và đánh dấu NATS ready (`updateIsNatsServerConnected(true)` + `_setRoomConnectionStatusState('ready')`).
+- **Trạng thái**: ✅ ĐÃ ĐỒNG BỘ luồng cập nhật initial room/user/participants với web.
 
 ### 2.4 HandleSystemData – Polls & Breakout
 - **Web**: `POLL_CREATED` → `pollsApi.util.invalidateTags(['List', 'PollsStats'])`; `POLL_CLOSED` → invalidate theo pollId; `BREAKOUT_ROOM_ENDED` → `breakoutRoomApi.util.invalidateTags(['List', 'My_Rooms'])`.
-- **Mobile**: Trong `handle_system_data.dart` các dòng invalidate **đang comment**: không refetch polls khi có poll mới/đóng, không refresh breakout list khi phòng kết thúc.
-- **Cần**: Bật lại logic: khi POLL_CREATED/POLL_CLOSED gọi refetch polls (xem 2.5); khi BREAKOUT_ROOM_ENDED clear/invalidate state breakout (nếu có API hoặc state local).
+- **Mobile**: `HandleSystemData.handlePoll()` case `POLL_CREATED` thêm `UserNotification('New poll available')` và gọi `_refetchPolls()`; case `POLL_CLOSED` cũng gọi `_refetchPolls()`. `_refetchPolls()` dùng `MeetApiService.listPolls()` + `pollsFromPollResponse()` và cập nhật `pollsProvider.setPollsFromApi(...)`. `handleBreakoutRoom()` case `BREAKOUT_ROOM_ENDED` gọi `breakoutRoomProvider.clearInvitation()`.
+- **Trạng thái**: ✅ ĐÃ ĐỒNG BỘ: `_refetchPolls()` là bản mobile tương đương `invalidateTags` của web; breakout room ended cũng clear state như web.
 
 ### 2.5 Polls – Load từ API & invalidation
 - **Web**: RTK Query `listPolls`, `getPollsStats`, v.v.; khi invalidateTags thì tự refetch.
-- **Mobile**: `PollsBottomSheet` chỉ đọc `pollsProvider.polls`; polls **không được load từ API** khi mở sheet. `PollsNotifier` có addPoll/updatePoll/removePoll nhưng không có `refetchFromApi`.
-- **Cần**: (1) Thêm `refetchFromApi(MeetApiService)` (hoặc tương đương) vào PollsNotifier, gọi `listPolls()` và sync state. (2) Khi mở PollsBottomSheet lần đầu (hoặc khi có POLL_CREATED/POLL_CLOSED) gọi refetch.
+- **Mobile**: `polls_provider.dart` có `pollsFromPollResponse(PollResponse)` + `setPollsFromApi(List<Poll>)` để replace list từ API. `PollsBottomSheet` trong `initState` gọi `_loadPolls()` (dùng `MeetApiService.listPolls()` + `setPollsFromApi`), hỗ trợ pull-to-refresh (`onRefresh: () => _loadPolls(force: true)`) và callback `onPollUpdated` từ mỗi `PollItem` để refetch sau create/close/vote. Đồng thời, `HandleSystemData._refetchPolls()` được gọi khi `POLL_CREATED`/`POLL_CLOSED`.
+- **Trạng thái**: ✅ ĐÃ ĐỒNG BỘ: Mobile đã load polls từ API khi mở sheet, và refetch khi có invalidate giống web (POLL_CREATED/POLL_CLOSED + user refresh).
 
 ### 2.6 Notification (HandleSystemData)
 - **Web**: `addUserNotification(..., newInstance: true)`; `handlePoll` dùng i18n (`i18n.t('polls.new-poll')`); `playNotification()` dispatch `updatePlayAudioNotification(true)`.
