@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../providers/session_provider.dart';
 import 'package:flutter/foundation.dart';
+import '../../../providers/session_provider.dart';
+import '../../../data/datasources/meet_api_service.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import '../../widgets/landing/join_form.dart';
 import '../../widgets/landing/device_preview.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 
 /// Join Meeting Screen
 /// 1:1 clone of apps/meet/src/components/landing/index.tsx
+/// Pass [JoinMeetingArgs.token] via [ModalRoute.settings.arguments] to use verifyToken API (e.g. from deep link).
 class JoinMeetingScreen extends ConsumerStatefulWidget {
   const JoinMeetingScreen({super.key});
 
   @override
   ConsumerState<JoinMeetingScreen> createState() => _JoinMeetingScreenState();
+}
+
+/// Arguments for join meeting (e.g. from deep link). [token] is the JWT for verifyToken + NATS/LiveKit.
+class JoinMeetingArgs {
+  final String? token;
+  const JoinMeetingArgs({this.token});
 }
 
 class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
@@ -180,25 +188,101 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
     setState(() {
       _loadingMessage = 'Đang kết nối đến máy chủ...';
     });
-    
+
+    final args = ModalRoute.of(context)?.settings.arguments as JoinMeetingArgs?;
+    final accessToken = args?.token;
+
     try {
-      // TODO: Get these values from arguments or API
-      const natsWSUrls = ['wss://nats.torii.edu.vn']; // Placeholder
-      const token = 'test-token'; // Placeholder
-      const roomId = 'test-room'; 
-      final userId = 'user-${DateTime.now().millisecondsSinceEpoch}';
-      const roomStreamName = 'ROOM_test-room';
-      
-      // Default subjects
-      final subjects = nats_msg.NatsSubjects(
-        systemApiWorker: 'system.worker',
-        systemJsWorker: 'system.js',
-        systemPublic: 'system.public',
-        systemPrivate: 'system.private',
-        chat: 'chat',
-        whiteboard: 'whiteboard',
-        dataChannel: 'data',
-      );
+      String token;
+      List<String> natsWSUrls;
+      String roomId;
+      String userId;
+      String roomStreamName;
+      nats_msg.NatsSubjects subjects;
+
+      if (accessToken != null && accessToken.isNotEmpty) {
+        // Use verifyToken API (1:1 with web flow)
+        setState(() {
+          _loadingMessage = 'Đang xác thực token...';
+        });
+        final api = ref.read(meetApiServiceProvider);
+        api.setManualToken(accessToken);
+        final res = await api.verifyToken(isProduction: kReleaseMode);
+        if (!mounted) return;
+        if (!res.status) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(res.msg.isNotEmpty ? res.msg : 'Xác thực token thất bại'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          setState(() => _loadingMessage = null);
+          return;
+        }
+        if (res.natsWsUrls.isEmpty ||
+            res.roomId.isEmpty ||
+            res.userId.isEmpty ||
+            res.roomStreamName.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Thiếu thông tin phòng từ server'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          setState(() => _loadingMessage = null);
+          return;
+        }
+        token = accessToken;
+        natsWSUrls = res.natsWsUrls;
+        roomId = res.roomId;
+        userId = res.userId;
+        roomStreamName = res.roomStreamName;
+        subjects = res.hasNatsSubjects()
+            ? res.natsSubjects
+            : nats_msg.NatsSubjects(
+                systemApiWorker: 'system.worker',
+                systemJsWorker: 'system.js',
+                systemPublic: 'system.public',
+                systemPrivate: 'system.private',
+                chat: 'chat',
+                whiteboard: 'whiteboard',
+                dataChannel: 'data',
+              );
+        ref.read(sessionProvider.notifier).addServerVersion(res.serverVersion);
+      } else {
+        // Fallback for dev: placeholder (no verifyToken)
+        if (kDebugMode) {
+          natsWSUrls = ['wss://nats.torii.edu.vn'];
+          token = 'test-token';
+          roomId = 'test-room';
+          userId = 'user-${DateTime.now().millisecondsSinceEpoch}';
+          roomStreamName = 'ROOM_test-room';
+          subjects = nats_msg.NatsSubjects(
+            systemApiWorker: 'system.worker',
+            systemJsWorker: 'system.js',
+            systemPublic: 'system.public',
+            systemPrivate: 'system.private',
+            chat: 'chat',
+            whiteboard: 'whiteboard',
+            dataChannel: 'data',
+          );
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Vui lòng mở link từ email hoặc LMS để tham gia phòng.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          setState(() => _loadingMessage = null);
+          return;
+        }
+      }
+
+      setState(() {
+        _loadingMessage = 'Đang kết nối đến máy chủ...';
+      });
 
       await ref.read(sessionProvider.notifier).connect(
         natsWSUrls: natsWSUrls,
@@ -225,10 +309,9 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
             print('Connection Status: $status');
           }
           if (status == 'receiving-data') {
-             // Connection successful
-             if (mounted) {
-               ref.read(sessionProvider.notifier).toggleStartup(false);
-             }
+            if (mounted) {
+              ref.read(sessionProvider.notifier).toggleStartup(false);
+            }
           }
         },
         setCurrentMediaServerConn: (conn) {
@@ -237,7 +320,6 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
         initialAudioEnabled: _isMicEnabled,
         initialVideoEnabled: _isCameraEnabled,
       );
-      
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

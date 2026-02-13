@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/polls_provider.dart';
+import '../../../data/datasources/meet_api_service.dart';
+import '../../../providers/polls_provider.dart' as polls_provider;
+import '../../../data/models/poll.dart';
 import 'poll_create.dart';
 import 'poll_item.dart';
 
@@ -16,6 +19,37 @@ class PollsBottomSheet extends ConsumerStatefulWidget {
 
 class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
   bool _isCreating = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load polls when bottom sheet opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPolls();
+    });
+  }
+
+  Future<void> _loadPolls({bool force = false}) async {
+    if (_isLoading && !force) return;
+    setState(() => _isLoading = true);
+    try {
+      final api = ref.read(meetApiServiceProvider);
+      final response = await api.listPolls();
+      final polls = polls_provider.pollsFromPollResponse(response);
+      ref.read(pollsProvider.notifier).setPollsFromApi(polls);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load polls: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +105,10 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
           Expanded(
             child: _isCreating 
               ? PollCreate(
-                  onPollCreated: () => setState(() => _isCreating = false),
+                  onPollCreated: () {
+                    setState(() => _isCreating = false);
+                    _loadPolls(force: true); // Reload polls after creation
+                  },
                 )
               : _buildPollList(context, ref),
           ),
@@ -83,6 +120,12 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
   Widget _buildPollList(BuildContext context, WidgetRef ref) {
     final pollsState = ref.watch(pollsProvider);
     final polls = pollsState.polls;
+
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
     if (polls.isEmpty) {
       return Center(
@@ -114,15 +157,26 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: polls.length,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: PollItem(poll: polls[index]),
-        );
-      },
+    // Sort by created date (newest first)
+    final sortedPolls = List<Poll>.from(polls)
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    return RefreshIndicator(
+      onRefresh: () => _loadPolls(force: true),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: sortedPolls.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: PollItem(
+              poll: sortedPolls[index],
+              serialNum: sortedPolls.length - index,
+              onPollUpdated: _loadPolls,
+            ),
+          );
+        },
+      ),
     );
   }
 }

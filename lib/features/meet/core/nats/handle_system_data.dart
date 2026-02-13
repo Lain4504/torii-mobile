@@ -17,6 +17,8 @@ import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
 import 'package:torii_app/features/meet/providers/insights_ai_text_chat_provider.dart';
 import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
+import 'package:torii_app/features/meet/providers/polls_provider.dart';
+import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/core/notification_sound_service.dart';
 
 class HandleSystemData {
@@ -82,35 +84,20 @@ class HandleSystemData {
   void handlePoll(nats_msg.NatsMsgServerToClient payload) {
     switch (payload.event) {
       case nats_msg.NatsMsgServerToClientEvents.POLL_CREATED:
-        // Dispatch notification
         ref?.read(roomSettingsProvider.notifier).addUserNotification(
-          UserNotification(
+          const UserNotification(
             message: 'New poll available',
             typeOption: 'info',
           ),
         );
-        // ref?.read(roomSettingsProvider.notifier).addUserNotification(
-        //   message: 'Bình chọn mới',
-        //   typeOption: 'info',
-        //   notificationCat: 'new-poll-created',
-        //   autoClose: false,
-        // );
-        
-        // Invalidate polls cache
-        // In Flutter, this would trigger a refetch from API
-        // ref?.read(pollsProvider.notifier).invalidateCache();
-        // ref?.read(pollsProvider.notifier).invalidateTags(['List', 'PollsStats']);
-        
+        _refetchPolls();
         if (kDebugMode) {
           print('HandleSystemData: New poll created');
         }
         break;
         
       case nats_msg.NatsMsgServerToClientEvents.POLL_CLOSED:
-        // Invalidate poll cache for specific poll
-        // ref?.read(pollsProvider.notifier).invalidatePoll(pollId);
-        // ref?.read(pollsProvider.notifier).invalidatePoll(payload.msg);
-        
+        _refetchPolls();
         if (kDebugMode) {
           print('HandleSystemData: Poll closed - ${payload.msg}');
         }
@@ -141,10 +128,7 @@ class HandleSystemData {
         break;
         
       case nats_msg.NatsMsgServerToClientEvents.BREAKOUT_ROOM_ENDED:
-        // Invalidate breakout room cache
-        // ref?.read(breakoutRoomProvider.notifier).invalidateCache();
-        // ref?.read(breakoutRoomProvider.notifier).invalidateTags(['List', 'My_Rooms']);
-        
+        ref?.read(breakoutRoomProvider.notifier).clearInvitation();
         if (kDebugMode) {
           print('HandleSystemData: Breakout room ended');
         }
@@ -211,6 +195,24 @@ class HandleSystemData {
     }
   }
   
+  /// Refetch polls from API and update polls provider (matches web invalidateTags).
+  void _refetchPolls() {
+    final r = ref;
+    if (r == null) return;
+    Future(() async {
+      try {
+        final api = r.read(meetApiServiceProvider);
+        final response = await api.listPolls();
+        final list = pollsFromPollResponse(response);
+        r.read(pollsProvider.notifier).setPollsFromApi(list);
+      } catch (e) {
+        if (kDebugMode) {
+          print('HandleSystemData: Refetch polls failed - $e');
+        }
+      }
+    });
+  }
+
   /// Play notification sound when enabled in settings (matches web: updatePlayAudioNotification + UI plays sound)
   void _playNotificationIfEnabled() {
     final playSound = ref?.read(roomSettingsProvider).playAudioNotification ?? false;

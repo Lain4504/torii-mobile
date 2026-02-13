@@ -31,6 +31,37 @@ class HandleParticipants {
     required this.connectNats,
     this.ref,
   });
+
+  /// Add local user from initial data (matches addLocalParticipantInfo in HandleParticipants.ts).
+  /// Updates session currentUser and participant list.
+  void addLocalParticipantInfo(nats_msg.NatsKvUserInfo info) {
+    final metadata = info.hasMetadata() && info.metadata.isNotEmpty
+        ? UserMetadata.fromJson(jsonDecode(info.metadata))
+        : const UserMetadata();
+    final isRecorder = _isUserRecorder(info.userId);
+    final currentUser = CurrentUser(
+      sid: info.userSid,
+      userId: info.userId,
+      name: info.name,
+      isRecorder: isRecorder,
+      metadata: metadata,
+    );
+    ref?.read(sessionProvider.notifier).addCurrentUser(currentUser);
+    ref?.read(participantProvider.notifier).addParticipant(
+      ParticipantInfo(
+        userId: info.userId,
+        sid: info.userSid,
+        name: info.name,
+        metadata: metadata,
+      ),
+    );
+    ref?.read(bottomIconsProvider.notifier).updateIsActiveRaisehand(
+      metadata.isHandRaised || metadata.raisedHand,
+    );
+    if (kDebugMode) {
+      print('HandleParticipants: Local user set - ${info.name}');
+    }
+  }
   
   /// Handle user joined event
   /// Matches: addRemoteParticipant() in HandleParticipants.ts

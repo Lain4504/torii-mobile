@@ -485,38 +485,41 @@ class ConnectNats {
     }
   }
   
-  /// Handle initial data
+  /// Handle initial data (1:1 with web handleInitialData).
+  /// Updates room info, local user, and connection status.
   void _handleInitialData(nats_msg.NatsMsgServerToClient payload) {
     if (kDebugMode) {
       print('ConnectNats: Received initial data');
     }
-    
-    // Decode initial data from binMsg
+
     if (!payload.hasBinMsg()) return;
-    
+
     final initialData = nats_msg.NatsInitialData.fromBuffer(payload.binMsg);
-    if (!initialData.hasLocalUser()) return;
-    
-    // Set current user info
+    if (!initialData.hasRoom() || !initialData.hasLocalUser()) {
+      if (kDebugMode) {
+        print('ConnectNats: Initial data missing room or localUser');
+      }
+      return;
+    }
+
+    // 1. Room info -> HandleRoomData.setRoomInfo
+    handleRoomData.setRoomInfo(initialData.room).then((room) {
+      _currentRoomInfo = room;
+    });
+
+    // 2. Local user -> HandleParticipants.addLocalParticipantInfo + session/participant providers
+    handleParticipants.addLocalParticipantInfo(initialData.localUser);
     _userName = initialData.localUser.name;
     _isAdmin = initialData.localUser.isAdmin;
-    
-    // Store room info
-    _currentRoomInfo = {
-      'roomId': _roomId,
-      'metadata': initialData.room.metadata,
-    };
-    
-    // Enable E2EE features - parse from room metadata if needed
-    // For now we'll use defaults or parse from metadata JSON
+
+    // 3. E2EE from room metadata if present
     _enableE2EE = false;
     _enableE2EEChat = false;
     _enableE2EEWhiteboard = false;
-    
-    // TODO: Update providers with initial data
-    // - Session provider: room info, user info
-    // - Participant provider: initial participants
-    // - Chat provider: load chat history
+
+    // 4. Connection ready (matches web: _setRoomConnectionStatusState('ready'))
+    ref.read(sessionProvider.notifier).updateIsNatsServerConnected(true);
+    _setRoomConnectionStatusState('ready');
   }
   
   /// Start token renewal interval
@@ -1076,12 +1079,14 @@ class ConnectNats {
         return data_msg.DataMsgBodyType.REQ_FULL_WHITEBOARD_DATA;
       case 'REQ_PUBLIC_CHAT_DATA':
         return data_msg.DataMsgBodyType.REQ_PUBLIC_CHAT_DATA;
+      case 'NEW_POLL_RESPONSE':
+        return data_msg.DataMsgBodyType.NEW_POLL_RESPONSE;
       case 'RAISE_HAND':
         return data_msg.DataMsgBodyType.INFO; // RAISE_HAND not in protobuf
       case 'OTHER_USER_LOWER_HAND':
         return data_msg.DataMsgBodyType.INFO; // LOWER_HAND not in protobuf
       default:
-        return data_msg.DataMsgBodyType.SCENE_UPDATE;
+        return data_msg.DataMsgBodyType.INFO;
     }
   }
   

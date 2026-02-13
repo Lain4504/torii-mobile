@@ -400,9 +400,17 @@ class MeetApiService {
     }
   }
 
-  Future<polls.PollResponse> closePoll(String pollId) async {
+  Future<polls.PollResponse> closePoll({
+    required String pollId,
+    required String roomId,
+    required String userId,
+  }) async {
     try {
-      final req = polls.ClosePollReq(pollId: pollId);
+      final req = polls.ClosePollReq(
+        roomId: roomId,
+        userId: userId,
+        pollId: pollId,
+      );
       final result = await _postProto(
         path: '/api/polls/closePoll',
         request: req,
@@ -414,6 +422,51 @@ class MeetApiService {
       rethrow;
     } catch (e) {
       throw MeetApiException('Failed to close poll', originalError: e);
+    }
+  }
+
+  /// Get user's selected option for a poll
+  Future<polls.PollResponse> getUserSelectedOption({
+    required String pollId,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.get('/api/polls/userSelectedOption/$pollId/$userId');
+      final result = polls.PollResponse.fromBuffer(response.data as List<int>);
+      return result;
+    } on DioException catch (e) {
+      throw _handleDioError(e, 'getUserSelectedOption');
+    } catch (e) {
+      if (e is MeetApiException) rethrow;
+      throw MeetApiException('Failed to get user selected option', originalError: e);
+    }
+  }
+
+  /// Get poll responses details (admin only)
+  Future<polls.PollResponse> getPollResponsesDetails(String pollId) async {
+    try {
+      final response = await _dio.get('/api/polls/pollResponsesDetails/$pollId');
+      final result = polls.PollResponse.fromBuffer(response.data as List<int>);
+      return result;
+    } on DioException catch (e) {
+      throw _handleDioError(e, 'getPollResponsesDetails');
+    } catch (e) {
+      if (e is MeetApiException) rethrow;
+      throw MeetApiException('Failed to get poll responses details', originalError: e);
+    }
+  }
+
+  /// Get poll responses result (public results after poll closes)
+  Future<polls.PollResponse> getPollResponsesResult(String pollId) async {
+    try {
+      final response = await _dio.get('/api/polls/pollResponsesResult/$pollId');
+      final result = polls.PollResponse.fromBuffer(response.data as List<int>);
+      return result;
+    } on DioException catch (e) {
+      throw _handleDioError(e, 'getPollResponsesResult');
+    } catch (e) {
+      if (e is MeetApiException) rethrow;
+      throw MeetApiException('Failed to get poll responses result', originalError: e);
     }
   }
 

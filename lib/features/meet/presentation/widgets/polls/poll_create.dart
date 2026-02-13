@@ -1,12 +1,13 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/features/meet/data/models/poll.dart';
-import '../../../providers/polls_provider.dart';
+import 'package:fixnum/fixnum.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls_pb;
 import '../../../providers/session_provider.dart';
+import '../../../data/datasources/meet_api_service.dart';
+import '../../../providers/room_settings_provider.dart';
 
 /// Poll Create Widget
-/// Form to create a new poll
+/// Form to create a new poll (1:1 with web createPoll)
 class PollCreate extends ConsumerStatefulWidget {
   final VoidCallback? onPollCreated;
   
@@ -76,49 +77,52 @@ class _PollCreateState extends ConsumerState<PollCreate> {
 
     try {
       final session = ref.read(sessionProvider);
-      final userId = session.currentUser?.userId ?? 'unknown';
-      final userName = session.currentUser?.name ?? 'Unknown';
+      final userId = session.currentUser?.userId ?? '';
+      final roomId = session.currentRoom.roomId;
+      
+      if (userId.isEmpty || roomId.isEmpty) {
+        throw Exception('User or room not found');
+      }
 
+      // Generate pollId (server may override)
       final pollId = DateTime.now().millisecondsSinceEpoch.toString();
+      
+      // Build CreatePollReq (matches web)
       final options = validOptions.asMap().entries.map((entry) {
-        return PollOption(
-          id: '${pollId}_opt_${entry.key}',
+        return polls_pb.CreatePollOptions(
+          id: entry.key + 1, // Option IDs start from 1
           text: entry.value,
         );
       }).toList();
 
-      final newPoll = Poll(
-        id: pollId,
+      final req = polls_pb.CreatePollReq(
+        roomId: roomId,
+        userId: userId,
+        pollId: pollId,
         question: question,
         options: options,
-        createdBy: userId,
-        createdByName: userName,
-        createdAt: DateTime.now(),
       );
 
-      // 1. Add locally
-      ref.read(pollsProvider.notifier).addPoll(newPoll);
-
-      // 2. Send via NATS
-      await ref.read(sessionProvider.notifier).natsConn?.sendDataMessage(
-        type: 'NEW_POLL_RESPONSE', // Using the available enum type
-        msg: jsonEncode(newPoll.toJson()),
-      );
+      // Call API (matches web useCreatePollMutation)
+      final api = ref.read(meetApiServiceProvider);
+      final response = await api.createPoll(req);
 
       if (mounted) {
-        // Close the create view (handled by parent switch, usually via setState in PollsBottomSheet)
-        // Since we are in a sub-widget, we need to communicate back or just rely on the parent checking state?
-        // Actually PollsBottomSheet passed no callback. 
-        // We can just pop context if it was a push? No, it's inside Expanded.
-        // We probably need to tell PollsBottomSheet to switch back.
-        // But PollsBottomSheet controls `_isCreating`.
-        // We can use a callback or just standard navigation if it was a route.
-        // Given existing code, let's look at how to notify parent.
-        // Use a callback parameter.
-            ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Poll created successfully')),
-            );
-            // We need to fix the parent to accept a callback.
+        if (response.status) {
+          ref.read(roomSettingsProvider.notifier).addUserNotification(
+            const UserNotification(
+              message: 'Poll created successfully',
+              typeOption: 'info',
+            ),
+          );
+          widget.onPollCreated?.call();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.msg.isNotEmpty ? response.msg : 'Failed to create poll'),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
