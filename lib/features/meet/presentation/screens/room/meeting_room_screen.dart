@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/breakout_room_provider.dart';
+import '../../../providers/session_provider.dart';
+import '../../../data/datasources/meet_api_service.dart';
 import '../../widgets/header/meeting_header.dart';
 import '../../widgets/main_area/video_grid.dart';
 import '../../widgets/footer/control_bar.dart';
 import '../../widgets/whiteboard/whiteboard_widget.dart';
-
-// ... existing imports ...
 
 /// Meeting Room Screen
 /// 1:1 clone of apps/meet/src/components/app/index.tsx (main meeting view)
@@ -57,32 +57,74 @@ class MeetingRoomScreen extends ConsumerWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Breakout Room Invitation'),
         content: Text('You have been invited to join breakout room $roomId'),
         actions: [
           TextButton(
             onPressed: () {
-              // Decline
               ref.read(breakoutRoomProvider.notifier).clearInvitation();
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
             },
             child: const Text('Decline'),
           ),
           ElevatedButton(
-            onPressed: () {
-              // Accept
-              ref.read(breakoutRoomProvider.notifier).clearInvitation();
-              Navigator.of(context).pop();
-              // TODO: Implement join logic
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Joining breakout room...')),
-              );
-            },
+            onPressed: () => _joinBreakoutRoom(context, ref, dialogContext, roomId),
             child: const Text('Join'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _joinBreakoutRoom(
+    BuildContext context,
+    WidgetRef ref,
+    BuildContext dialogContext,
+    String breakoutRoomId,
+  ) async {
+    final session = ref.read(sessionProvider);
+    final userId = session.currentUser?.userId;
+    if (userId == null || userId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot join: user not found')),
+      );
+      return;
+    }
+
+    ref.read(breakoutRoomProvider.notifier).clearInvitation();
+    Navigator.of(dialogContext).pop();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Joining breakout room...')),
+    );
+
+    try {
+      final api = ref.read(meetApiServiceProvider);
+      final res = await api.joinBreakoutRoom(
+        breakoutRoomId: breakoutRoomId,
+        userId: userId,
+        roomId: session.currentRoom.roomId.isNotEmpty ? session.currentRoom.roomId : null,
+      );
+
+      if (!context.mounted) return;
+      if (res.status && res.token.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Joined breakout room. Reconnect with the new link to enter.'),
+          ),
+        );
+        // Optional: trigger reconnection with res.token (would require meet controller to support it)
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(res.msg.isNotEmpty ? res.msg : 'Failed to join breakout room')),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
   }
 }

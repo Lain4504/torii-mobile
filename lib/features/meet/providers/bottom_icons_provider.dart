@@ -10,7 +10,8 @@ class BottomIconsState {
   final bool isMicMuted;
   final bool isWebcamMuted;
   final bool isScreenSharing;
-  
+  final bool showManageWaitingRoomModal;
+
   const BottomIconsState({
     this.activeSidePanel,
     this.totalUnreadChatMsgs = 0,
@@ -18,8 +19,9 @@ class BottomIconsState {
     this.isMicMuted = true,
     this.isWebcamMuted = true,
     this.isScreenSharing = false,
+    this.showManageWaitingRoomModal = false,
   });
-  
+
   BottomIconsState copyWith({
     String? activeSidePanel,
     int? totalUnreadChatMsgs,
@@ -27,6 +29,7 @@ class BottomIconsState {
     bool? isMicMuted,
     bool? isWebcamMuted,
     bool? isScreenSharing,
+    bool? showManageWaitingRoomModal,
   }) {
     return BottomIconsState(
       activeSidePanel: activeSidePanel ?? this.activeSidePanel,
@@ -35,6 +38,8 @@ class BottomIconsState {
       isMicMuted: isMicMuted ?? this.isMicMuted,
       isWebcamMuted: isWebcamMuted ?? this.isWebcamMuted,
       isScreenSharing: isScreenSharing ?? this.isScreenSharing,
+      showManageWaitingRoomModal:
+          showManageWaitingRoomModal ?? this.showManageWaitingRoomModal,
     );
   }
 }
@@ -80,6 +85,10 @@ class BottomIconsNotifier extends StateNotifier<BottomIconsState> {
 
   void updateScreenShareStatus(bool isActive) {
     state = state.copyWith(isScreenSharing: isActive);
+  }
+
+  void updateShowManageWaitingRoomModal(bool show) {
+    state = state.copyWith(showManageWaitingRoomModal: show);
   }
 }
 

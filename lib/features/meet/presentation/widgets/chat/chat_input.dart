@@ -91,6 +91,17 @@ class _ChatInputState extends ConsumerState<ChatInput> {
       ),
       child: Row(
         children: [
+          IconButton(
+            icon: const Icon(Icons.attach_file),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('File upload: connect API to enable'),
+                ),
+              );
+            },
+            tooltip: 'Attach file',
+          ),
           Expanded(
             child: TextField(
               controller: _controller,

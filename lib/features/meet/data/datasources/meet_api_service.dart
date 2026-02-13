@@ -7,6 +7,7 @@ import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:torii_app/core/config/app_config.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_breakout_room.pb.dart' as breakout_room;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls;
 import 'package:torii_app/services/auth/token_service.dart';
 
@@ -512,6 +513,36 @@ class MeetApiService {
       rethrow;
     } catch (e) {
       throw MeetApiException('Failed to switch presenter', originalError: e);
+    }
+  }
+
+  // --- Breakout room (protobuf, /api/breakoutRoom/*) ---
+
+  /// Join a breakout room (matches web useJoinRoomMutation).
+  /// Returns response with status, msg, and token to join the breakout room.
+  Future<breakout_room.BreakoutRoomRes> joinBreakoutRoom({
+    required String breakoutRoomId,
+    required String userId,
+    String? roomId,
+    bool isAdmin = false,
+  }) async {
+    try {
+      final req = breakout_room.JoinBreakoutRoomReq(
+        breakoutRoomId: breakoutRoomId,
+        userId: userId,
+        roomId: roomId ?? '',
+        isAdmin: isAdmin,
+      );
+      final result = await _postProto(
+        path: '/api/breakoutRoom/join',
+        request: req,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to join breakout room', originalError: e);
     }
   }
 }

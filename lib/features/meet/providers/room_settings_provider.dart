@@ -79,9 +79,9 @@ class RoomSettingsNotifier extends StateNotifier<RoomSettingsState> {
     newUnread.remove(userId);
     state = state.copyWith(unreadMsgFrom: newUnread);
   }
-  
-  void updatePlayAudioNotification() {
-    state = state.copyWith(playAudioNotification: !state.playAudioNotification);
+
+  void updatePlayAudioNotification(bool play) {
+    state = state.copyWith(playAudioNotification: play);
   }
 }
 

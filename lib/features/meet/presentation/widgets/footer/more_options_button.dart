@@ -4,7 +4,11 @@ import '../chat/chat_bottom_sheet.dart';
 import '../participants/participants_bottom_sheet.dart';
 import '../settings/settings_bottom_sheet.dart';
 import '../polls/polls_bottom_sheet.dart';
+import '../translation/translation_bottom_sheet.dart';
+import '../insights_ai/insights_ai_bottom_sheet.dart';
+import '../waiting_room/waiting_room_bottom_sheet.dart';
 import '../../../providers/whiteboard_provider.dart';
+import '../../../providers/session_provider.dart';
 
 /// More Options Button Widget
 /// Shows menu with additional options (chat, participants, settings, etc.)
@@ -55,6 +59,9 @@ class MoreOptionsButton extends ConsumerWidget {
   }
 
   void _showOptionsMenu(BuildContext context, WidgetRef ref) {
+    final isAdmin =
+        ref.read(sessionProvider).currentUser?.metadata?.isAdmin ?? false;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -109,6 +116,34 @@ class MoreOptionsButton extends ConsumerWidget {
             ),
             _buildMenuItem(
               context,
+              icon: Icons.subtitles,
+              title: 'Translation / Subtitles',
+              onTap: () {
+                Navigator.pop(context);
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const TranslationBottomSheet(),
+                );
+              },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.smart_toy,
+              title: 'Insights AI',
+              onTap: () {
+                Navigator.pop(context);
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const InsightsAiBottomSheet(),
+                );
+              },
+            ),
+            _buildMenuItem(
+              context,
               icon: Icons.draw,
               title: 'Whiteboard',
               onTap: () {
@@ -130,6 +165,21 @@ class MoreOptionsButton extends ConsumerWidget {
                 );
               },
             ),
+            if (isAdmin)
+              _buildMenuItem(
+                context,
+                icon: Icons.person_add,
+                title: 'Manage Waiting Room',
+                onTap: () {
+                  Navigator.pop(context);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const WaitingRoomBottomSheet(),
+                  );
+                },
+              ),
           ],
         ),
       ),

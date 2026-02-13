@@ -545,13 +545,13 @@ class ConnectNats {
   /// Matches: sendMessageToSystemWorker() in ConnectNats.ts
   void _sendMessageToSystemWorker(nats_msg.NatsMsgClientToServer msg) {
     if (_nc == null) return;
-    
+
     try {
       final subject = _subjects.systemApiWorker;
       final data = msg.writeToBuffer();
-      
+
       _nc.publish(subject, data);
-      
+
       if (kDebugMode) {
         print('ConnectNats: Sent message to system worker - ${msg.event}');
       }
@@ -560,6 +560,19 @@ class ConnectNats {
         print('ConnectNats: Failed to send message - $e');
       }
     }
+  }
+
+  /// Send raise hand or lower hand to system worker (for footer Raise Hand button).
+  void sendRaiseHand({required bool raise, String msg = ''}) {
+    final event = raise
+        ? nats_msg.NatsMsgClientToServerEvents.REQ_RAISE_HAND
+        : nats_msg.NatsMsgClientToServerEvents.REQ_LOWER_HAND;
+    _sendMessageToSystemWorker(
+      nats_msg.NatsMsgClientToServer(
+        event: event,
+        msg: msg,
+      ),
+    );
   }
   
   // ============================================================================

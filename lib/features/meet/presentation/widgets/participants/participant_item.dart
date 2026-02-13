@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/participant_provider.dart';
+import '../../../providers/session_provider.dart';
+import '../../../data/datasources/meet_api_service.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
 
-/// Participant Item Widget
-/// Displays single participant info with status icons
+/// Participant Item Widget with menu and waiting-approval state
 /// 1:1 clone of apps/meet/src/components/participants/participantItem.tsx
-class ParticipantItem extends StatelessWidget {
+class ParticipantItem extends ConsumerWidget {
   final ParticipantInfo participant;
   final bool isMe;
 
@@ -15,11 +18,16 @@ class ParticipantItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Check audio/video status
-    final hasAudio = true; // Placeholder: could be tracked in ParticipantInfo
-    final hasVideo = true; // Placeholder: could be tracked in ParticipantInfo
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasAudio = true;
+    final hasVideo = true;
     final isRaisedHand = participant.metadata.isHandRaised;
+    final waitForApproval = participant.metadata.waitForApproval;
+    final isAdmin = ref.watch(
+      sessionProvider.select(
+        (s) => s.currentUser?.metadata?.isAdmin ?? false,
+      ),
+    );
 
     return Row(
       children: [
@@ -52,12 +60,21 @@ class ParticipantItem extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (participant.metadata?.isAdmin ?? false)
+              if (participant.metadata.isAdmin)
                 Text(
                   'Host',
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              if (waitForApproval)
+                Text(
+                  'Waiting for approval',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Theme.of(context).colorScheme.secondary,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
             ],
@@ -111,19 +128,128 @@ class ParticipantItem extends StatelessWidget {
               ),
             ),
             
-            // Menu button for actions
-            IconButton(
-              icon: const Icon(Icons.more_vert),
-              iconSize: 20,
-              onPressed: () {
-                // TODO: Show participant actions menu
-                // (Mute, Remove, Make Host, etc.)
-              },
-            ),
+            // Menu button for actions (admin or for others: private chat)
+            if (!isMe)
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, size: 20),
+                onSelected: (value) => _onMenuSelected(context, ref, value),
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'private_chat',
+                    child: ListTile(
+                      leading: Icon(Icons.chat),
+                      title: Text('Private chat'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  if (isAdmin) ...[
+                    const PopupMenuItem(
+                      value: 'mute',
+                      child: ListTile(
+                        leading: Icon(Icons.mic_off),
+                        title: Text('Mute'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'presenter',
+                      child: ListTile(
+                        leading: Icon(Icons.person_pin),
+                        title: Text('Make presenter'),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'remove',
+                      child: ListTile(
+                        leading: Icon(Icons.person_remove, color: Colors.red),
+                        title: Text('Remove', style: TextStyle(color: Colors.red)),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
           ],
         ),
       ],
     );
+  }
+
+  Future<void> _onMenuSelected(
+    BuildContext context,
+    WidgetRef ref,
+    String value,
+  ) async {
+    final session = ref.read(sessionProvider);
+    final api = ref.read(meetApiServiceProvider);
+    final roomId = session.currentRoom.roomId;
+    final sid = session.currentRoom.sid;
+
+    try {
+      switch (value) {
+        case 'mute':
+          await api.muteUnmuteTrack(
+            MuteUnMuteTrackReq(
+              sid: sid,
+              roomId: roomId,
+              userId: participant.userId,
+              muted: true,
+            ),
+          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Muted ${participant.name}')),
+            );
+          }
+          break;
+        case 'presenter':
+          await api.switchPresenter(
+            SwitchPresenterReq(
+              task: SwitchPresenterTask.PROMOTE,
+              roomId: roomId,
+              userId: participant.userId,
+            ),
+          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${participant.name} is now presenter')),
+            );
+          }
+          break;
+        case 'remove':
+          await api.removeParticipant(
+            RemoveParticipantReq(
+              sid: sid,
+              roomId: roomId,
+              userId: participant.userId,
+              msg: 'You have been removed from the meeting.',
+              blockUser: false,
+            ),
+          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Removed ${participant.name}')),
+            );
+          }
+          break;
+        case 'private_chat':
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Open private chat with ${participant.name}'),
+              ),
+            );
+          }
+          break;
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 
   String _getInitials(String name) {

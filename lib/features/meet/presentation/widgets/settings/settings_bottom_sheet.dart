@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/room_settings_provider.dart';
 
-/// Settings Bottom Sheet
-/// Displays application settings (Audio, Video, General)
+/// Settings Bottom Sheet bound to roomSettingsProvider
 /// 1:1 clone of apps/meet/src/components/settings/index.tsx
-class SettingsBottomSheet extends StatefulWidget {
+class SettingsBottomSheet extends ConsumerStatefulWidget {
   const SettingsBottomSheet({super.key});
 
   @override
-  State<SettingsBottomSheet> createState() => _SettingsBottomSheetState();
+  ConsumerState<SettingsBottomSheet> createState() => _SettingsBottomSheetState();
 }
 
-class _SettingsBottomSheetState extends State<SettingsBottomSheet> with SingleTickerProviderStateMixin {
+class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -193,9 +195,19 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> with SingleTi
   }
 
   Widget _buildGeneralSettings() {
+    final playSound = ref.watch(
+      roomSettingsProvider.select((s) => s.playAudioNotification),
+    );
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        SwitchListTile(
+          title: const Text('Play sound on notifications'),
+          value: playSound,
+          onChanged: (value) {
+            ref.read(roomSettingsProvider.notifier).updatePlayAudioNotification(value);
+          },
+        ),
         SwitchListTile(
           title: const Text('Show connection quality'),
           value: true,

@@ -24,6 +24,9 @@ class VideoTile extends ConsumerWidget {
     final isSpeaking = activeSpeakers.speakers.values.any(
       (speaker) => speaker.userId == participant.identity && speaker.isSpeaking,
     );
+    // Raised hand from our participant list (synced from NATS metadata)
+    final participantInfo = ref.watch(participantProvider).participants[participant.identity];
+    final isRaisedHand = participantInfo?.metadata.isHandRaised ?? false;
 
     return Container(
       decoration: BoxDecoration(
@@ -45,7 +48,7 @@ class VideoTile extends ConsumerWidget {
             _buildVideoContent(context),
             
             // Overlay with name and status
-            _buildOverlay(context),
+            _buildOverlay(context, isRaisedHand),
           ],
         ),
       ),
@@ -93,7 +96,7 @@ class VideoTile extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverlay(BuildContext context) {
+  Widget _buildOverlay(BuildContext context, bool isRaisedHand) {
     // Find audio track
     bool isMicOn = false;
     for (var pub in participant.audioTrackPublications) {
@@ -121,6 +124,15 @@ class VideoTile extends ConsumerWidget {
         ),
         child: Row(
           children: [
+            // Raised hand indicator
+            if (isRaisedHand) ...[
+              Icon(
+                Icons.back_hand,
+                size: isSmall ? 12 : 16,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              const SizedBox(width: 4),
+            ],
             // Microphone status
             Icon(
               isMicOn ? Icons.mic : Icons.mic_off,

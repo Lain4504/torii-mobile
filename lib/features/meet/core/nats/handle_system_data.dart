@@ -9,13 +9,14 @@
 // - Handle Insights AI text chat
 
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/data/models/chat_message.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
+import 'package:torii_app/features/meet/providers/insights_ai_text_chat_provider.dart';
+import 'package:torii_app/features/meet/core/notification_sound_service.dart';
 
 class HandleSystemData {
   final String userId;
@@ -182,11 +183,7 @@ class HandleSystemData {
       ),
       currentUserId: userId,
     );
-    // ref?.read(chatMessagesProvider.notifier).addChatMessage(
-    //   message: systemMessage,
-    //   currentUserId: userId,
-    // );
-    
+
     if (kDebugMode) {
       print('HandleSystemData: System chat message - $msg');
     }
@@ -197,11 +194,21 @@ class HandleSystemData {
   void handleInsightsAITextData(String msg) {
     try {
       final data = jsonDecode(msg) as Map<String, dynamic>;
-      
-      // Dispatch to Insights AI provider
-      // ref?.read(insightsAiTextChatProvider.notifier).addMessage(message);
-      // ref?.read(insightsAiTextChatProvider.notifier).updateAiTextChat(data);
-      
+      // Support both camelCase and snake_case from server
+      final id = data['id'] as String? ?? '';
+      final text = data['text'] as String? ?? '';
+      final isLastChunk = data['isLastChunk'] as bool? ?? data['is_last_chunk'] as bool? ?? false;
+      final createdAt = data['createdAt'] as String? ?? data['created_at'] as String? ?? DateTime.now().toIso8601String();
+
+      ref?.read(insightsAiTextChatProvider.notifier).updateAiTextChat(
+        InsightsAITextChatStreamResult(
+          id: id,
+          text: text,
+          isLastChunk: isLastChunk,
+          createdAt: createdAt,
+        ),
+      );
+
       if (kDebugMode) {
         print('HandleSystemData: Insights AI text data received');
       }
@@ -212,22 +219,8 @@ class HandleSystemData {
     }
   }
   
-  /// Play notification sound
+  /// Play notification sound (join/leave/poll etc. - matches web)
   void _playNotification() {
-    // Play notification sound
-    // In Flutter, use audio player package
-    // await audioPlayer.play(AssetSource('sounds/notification.mp3'));
-    // ref?.read(roomSettingsProvider.notifier).updatePlayAudioNotification();
-    
-    if (kDebugMode) {
-      print('HandleSystemData: Playing notification sound');
-    }
-  }
-  
-  /// Generate random string
-  String _randomString() {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    final random = Random();
-    return List.generate(16, (i) => chars[random.nextInt(chars.length)]).join();
+    NotificationSoundService.instance.play();
   }
 }

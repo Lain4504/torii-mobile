@@ -5,6 +5,7 @@ import '../../../providers/session_provider.dart';
 import 'mic_button.dart';
 import 'camera_button.dart';
 import 'screen_share_button.dart';
+import 'raise_hand_button.dart';
 import 'leave_button.dart';
 import 'more_options_button.dart';
 
@@ -48,7 +49,11 @@ class ControlBar extends ConsumerWidget {
             const ScreenShareButton(),
             const SizedBox(width: 12),
           ],
-          
+
+          // Raise hand
+          const RaiseHandButton(),
+          SizedBox(width: isMobile ? 8 : 12),
+
           // Leave button
           const LeaveButton(),
           SizedBox(width: isMobile ? 8 : 12),

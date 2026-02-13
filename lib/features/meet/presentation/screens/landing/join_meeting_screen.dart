@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/session_provider.dart';
-import '../../../providers/room_settings_provider.dart';
-import '../../../core/nats/connect_nats.dart';
 import 'package:flutter/foundation.dart';
 import '../../widgets/landing/join_form.dart';
 import '../../widgets/landing/device_preview.dart';
@@ -19,7 +17,6 @@ class JoinMeetingScreen extends ConsumerStatefulWidget {
 
 class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
   String? _loadingMessage;
-  bool _isLoading = false;
   bool _isMicEnabled = false;
   bool _isCameraEnabled = false;
 
@@ -93,6 +90,29 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                     ),
                   ),
                   
+                  // Waiting room / room message (from room metadata when available)
+                  Builder(
+                    builder: (context) {
+                      final roomMeta = ref.watch(
+                        sessionProvider.select((s) => s.currentRoom.metadata),
+                      );
+                      final welcomeMsg = roomMeta?.welcomeMessage;
+                      if (welcomeMsg == null || welcomeMsg.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                        child: Text(
+                          welcomeMsg,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    },
+                  ),
                   // Content
                   Padding(
                     padding: const EdgeInsets.all(32),
@@ -158,7 +178,6 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
 
   void _handleJoin() async {
     setState(() {
-      _isLoading = true;
       _loadingMessage = 'Đang kết nối đến máy chủ...';
     });
     
@@ -197,7 +216,6 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
               ),
             );
             setState(() {
-              _isLoading = false;
               _loadingMessage = null;
             });
           }
@@ -229,7 +247,6 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
           ),
         );
         setState(() {
-          _isLoading = false;
           _loadingMessage = null;
         });
       }

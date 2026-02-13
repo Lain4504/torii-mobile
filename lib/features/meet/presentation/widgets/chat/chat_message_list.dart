@@ -6,9 +6,11 @@ import '../../../providers/session_provider.dart';
 import 'chat_message_item.dart';
 
 /// Chat Message List Widget
-/// Displays list of chat messages
+/// Displays list of chat messages for a given chat key (public or private)
 class ChatMessageList extends ConsumerStatefulWidget {
-  const ChatMessageList({super.key});
+  final String chatKey;
+
+  const ChatMessageList({super.key, this.chatKey = 'public'});
 
   @override
   ConsumerState<ChatMessageList> createState() => _ChatMessageListState();
@@ -22,7 +24,7 @@ class _ChatMessageListState extends ConsumerState<ChatMessageList> {
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
@@ -36,7 +38,7 @@ class _ChatMessageListState extends ConsumerState<ChatMessageList> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatMessagesProvider);
-    final messages = chatState.publicMessages;
+    final messages = chatState.messagesByKey(widget.chatKey);
     final currentUser = ref.watch(sessionProvider.select((s) => s.currentUser));
     
     // Auto-scroll to bottom when new messages arrive

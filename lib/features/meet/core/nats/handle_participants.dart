@@ -14,10 +14,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import 'package:torii_app/features/meet/data/models/user_metadata.dart';
-import 'package:torii_app/features/meet/providers/participant_provider.dart';
-import 'package:torii_app/features/meet/providers/session_provider.dart';
-import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
+import 'package:torii_app/features/meet/providers/participant_provider.dart';
+import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
+import 'package:torii_app/features/meet/providers/session_provider.dart';
 import 'connect_nats.dart';
 
 class HandleParticipants {
@@ -102,9 +102,12 @@ class HandleParticipants {
     // Skip if it's the local user
     if (userInfo.userId == connectNats.userId) {
       // Update local user metadata
-      // Dispatch to session provider
       ref?.read(sessionProvider.notifier).updateCurrentUserMetadata(metadata);
-      
+      // Sync raise hand state to footer UI
+      ref?.read(bottomIconsProvider.notifier).updateIsActiveRaisehand(
+        metadata.isHandRaised || metadata.raisedHand,
+      );
+
       if (kDebugMode) {
         print('HandleParticipants: Local user metadata updated');
       }
