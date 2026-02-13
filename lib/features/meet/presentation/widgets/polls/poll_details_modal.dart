@@ -25,19 +25,18 @@ class PollDetailsModal extends ConsumerStatefulWidget {
   ConsumerState<PollDetailsModal> createState() => _PollDetailsModalState();
 }
 
-class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
-  bool _isLoading = false;
-  Map<int, List<_RespondentInfo>> _optionRespondents = {}; // optionId -> [respondents]
-  List<_RespondentInfo> _allRespondents = [];
-  int _totalResponses = 0;
-}
-
 class _RespondentInfo {
   final String userId;
   final String name;
   
   _RespondentInfo({required this.userId, required this.name});
 }
+
+class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
+  bool _isLoading = false;
+  Map<int, List<_RespondentInfo>> _optionRespondents = {}; // optionId -> [respondents]
+  List<_RespondentInfo> _allRespondents = [];
+  int _totalResponses = 0;
 
   @override
   void initState() {
@@ -100,10 +99,6 @@ class _RespondentInfo {
             // Error parsing JSON - ignore
           }
         }
-
-        setState(() {
-          // Update state with parsed data
-        });
       }
     } catch (e) {
       // Error loading details
