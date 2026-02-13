@@ -13,12 +13,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:event/event.dart' as evt;
 
 // Providers
 import 'package:torii_app/features/meet/providers/session_provider.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_analytics.pb.dart' as analytics;
 
 // Types
 import 'livekit_types.dart';
@@ -372,9 +372,21 @@ class ConnectLivekit implements IConnectLivekit {
       );
     }
     
-    // TODO: Send analytics data to NATS
-    // conn.sendAnalyticsData(...)
-    // conn.sendDataMessage(USER_CONNECTION_QUALITY_CHANGE, quality)
+    // Send analytics data to NATS (matches web)
+    if (_natsConn != null) {
+      _natsConn!.sendAnalyticsData(
+        eventName: analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_CONNECTION_QUALITY,
+        eventType: analytics.AnalyticsEventType.ANALYTICS_EVENT_TYPE_USER,
+        eventValueString: quality.name, // 'excellent', 'good', 'poor', 'lost'
+      );
+      
+      // Also send data message for connection quality change (matches web)
+      _natsConn!.sendDataMessage(
+        type: 'USER_CONNECTION_QUALITY_CHANGE',
+        msg: quality.name,
+        toUserId: null, // Broadcast
+      );
+    }
     
     if (kDebugMode) {
       print('ConnectLivekit: Connection quality changed - ${quality.name}');

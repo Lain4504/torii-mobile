@@ -21,6 +21,9 @@ import 'package:fixnum/fixnum.dart';
 // Protobuf models
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart' as data_msg;
+import 'package:torii_app/features/meet/data/models/proto/wajlc_analytics.pb.dart' as analytics;
+import 'package:torii_app/features/meet/data/models/proto/wajlc_insights.pb.dart' as insights;
+import 'package:protobuf/protobuf.dart' as $pb;
 
 // Handlers
 import 'handle_room_data.dart';
@@ -38,6 +41,7 @@ import '../livekit/connect_livekit.dart';
 // Providers
 import '../../providers/session_provider.dart';
 import '../../providers/room_settings_provider.dart';
+import '../../data/datasources/meet_api_service.dart';
 
 // Constants matching web
 const int kRenewTokenFrequent = 3 * 60 * 1000; // 3 minutes
@@ -532,14 +536,21 @@ class ConnectNats {
   }
   
   /// Renew JWT token
+  /// Matches: startTokenRenewInterval() in ConnectNats.ts
+  /// Web sends REQ_RENEW_WAJLC_TOKEN event with current token to NATS system worker
   Future<void> _renewToken() async {
     try {
-      // TODO: Call API to get new token
-      // final newToken = await _apiService.renewToken();
-      // _token = newToken;
+      // Web: sends REQ_RENEW_WAJLC_TOKEN event with current token
+      // Backend responds with new token via NATS message
+      _sendMessageToSystemWorker(
+        nats_msg.NatsMsgClientToServer(
+          event: nats_msg.NatsMsgClientToServerEvents.REQ_RENEW_WAJLC_TOKEN,
+          msg: _token,
+        ),
+      );
       
       if (kDebugMode) {
-        print('ConnectNats: Token renewal triggered');
+        print('ConnectNats: Token renewal request sent');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -591,6 +602,11 @@ class ConnectNats {
         print('ConnectNats: Failed to send message - $e');
       }
     }
+  }
+
+  /// Public method to send message to system worker
+  void sendMessageToSystemWorker(nats_msg.NatsMsgClientToServer msg) {
+    _sendMessageToSystemWorker(msg);
   }
 
   /// Send raise hand or lower hand to system worker (for footer Raise Hand button).
@@ -720,12 +736,72 @@ class ConnectNats {
   }
   
   /// Handle chat translation
+  /// Matches: chat translation logic in ConnectNats.ts sendChatMsg()
+  /// Web: checks chatTranslationFeatures.isEnabled, gets selectedChatTransLang, calls executeChatTranslation API
   Future<void> _handleChatTranslation(nats_msg.ChatMessage chatMessage) async {
-    // TODO: Implement chat translation
-    // Check if translation is enabled in room features
-    // Get selected translation language
-    // Call translation API
-    // Update chatMessage.sourceLang and chatMessage.translations
+    try {
+      // Check if translation is enabled in room features
+      // Access from _currentRoomInfo JSON (matches web's state.session.currentRoom.metadata)
+      final roomMetadataJson = _currentRoomInfo?['metadata'];
+      if (roomMetadataJson == null) {
+        return; // No metadata available
+      }
+      
+      // Parse insightsFeatures from JSON (since RoomFeatures model doesn't include it)
+      final roomFeaturesJson = roomMetadataJson['roomFeatures'];
+      final insightsFeaturesJson = roomFeaturesJson?['insightsFeatures'];
+      final chatTranslationFeaturesJson = insightsFeaturesJson?['chatTranslationFeatures'];
+      
+      if (chatTranslationFeaturesJson == null || 
+          (chatTranslationFeaturesJson['isEnabled'] != true)) {
+        return; // Translation not enabled
+      }
+      
+      // Get selected translation language from room settings
+      final selectedChatTransLang = ref.read(roomSettingsProvider).selectedChatTransLang;
+      if (selectedChatTransLang.isEmpty) {
+        return; // No language selected
+      }
+      
+      // Get allowed translation languages from JSON
+      final allowedTransLangs = (chatTranslationFeaturesJson['allowedTransLangs'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList() ?? <String>[];
+      
+      if (allowedTransLangs.isEmpty) {
+        return; // No target languages configured
+      }
+      
+      // Call translation API (matches web executeChatTranslation)
+      final api = ref.read(meetApiServiceProvider);
+      final req = insights.InsightsTranslateTextReq(
+        text: chatMessage.message,
+        sourceLang: selectedChatTransLang,
+        targetLangs: allowedTransLangs,
+      );
+      
+      final res = await api.executeChatTranslation(req);
+      
+      if (res.status && res.hasResult()) {
+        // Update chatMessage with translation results (matches web)
+        chatMessage.sourceLang = selectedChatTransLang;
+        chatMessage.translations.clear();
+        chatMessage.translations.addAll(res.result.translations);
+        
+        if (kDebugMode) {
+          print('ConnectNats: Chat translation completed for ${chatMessage.id}');
+        }
+      } else {
+        if (kDebugMode) {
+          print('ConnectNats: Chat translation failed - ${res.msg}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('ConnectNats: Chat translation error - $e');
+      }
+      // Don't block message sending if translation fails
+    }
   }
   
   /// Send private data (chat or data message)
@@ -1030,15 +1106,83 @@ class ConnectNats {
   
   /// Send analytics data
   /// Matches: sendAnalyticsData() in ConnectNats.ts
+  /// Web: creates AnalyticsDataMsg, serializes to JSON, wraps in NatsMsgClientToServer(PUSH_ANALYTICS_DATA)
+  void sendAnalyticsData({
+    required analytics.AnalyticsEvents eventName,
+    analytics.AnalyticsEventType eventType = analytics.AnalyticsEventType.ANALYTICS_EVENT_TYPE_USER,
+    String? hsetValue,
+    String? eventValueString,
+    String? eventValueInteger,
+  }) {
+    if (_nc == null) {
+      if (kDebugMode) {
+        print('ConnectNats: Cannot send analytics - NATS not connected');
+      }
+      return;
+    }
+
+    try {
+      // Create AnalyticsDataMsg (matches web AnalyticsDataMsgSchema)
+      final analyticsMsg = analytics.AnalyticsDataMsg(
+        eventType: eventType,
+        eventName: eventName,
+        roomId: _roomId,
+        userId: _userId,
+        hsetValue: hsetValue ?? '',
+        eventValueString: eventValueString ?? '',
+        eventValueInteger: eventValueInteger != null 
+            ? Int64.parseInt(eventValueInteger) 
+            : null,
+        time: Int64(DateTime.now().millisecondsSinceEpoch),
+      );
+
+      // Serialize to JSON (web uses toJsonString)
+      final jsonStr = analyticsMsg.writeToJson();
+
+      // Wrap in NatsMsgClientToServer with PUSH_ANALYTICS_DATA event
+      final data = nats_msg.NatsMsgClientToServer(
+        event: nats_msg.NatsMsgClientToServerEvents.PUSH_ANALYTICS_DATA,
+        msg: jsonStr,
+      );
+
+      // Send to system worker
+      _sendMessageToSystemWorker(data);
+
+      if (kDebugMode) {
+        print('ConnectNats: Analytics sent - ${eventName.name} (${eventType.name})');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('ConnectNats: Failed to send analytics - $e');
+      }
+    }
+  }
+
+  /// Legacy method signature (kept for backward compatibility)
+  @Deprecated('Use sendAnalyticsData with AnalyticsEvents enum instead')
   void _sendAnalyticsData({
     required String event,
     required String type,
     required String value,
   }) {
-    // TODO: Implement analytics tracking
-    if (kDebugMode) {
-      print('ConnectNats: Analytics - $event ($type): $value');
+    // Try to map string to enum (fallback)
+    analytics.AnalyticsEvents? eventEnum;
+    try {
+      eventEnum = analytics.AnalyticsEvents.values.firstWhere(
+        (e) => e.name.toLowerCase().contains(event.toLowerCase()),
+        orElse: () => analytics.AnalyticsEvents.ANALYTICS_EVENT_UNKNOWN,
+      );
+    } catch (e) {
+      eventEnum = analytics.AnalyticsEvents.ANALYTICS_EVENT_UNKNOWN;
     }
+
+    sendAnalyticsData(
+      eventName: eventEnum,
+      eventType: type.toLowerCase().contains('room')
+          ? analytics.AnalyticsEventType.ANALYTICS_EVENT_TYPE_ROOM
+          : analytics.AnalyticsEventType.ANALYTICS_EVENT_TYPE_USER,
+      eventValueString: value,
+    );
   }
   
   // ============================================================================

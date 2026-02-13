@@ -131,9 +131,80 @@ class _ParticipantsBottomSheetState extends ConsumerState<ParticipantsBottomShee
           ),
           
           // Actions (Mute All for host)
-          // TODO: Add Mute All button if current user is admin/moderator
+          if (currentUser?.metadata?.isAdmin == true)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  ),
+                ),
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleMuteAll(context, ref, participants),
+                  icon: const Icon(Icons.mic_off),
+                  label: const Text('Mute All'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  Future<void> _handleMuteAll(
+    BuildContext context,
+    WidgetRef ref,
+    List<ParticipantInfo> participants,
+  ) async {
+    final session = ref.read(sessionProvider);
+    final api = ref.read(meetApiServiceProvider);
+    final roomId = session.currentRoom.roomId;
+    final sid = session.currentRoom.sid;
+    final currentUserId = session.currentUser?.userId;
+
+    if (currentUserId == null) return;
+
+    int successCount = 0;
+    int failCount = 0;
+
+    for (final participant in participants) {
+      // Skip self and participants without audio tracks
+      if (participant.userId == currentUserId || !participant.hasAudioTrack) {
+        continue;
+      }
+
+      try {
+        await api.muteUnmuteTrack(
+          MuteUnMuteTrackReq(
+            sid: sid,
+            roomId: roomId,
+            userId: participant.userId,
+            muted: true,
+          ),
+        );
+        successCount++;
+      } catch (e) {
+        failCount++;
+      }
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            failCount > 0
+                ? 'Muted $successCount participants. Failed: $failCount'
+                : 'Muted all $successCount participants',
+          ),
+        ),
+      );
+    }
   }
 }

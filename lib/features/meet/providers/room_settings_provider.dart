@@ -19,12 +19,23 @@ class UserNotification {
   });
 }
 
+class InitiatePrivateChat {
+  final String name;
+  final String userId;
+  
+  const InitiatePrivateChat({
+    required this.name,
+    required this.userId,
+  });
+}
+
 class RoomSettingsState {
   final List<UserNotification> notifications;
   final String selectedChatOption; // 'public' or userId
   final String selectedChatTransLang;
   final Map<String, int> unreadMsgFrom; // userId -> count
   final bool playAudioNotification;
+  final InitiatePrivateChat? initiatePrivateChat;
   
   const RoomSettingsState({
     this.notifications = const [],
@@ -32,6 +43,7 @@ class RoomSettingsState {
     this.selectedChatTransLang = '',
     this.unreadMsgFrom = const {},
     this.playAudioNotification = false,
+    this.initiatePrivateChat,
   });
   
   RoomSettingsState copyWith({
@@ -40,6 +52,7 @@ class RoomSettingsState {
     String? selectedChatTransLang,
     Map<String, int>? unreadMsgFrom,
     bool? playAudioNotification,
+    InitiatePrivateChat? initiatePrivateChat,
   }) {
     return RoomSettingsState(
       notifications: notifications ?? this.notifications,
@@ -47,6 +60,7 @@ class RoomSettingsState {
       selectedChatTransLang: selectedChatTransLang ?? this.selectedChatTransLang,
       unreadMsgFrom: unreadMsgFrom ?? this.unreadMsgFrom,
       playAudioNotification: playAudioNotification ?? this.playAudioNotification,
+      initiatePrivateChat: initiatePrivateChat ?? this.initiatePrivateChat,
     );
   }
 }
@@ -82,6 +96,10 @@ class RoomSettingsNotifier extends StateNotifier<RoomSettingsState> {
 
   void updatePlayAudioNotification(bool play) {
     state = state.copyWith(playAudioNotification: play);
+  }
+
+  void updateInitiatePrivateChat(InitiatePrivateChat? chat) {
+    state = state.copyWith(initiatePrivateChat: chat);
   }
 }
 

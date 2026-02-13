@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/session_provider.dart';
+import '../../../providers/room_settings_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 
 /// Participant Item Widget with menu and waiting-approval state
 /// 1:1 clone of apps/meet/src/components/participants/participantItem.tsx
@@ -23,11 +25,20 @@ class ParticipantItem extends ConsumerWidget {
     final hasVideo = participant.hasVideoTrack;
     final isRaisedHand = participant.metadata.isHandRaised;
     final waitForApproval = participant.metadata.waitForApproval;
+    final isPresenter = participant.metadata.isPresenter;
     final isAdmin = ref.watch(
       sessionProvider.select(
         (s) => s.currentUser?.metadata?.isAdmin ?? false,
       ),
     );
+    final currentUser = ref.watch(sessionProvider.select((s) => s.currentUser));
+    final roomFeatures = ref.watch(
+      sessionProvider.select((s) => s.currentRoom.metadata?.roomFeatures),
+    );
+    // Note: defaultLockSettings may not be available in RoomInfo
+    // Using null for now - web checks this from session.currentRoom.metadata?.defaultLockSettings
+    final defaultLockSettings = null;
+    final lockSettings = participant.metadata.lockSettings;
 
     return Row(
       children: [
@@ -130,49 +141,221 @@ class ParticipantItem extends ConsumerWidget {
             
             // Menu button for actions (admin or for others: private chat)
             if (!isMe)
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, size: 20),
-                onSelected: (value) => _onMenuSelected(context, ref, value),
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'private_chat',
-                    child: ListTile(
-                      leading: Icon(Icons.chat),
-                      title: Text('Private chat'),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  if (isAdmin) ...[
-                    const PopupMenuItem(
-                      value: 'mute',
-                      child: ListTile(
-                        leading: Icon(Icons.mic_off),
-                        title: Text('Mute'),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'presenter',
-                      child: ListTile(
-                        leading: Icon(Icons.person_pin),
-                        title: Text('Make presenter'),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'remove',
-                      child: ListTile(
-                        leading: Icon(Icons.person_remove, color: Colors.red),
-                        title: Text('Remove', style: TextStyle(color: Colors.red)),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                  ],
-                ],
+              _buildParticipantMenu(
+                context,
+                ref,
+                isAdmin,
+                hasAudio,
+                hasVideo,
+                isRaisedHand,
+                isPresenter,
+                roomFeatures,
+                defaultLockSettings,
+                lockSettings,
+                currentUser,
               ),
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildParticipantMenu(
+    BuildContext context,
+    WidgetRef ref,
+    bool isAdmin,
+    bool hasAudio,
+    bool hasVideo,
+    bool isRaisedHand,
+    bool isPresenter,
+    dynamic roomFeatures,
+    dynamic defaultLockSettings,
+    dynamic lockSettings,
+    dynamic currentUser,
+  ) {
+    final menuItems = <PopupMenuEntry<String>>[];
+
+    // Admin menu items
+    if (isAdmin) {
+      // Mute mic
+      menuItems.add(
+        PopupMenuItem(
+          value: 'mute',
+          child: ListTile(
+            leading: const Icon(Icons.mic_off),
+            title: Text(hasAudio ? 'Mute microphone' : 'Ask to share microphone'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      );
+
+      // Webcam
+      if (roomFeatures?.allowWebcams == true &&
+          roomFeatures?.adminOnlyWebcams != true) {
+        menuItems.add(
+          PopupMenuItem(
+            value: 'webcam',
+            child: ListTile(
+              leading: const Icon(Icons.videocam),
+              title: Text(hasVideo ? 'Ask to stop webcam' : 'Ask to share webcam'),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        );
+      }
+
+      // Private chat
+      menuItems.add(
+        PopupMenuItem(
+          value: 'private_chat',
+          child: ListTile(
+            leading: const Icon(Icons.chat),
+            title: const Text('Private chat'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      );
+
+      // Switch presenter
+      menuItems.add(
+        PopupMenuItem(
+          value: 'presenter',
+          child: ListTile(
+            leading: const Icon(Icons.person_pin),
+            title: Text(isPresenter ? 'Demote presenter' : 'Make presenter'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      );
+
+      // Lower hand
+      if (isRaisedHand) {
+        menuItems.add(
+          PopupMenuItem(
+            value: 'lower_hand',
+            child: ListTile(
+              leading: const Icon(Icons.back_hand_outlined),
+              title: const Text('Lower hand'),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        );
+      }
+
+      // Lock settings submenu
+      final lockableFeatures = <Map<String, dynamic>>[];
+      if (roomFeatures?.allowWebcams == true &&
+          roomFeatures?.adminOnlyWebcams != true) {
+        lockableFeatures.add({
+          'key': 'webcam',
+          'isLocked': lockSettings?.lockWebcam ?? false,
+          'lockText': 'Lock webcam',
+          'unlockText': 'Unlock webcam',
+        });
+      }
+      if (roomFeatures?.allowScreenShare == true) {
+        lockableFeatures.add({
+          'key': 'screenShare',
+          'isLocked': lockSettings?.lockScreenSharing ?? false,
+          'lockText': 'Lock screen sharing',
+          'unlockText': 'Unlock screen sharing',
+        });
+      }
+      if (roomFeatures?.whiteboardFeatures?.isAllow == true) {
+        lockableFeatures.add({
+          'key': 'whiteboard',
+          'isLocked': lockSettings?.lockWhiteboard ?? false,
+          'lockText': 'Lock whiteboard',
+          'unlockText': 'Unlock whiteboard',
+        });
+      }
+      if (roomFeatures?.chatFeatures?.isAllow == true) {
+        lockableFeatures.add({
+          'key': 'chat',
+          'isLocked': lockSettings?.lockChat ?? false,
+          'lockText': 'Lock chat',
+          'unlockText': 'Unlock chat',
+        });
+        lockableFeatures.add({
+          'key': 'sendChatMsg',
+          'isLocked': lockSettings?.lockChatSendMessage ?? false,
+          'lockText': 'Lock send chat message',
+          'unlockText': 'Unlock send chat message',
+        });
+        if (roomFeatures?.chatFeatures?.isAllowFileUpload == true) {
+          lockableFeatures.add({
+            'key': 'chatFile',
+            'isLocked': lockSettings?.lockChatFileShare ?? false,
+            'lockText': 'Lock send file',
+            'unlockText': 'Unlock send file',
+          });
+        }
+      }
+
+      for (final feature in lockableFeatures) {
+        menuItems.add(
+          PopupMenuItem(
+            value: 'lock_${feature['key']}',
+            child: ListTile(
+              leading: Icon(
+                feature['isLocked'] == true ? Icons.lock : Icons.lock_open,
+              ),
+              title: Text(
+                feature['isLocked'] == true
+                    ? feature['unlockText'] as String
+                    : feature['lockText'] as String,
+              ),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        );
+      }
+
+      // Remove
+      menuItems.add(
+        PopupMenuItem(
+          value: 'remove',
+          child: ListTile(
+            leading: const Icon(Icons.person_remove, color: Colors.red),
+            title: const Text('Remove', style: TextStyle(color: Colors.red)),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      );
+    } else {
+      // Non-admin: check if can send private message
+      final canSendPrivateMessage =
+          !(currentUser?.metadata?.lockSettings?.lockPrivateChat ?? false) &&
+          !(defaultLockSettings?.lockChat ?? false) &&
+          !(defaultLockSettings?.lockPrivateChat ?? false);
+
+      final canSendPrivateMessageToAdmin =
+          !(defaultLockSettings?.lockChat ?? false) &&
+          (defaultLockSettings?.lockPrivateChat ?? false) &&
+          participant.metadata.isAdmin;
+
+      if (canSendPrivateMessage || canSendPrivateMessageToAdmin) {
+        menuItems.add(
+          PopupMenuItem(
+            value: 'private_chat',
+            child: ListTile(
+              leading: const Icon(Icons.chat),
+              title: const Text('Private chat'),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        );
+      }
+    }
+
+    if (menuItems.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, size: 20),
+      onSelected: (value) => _onMenuSelected(context, ref, value),
+      itemBuilder: (context) => menuItems,
     );
   }
 
@@ -185,10 +368,12 @@ class ParticipantItem extends ConsumerWidget {
     final api = ref.read(meetApiServiceProvider);
     final roomId = session.currentRoom.roomId;
     final sid = session.currentRoom.sid;
+    final currentUser = session.currentUser;
 
     try {
-      switch (value) {
-        case 'mute':
+      if (value == 'mute') {
+        // Check if participant has audio tracks
+        if (participant.hasAudioTrack) {
           await api.muteUnmuteTrack(
             MuteUnMuteTrackReq(
               sid: sid,
@@ -202,46 +387,129 @@ class ParticipantItem extends ConsumerWidget {
               SnackBar(content: Text('Muted ${participant.name}')),
             );
           }
-          break;
-        case 'presenter':
-          await api.switchPresenter(
-            SwitchPresenterReq(
-              task: SwitchPresenterTask.PROMOTE,
-              roomId: roomId,
-              userId: participant.userId,
-            ),
+        } else {
+          // Ask to share microphone via data message
+          final natsConn = ref.read(sessionProvider.notifier).natsConn;
+          if (natsConn != null) {
+            await natsConn.sendDataMessage(
+              type: 'INFO',
+              msg: '${currentUser?.name ?? 'Someone'} asked you to share microphone',
+              toUserId: participant.userId,
+            );
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Asked ${participant.name} to share microphone')),
+              );
+            }
+          }
+        }
+      } else if (value == 'webcam') {
+        // Ask to share/stop webcam via data message
+        final natsConn = ref.read(sessionProvider.notifier).natsConn;
+        if (natsConn != null) {
+          final task = participant.hasVideoTrack
+              ? 'stop webcam'
+              : 'share webcam';
+          await natsConn.sendDataMessage(
+            type: 'INFO',
+            msg: '${currentUser?.name ?? 'Someone'} asked you to $task',
+            toUserId: participant.userId,
           );
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${participant.name} is now presenter')),
+              SnackBar(content: Text('Asked ${participant.name} to $task')),
             );
           }
-          break;
-        case 'remove':
-          await api.removeParticipant(
-            RemoveParticipantReq(
-              sid: sid,
-              roomId: roomId,
-              userId: participant.userId,
-              msg: 'You have been removed from the meeting.',
-              blockUser: false,
-            ),
-          );
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Removed ${participant.name}')),
-            );
-          }
-          break;
-        case 'private_chat':
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Open private chat with ${participant.name}'),
+        }
+      } else if (value == 'presenter') {
+        await api.switchPresenter(
+          SwitchPresenterReq(
+            task: participant.metadata.isPresenter
+                ? SwitchPresenterTask.DEMOTE
+                : SwitchPresenterTask.PROMOTE,
+            roomId: roomId,
+            userId: participant.userId,
+          ),
+        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                participant.metadata.isPresenter
+                    ? '${participant.name} is no longer presenter'
+                    : '${participant.name} is now presenter',
               ),
+            ),
+          );
+        }
+      } else if (value == 'lower_hand') {
+        // Send lower hand request to system worker
+        final natsConn = ref.read(sessionProvider.notifier).natsConn;
+        if (natsConn != null) {
+          natsConn.sendMessageToSystemWorker(
+            nats_msg.NatsMsgClientToServer(
+              event: nats_msg.NatsMsgClientToServerEvents.REQ_LOWER_OTHER_USER_HAND,
+              msg: participant.userId,
+            ),
+          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Lowered ${participant.name}\'s hand')),
             );
           }
-          break;
+        }
+      } else if (value.startsWith('lock_')) {
+        final service = value.substring(5); // Remove 'lock_' prefix
+        final settingKey = _getLockSettingKey(service);
+        final isLocked = _getLockSettingValue(participant.metadata.lockSettings, settingKey);
+        final direction = isLocked ? 'unlock' : 'lock';
+
+        await api.updateUserLockSettings(
+          UpdateUserLockSettingsReq(
+            roomSid: sid,
+            roomId: roomId,
+            userId: participant.userId,
+            service: service,
+            direction: direction,
+          ),
+        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${direction == 'lock' ? 'Locked' : 'Unlocked'} $service for ${participant.name}')),
+          );
+        }
+      } else if (value == 'remove') {
+        await api.removeParticipant(
+          RemoveParticipantReq(
+            sid: sid,
+            roomId: roomId,
+            userId: participant.userId,
+            msg: 'You have been removed from the meeting.',
+            blockUser: false,
+          ),
+        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Removed ${participant.name}')),
+          );
+        }
+      } else if (value == 'private_chat') {
+        // Initiate private chat
+        ref.read(roomSettingsProvider.notifier).updateInitiatePrivateChat(
+          InitiatePrivateChat(
+            name: participant.name,
+            userId: participant.userId,
+          ),
+        );
+        ref.read(roomSettingsProvider.notifier).updateSelectedChatOption(participant.userId);
+        // TODO: Open chat bottom sheet/panel
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Opening private chat with ${participant.name}'),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {
@@ -249,6 +517,52 @@ class ParticipantItem extends ConsumerWidget {
           SnackBar(content: Text('Error: $e')),
         );
       }
+    }
+  }
+
+  String _getLockSettingKey(String service) {
+    switch (service) {
+      case 'mic':
+        return 'lockMicrophone';
+      case 'webcam':
+        return 'lockWebcam';
+      case 'screenShare':
+        return 'lockScreenSharing';
+      case 'whiteboard':
+        return 'lockWhiteboard';
+      case 'chat':
+        return 'lockChat';
+      case 'sendChatMsg':
+        return 'lockChatSendMessage';
+      case 'chatFile':
+        return 'lockChatFileShare';
+      default:
+        return '';
+    }
+  }
+
+  bool _getLockSettingValue(dynamic lockSettings, String key) {
+    if (lockSettings == null) return false;
+    // Access lockSettings properties based on key
+    switch (key) {
+      case 'lockMicrophone':
+        return lockSettings.lockMic ?? false;
+      case 'lockWebcam':
+        return lockSettings.lockCamera ?? false;
+      case 'lockScreenSharing':
+        return lockSettings.lockScreenShare ?? false;
+      case 'lockWhiteboard':
+        return lockSettings.lockWhiteboard ?? false;
+      case 'lockChat':
+        return lockSettings.lockChat ?? false;
+      case 'lockChatSendMessage':
+        // Note: LockSettings may not have this field - using lockChat as fallback
+        return lockSettings.lockChat ?? false;
+      case 'lockChatFileShare':
+        // Note: LockSettings may not have this field - using lockChat as fallback
+        return lockSettings.lockChat ?? false;
+      default:
+        return false;
     }
   }
 

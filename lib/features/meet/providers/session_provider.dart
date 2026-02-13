@@ -282,16 +282,19 @@ class SessionNotifier extends StateNotifier<SessionState> {
       ref: ref,
     );
 
-    // Initialize ConnectLivekit
+    // Initialize ConnectLivekit (media server connection)
     _connectLivekit = ConnectLivekit(
       ref: ref,
       localUserId: userId,
       onError: setErrorState,
+      // Forward LiveKit connection status to the same callback as web (roomConnectionStatus)
       onConnectionStatusChange: (status) {
-        // Handle LiveKit connection status changes
         if (kDebugMode) {
           print('SessionProvider: LiveKit status - $status');
         }
+        // Web: uses roomConnectionStatus = 'media-server-conn-start' / 'media-server-conn-established'
+        // Mobile: reuse the same status string via setRoomConnectionStatusState callback
+        setRoomConnectionStatusState(status);
       },
       natsConn: _connectNats,
       initialAudioEnabled: initialAudioEnabled,

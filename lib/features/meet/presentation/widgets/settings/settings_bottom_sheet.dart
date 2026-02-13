@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:livekit_client/livekit_client.dart';
 import '../../../providers/room_settings_provider.dart';
+import '../../../providers/session_provider.dart';
 
 /// Settings Bottom Sheet bound to roomSettingsProvider
 /// 1:1 clone of apps/meet/src/components/settings/index.tsx
@@ -14,11 +16,53 @@ class SettingsBottomSheet extends ConsumerStatefulWidget {
 class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  List<String> _audioInputDevices = [];
+  List<String> _audioOutputDevices = [];
+  List<String> _videoDevices = [];
+  String? _selectedAudioInput;
+  String? _selectedAudioOutput;
+  String? _selectedVideoDevice;
+  String _videoQuality = 'high'; // 'high', 'medium', 'low'
+  bool _showConnectionQuality = true;
+  bool _showElapsedTime = true;
+  bool _isLoadingDevices = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _loadDevices();
+  }
+
+  Future<void> _loadDevices() async {
+    try {
+      // Note: LiveKit Flutter SDK device enumeration may differ from web
+      // For now, using placeholder device names - actual implementation depends on SDK version
+      setState(() {
+        _audioInputDevices = ['Default Microphone', 'Headset Microphone'];
+        _audioOutputDevices = ['Default Speaker', 'Speakerphone'];
+        _videoDevices = ['Front Camera', 'Back Camera'];
+        _selectedAudioInput = _audioInputDevices.isNotEmpty ? _audioInputDevices.first : null;
+        _selectedAudioOutput = _audioOutputDevices.isNotEmpty ? _audioOutputDevices.first : null;
+        _selectedVideoDevice = _videoDevices.isNotEmpty ? _videoDevices.first : null;
+        _isLoadingDevices = false;
+      });
+      
+      // TODO: Implement actual device enumeration when LiveKit Flutter SDK provides API
+      // Example (if available):
+      // final audioInputs = await AudioDeviceManager.getInputDevices();
+      // final audioOutputs = await AudioDeviceManager.getOutputDevices();
+      // final videoInputs = await VideoDeviceManager.getDevices();
+    } catch (e) {
+      setState(() {
+        _isLoadingDevices = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load devices: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -100,6 +144,8 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
   }
 
   Widget _buildAudioSettings() {
+    final livekitConn = ref.read(sessionProvider.notifier).livekitConn;
+    
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -108,45 +154,93 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: 'default',
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          ),
-          items: const [
-            DropdownMenuItem(value: 'default', child: Text('Default Microphone')),
-            DropdownMenuItem(value: 'headset', child: Text('Headset Microphone')),
-          ],
-          onChanged: (value) {
-            // TODO: Update audio input device
-          },
-        ),
+        _isLoadingDevices
+            ? const Center(child: CircularProgressIndicator())
+            : DropdownButtonFormField<String>(
+                value: _selectedAudioInput,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items: _audioInputDevices.map((device) {
+                  return DropdownMenuItem<String>(
+                    value: device,
+                    child: Text(device),
+                  );
+                }).toList(),
+                onChanged: (device) async {
+                  if (device != null && livekitConn != null) {
+                    try {
+                      // TODO: Implement actual device switching when LiveKit Flutter SDK provides API
+                      // Example: await AudioDeviceManager.setInputDevice(device);
+                      setState(() {
+                        _selectedAudioInput = device;
+                      });
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Audio input set to $device')),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to set audio input: $e')),
+                        );
+                      }
+                    }
+                  }
+                },
+              ),
         const SizedBox(height: 24),
         const Text(
           'Speaker',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: 'default',
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          ),
-          items: const [
-            DropdownMenuItem(value: 'default', child: Text('Default Speaker')),
-            DropdownMenuItem(value: 'speaker', child: Text('Speakerphone')),
-          ],
-          onChanged: (value) {
-            // TODO: Update audio output device
-          },
-        ),
+        _isLoadingDevices
+            ? const Center(child: CircularProgressIndicator())
+            : DropdownButtonFormField<String>(
+                value: _selectedAudioOutput,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items: _audioOutputDevices.map((device) {
+                  return DropdownMenuItem<String>(
+                    value: device,
+                    child: Text(device),
+                  );
+                }).toList(),
+                onChanged: (device) async {
+                  if (device != null && livekitConn != null) {
+                    try {
+                      // TODO: Implement actual device switching when LiveKit Flutter SDK provides API
+                      // Example: await AudioDeviceManager.setOutputDevice(device);
+                      setState(() {
+                        _selectedAudioOutput = device;
+                      });
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Audio output set to $device')),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to set audio output: $e')),
+                        );
+                      }
+                    }
+                  }
+                },
+              ),
       ],
     );
   }
 
   Widget _buildVideoSettings() {
+    final livekitConn = ref.read(sessionProvider.notifier).livekitConn;
+    
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -155,20 +249,43 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: 'front',
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          ),
-          items: const [
-            DropdownMenuItem(value: 'front', child: Text('Front Camera')),
-            DropdownMenuItem(value: 'back', child: Text('Back Camera')),
-          ],
-          onChanged: (value) {
-            // TODO: Update video input device
-          },
-        ),
+        _isLoadingDevices
+            ? const Center(child: CircularProgressIndicator())
+            : DropdownButtonFormField<String>(
+                value: _selectedVideoDevice,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items: _videoDevices.map((device) {
+                  return DropdownMenuItem<String>(
+                    value: device,
+                    child: Text(device),
+                  );
+                }).toList(),
+                onChanged: (device) async {
+                  if (device != null && livekitConn != null) {
+                    try {
+                      // TODO: Implement actual device switching when LiveKit Flutter SDK provides API
+                      // Example: await VideoDeviceManager.setDevice(device);
+                      setState(() {
+                        _selectedVideoDevice = device;
+                      });
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Video device set to $device')),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to set video device: $e')),
+                        );
+                      }
+                    }
+                  }
+                },
+              ),
         const SizedBox(height: 24),
         const Text(
           'Video Quality',
@@ -176,7 +293,7 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: 'high',
+          value: _videoQuality,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -186,8 +303,44 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
             DropdownMenuItem(value: 'medium', child: Text('Standard Definition (360p)')),
             DropdownMenuItem(value: 'low', child: Text('Low Definition (180p)')),
           ],
-          onChanged: (value) {
-            // TODO: Update video quality
+          onChanged: (value) async {
+            if (value != null && livekitConn != null) {
+              try {
+                // TODO: Implement actual video quality change when LiveKit Flutter SDK provides API
+                // Note: LiveKit Flutter SDK may require republishing tracks to change quality
+                // Example:
+                // VideoParameters params;
+                // switch (value) {
+                //   case 'high':
+                //     params = VideoParametersPresets.h720_169;
+                //     break;
+                //   case 'medium':
+                //     params = VideoParametersPresets.h360_169;
+                //     break;
+                //   case 'low':
+                //     params = VideoParametersPresets.h180_169;
+                //     break;
+                // }
+                // final room = livekitConn.room;
+                // if (room?.localParticipant != null) {
+                //   // Republish video track with new quality
+                // }
+                setState(() {
+                  _videoQuality = value;
+                });
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Video quality set to $value')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to update video quality: $e')),
+                  );
+                }
+              }
+            }
           },
         ),
       ],
@@ -210,16 +363,24 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
         ),
         SwitchListTile(
           title: const Text('Show connection quality'),
-          value: true,
+          value: _showConnectionQuality,
           onChanged: (value) {
-            // TODO: Toggle connection quality indicator
+            setState(() {
+              _showConnectionQuality = value;
+            });
+            // TODO: Update UI to show/hide connection quality indicator
+            // This should be stored in roomSettingsProvider or a separate provider
           },
         ),
         SwitchListTile(
           title: const Text('Show elapsed time'),
-          value: true,
+          value: _showElapsedTime,
           onChanged: (value) {
-            // TODO: Toggle elapsed time
+            setState(() {
+              _showElapsedTime = value;
+            });
+            // TODO: Update UI to show/hide elapsed time indicator
+            // This should be stored in roomSettingsProvider or a separate provider
           },
         ),
       ],

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
+import 'package:fixnum/fixnum.dart';
 import 'package:torii_app/core/config/app_config.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
@@ -131,17 +132,32 @@ class MeetApiService {
     return MeetApiException(message, code: code, originalError: error);
   }
 
+  /// Generic protobuf GET with error handling
+  Future<T> _getProto<T extends $pb.GeneratedMessage>({
+    required String path,
+    required T Function(List<int> bytes) fromBuffer,
+  }) async {
+    try {
+      final response = await _dio.get(path);
+      return fromBuffer(response.data as List<int>);
+    } on DioException catch (e) {
+      throw _handleDioError(e, path);
+    } catch (e) {
+      throw MeetApiException('Failed to process $path: ${e.toString()}', originalError: e);
+    }
+  }
+
   /// Generic protobuf POST with error handling and retry logic
   Future<T> _postProto<T extends $pb.GeneratedMessage>({
     required String path,
-    required $pb.GeneratedMessage request,
+    $pb.GeneratedMessage? request,
     required T Function(List<int> bytes) fromBuffer,
     int retryCount = 0,
   }) async {
     try {
       final response = await _dio.post(
         path,
-        data: request.writeToBuffer(),
+        data: request?.writeToBuffer(),
       );
       return fromBuffer(response.data as List<int>);
     } on DioException catch (e) {
@@ -621,6 +637,25 @@ class MeetApiService {
     }
   }
 
+  /// Execute chat translation (matches web executeChatTranslation).
+  /// Translates text from sourceLang to targetLangs.
+  Future<insights.InsightsTranslateTextRes> executeChatTranslation(
+    insights.InsightsTranslateTextReq req,
+  ) async {
+    try {
+      final result = await _postProto(
+        path: '/api/insights/translation/chat/execute',
+        request: req,
+        fromBuffer: (bytes) => insights.InsightsTranslateTextRes.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to execute chat translation', originalError: e);
+    }
+  }
+
   // --- Breakout room (protobuf, /api/breakoutRoom/*) ---
 
   /// Join a breakout room (matches web useJoinRoomMutation).
@@ -648,6 +683,126 @@ class MeetApiService {
       rethrow;
     } catch (e) {
       throw MeetApiException('Failed to join breakout room', originalError: e);
+    }
+  }
+
+  /// Create breakout rooms (matches web useCreateBreakoutRoomsMutation).
+  Future<breakout_room.BreakoutRoomRes> createBreakoutRooms(
+    breakout_room.CreateBreakoutRoomsReq req,
+  ) async {
+    try {
+      final result = await _postProto(
+        path: '/api/breakoutRoom/create',
+        request: req,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to create breakout rooms', originalError: e);
+    }
+  }
+
+  /// Get list of breakout rooms (matches web useGetBreakoutRoomsQuery).
+  Future<breakout_room.BreakoutRoomRes> getBreakoutRooms() async {
+    try {
+      final result = await _getProto(
+        path: '/api/breakoutRoom/listRooms',
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to get breakout rooms', originalError: e);
+    }
+  }
+
+  /// End a single breakout room (matches web useEndSingleRoomMutation).
+  Future<breakout_room.BreakoutRoomRes> endBreakoutRoom({
+    required String breakoutRoomId,
+    required String roomId,
+  }) async {
+    try {
+      final req = breakout_room.EndBreakoutRoomReq(
+        breakoutRoomId: breakoutRoomId,
+        roomId: roomId,
+      );
+      final result = await _postProto(
+        path: '/api/breakoutRoom/endRoom',
+        request: req,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to end breakout room', originalError: e);
+    }
+  }
+
+  /// End all breakout rooms (matches web useEndAllRoomsMutation).
+  Future<breakout_room.BreakoutRoomRes> endAllBreakoutRooms() async {
+    try {
+      final result = await _postProto(
+        path: '/api/breakoutRoom/endAllRooms',
+        request: null,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to end all breakout rooms', originalError: e);
+    }
+  }
+
+  /// Increase duration of a breakout room (matches web useIncreaseDurationMutation).
+  Future<breakout_room.BreakoutRoomRes> increaseBreakoutRoomDuration({
+    required String breakoutRoomId,
+    required int durationMinutes,
+    required String roomId,
+  }) async {
+    try {
+      final req = breakout_room.IncreaseBreakoutRoomDurationReq(
+        breakoutRoomId: breakoutRoomId,
+        duration: Int64(durationMinutes),
+        roomId: roomId,
+      );
+      final result = await _postProto(
+        path: '/api/breakoutRoom/increaseDuration',
+        request: req,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to increase breakout room duration', originalError: e);
+    }
+  }
+
+  /// Broadcast message to all breakout rooms (matches web useBroadcastBreakoutRoomMsgMutation).
+  Future<breakout_room.BreakoutRoomRes> broadcastBreakoutRoomMessage({
+    required String message,
+    required String roomId,
+  }) async {
+    try {
+      final req = breakout_room.BroadcastBreakoutRoomMsgReq(
+        msg: message,
+        roomId: roomId,
+      );
+      final result = await _postProto(
+        path: '/api/breakoutRoom/sendMsg',
+        request: req,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to broadcast breakout room message', originalError: e);
     }
   }
 }
