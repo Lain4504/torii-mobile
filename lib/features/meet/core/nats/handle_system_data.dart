@@ -16,6 +16,7 @@ import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
 import 'package:torii_app/features/meet/providers/insights_ai_text_chat_provider.dart';
+import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
 import 'package:torii_app/features/meet/core/notification_sound_service.dart';
 
 class HandleSystemData {
@@ -63,7 +64,7 @@ class HandleSystemData {
       // );
       
       if (withSound) {
-        _playNotification();
+        _playNotificationIfEnabled();
       }
       
       if (kDebugMode) {
@@ -126,26 +127,13 @@ class HandleSystemData {
     switch (payload.event) {
       case nats_msg.NatsMsgServerToClientEvents.JOIN_BREAKOUT_ROOM:
         if (payload.msg.isNotEmpty) {
-          // Dispatch notification
           ref?.read(roomSettingsProvider.notifier).addUserNotification(
             UserNotification(
               message: 'Breakout room invitation received',
               typeOption: 'info',
             ),
           );
-          // ref?.read(roomSettingsProvider.notifier).addUserNotification(
-          //   message: 'Lời mời tham gia phòng thảo luận',
-          //   typeOption: 'info',
-          //   notificationCat: 'breakout-room-invitation',
-          //   data: payload.msg,
-          //   disableToastNotification: true,
-          // );
-          
-          // Update breakout room provider
-          // ref?.read(breakoutRoomProvider.notifier).updateBreakoutRoom(roomId, data);
-          // ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(payload.msg);
-          // ref?.read(breakoutRoomProvider.notifier).invalidateTags(['My_Rooms']);
-          
+          ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(payload.msg);
           if (kDebugMode) {
             print('HandleSystemData: Breakout room invitation - ${payload.msg}');
           }
@@ -170,7 +158,6 @@ class HandleSystemData {
   /// Handle system chat message
   /// Matches: handleSysChatMsg() in HandleSystemData.tsx
   void handleSysChatMsg(String msg) {
-    // Dispatch to chat provider
     ref?.read(chatMessagesProvider.notifier).addChatMessage(
       message: ChatMessage(
         messageId: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -183,7 +170,12 @@ class HandleSystemData {
       ),
       currentUserId: userId,
     );
-
+    ref?.read(roomSettingsProvider.notifier).addUserNotification(
+      UserNotification(
+        message: 'New system message in chat',
+        typeOption: 'info',
+      ),
+    );
     if (kDebugMode) {
       print('HandleSystemData: System chat message - $msg');
     }
@@ -219,8 +211,11 @@ class HandleSystemData {
     }
   }
   
-  /// Play notification sound (join/leave/poll etc. - matches web)
-  void _playNotification() {
-    NotificationSoundService.instance.play();
+  /// Play notification sound when enabled in settings (matches web: updatePlayAudioNotification + UI plays sound)
+  void _playNotificationIfEnabled() {
+    final playSound = ref?.read(roomSettingsProvider).playAudioNotification ?? false;
+    if (playSound) {
+      NotificationSoundService.instance.play();
+    }
   }
 }

@@ -39,6 +39,16 @@ _RoomFeatures _$RoomFeaturesFromJson(Map<String, dynamic> json) =>
             ),
       chat: json['chat'] as bool? ?? false,
       whiteboard: json['whiteboard'] as bool? ?? false,
+      externalMediaPlayerFeatures: json['externalMediaPlayerFeatures'] == null
+          ? null
+          : ExternalMediaPlayerFeatures.fromJson(
+              json['externalMediaPlayerFeatures'] as Map<String, dynamic>,
+            ),
+      displayExternalLinkFeatures: json['displayExternalLinkFeatures'] == null
+          ? null
+          : DisplayExternalLinkFeatures.fromJson(
+              json['displayExternalLinkFeatures'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$RoomFeaturesToJson(_RoomFeatures instance) =>
@@ -46,7 +56,41 @@ Map<String, dynamic> _$RoomFeaturesToJson(_RoomFeatures instance) =>
       'whiteboardFeatures': instance.whiteboardFeatures,
       'chat': instance.chat,
       'whiteboard': instance.whiteboard,
+      'externalMediaPlayerFeatures': instance.externalMediaPlayerFeatures,
+      'displayExternalLinkFeatures': instance.displayExternalLinkFeatures,
     };
+
+_ExternalMediaPlayerFeatures _$ExternalMediaPlayerFeaturesFromJson(
+  Map<String, dynamic> json,
+) => _ExternalMediaPlayerFeatures(
+  isActive: json['isActive'] as bool? ?? false,
+  url: json['url'] as String? ?? '',
+  isAllow: json['isAllow'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$ExternalMediaPlayerFeaturesToJson(
+  _ExternalMediaPlayerFeatures instance,
+) => <String, dynamic>{
+  'isActive': instance.isActive,
+  'url': instance.url,
+  'isAllow': instance.isAllow,
+};
+
+_DisplayExternalLinkFeatures _$DisplayExternalLinkFeaturesFromJson(
+  Map<String, dynamic> json,
+) => _DisplayExternalLinkFeatures(
+  isActive: json['isActive'] as bool? ?? false,
+  link: json['link'] as String? ?? '',
+  isAllow: json['isAllow'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$DisplayExternalLinkFeaturesToJson(
+  _DisplayExternalLinkFeatures instance,
+) => <String, dynamic>{
+  'isActive': instance.isActive,
+  'link': instance.link,
+  'isAllow': instance.isAllow,
+};
 
 _WhiteboardFeatures _$WhiteboardFeaturesFromJson(Map<String, dynamic> json) =>
     _WhiteboardFeatures(

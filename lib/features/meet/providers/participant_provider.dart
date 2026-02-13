@@ -22,7 +22,10 @@ class ParticipantInfo {
   final UserMetadata metadata;
   final String? connectionQuality;
   final String? visibility;
-  
+  /// From LiveKit track subscriptions (handle_media_tracks)
+  final bool hasAudioTrack;
+  final bool hasVideoTrack;
+
   const ParticipantInfo({
     required this.userId,
     required this.sid,
@@ -30,8 +33,10 @@ class ParticipantInfo {
     required this.metadata,
     this.connectionQuality,
     this.visibility,
+    this.hasAudioTrack = true,
+    this.hasVideoTrack = true,
   });
-  
+
   ParticipantInfo copyWith({
     String? userId,
     String? sid,
@@ -39,6 +44,8 @@ class ParticipantInfo {
     UserMetadata? metadata,
     String? connectionQuality,
     String? visibility,
+    bool? hasAudioTrack,
+    bool? hasVideoTrack,
   }) {
     return ParticipantInfo(
       userId: userId ?? this.userId,
@@ -47,6 +54,8 @@ class ParticipantInfo {
       metadata: metadata ?? this.metadata,
       connectionQuality: connectionQuality ?? this.connectionQuality,
       visibility: visibility ?? this.visibility,
+      hasAudioTrack: hasAudioTrack ?? this.hasAudioTrack,
+      hasVideoTrack: hasVideoTrack ?? this.hasVideoTrack,
     );
   }
 }
@@ -116,6 +125,8 @@ class ParticipantNotifier extends StateNotifier<ParticipantState> {
       metadata: changes['metadata'] as UserMetadata? ?? participant.metadata,
       connectionQuality: changes['connectionQuality'] as String? ?? participant.connectionQuality,
       visibility: changes['visibility'] as String? ?? participant.visibility,
+      hasAudioTrack: changes['hasAudioTrack'] as bool? ?? participant.hasAudioTrack,
+      hasVideoTrack: changes['hasVideoTrack'] as bool? ?? participant.hasVideoTrack,
     );
     state = state.copyWith(participants: newParticipants);
   }

@@ -5,6 +5,7 @@ import '../../../providers/session_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
 import '../../widgets/header/meeting_header.dart';
 import '../../widgets/main_area/video_grid.dart';
+import '../../widgets/main_area/external_content_view.dart';
 import '../../widgets/footer/control_bar.dart';
 import '../../widgets/whiteboard/whiteboard_widget.dart';
 
@@ -33,9 +34,9 @@ class MeetingRoomScreen extends ConsumerWidget {
                 // Header
                 const MeetingHeader(),
                 
-                // Main video area
+                // Main area: external media/link (when active) or video grid
                 const Expanded(
-                  child: VideoGrid(),
+                  child: _MainAreaContent(),
                 ),
                 
                 // Control bar
@@ -126,5 +127,23 @@ class MeetingRoomScreen extends ConsumerWidget {
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
     }
+  }
+}
+
+/// Chooses between external media/link view and video grid based on room metadata.
+class _MainAreaContent extends ConsumerWidget {
+  const _MainAreaContent();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final room = ref.watch(sessionProvider.select((s) => s.currentRoom));
+    final ext = room.metadata?.roomFeatures?.externalMediaPlayerFeatures;
+    final link = room.metadata?.roomFeatures?.displayExternalLinkFeatures;
+    final showExternal = (ext != null && ext.isActive && ext.url.isNotEmpty) ||
+        (link != null && link.isActive && link.link.isNotEmpty);
+    if (showExternal) {
+      return const ExternalContentView();
+    }
+    return const VideoGrid();
   }
 }

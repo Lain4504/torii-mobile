@@ -8,6 +8,7 @@ import 'package:torii_app/core/config/app_config.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_breakout_room.pb.dart' as breakout_room;
+import 'package:torii_app/features/meet/data/models/proto/wajlc_insights.pb.dart' as insights;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls;
 import 'package:torii_app/services/auth/token_service.dart';
 
@@ -513,6 +514,57 @@ class MeetApiService {
       rethrow;
     } catch (e) {
       throw MeetApiException('Failed to switch presenter', originalError: e);
+    }
+  }
+
+  // --- File upload (protobuf, /api/uploadBase64EncodedData) ---
+
+  /// Upload file as base64 (for chat). Returns filePath and fileName on success.
+  Future<UploadBase64EncodedDataRes> uploadBase64EncodedFile({
+    required String roomId,
+    required String fileName,
+    required String base64Data,
+    required RoomUploadedFileType fileType,
+  }) async {
+    try {
+      final req = UploadBase64EncodedDataReq(
+        roomId: roomId,
+        data: base64Data,
+        fileName: fileName,
+        fileType: fileType,
+      );
+      final result = await _postProto(
+        path: '/api/uploadBase64EncodedData',
+        request: req,
+        fromBuffer: (bytes) => UploadBase64EncodedDataRes.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to upload file', originalError: e);
+    }
+  }
+
+  // --- Insights AI (protobuf, /api/insights/*) ---
+
+  /// Execute Insights AI text chat (user message). Server streams response via NATS RESP_INSIGHTS_AI_TEXT_CHAT.
+  Future<CommonResponse> executeInsightsAiTextChat(String text) async {
+    try {
+      final req = insights.InsightsAITextChatContent(
+        role: insights.InsightsAITextChatRole.INSIGHTS_AI_TEXT_CHAT_ROLE_USER,
+        text: text,
+      );
+      final result = await _postProto(
+        path: '/api/insights/ai/textChat/execute',
+        request: req,
+        fromBuffer: (bytes) => CommonResponse.fromBuffer(bytes),
+      );
+      return result;
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to execute Insights AI text chat', originalError: e);
     }
   }
 

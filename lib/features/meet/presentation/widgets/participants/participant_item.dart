@@ -19,8 +19,8 @@ class ParticipantItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasAudio = true;
-    final hasVideo = true;
+    final hasAudio = participant.hasAudioTrack;
+    final hasVideo = participant.hasVideoTrack;
     final isRaisedHand = participant.metadata.isHandRaised;
     final waitForApproval = participant.metadata.waitForApproval;
     final isAdmin = ref.watch(

@@ -28,9 +28,35 @@ abstract class RoomFeatures with _$RoomFeatures {
     WhiteboardFeatures? whiteboardFeatures,
     @Default(false) bool chat,
     @Default(false) bool whiteboard,
+    ExternalMediaPlayerFeatures? externalMediaPlayerFeatures,
+    DisplayExternalLinkFeatures? displayExternalLinkFeatures,
   }) = _RoomFeatures;
 
   factory RoomFeatures.fromJson(Map<String, dynamic> json) => _$RoomFeaturesFromJson(json);
+}
+
+@freezed
+abstract class ExternalMediaPlayerFeatures with _$ExternalMediaPlayerFeatures {
+  const factory ExternalMediaPlayerFeatures({
+    @Default(false) bool isActive,
+    @Default('') String url,
+    @Default(false) bool isAllow,
+  }) = _ExternalMediaPlayerFeatures;
+
+  factory ExternalMediaPlayerFeatures.fromJson(Map<String, dynamic> json) =>
+      _$ExternalMediaPlayerFeaturesFromJson(json);
+}
+
+@freezed
+abstract class DisplayExternalLinkFeatures with _$DisplayExternalLinkFeatures {
+  const factory DisplayExternalLinkFeatures({
+    @Default(false) bool isActive,
+    @Default('') String link,
+    @Default(false) bool isAllow,
+  }) = _DisplayExternalLinkFeatures;
+
+  factory DisplayExternalLinkFeatures.fromJson(Map<String, dynamic> json) =>
+      _$DisplayExternalLinkFeaturesFromJson(json);
 }
 
 @freezed

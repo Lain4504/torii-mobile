@@ -449,6 +449,34 @@ class ConnectNats {
       case nats_msg.NatsMsgServerToClientEvents.SESSION_ENDED:
         await endSession(payload.msg);
         break;
+
+      case nats_msg.NatsMsgServerToClientEvents.SYSTEM_NOTIFICATION:
+        if (!_isRecorder) {
+          handleSystemData.handleNotification(payload.msg);
+        }
+        break;
+
+      case nats_msg.NatsMsgServerToClientEvents.POLL_CREATED:
+      case nats_msg.NatsMsgServerToClientEvents.POLL_CLOSED:
+        handleSystemData.handlePoll(payload);
+        break;
+
+      case nats_msg.NatsMsgServerToClientEvents.JOIN_BREAKOUT_ROOM:
+      case nats_msg.NatsMsgServerToClientEvents.BREAKOUT_ROOM_ENDED:
+        handleSystemData.handleBreakoutRoom(payload);
+        break;
+
+      case nats_msg.NatsMsgServerToClientEvents.SYSTEM_CHAT_MSG:
+        handleSystemData.handleSysChatMsg(payload.msg);
+        break;
+
+      case nats_msg.NatsMsgServerToClientEvents.TRANSCRIPTION_OUTPUT_TEXT:
+        handleDataMessage.handleSpeechSubtitleText(payload.msg);
+        break;
+
+      case nats_msg.NatsMsgServerToClientEvents.RESP_INSIGHTS_AI_TEXT_CHAT:
+        handleSystemData.handleInsightsAITextData(payload.msg);
+        break;
         
       default:
         if (kDebugMode) {

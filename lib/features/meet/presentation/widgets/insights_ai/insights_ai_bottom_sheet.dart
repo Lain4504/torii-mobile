@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/insights_ai_text_chat_provider.dart';
+import '../../../data/datasources/meet_api_service.dart';
 
 /// Insights AI Text Chat Bottom Sheet
 /// Shows AI chat messages (user + model stream)
@@ -174,6 +175,7 @@ class _InsightsAiBottomSheetState extends ConsumerState<InsightsAiBottomSheet> {
   }
 
   Widget _buildInput(BuildContext context) {
+    final chatState = ref.watch(insightsAiTextChatProvider);
     return Container(
       padding: EdgeInsets.only(
         left: 16,
@@ -193,11 +195,14 @@ class _InsightsAiBottomSheetState extends ConsumerState<InsightsAiBottomSheet> {
           Expanded(
             child: TextField(
               controller: _inputController,
-              decoration: const InputDecoration(
-                hintText: 'Ask AI...',
-                border: OutlineInputBorder(),
+              enabled: !chatState.isAwaitingResponse,
+              decoration: InputDecoration(
+                hintText: chatState.isAwaitingResponse
+                    ? 'AI is responding...'
+                    : 'Ask AI...',
+                border: const OutlineInputBorder(),
                 contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
               maxLines: 1,
               onSubmitted: (_) => _sendMessage(),
@@ -205,7 +210,7 @@ class _InsightsAiBottomSheetState extends ConsumerState<InsightsAiBottomSheet> {
           ),
           const SizedBox(width: 8),
           IconButton.filled(
-            onPressed: _sendMessage,
+            onPressed: chatState.isAwaitingResponse ? null : _sendMessage,
             icon: const Icon(Icons.send),
           ),
         ],
@@ -213,11 +218,29 @@ class _InsightsAiBottomSheetState extends ConsumerState<InsightsAiBottomSheet> {
     );
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _inputController.text.trim();
     if (text.isEmpty) return;
+    final notifier = ref.read(insightsAiTextChatProvider.notifier);
+    notifier.addAiTextChatUserMessage(text);
     _inputController.clear();
-    ref.read(insightsAiTextChatProvider.notifier).addAiTextChatUserMessage(text);
-    // TODO: Send message to server via NATS/API so AI can respond
+
+    try {
+      final api = ref.read(meetApiServiceProvider);
+      final res = await api.executeInsightsAiTextChat(text);
+      if (!res.status && mounted) {
+        notifier.clearIsAwaitingResponse();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(res.msg.isNotEmpty ? res.msg : 'AI request failed')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        notifier.clearIsAwaitingResponse();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 }
