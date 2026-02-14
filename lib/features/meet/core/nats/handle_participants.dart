@@ -35,9 +35,11 @@ class HandleParticipants {
   /// Add local user from initial data (matches addLocalParticipantInfo in HandleParticipants.ts).
   /// Updates session currentUser and participant list.
   void addLocalParticipantInfo(nats_msg.NatsKvUserInfo info) {
-    final metadata = info.hasMetadata() && info.metadata.isNotEmpty
-        ? UserMetadata.fromJson(jsonDecode(info.metadata))
-        : const UserMetadata();
+    final Map<String, dynamic> rawMetadata = info.hasMetadata() && info.metadata.isNotEmpty
+        ? jsonDecode(info.metadata)
+        : {};
+    final metadata = UserMetadata.fromJson(_normalizeMetadata(rawMetadata));
+    
     final isRecorder = _isUserRecorder(info.userId);
     final currentUser = CurrentUser(
       sid: info.userSid,
@@ -77,9 +79,10 @@ class HandleParticipants {
     }
     
     // Parse metadata
-    final metadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
-        ? UserMetadata.fromJson(jsonDecode(userInfo.metadata))
-        : const UserMetadata();
+    final Map<String, dynamic> rawMetadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
+        ? jsonDecode(userInfo.metadata)
+        : {};
+    final metadata = UserMetadata.fromJson(_normalizeMetadata(rawMetadata));
     
     // Add participant to provider
     ref?.read(participantProvider.notifier).addParticipant(
@@ -114,9 +117,6 @@ class HandleParticipants {
       _showUserLeftNotification(participant.name);
     }
     
-    // Note: Active speakers provider not implemented yet
-    // Will be added in future sprint
-    
     if (kDebugMode) {
       print('HandleParticipants: User left - $userId');
     }
@@ -126,9 +126,10 @@ class HandleParticipants {
   /// Matches: handleParticipantMetadataUpdate() in HandleParticipants.ts
   void handleUserMetadataUpdate(nats_msg.NatsKvUserInfo userInfo) {
     // Parse metadata
-    final metadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
-        ? UserMetadata.fromJson(jsonDecode(userInfo.metadata))
-        : const UserMetadata();
+    final Map<String, dynamic> rawMetadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
+        ? jsonDecode(userInfo.metadata)
+        : {};
+    final metadata = UserMetadata.fromJson(_normalizeMetadata(rawMetadata));
 
     // Skip if it's the local user
     if (userInfo.userId == connectNats.userId) {
@@ -227,5 +228,23 @@ class HandleParticipants {
   void clearParticipantCounterInterval() {
     _participantCounterInterval?.cancel();
     _participantCounterInterval = null;
+  }
+
+  /// Recursively convert Map keys from snake_case to camelCase
+  Map<String, dynamic> _normalizeMetadata(Map<String, dynamic> map) {
+    final result = <String, dynamic>{};
+    map.forEach((key, value) {
+      final newKey = key.contains('_') 
+          ? key.replaceAllMapped(RegExp(r'_([a-z])'), (m) => m.group(1)!.toUpperCase())
+          : key;
+      if (value is Map<String, dynamic>) {
+        result[newKey] = _normalizeMetadata(value);
+      } else if (value is List) {
+        result[newKey] = value.map((e) => e is Map<String, dynamic> ? _normalizeMetadata(e) : e).toList();
+      } else {
+        result[newKey] = value;
+      }
+    });
+    return result;
   }
 }

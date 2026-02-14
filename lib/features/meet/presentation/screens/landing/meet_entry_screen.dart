@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'meet_login_screen.dart';
 import 'join_meeting_screen.dart';
+import '../room/meeting_room_screen.dart';
+import '../../../providers/session_provider.dart';
 
 /// Meet Entry Screen - Wrapper matching web flow
 /// - No token → MeetLoginScreen (form to get token via getJoinToken)
@@ -29,6 +31,12 @@ class _MeetEntryScreenState extends ConsumerState<MeetEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isStartup = ref.watch(sessionProvider.select((s) => s.isStartup));
+
+    if (!isStartup) {
+      return const MeetingRoomScreen();
+    }
+
     if (_effectiveToken != null && _effectiveToken!.isNotEmpty) {
       return JoinMeetingScreen(initialToken: _effectiveToken!);
     }

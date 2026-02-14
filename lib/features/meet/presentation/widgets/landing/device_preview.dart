@@ -96,133 +96,209 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.1),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Video preview
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: _isCameraEnabled && _videoTrack != null
-                  ? VideoTrackRenderer(_videoTrack!)
-                  : Container(
-                      color: Colors.black87,
-                      child: const Center(
-                        child: Icon(
-                          Icons.videocam_off,
-                          size: 64,
-                          color: Colors.white54,
-                        ),
-                      ),
-                    ),
-            ),
-          ),
-          
-          // Controls
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Microphone button
-                if (!widget.lockMicrophone)
-                  _buildControlButton(
-                    icon: _isMicEnabled ? Icons.mic : Icons.mic_off,
-                    isActive: _isMicEnabled,
-                    onTap: _isMicEnabled ? _disableMicrophone : _enableMicrophone,
-                  )
-                else
-                  _buildLockedButton(Icons.mic_off),
-                
-                const SizedBox(width: 20),
-                
-                // Camera button
-                if (!widget.lockWebcam)
-                  _buildControlButton(
-                    icon: _isCameraEnabled ? Icons.videocam : Icons.videocam_off,
-                    isActive: _isCameraEnabled,
-                    onTap: _isCameraEnabled ? _disableCamera : _enableCamera,
-                  )
-                else
-                  _buildLockedButton(Icons.videocam_off),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      children: [
+        // Video preview with a premium frame
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF0E141C),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: (isDark ? Colors.white : Colors.black).withOpacity(0.08),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
               ],
             ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Stack(
+                children: [
+                  _isCameraEnabled && _videoTrack != null
+                      ? VideoTrackRenderer(
+                          _videoTrack!,
+                          fit: VideoViewFit.cover,
+                        )
+                      : Container(
+                          color: const Color(0xFF191F28),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircleAvatar(
+                                  radius: 40,
+                                  backgroundColor: Colors.white.withOpacity(0.05),
+                                  child: const Icon(
+                                    Icons.videocam_off_rounded,
+                                    size: 40,
+                                    color: Colors.white24,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Camera đang tắt',
+                                  style: TextStyle(
+                                    color: Colors.white38,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                  
+                  // Top overlay for "Device Preview"
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.video_settings, size: 14, color: Colors.white),
+                          SizedBox(width: 6),
+                          Text(
+                            'Xem trước',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 24),
+        
+        // Refined device controls
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _DeviceControlButton(
+              icon: _isMicEnabled ? Icons.mic_rounded : Icons.mic_off_rounded,
+              isActive: _isMicEnabled,
+              isLocked: widget.lockMicrophone,
+              onTap: _isMicEnabled ? _disableMicrophone : _enableMicrophone,
+              activeColor: const Color(0xFF2BC5C5),
+              label: 'Microphone',
+            ),
+            const SizedBox(width: 24),
+            _DeviceControlButton(
+              icon: _isCameraEnabled ? Icons.videocam_rounded : Icons.videocam_off_rounded,
+              isActive: _isCameraEnabled,
+              isLocked: widget.lockWebcam,
+              onTap: _isCameraEnabled ? _disableCamera : _enableCamera,
+              activeColor: const Color(0xFF2BC5C5),
+              label: 'Camera',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _DeviceControlButton extends StatelessWidget {
+  final IconData icon;
+  final bool isActive;
+  final bool isLocked;
+  final VoidCallback onTap;
+  final Color activeColor;
+  final String label;
+
+  const _DeviceControlButton({
+    required this.icon,
+    required this.isActive,
+    required this.isLocked,
+    required this.onTap,
+    required this.activeColor,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLocked) {
+      return Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.08),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.red.withOpacity(0.2), width: 1.5),
+            ),
+            child: const Icon(Icons.block_rounded, color: Colors.red, size: 28),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Locked',
+            style: TextStyle(fontSize: 11, color: Colors.red, fontWeight: FontWeight.bold),
           ),
         ],
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildControlButton({
-    required IconData icon,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: isActive
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isActive
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).dividerColor.withOpacity(0.2),
-          ),
-        ),
-        child: Icon(
-          icon,
-          color: isActive
-              ? Theme.of(context).colorScheme.primary
-              : Colors.white70,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLockedButton(IconData icon) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.red.withOpacity(0.3),
-        ),
-      ),
-      child: Stack(
-        children: [
-          Center(
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(28),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: isActive ? activeColor : Colors.black.withOpacity(0.05),
+              shape: BoxShape.circle,
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: activeColor.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
             child: Icon(
               icon,
-              color: Colors.red,
+              color: isActive ? Colors.white : Colors.black54,
+              size: 28,
             ),
           ),
-          Positioned(
-            top: 2,
-            right: 2,
-            child: Icon(
-              Icons.lock,
-              size: 12,
-              color: Colors.red,
-            ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.black54,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

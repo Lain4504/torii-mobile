@@ -38,6 +38,26 @@ Map<String, dynamic> _$BreakoutRoomFeaturesToJson(
   _BreakoutRoomFeatures instance,
 ) => <String, dynamic>{'isActive': instance.isActive};
 
+_ChatFeatures _$ChatFeaturesFromJson(Map<String, dynamic> json) =>
+    _ChatFeatures(
+      isAllow: json['isAllow'] as bool? ?? true,
+      isAllowFileUpload: json['isAllowFileUpload'] as bool? ?? true,
+      allowedFileTypes:
+          (json['allowedFileTypes'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      maxFileSize: (json['maxFileSize'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$ChatFeaturesToJson(_ChatFeatures instance) =>
+    <String, dynamic>{
+      'isAllow': instance.isAllow,
+      'isAllowFileUpload': instance.isAllowFileUpload,
+      'allowedFileTypes': instance.allowedFileTypes,
+      'maxFileSize': instance.maxFileSize,
+    };
+
 _RoomFeatures _$RoomFeaturesFromJson(Map<String, dynamic> json) =>
     _RoomFeatures(
       whiteboardFeatures: json['whiteboardFeatures'] == null
@@ -62,6 +82,16 @@ _RoomFeatures _$RoomFeaturesFromJson(Map<String, dynamic> json) =>
           : BreakoutRoomFeatures.fromJson(
               json['breakoutRoomFeatures'] as Map<String, dynamic>,
             ),
+      chatFeatures: json['chatFeatures'] == null
+          ? null
+          : ChatFeatures.fromJson(json['chatFeatures'] as Map<String, dynamic>),
+      allowWebcams: json['allowWebcams'] as bool? ?? true,
+      adminOnlyWebcams: json['adminOnlyWebcams'] as bool? ?? false,
+      allowScreenShare: json['allowScreenShare'] as bool? ?? true,
+      allowViewOtherWebcams: json['allowViewOtherWebcams'] as bool? ?? true,
+      allowViewOtherUsersList: json['allowViewOtherUsersList'] as bool? ?? true,
+      allowRaiseHand: json['allowRaiseHand'] as bool? ?? true,
+      muteOnStart: json['muteOnStart'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$RoomFeaturesToJson(_RoomFeatures instance) =>
@@ -72,6 +102,14 @@ Map<String, dynamic> _$RoomFeaturesToJson(_RoomFeatures instance) =>
       'externalMediaPlayerFeatures': instance.externalMediaPlayerFeatures,
       'displayExternalLinkFeatures': instance.displayExternalLinkFeatures,
       'breakoutRoomFeatures': instance.breakoutRoomFeatures,
+      'chatFeatures': instance.chatFeatures,
+      'allowWebcams': instance.allowWebcams,
+      'adminOnlyWebcams': instance.adminOnlyWebcams,
+      'allowScreenShare': instance.allowScreenShare,
+      'allowViewOtherWebcams': instance.allowViewOtherWebcams,
+      'allowViewOtherUsersList': instance.allowViewOtherUsersList,
+      'allowRaiseHand': instance.allowRaiseHand,
+      'muteOnStart': instance.muteOnStart,
     };
 
 _ExternalMediaPlayerFeatures _$ExternalMediaPlayerFeaturesFromJson(

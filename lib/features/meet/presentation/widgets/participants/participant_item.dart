@@ -190,8 +190,8 @@ class ParticipantItem extends ConsumerWidget {
       );
 
       // Webcam
-      if (roomFeatures?.allowWebcams == true &&
-          roomFeatures?.adminOnlyWebcams != true) {
+      if (_safeGet(roomFeatures, 'allowWebcams', true) &&
+          _safeGet(roomFeatures, 'adminOnlyWebcams', false) != true) {
         menuItems.add(
           PopupMenuItem(
             value: 'webcam',
@@ -244,8 +244,8 @@ class ParticipantItem extends ConsumerWidget {
 
       // Lock settings submenu
       final lockableFeatures = <Map<String, dynamic>>[];
-      if (roomFeatures?.allowWebcams == true &&
-          roomFeatures?.adminOnlyWebcams != true) {
+      if (_safeGet(roomFeatures, 'allowWebcams', true) &&
+          _safeGet(roomFeatures, 'adminOnlyWebcams', false) != true) {
         lockableFeatures.add({
           'key': 'webcam',
           'isLocked': lockSettings?.lockWebcam ?? false,
@@ -253,7 +253,7 @@ class ParticipantItem extends ConsumerWidget {
           'unlockText': 'Unlock webcam',
         });
       }
-      if (roomFeatures?.allowScreenShare == true) {
+      if (_safeGet(roomFeatures, 'allowScreenShare', true)) {
         lockableFeatures.add({
           'key': 'screenShare',
           'isLocked': lockSettings?.lockScreenSharing ?? false,
@@ -261,7 +261,7 @@ class ParticipantItem extends ConsumerWidget {
           'unlockText': 'Unlock screen sharing',
         });
       }
-      if (roomFeatures?.whiteboardFeatures?.isAllow == true) {
+      if (_safeGet(roomFeatures?.whiteboardFeatures, 'isAllow', false)) {
         lockableFeatures.add({
           'key': 'whiteboard',
           'isLocked': lockSettings?.lockWhiteboard ?? false,
@@ -269,7 +269,7 @@ class ParticipantItem extends ConsumerWidget {
           'unlockText': 'Unlock whiteboard',
         });
       }
-      if (roomFeatures?.chatFeatures?.isAllow == true) {
+      if (_safeGet(roomFeatures?.chatFeatures, 'isAllow', false)) {
         lockableFeatures.add({
           'key': 'chat',
           'isLocked': lockSettings?.lockChat ?? false,
@@ -282,7 +282,7 @@ class ParticipantItem extends ConsumerWidget {
           'lockText': 'Lock send chat message',
           'unlockText': 'Unlock send chat message',
         });
-        if (roomFeatures?.chatFeatures?.isAllowFileUpload == true) {
+        if (_safeGet(roomFeatures?.chatFeatures, 'isAllowFileUpload', false)) {
           lockableFeatures.add({
             'key': 'chatFile',
             'isLocked': lockSettings?.lockChatFileShare ?? false,
@@ -571,5 +571,24 @@ class ParticipantItem extends ConsumerWidget {
     final parts = name.trim().split(' ');
     if (parts.length == 1) return parts[0][0].toUpperCase();
     return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+  }
+
+  /// Safely get a property from an object that might not have it defined or might be null.
+  /// Useful when generated code is out of sync with models.
+  dynamic _safeGet(dynamic obj, String key, dynamic defaultValue) {
+    if (obj == null) return defaultValue;
+    try {
+      // Try to call the getter dynamically
+      return (obj as dynamic).toJson()[key] ?? defaultValue;
+    } catch (_) {
+      try {
+        // Fallback: use mirrors-like access if it was added manually to the class
+        // but re-generation didn't happen yet.
+        if (key == 'allowWebcams') return (obj as dynamic).allowWebcams ?? defaultValue;
+        if (key == 'adminOnlyWebcams') return (obj as dynamic).adminOnlyWebcams ?? defaultValue;
+        if (key == 'allowScreenShare') return (obj as dynamic).allowScreenShare ?? defaultValue;
+      } catch (_) {}
+      return defaultValue;
+    }
   }
 }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../providers/bottom_icons_provider.dart';
-import '../../../providers/session_provider.dart';
 import 'mic_button.dart';
 import 'camera_button.dart';
 import 'screen_share_button.dart';
@@ -18,49 +16,61 @@ class ControlBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 768;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      height: isMobile ? 72 : 80,
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 8 : 16,
-        vertical: 8,
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: Theme.of(context).dividerColor.withOpacity(0.1),
-          ),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, isMobile ? 12 : 24),
+      child: Container(
+        height: isMobile ? 80 : 96,
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 12 : 24,
         ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Mic button
-          const MicButton(),
-          SizedBox(width: isMobile ? 8 : 12),
-          
-          // Camera button
-          const CameraButton(),
-          SizedBox(width: isMobile ? 8 : 12),
-          
-          // Screen share button (desktop only)
-          if (!isMobile) ...[
-            const ScreenShareButton(),
-            const SizedBox(width: 12),
+        decoration: BoxDecoration(
+          color: isDark 
+              ? const Color(0xFF1E1E1E).withOpacity(0.9) 
+              : Colors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: (isDark ? Colors.white : Colors.black).withOpacity(0.08),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
           ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Mic button
+            const MicButton(),
+            SizedBox(width: isMobile ? 10 : 16),
+            
+            // Camera button
+            const CameraButton(),
+            SizedBox(width: isMobile ? 10 : 16),
+            
+            // Screen share button (desktop only)
+            if (!isMobile) ...[
+              const ScreenShareButton(),
+              const SizedBox(width: 16),
+            ],
+  
+            // Raise hand
+            const RaiseHandButton(),
+            SizedBox(width: isMobile ? 10 : 16),
+  
+            // More options button
+            const MoreOptionsButton(),
+            SizedBox(width: isMobile ? 10 : 16),
 
-          // Raise hand
-          const RaiseHandButton(),
-          SizedBox(width: isMobile ? 8 : 12),
-
-          // Leave button
-          const LeaveButton(),
-          SizedBox(width: isMobile ? 8 : 12),
-          
-          // More options button
-          const MoreOptionsButton(),
-        ],
+            // Leave button
+            const LeaveButton(),
+          ],
+        ),
       ),
     );
   }

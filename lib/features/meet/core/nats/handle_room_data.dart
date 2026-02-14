@@ -48,9 +48,11 @@ class HandleRoomData {
   /// Matches: setRoomInfo() in HandleRoomData.ts
   Future<Map<String, dynamic>> setRoomInfo(nats_msg.NatsKvRoomInfo info) async {
     // Parse metadata
-    final metadata = info.hasMetadata() && info.metadata.isNotEmpty
-        ? RoomInfo.fromJson(jsonDecode(info.metadata))
-        : const RoomInfo();
+    final Map<String, dynamic> rawMetadata = info.hasMetadata() && info.metadata.isNotEmpty
+        ? jsonDecode(info.metadata)
+        : {};
+    final normalizedMetadata = _normalizeMetadata(rawMetadata);
+    final metadata = RoomInfo.fromJson(normalizedMetadata);
 
     _currentRoom = {
       'roomId': info.roomId,
@@ -76,9 +78,10 @@ class HandleRoomData {
   /// Matches: updateRoomMetadata() in HandleRoomData.ts
   Future<void> handleRoomMetadataUpdate(nats_msg.NatsKvRoomInfo roomInfo) async {
     try {
-      final metadata = roomInfo.hasMetadata() && roomInfo.metadata.isNotEmpty
-          ? RoomInfo.fromJson(jsonDecode(roomInfo.metadata))
-          : const RoomInfo();
+      final Map<String, dynamic> rawMetadata = roomInfo.hasMetadata() && roomInfo.metadata.isNotEmpty
+          ? jsonDecode(roomInfo.metadata)
+          : {};
+      final metadata = RoomInfo.fromJson(_normalizeMetadata(rawMetadata));
       
       // Check if metadata actually changed
       if (_currentRoom?['metadata'] == null ||
@@ -271,6 +274,24 @@ class HandleRoomData {
     if (kDebugMode) {
       print('HandleRoomData: Notification ($type): $message');
     }
+  }
+
+  /// Recursively convert Map keys from snake_case to camelCase
+  Map<String, dynamic> _normalizeMetadata(Map<String, dynamic> map) {
+    final result = <String, dynamic>{};
+    map.forEach((key, value) {
+      final newKey = key.contains('_') 
+          ? key.replaceAllMapped(RegExp(r'_([a-z])'), (m) => m.group(1)!.toUpperCase())
+          : key;
+      if (value is Map<String, dynamic>) {
+        result[newKey] = _normalizeMetadata(value);
+      } else if (value is List) {
+        result[newKey] = value.map((e) => e is Map<String, dynamic> ? _normalizeMetadata(e) : e).toList();
+      } else {
+        result[newKey] = value;
+      }
+    });
+    return result;
   }
 }
 

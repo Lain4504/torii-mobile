@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/meet/providers/session_provider.dart';
 
 import '../constants/app_design_system.dart';
 import '../../features/auth/providers/auth_providers.dart';
@@ -20,6 +21,10 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncAuth = ref.watch(authStateProvider);
     final isAuthenticated = asyncAuth.asData?.value.status == AuthStatus.authenticated;
+    
+    // Hide bottom bar during active meeting
+    final isMeetStartup = ref.watch(sessionProvider.select((s) => s.isStartup));
+    final isMeetingActive = !isMeetStartup;
 
     final activeIndex = navigationShell.currentIndex;
     final theme = Theme.of(context);
@@ -29,12 +34,14 @@ class AppShell extends ConsumerWidget {
       backgroundColor: theme.scaffoldBackgroundColor,
       extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: _BottomNavBar(
-        activeIndex: activeIndex,
-        onTap: (path) => context.go(path),
-        isDark: isDark,
-        isAuthenticated: isAuthenticated,
-      ),
+      bottomNavigationBar: isMeetingActive 
+        ? null 
+        : _BottomNavBar(
+            activeIndex: activeIndex,
+            onTap: (path) => context.go(path),
+            isDark: isDark,
+            isAuthenticated: isAuthenticated,
+          ),
     );
   }
 }

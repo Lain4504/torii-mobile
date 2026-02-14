@@ -33,6 +33,19 @@ abstract class BreakoutRoomFeatures with _$BreakoutRoomFeatures {
 }
 
 @freezed
+abstract class ChatFeatures with _$ChatFeatures {
+  const factory ChatFeatures({
+    @Default(true) bool isAllow,
+    @Default(true) bool isAllowFileUpload,
+    @Default([]) List<String> allowedFileTypes,
+    @Default(0) int maxFileSize,
+  }) = _ChatFeatures;
+
+  factory ChatFeatures.fromJson(Map<String, dynamic> json) =>
+      _$ChatFeaturesFromJson(json);
+}
+
+@freezed
 abstract class RoomFeatures with _$RoomFeatures {
   const factory RoomFeatures({
     WhiteboardFeatures? whiteboardFeatures,
@@ -41,6 +54,16 @@ abstract class RoomFeatures with _$RoomFeatures {
     ExternalMediaPlayerFeatures? externalMediaPlayerFeatures,
     DisplayExternalLinkFeatures? displayExternalLinkFeatures,
     BreakoutRoomFeatures? breakoutRoomFeatures,
+    ChatFeatures? chatFeatures,
+
+    // Common missing fields
+    @Default(true) bool allowWebcams,
+    @Default(false) bool adminOnlyWebcams,
+    @Default(true) bool allowScreenShare,
+    @Default(true) bool allowViewOtherWebcams,
+    @Default(true) bool allowViewOtherUsersList,
+    @Default(true) bool allowRaiseHand,
+    @Default(false) bool muteOnStart,
   }) = _RoomFeatures;
 
   factory RoomFeatures.fromJson(Map<String, dynamic> json) => _$RoomFeaturesFromJson(json);

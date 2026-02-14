@@ -27,10 +27,10 @@ class MoreOptionsButton extends ConsumerWidget {
         width: isMobile ? 56 : 64,
         height: isMobile ? 56 : 64,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: const Color(0xFF2C2C2C), // Dark button background
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Theme.of(context).dividerColor.withOpacity(0.2),
+            color: Colors.white.withOpacity(0.1),
             width: 2,
           ),
         ),

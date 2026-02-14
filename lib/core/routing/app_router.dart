@@ -254,7 +254,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/meet',
                 builder: (context, state) {
                   final token = state.extra is Map
-                      ? state.extra['token']?.toString()
+                      ? (state.extra as Map)['token']?.toString()
                       : null;
                   return MeetEntryScreen(initialToken: token);
                 },

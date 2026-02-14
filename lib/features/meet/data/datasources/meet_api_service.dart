@@ -288,7 +288,8 @@ class MeetApiService {
   Future<bool> isRoomActive(String roomId) async {
     try {
       final data = await _sendAuthRequest('room/isRoomActive', {'room_id': roomId});
-      return data['is_active'] == true;
+      final isActive = data['is_active'];
+      return isActive == true || isActive == 1 || isActive == 'true';
     } on MeetApiException {
       rethrow;
     } catch (e) {
@@ -316,7 +317,8 @@ class MeetApiService {
       };
       final data = await _sendAuthRequest('room/create', body);
       
-      if (data['status'] != true) {
+      final status = data['status'];
+      if (status != true && status != 1 && status != 'true') {
         throw MeetApiException(
           data['msg']?.toString() ?? 'Failed to create room',
           code: 'CREATE_ROOM_FAILED',
@@ -352,7 +354,8 @@ class MeetApiService {
       };
       final data = await _sendAuthRequest('room/getJoinToken', body);
       
-      if (data['status'] != true) {
+      final status = data['status'];
+      if (status != true && status != 1 && status != 'true') {
         throw MeetApiException(
           data['msg']?.toString() ?? 'Failed to get join token',
           code: 'GET_TOKEN_FAILED',

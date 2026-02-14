@@ -19,47 +19,56 @@ class ControlButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 768;
-    final color = activeColor ?? Theme.of(context).colorScheme.primary;
+    final primaryColor = activeColor ?? Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: isMobile ? 56 : 64,
-        height: isMobile ? 56 : 64,
-        decoration: BoxDecoration(
-          color: isActive
-              ? color.withOpacity(0.2)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isActive
-                ? color
-                : Theme.of(context).dividerColor.withOpacity(0.2),
-            width: 2,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: isMobile ? 52 : 60,
+            height: isMobile ? 52 : 60,
+            decoration: BoxDecoration(
+              color: isActive
+                  ? primaryColor
+                  : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05)),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Icon(
               icon,
-              color: isActive ? color : Colors.white70,
+              color: isActive 
+                  ? Colors.white 
+                  : (isDark ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.6)),
               size: isMobile ? 24 : 28,
             ),
-            if (!isMobile) ...[
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isActive ? color : Colors.white70,
-                ),
-              ),
-            ],
-          ],
+          ),
         ),
-      ),
+        if (!isMobile) ...[
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.black54,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

@@ -29,35 +29,58 @@ class JoinForm extends StatelessWidget {
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const CircularProgressIndicator(),
-        const SizedBox(height: 16),
-        Text(
-          loadingMessage!,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 64,
+            height: 64,
+            child: CircularProgressIndicator(
+              strokeWidth: 6,
+              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+              backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+            ),
           ),
-          textAlign: TextAlign.center,
-        ),
-        if (waitForApproval) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 32),
           Text(
-            'Vui lòng đợi người tổ chức cho phép bạn tham gia.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white.withOpacity(0.7),
+            loadingMessage!,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
             ),
             textAlign: TextAlign.center,
           ),
+          if (waitForApproval) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.withOpacity(0.2)),
+              ),
+              child: const Text(
+                'Vui lòng đợi người tổ chức cho phép bạn tham gia.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.amber,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
   Widget _buildJoinState(BuildContext context) {
+    final theme = Theme.of(context);
     final bothLocked = lockMicrophone && lockWebcam;
 
     return Column(
@@ -67,60 +90,90 @@ class JoinForm extends StatelessWidget {
         const Text(
           'Sẵn sàng tham gia?',
           style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+            fontSize: 32,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -1,
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Text(
           _getJoinPrompt(),
           style: TextStyle(
-            fontSize: 14,
-            color: Colors.white.withOpacity(0.7),
+            fontSize: 15,
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            height: 1.5,
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 48),
         
         if (bothLocked)
-          // Only listen-only button
           ElevatedButton.icon(
             onPressed: onJoin,
-            icon: const Icon(Icons.volume_up),
+            icon: const Icon(Icons.headset_rounded, size: 20),
             label: const Text('Tham gia chỉ nghe'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              backgroundColor: theme.colorScheme.surface,
+              foregroundColor: theme.colorScheme.primary,
+              shadowColor: Colors.transparent,
+              padding: const EdgeInsets.symmetric(vertical: 20),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: Theme.of(context).dividerColor.withOpacity(0.2),
+                  color: theme.colorScheme.primary.withOpacity(0.2),
+                  width: 2,
                 ),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
               ),
             ),
           )
         else
-          // Join button
-          ElevatedButton(
-            onPressed: onJoin,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-            child: const Text(
-              'Tham gia ngay',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+            child: ElevatedButton(
+              onPressed: onJoin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Tham gia ngay',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),
+
+        const SizedBox(height: 24),
+        Text(
+          'Bằng cách tham gia, bạn đồng ý với Điều khoản dịch vụ của chúng tôi.',
+          style: TextStyle(
+            fontSize: 12,
+            color: theme.colorScheme.onSurface.withOpacity(0.4),
+          ),
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }
@@ -129,10 +182,10 @@ class JoinForm extends StatelessWidget {
     if (lockMicrophone && lockWebcam) {
       return 'Cả micrô và máy ảnh của bạn đều bị khóa. Bạn có thể tham gia với tư cách là người nghe.';
     } else if (lockMicrophone) {
-      return 'Micrô của bạn đã bị khóa. Bạn có thể tham gia với tư cách là người nghe hoặc bật máy ảnh.';
+      return 'Micrô đã bị khóa bởi người tổ chức. Bạn vẫn có thể tham gia và sử dụng máy ảnh.';
     } else if (lockWebcam) {
-      return 'Máy ảnh của bạn đã bị khóa. Bạn có thể tham gia với tư cách là người nghe hoặc bật micrô.';
+      return 'Máy ảnh đã bị khóa bởi người tổ chức. Bạn vẫn có thể tham gia và sử dụng micrô.';
     }
-    return 'Vui lòng chọn thiết bị của bạn trước khi tham gia.';
+    return 'Kiểm tra cài đặt âm thanh và video trước khi vào phòng họp.';
   }
 }

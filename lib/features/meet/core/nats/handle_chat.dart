@@ -79,8 +79,13 @@ class HandleChat {
   /// Add chat message to provider
   void _addChatMessage(nats_msg.ChatMessage message) {
     // Map protobuf to local model
+    // Ensure we have a unique ID to avoid deduplication issues (especially for mobile)
+    final msgId = message.id.isNotEmpty 
+        ? message.id 
+        : '${DateTime.now().millisecondsSinceEpoch}_${message.fromUserId}';
+
     final localMessage = ChatMessage(
-      messageId: message.id,
+      messageId: msgId,
       senderId: message.fromUserId,
       senderName: message.fromName,
       message: message.message,

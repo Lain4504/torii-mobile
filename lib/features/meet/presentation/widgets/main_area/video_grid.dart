@@ -124,12 +124,12 @@ class VideoGrid extends ConsumerWidget {
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        childAspectRatio: 16 / 9,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
+        childAspectRatio: 14 / 9,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
       ),
       itemCount: participants.length,
       itemBuilder: (context, index) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/breakout_room_provider.dart';
 import '../../../providers/session_provider.dart';
+import '../../../providers/whiteboard_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
 import '../../widgets/header/meeting_header.dart';
 import '../../widgets/main_area/video_grid.dart';
@@ -24,30 +25,38 @@ class MeetingRoomScreen extends ConsumerWidget {
       }
     });
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: isDark ? const Color(0xFF0E141C) : const Color(0xFFF0F4F8),
       body: SafeArea(
         child: Stack(
           children: [
             Column(
-              children: [
+              children: const [
                 // Header
-                const MeetingHeader(),
+                MeetingHeader(),
                 
                 // Main area: external media/link (when active) or video grid
-                const Expanded(
+                Expanded(
                   child: _MainAreaContent(),
                 ),
                 
-                // Control bar
-                const ControlBar(),
+                // Bottom spacing for floating ControlBar
+                SizedBox(height: 100),
               ],
             ),
             
-            // Whiteboard overlay
-            const Positioned.fill(
-              child: WhiteboardWidget(),
+            // Floating Control bar
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: ControlBar(),
             ),
+            
+            // Whiteboard overlay
+            const _WhiteboardOverlay(),
           ],
         ),
       ),
@@ -59,6 +68,7 @@ class MeetingRoomScreen extends ConsumerWidget {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: const Text('Breakout Room Invitation'),
         content: Text('You have been invited to join breakout room $roomId'),
         actions: [
@@ -71,6 +81,9 @@ class MeetingRoomScreen extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () => _joinBreakoutRoom(context, ref, dialogContext, roomId),
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Join'),
           ),
         ],
@@ -115,7 +128,6 @@ class MeetingRoomScreen extends ConsumerWidget {
             content: Text('Joined breakout room. Reconnect with the new link to enter.'),
           ),
         );
-        // Optional: trigger reconnection with res.token (would require meet controller to support it)
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(res.msg.isNotEmpty ? res.msg : 'Failed to join breakout room')),
@@ -142,8 +154,37 @@ class _MainAreaContent extends ConsumerWidget {
     final showExternal = (ext != null && ext.isActive && ext.url.isNotEmpty) ||
         (link != null && link.isActive && link.link.isNotEmpty);
     if (showExternal) {
-      return const ExternalContentView();
+      return const Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.all(Radius.circular(24)),
+          child: ExternalContentView(),
+        ),
+      );
     }
     return const VideoGrid();
+  }
+}
+
+/// Whiteboard overlay with visibility check
+class _WhiteboardOverlay extends ConsumerWidget {
+  const _WhiteboardOverlay();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isWhiteboardVisible = ref.watch(
+      whiteboardProvider.select((s) => s.isVisible),
+    );
+
+    if (!isWhiteboardVisible) {
+      return const SizedBox.shrink();
+    }
+
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black.withOpacity(0.5),
+        child: const WhiteboardWidget(),
+      ),
+    );
   }
 }

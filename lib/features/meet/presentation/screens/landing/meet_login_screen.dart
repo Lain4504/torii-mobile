@@ -5,7 +5,6 @@ import '../../../data/datasources/meet_api_service.dart';
 /// Meet Login Screen
 /// 1:1 clone of apps/meet/src/components/extra-pages/Login.tsx
 /// Form: Room ID, User Type, Name, User ID → isRoomActive → createRoom (if needed) → getJoinToken
-/// API Key & API Secret: lấy từ AppConfig, mặc định gửi kèm mọi auth request (isRoomActive, createRoom, getJoinToken).
 class MeetLoginScreen extends ConsumerStatefulWidget {
   final void Function(String token) onLoginSuccess;
 
@@ -30,7 +29,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
       text: DateTime.now().millisecondsSinceEpoch.toString(),
     );
     _nameController = TextEditingController(
-      text: 'user-${DateTime.now().millisecondsSinceEpoch % 100}',
+      text: 'User ${DateTime.now().millisecondsSinceEpoch % 100}',
     );
   }
 
@@ -97,157 +96,258 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
   void _resetForm() {
     setState(() {
       _userIdController.text = DateTime.now().millisecondsSinceEpoch.toString();
-      _nameController.text = 'user-${DateTime.now().millisecondsSinceEpoch % 100}';
+      _nameController.text = 'User ${DateTime.now().millisecondsSinceEpoch % 100}';
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
+      backgroundColor: isDark ? const Color(0xFF191F28) : const Color(0xFFF8FAFB),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 500),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Logo or Branding
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Chào mừng trở lại',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
+                  child: Icon(
+                    Icons.video_chat_rounded,
+                    size: 40,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Torii Meet',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -1,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Tham gia các cuộc họp chuyên nghiệp',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  ),
+                ),
+                const SizedBox(height: 48),
 
-                      // Room
-                      Text('Phòng', style: theme.textTheme.labelLarge),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        value: _roomId,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        items: List.generate(
-                          15,
-                          (i) => DropdownMenuItem(
-                            value: 'room${(i + 1).toString().padLeft(2, '0')}',
-                            child: Text('Phòng ${i + 1}'),
-                          ),
-                        ),
-                        onChanged: (v) => setState(() => _roomId = v ?? _roomId),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // User Type
-                      Text('Loại người dùng', style: theme.textTheme.labelLarge),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        value: _userType,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                          DropdownMenuItem(
-                            value: 'participant',
-                            child: Text('Người tham gia'),
-                          ),
-                        ],
-                        onChanged: (v) =>
-                            setState(() => _userType = v ?? _userType),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Name
-                      Text('Tên', style: theme.textTheme.labelLarge),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          hintText: 'Nhập tên của bạn',
-                        ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Nhập tên' : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // User ID
-                      Text('User ID', style: theme.textTheme.labelLarge),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _userIdController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          hintText: 'User ID',
-                        ),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Nhập User ID' : null,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Buttons
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: _isLoading ? null : _resetForm,
-                            child: const Text('Đặt lại'),
-                          ),
-                          const SizedBox(width: 12),
-                          FilledButton(
-                            onPressed: _isLoading ? null : _handleLogin,
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text('Đăng nhập'),
-                          ),
-                        ],
+                // Login Card
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 450),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0E141C) : Colors.white,
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 32,
+                        offset: const Offset(0, 16),
                       ),
                     ],
                   ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildFieldLabel(context, 'Phòng họp'),
+                          _buildDropdown(
+                            context,
+                            value: _roomId,
+                            items: List.generate(
+                              10,
+                              (i) => DropdownMenuItem(
+                                value: 'room${(i + 1).toString().padLeft(2, '0')}',
+                                child: Text('Phòng Global ${i + 1}'),
+                              ),
+                            ),
+                            onChanged: (v) => setState(() => _roomId = v ?? _roomId),
+                          ),
+                          const SizedBox(height: 24),
+
+                          _buildFieldLabel(context, 'Vai trò'),
+                          _buildDropdown(
+                            context,
+                            value: _userType,
+                            items: const [
+                              DropdownMenuItem(value: 'participant', child: Text('Người tham gia')),
+                              DropdownMenuItem(value: 'admin', child: Text('Quản trị viên')),
+                            ],
+                            onChanged: (v) => setState(() => _userType = v ?? _userType),
+                          ),
+                          const SizedBox(height: 24),
+
+                          _buildFieldLabel(context, 'Tên hiển thị'),
+                          _buildTextField(
+                            context,
+                            controller: _nameController,
+                            hint: 'Ví dụ: Nguyễn Văn A',
+                            icon: Icons.person_outline_rounded,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên' : null,
+                          ),
+                          const SizedBox(height: 24),
+
+                          _buildFieldLabel(context, 'User ID (Dành cho Dev)'),
+                          _buildTextField(
+                            context,
+                            controller: _userIdController,
+                            hint: 'Mã định danh người dùng',
+                            icon: Icons.fingerprint_rounded,
+                            validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
+                          ),
+                          const SizedBox(height: 40),
+
+                          // Dynamic Login Button
+                          SizedBox(
+                            height: 64,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Vào phòng họp',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: _isLoading ? null : _resetForm,
+                            child: Text(
+                              'Đặt lại chi tiết',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurface.withOpacity(0.4),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(BuildContext context, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown(
+    BuildContext context, {
+    required String value,
+    required List<DropdownMenuItem<String>> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.02),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          items: items,
+          onChanged: onChanged,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    BuildContext context, {
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    String? Function(String?)? validator,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+        hintText: hint,
+        filled: true,
+        fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.02),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
         ),
       ),
     );

@@ -135,13 +135,15 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                         if (isMobile) {
                           return Column(
                             children: [
-                              DevicePreview(
-                                lockMicrophone: lockMicrophone,
-                                lockWebcam: lockWebcam,
-                                onMicToggled: (val) => _isMicEnabled = val,
-                                onCameraToggled: (val) => _isCameraEnabled = val,
-                              ),
-                              const SizedBox(height: 24),
+                              if (_loadingMessage == null) ...[
+                                DevicePreview(
+                                  lockMicrophone: lockMicrophone,
+                                  lockWebcam: lockWebcam,
+                                  onMicToggled: (val) => _isMicEnabled = val,
+                                  onCameraToggled: (val) => _isCameraEnabled = val,
+                                ),
+                                const SizedBox(height: 24),
+                              ],
                               JoinForm(
                                 loadingMessage: _loadingMessage,
                                 waitForApproval: waitForApproval,
@@ -156,14 +158,15 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: DevicePreview(
-                                lockMicrophone: lockMicrophone,
-                                lockWebcam: lockWebcam,
-                                onMicToggled: (val) => _isMicEnabled = val,
-                                onCameraToggled: (val) => _isCameraEnabled = val,
+                            if (_loadingMessage == null)
+                              Expanded(
+                                child: DevicePreview(
+                                  lockMicrophone: lockMicrophone,
+                                  lockWebcam: lockWebcam,
+                                  onMicToggled: (val) => _isMicEnabled = val,
+                                  onCameraToggled: (val) => _isCameraEnabled = val,
+                                ),
                               ),
-                            ),
                             const SizedBox(width: 32),
                             Expanded(
                               child: JoinForm(
@@ -252,13 +255,13 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
         subjects = res.hasNatsSubjects()
             ? res.natsSubjects
             : nats_msg.NatsSubjects(
-                systemApiWorker: 'system.worker',
-                systemJsWorker: 'system.js',
-                systemPublic: 'system.public',
-                systemPrivate: 'system.private',
+                systemApiWorker: 'sysApiWorker',
+                systemJsWorker: 'sysJsWorker',
+                systemPublic: 'sysPublic',
+                systemPrivate: 'sysPrivate',
                 chat: 'chat',
                 whiteboard: 'whiteboard',
-                dataChannel: 'data',
+                dataChannel: 'dataChannel',
               );
         ref.read(sessionProvider.notifier).addServerVersion(res.serverVersion);
       } else {

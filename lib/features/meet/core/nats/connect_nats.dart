@@ -132,7 +132,14 @@ class ConnectNats {
         _setErrorState = setErrorState,
         _setRoomConnectionStatusState = setRoomConnectionStatusState,
         _setCurrentMediaServerConn = setCurrentMediaServerConn {
-    // Initialize handlers
+    // Initialize handlers (must be in body - some need 'this')
+    messageQueue = MessageQueue();
+    handleRoomData = HandleRoomData(roomId: _roomId, userId: _userId, ref: ref);
+    handleSystemData = HandleSystemData(userId: _userId, ref: ref);
+    handleParticipants = HandleParticipants(connectNats: this, ref: ref);
+    handleChat = HandleChat(connectNats: this, ref: ref);
+    handleDataMessage = HandleDataMessage(connectNats: this, ref: ref);
+    handleWhiteboard = HandleWhiteboard(ref: ref);
   }
   
   // Getters
@@ -155,6 +162,7 @@ class ConnectNats {
       _nc = nats.Client();
       await _nc.connect(
         Uri.parse(_natsWSUrls.first),
+        connectOption: nats.ConnectOption(authToken: _token),
       );
       
       // Send CONNECT message with token if needed or use it in URI
@@ -174,6 +182,7 @@ class ConnectNats {
       return;
     }
     
+    _isConnected = true;
     _setRoomConnectionStatusState('receiving-data');
     _isRecorder = _isUserRecorder(userId);
     
@@ -211,6 +220,7 @@ class ConnectNats {
   /// Matches: endSession() in ConnectNats.ts
   Future<void> endSession(String msg) async {
     // 1. Update UI immediately
+    _isConnected = false;
     _setErrorState('Phòng bị ngắt kết nối', msg);
     messageQueue.setIsConnected(false);
     _setRoomConnectionStatusState('disconnected');
@@ -287,7 +297,9 @@ class ConnectNats {
     _statusCheckerInterval = Timer.periodic(
       const Duration(milliseconds: kStatusCheckerInterval),
       (_) {
-        if (_nc?.isClosed() == true) {
+        if (_nc != null &&
+            (_nc.status == nats.Status.closed ||
+                _nc.status == nats.Status.disconnected)) {
           messageQueue.setIsConnected(false);
           unawaited(endSession('Lỗi mạng - Phòng bị ngắt kết nối'));
           
@@ -360,16 +372,16 @@ class ConnectNats {
           final payload = nats_msg.NatsMsgServerToClient.fromBuffer(msg.data);
           await _handleSystemEvents(payload);
           // Ack: publish empty to reply subject
-          if (msg.reply != null && msg.reply!.isNotEmpty) {
-            await _nc!.pub(msg.reply!, Uint8List(0));
+          if (msg.replyTo != null && msg.replyTo!.isNotEmpty) {
+            await _nc!.pub(msg.replyTo!, Uint8List(0));
           }
         } catch (e) {
           if (kDebugMode) {
             print('ConnectNats: Error processing room event - $e');
           }
           // NAK on error
-          if (msg.reply != null && msg.reply!.isNotEmpty) {
-            await _nc!.pub(msg.reply!, Uint8List.fromList(utf8.encode('-NAK')));
+          if (msg.replyTo != null && msg.replyTo!.isNotEmpty) {
+            await _nc!.pub(msg.replyTo!, Uint8List.fromList(utf8.encode('-NAK')));
           }
         }
       } on TimeoutException {
@@ -389,9 +401,9 @@ class ConnectNats {
     if (_nc == null) return;
     
     try {
-      // Subscribe to system public subject
-      final systemSubject = _subjects.systemPublic;
-      final sub = _nc.subscribe(systemSubject);
+      // Subscribe to system public subject (room-specific, matches web)
+      final systemSubject = '${_subjects.systemPublic}.$_roomId';
+      final sub = _nc.sub(systemSubject);
       
       await for (final msg in sub.stream) {
         try {
@@ -420,18 +432,38 @@ class ConnectNats {
       case nats_msg.NatsMsgServerToClientEvents.RES_INITIAL_DATA:
         _handleInitialData(payload);
         break;
+
+      case nats_msg.NatsMsgServerToClientEvents.RES_JOINED_USERS_LIST:
+        await _handleJoinedUsersList(payload.msg);
+        break;
+
+      case nats_msg.NatsMsgServerToClientEvents.RES_MEDIA_SERVER_DATA:
+        await _handleMediaServerData(payload.msg);
+        break;
         
       case nats_msg.NatsMsgServerToClientEvents.ROOM_METADATA_UPDATE:
-        if (payload.hasBinMsg()) {
-          final roomInfo = nats_msg.NatsKvRoomInfo.fromBuffer(payload.binMsg);
-          handleRoomData.handleRoomMetadataUpdate(roomInfo);
+        if (payload.msg.isNotEmpty) {
+          try {
+            final roomInfo = nats_msg.NatsKvRoomInfo.fromJson(_normalizeJson(payload.msg));
+            handleRoomData.handleRoomMetadataUpdate(roomInfo);
+          } catch (e) {
+            if (kDebugMode) {
+              print('ConnectNats: Error parsing ROOM_METADATA_UPDATE - $e');
+            }
+          }
         }
         break;
         
       case nats_msg.NatsMsgServerToClientEvents.USER_JOINED:
-        if (payload.hasBinMsg()) {
-          final userInfo = nats_msg.NatsKvUserInfo.fromBuffer(payload.binMsg);
-          handleParticipants.handleUserJoined(userInfo);
+        if (payload.msg.isNotEmpty) {
+          try {
+            final userInfo = nats_msg.NatsKvUserInfo.fromJson(_normalizeJson(payload.msg));
+            handleParticipants.handleUserJoined(userInfo);
+          } catch (e) {
+            if (kDebugMode) {
+              print('ConnectNats: Error parsing USER_JOINED - $e');
+            }
+          }
         }
         break;
         
@@ -439,11 +471,25 @@ class ConnectNats {
         // userId is in msg field
         handleParticipants.handleUserLeft(payload.msg);
         break;
+
+      case nats_msg.NatsMsgServerToClientEvents.USER_OFFLINE:
+        // Full removal - userId from binMsg (NatsKvUserInfo) or msg (JSON/userId)
+        final offlineUserId = _extractUserIdFromPayload(payload);
+        if (offlineUserId != null && offlineUserId.isNotEmpty) {
+          handleParticipants.handleUserLeft(offlineUserId);
+        }
+        break;
         
       case nats_msg.NatsMsgServerToClientEvents.USER_METADATA_UPDATE:
-        if (payload.hasBinMsg()) {
-          final userInfo = nats_msg.NatsKvUserInfo.fromBuffer(payload.binMsg);
-          handleParticipants.handleUserMetadataUpdate(userInfo);
+        if (payload.msg.isNotEmpty) {
+          try {
+            final userInfo = nats_msg.NatsKvUserInfo.fromJson(_normalizeJson(payload.msg));
+            handleParticipants.handleUserMetadataUpdate(userInfo);
+          } catch (e) {
+            if (kDebugMode) {
+              print('ConnectNats: Error parsing USER_METADATA_UPDATE - $e');
+            }
+          }
         }
         break;
         
@@ -491,27 +537,40 @@ class ConnectNats {
   void _handleInitialData(nats_msg.NatsMsgServerToClient payload) {
     if (kDebugMode) {
       print('ConnectNats: Received initial data');
+      print('ConnectNats: Payload: ${payload.msg}');
     }
 
-    if (!payload.hasBinMsg()) return;
+    if (payload.msg.isEmpty) return;
 
-    final initialData = nats_msg.NatsInitialData.fromBuffer(payload.binMsg);
-    if (!initialData.hasRoom() || !initialData.hasLocalUser()) {
+    try {
+      // Server might send snake_case keys (e.g., local_user), but Dart Protobuf expects camelCase (localUser)
+      // We'll normalize the JSON before parsing
+      final initialData = nats_msg.NatsInitialData.fromJson(_normalizeJson(payload.msg));
+      
+      if (kDebugMode && (!initialData.hasRoom() || !initialData.hasLocalUser())) {
+        print('ConnectNats: Initial data missing critical fields. Room: ${initialData.hasRoom()}, LocalUser: ${initialData.hasLocalUser()}');
+        print('ConnectNats: Normalized JSON: ${_normalizeJson(payload.msg)}');
+      }
+
+      if (!initialData.hasRoom() || !initialData.hasLocalUser()) {
+        return;
+      }
+
+      // 1. Room info -> HandleRoomData.setRoomInfo
+      handleRoomData.setRoomInfo(initialData.room).then((room) {
+        _currentRoomInfo = room;
+      });
+
+      // 2. Local user -> HandleParticipants.addLocalParticipantInfo + session/participant providers
+      handleParticipants.addLocalParticipantInfo(initialData.localUser);
+      _userName = initialData.localUser.name;
+      _isAdmin = initialData.localUser.isAdmin;
+    } catch (e) {
       if (kDebugMode) {
-        print('ConnectNats: Initial data missing room or localUser');
+        print('ConnectNats: Error parsing RES_INITIAL_DATA - $e');
       }
       return;
     }
-
-    // 1. Room info -> HandleRoomData.setRoomInfo
-    handleRoomData.setRoomInfo(initialData.room).then((room) {
-      _currentRoomInfo = room;
-    });
-
-    // 2. Local user -> HandleParticipants.addLocalParticipantInfo + session/participant providers
-    handleParticipants.addLocalParticipantInfo(initialData.localUser);
-    _userName = initialData.localUser.name;
-    _isAdmin = initialData.localUser.isAdmin;
 
     // 3. E2EE from room metadata if present
     _enableE2EE = false;
@@ -521,6 +580,70 @@ class ConnectNats {
     // 4. Connection ready (matches web: _setRoomConnectionStatusState('ready'))
     ref.read(sessionProvider.notifier).updateIsNatsServerConnected(true);
     _setRoomConnectionStatusState('ready');
+
+    // 5. Finalize app conn: request joined users list (matches web finalizeAppConn)
+    // Web: user clicks Join → finalizeAppConn. Mobile: auto-call after RES_INITIAL_DATA
+    _finalizeAppConn();
+  }
+
+  /// Finalize app connection - request joined users list (matches web finalizeAppConn)
+  void _finalizeAppConn() {
+    _sendMessageToSystemWorker(
+      nats_msg.NatsMsgClientToServer(
+        event: nats_msg.NatsMsgClientToServerEvents.REQ_JOINED_USERS_LIST,
+      ),
+    );
+    if (kDebugMode) {
+      print('ConnectNats: Requested joined users list (finalizeAppConn)');
+    }
+  }
+
+  /// Handle joined users list - then onAfterUserReady (matches web handleJoinedUsersList)
+  Future<void> _handleJoinedUsersList(String msg) async {
+    try {
+      final onlineUsers = jsonDecode(msg) as List<dynamic>;
+      for (final userJson in onlineUsers) {
+        final jsonStr = userJson is Map ? jsonEncode(userJson) : userJson.toString();
+        final userInfo = nats_msg.NatsKvUserInfo.fromJson(_normalizeJson(jsonStr));
+        await handleParticipants.handleUserJoined(userInfo);
+      }
+      await _onAfterUserReady();
+    } catch (e) {
+      if (kDebugMode) {
+        print('ConnectNats: Error handling joined users list - $e');
+      }
+    }
+  }
+
+  /// After user ready - request media server data, subscribe channels (matches web onAfterUserReady)
+  Future<void> _onAfterUserReady() async {
+    // Request media server connection data (LiveKit URL + token)
+    _sendMessageToSystemWorker(
+      nats_msg.NatsMsgClientToServer(
+        event: nats_msg.NatsMsgClientToServerEvents.REQ_MEDIA_SERVER_DATA,
+      ),
+    );
+    if (kDebugMode) {
+      print('ConnectNats: Requested media server data (onAfterUserReady)');
+    }
+  }
+
+  /// Handle media server data - connect to LiveKit (matches web handleMediaServerData)
+  Future<void> _handleMediaServerData(String msg) async {
+    try {
+      final serverInfo = nats_msg.MediaServerConnInfo.fromJson(_normalizeJson(msg));
+      if (_mediaServerConn != null && serverInfo.url.isNotEmpty && serverInfo.token.isNotEmpty) {
+        await _mediaServerConn!.initializeConnection(serverInfo.url, serverInfo.token);
+        if (kDebugMode) {
+          print('ConnectNats: LiveKit connection initialized');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('ConnectNats: Error handling media server data - $e');
+      }
+      _setErrorState('Lỗi kết nối media', e.toString());
+    }
   }
   
   /// Start token renewal interval
@@ -582,14 +705,15 @@ class ConnectNats {
   
   /// Send message to system worker
   /// Matches: sendMessageToSystemWorker() in ConnectNats.ts
+  /// Server expects subject: sysJsWorker.{roomId}.{userId}
   void _sendMessageToSystemWorker(nats_msg.NatsMsgClientToServer msg) {
     if (_nc == null) return;
 
     try {
-      final subject = _subjects.systemApiWorker;
+      final subject = '${_subjects.systemJsWorker}.$_roomId.$_userId';
       final data = msg.writeToBuffer();
 
-      _nc.publish(subject, data);
+      _nc.pub(subject, data);
 
       if (kDebugMode) {
         print('ConnectNats: Sent message to system worker - ${msg.event}');
@@ -630,7 +754,7 @@ class ConnectNats {
     
     try {
       final subject = '${_subjects.chat}.$_roomId';
-      final sub = _nc.subscribe(subject);
+      final sub = _nc.sub(subject);
       
       // Request chat data from donors (users who have chat history)
       final donors = await _getChatDonors();
@@ -721,7 +845,7 @@ class ConnectNats {
       );
     } else {
       final subject = '${_subjects.chat}.$_roomId';
-      _nc.publish(subject, payload);
+      _nc.pub(subject, payload);
     }
     
     // Send analytics
@@ -903,7 +1027,7 @@ class ConnectNats {
     
     try {
       final subject = '${_subjects.whiteboard}.$_roomId';
-      final sub = _nc.subscribe(subject);
+      final sub = _nc.sub(subject);
       
       // Request whiteboard data from donors (users who have whiteboard state)
       final donors = await _getWhiteboardDonors();
@@ -979,8 +1103,8 @@ class ConnectNats {
     
     // Publish to whiteboard channel
     final subject = '${_subjects.whiteboard}.$_roomId';
-    _nc.publish(subject, payload);
-    
+    _nc.pub(subject, payload);
+
     if (kDebugMode) {
       print('ConnectNats: Sent whiteboard data - $type');
     }
@@ -1003,7 +1127,7 @@ class ConnectNats {
     
     try {
       final subject = '${_subjects.dataChannel}.$_roomId';
-      final sub = _nc.subscribe(subject);
+      final sub = _nc.sub(subject);
       
       // Listen for data channel messages
       await for (final msg in sub.stream) {
@@ -1089,7 +1213,7 @@ class ConnectNats {
     } else {
       // Public message
       final subject = '${_subjects.dataChannel}.$_roomId';
-      _nc.publish(subject, payload);
+      _nc.pub(subject, payload);
     }
     
     if (kDebugMode) {
@@ -1233,6 +1357,26 @@ class ConnectNats {
   
   // Helper methods
   
+  /// Extract userId from payload (for USER_OFFLINE etc.)
+  /// Handles binMsg (NatsKvUserInfo), msg as JSON, or plain userId string
+  String? _extractUserIdFromPayload(nats_msg.NatsMsgServerToClient payload) {
+    if (payload.hasBinMsg()) {
+      try {
+        final userInfo = nats_msg.NatsKvUserInfo.fromBuffer(payload.binMsg);
+        return userInfo.userId;
+      } catch (_) {}
+    }
+    if (payload.msg.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(payload.msg) as Map<String, dynamic>;
+        return decoded['userId']?.toString();
+      } catch (_) {
+        return payload.msg;
+      }
+    }
+    return null;
+  }
+
   String _formatNatsError(dynamic error) {
     // TODO: Format NATS error for display
     return error.toString();
@@ -1251,6 +1395,109 @@ class ConnectNats {
       return false;
     }
   }
+  /// Normalize JSON by converting snake_case keys to camelCase
+  /// This is needed because the server uses marshalToProtoJson(useProtoFieldName: true)
+  /// Normalize JSON from server (snake_case -> camelCase -> tag numbers)
+  /// Server sends snake_case, but Dart Protobuf fromJson expects camelCase.
+  /// Additionally, if names are omitted in the build, fromJson expects tag numbers.
+  String _normalizeJson(String jsonStr) {
+    try {
+      final decoded = jsonDecode(jsonStr);
+      if (decoded is Map<String, dynamic>) {
+        return jsonEncode(_convertToTagMap(decoded));
+      } else if (decoded is List) {
+        return jsonEncode(decoded.map((e) => e is Map<String, dynamic> ? _convertToTagMap(e) : e).toList());
+      }
+      return jsonStr;
+    } catch (e) {
+      if (kDebugMode) print('ConnectNats: Error in _normalizeJson - $e');
+      return jsonStr;
+    }
+  }
+
+  /// Recursively convert Map keys to tag numbers as strings.
+  /// This is the most robust way to support fromJson when names are omitted.
+  Map<String, dynamic> _convertToTagMap(Map<String, dynamic> map) {
+    final result = <String, dynamic>{};
+    map.forEach((key, value) {
+      // 1. Get camelCase and tag
+      final camelKey = key.contains('_') 
+          ? key.replaceAllMapped(RegExp(r'_([a-z])'), (m) => m.group(1)!.toUpperCase())
+          : key;
+      
+      final tag = _fieldNameToTag[camelKey] ?? _fieldNameToTag[key];
+      final targetKey = tag?.toString() ?? camelKey;
+      
+      // 2. Process value
+      if (value is Map<String, dynamic>) {
+        result[targetKey] = _convertToTagMap(value);
+      } else if (value is List) {
+        result[targetKey] = value.map((e) => e is Map<String, dynamic> ? _convertToTagMap(e) : e).toList();
+      } else {
+        result[targetKey] = value;
+      }
+    });
+    return result;
+  }
+
+  /// Hardcoded mapping of field names to tag numbers for critical messages.
+  /// Matches wajlc_nats_msg.proto definitions.
+  static const Map<String, int> _fieldNameToTag = {
+    // NatsInitialData
+    'room': 1,
+    'localUser': 2, 'local_user': 2,
+    'mediaServerInfo': 3, 'media_server_info': 3,
+    
+    // NatsKvRoomInfo
+    'dbTableId': 1, 'db_table_id': 1,
+    'roomId': 2, 'room_id': 2,
+    'roomSid': 3, 'room_sid': 3,
+    'status': 4,
+    'emptyTimeout': 5, 'empty_timeout': 5,
+    'maxParticipants': 6, 'max_participants': 6,
+    'metadata': 7,
+    'createdAt': 8, 'created_at': 8,
+    
+    // NatsKvUserInfo
+    'userId': 1, 'user_id': 1,
+    'userSid': 2, 'user_sid': 2,
+    'name': 3,
+    // 'roomId': 4,
+    'isAdmin': 5, 'is_admin': 5,
+    'isPresenter': 6, 'is_presenter': 6,
+    // 'metadata': 7,
+    'joinedAt': 8, 'joined_at': 8,
+    'reconnectedAt': 9, 'reconnected_at': 9,
+    'disconnectedAt': 10, 'disconnected_at': 10,
+
+    // MediaServerConnInfo
+    'url': 1,
+    'token': 2,
+    'enabledE2ee': 3, 'enabled_e2ee': 3,
+
+    // ChatMessage
+    'id': 1,
+    'fromName': 2, 'from_name': 2,
+    'fromUserId': 3, 'from_user_id': 3,
+    'sentAt': 4, 'sent_at': 4,
+    'toUserId': 5, 'to_user_id': 5,
+    'isPrivate': 6, 'is_private': 6,
+    'message': 7,
+    'fromAdmin': 8, 'from_admin': 8,
+    'sourceLang': 9, 'source_lang': 9,
+    'translations': 10,
+
+    // NatsSystemNotification
+    // 'id': 1,
+    'type': 2,
+    // 'msg': 3,
+    // 'sentAt': 4,
+    'withSound': 5, 'with_sound': 5,
+    
+    // NatsUserMetadataUpdate
+    // 'userId': 1,
+    // 'metadata': 2,
+  };
 }
 
 /// Helper to fire and forget futures
