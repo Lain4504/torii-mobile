@@ -54,9 +54,8 @@ const int kUsersSyncInterval = 30 * 1000; // 30 seconds
 /// This class is a 1:1 clone of the web ConnectNats.ts class.
 /// It manages the NATS connection, subscriptions, and message routing.
 class ConnectNats {
-  // NATS connection (will use nats package or WebSocket directly)
-  dynamic _nc; // NatsConnection
-  dynamic _js; // JetStreamClient
+  // NATS connection (dart_nats Client - no JetStream API, we use raw request for pull)
+  dynamic _nc; // nats.Client
   
   // Connection config
   final List<String> _natsWSUrls;
@@ -178,9 +177,8 @@ class ConnectNats {
     _setRoomConnectionStatusState('receiving-data');
     _isRecorder = _isUserRecorder(userId);
     
-    // Initialize JetStream
-    _js = _nc.jetStream();
-    messageQueue.setJs(_js);
+    // dart_nats Client has no jetStream() - use manual JetStream pull via request()
+    messageQueue.setJs(null); // MessageQueue not used for JS publish; system worker uses _nc.pub
     messageQueue.setIsConnected(true);
     
     // Update state: NATS connected
@@ -342,46 +340,45 @@ class ConnectNats {
     });
   }
   
-  /// Subscribe to room events (JetStream)
-  /// Matches: subscribeToRoomEvents() in ConnectNats.ts
+  /// Subscribe to room events (JetStream pull)
+  /// dart_nats has no jetStream() - use raw $JS.API.CONSUMER.MSG.NEXT request loop
   Future<void> _subscribeToRoomEvents() async {
-    if (_js == null) return;
-    
-    try {
-      final consumerName = '${_roomId}_$_userId';
-      
-      // Get or create consumer
-      final consumer = await _js.consumer(
-        stream: _roomStreamName,
-        consumer: consumerName,
-      );
-      
-      // Subscribe to messages
-      await for (final msg in consumer.messages()) {
+    if (_nc == null || _roomStreamName.isEmpty) return;
+
+    final consumerName = '${_roomId}_$_userId';
+    final subject = r'$JS.API.CONSUMER.MSG.NEXT.' + _roomStreamName + '.' + consumerName;
+    final batchReq = utf8.encode('{"batch":1}');
+
+    while (_isConnected && _nc != null) {
+      try {
+        final msg = await _nc!.request(
+          subject,
+          Uint8List.fromList(batchReq),
+          timeout: const Duration(seconds: 30),
+        );
         try {
-          // Parse protobuf message
           final payload = nats_msg.NatsMsgServerToClient.fromBuffer(msg.data);
-          
-          // Handle session ended early
-          if (payload.event == nats_msg.NatsMsgServerToClientEvents.SESSION_ENDED) {
-            msg.ack();
-          }
-          
-          // Route to handler
           await _handleSystemEvents(payload);
-          
-          // Acknowledge message
-          msg.ack();
+          // Ack: publish empty to reply subject
+          if (msg.reply != null && msg.reply!.isNotEmpty) {
+            await _nc!.pub(msg.reply!, Uint8List(0));
+          }
         } catch (e) {
           if (kDebugMode) {
             print('ConnectNats: Error processing room event - $e');
           }
-          msg.nak();
+          // NAK on error
+          if (msg.reply != null && msg.reply!.isNotEmpty) {
+            await _nc!.pub(msg.reply!, Uint8List.fromList(utf8.encode('-NAK')));
+          }
         }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('ConnectNats: Error subscribing to room events - $e');
+      } on TimeoutException {
+        // No message available, loop again
+      } catch (e) {
+        if (_isConnected && kDebugMode) {
+          print('ConnectNats: Error in JetStream pull - $e');
+        }
+        await Future.delayed(const Duration(milliseconds: 500));
       }
     }
   }

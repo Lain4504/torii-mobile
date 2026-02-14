@@ -323,9 +323,272 @@ $RoomFeaturesCopyWith<$Res>? get roomFeatures {
 
 
 /// @nodoc
+mixin _$BreakoutRoomFeatures {
+
+ bool get isActive;
+/// Create a copy of BreakoutRoomFeatures
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$BreakoutRoomFeaturesCopyWith<BreakoutRoomFeatures> get copyWith => _$BreakoutRoomFeaturesCopyWithImpl<BreakoutRoomFeatures>(this as BreakoutRoomFeatures, _$identity);
+
+  /// Serializes this BreakoutRoomFeatures to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BreakoutRoomFeatures&&(identical(other.isActive, isActive) || other.isActive == isActive));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,isActive);
+
+@override
+String toString() {
+  return 'BreakoutRoomFeatures(isActive: $isActive)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $BreakoutRoomFeaturesCopyWith<$Res>  {
+  factory $BreakoutRoomFeaturesCopyWith(BreakoutRoomFeatures value, $Res Function(BreakoutRoomFeatures) _then) = _$BreakoutRoomFeaturesCopyWithImpl;
+@useResult
+$Res call({
+ bool isActive
+});
+
+
+
+
+}
+/// @nodoc
+class _$BreakoutRoomFeaturesCopyWithImpl<$Res>
+    implements $BreakoutRoomFeaturesCopyWith<$Res> {
+  _$BreakoutRoomFeaturesCopyWithImpl(this._self, this._then);
+
+  final BreakoutRoomFeatures _self;
+  final $Res Function(BreakoutRoomFeatures) _then;
+
+/// Create a copy of BreakoutRoomFeatures
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? isActive = null,}) {
+  return _then(_self.copyWith(
+isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [BreakoutRoomFeatures].
+extension BreakoutRoomFeaturesPatterns on BreakoutRoomFeatures {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _BreakoutRoomFeatures value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _BreakoutRoomFeatures() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _BreakoutRoomFeatures value)  $default,){
+final _that = this;
+switch (_that) {
+case _BreakoutRoomFeatures():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _BreakoutRoomFeatures value)?  $default,){
+final _that = this;
+switch (_that) {
+case _BreakoutRoomFeatures() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _BreakoutRoomFeatures() when $default != null:
+return $default(_that.isActive);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isActive)  $default,) {final _that = this;
+switch (_that) {
+case _BreakoutRoomFeatures():
+return $default(_that.isActive);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isActive)?  $default,) {final _that = this;
+switch (_that) {
+case _BreakoutRoomFeatures() when $default != null:
+return $default(_that.isActive);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _BreakoutRoomFeatures implements BreakoutRoomFeatures {
+  const _BreakoutRoomFeatures({this.isActive = false});
+  factory _BreakoutRoomFeatures.fromJson(Map<String, dynamic> json) => _$BreakoutRoomFeaturesFromJson(json);
+
+@override@JsonKey() final  bool isActive;
+
+/// Create a copy of BreakoutRoomFeatures
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$BreakoutRoomFeaturesCopyWith<_BreakoutRoomFeatures> get copyWith => __$BreakoutRoomFeaturesCopyWithImpl<_BreakoutRoomFeatures>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$BreakoutRoomFeaturesToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BreakoutRoomFeatures&&(identical(other.isActive, isActive) || other.isActive == isActive));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,isActive);
+
+@override
+String toString() {
+  return 'BreakoutRoomFeatures(isActive: $isActive)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$BreakoutRoomFeaturesCopyWith<$Res> implements $BreakoutRoomFeaturesCopyWith<$Res> {
+  factory _$BreakoutRoomFeaturesCopyWith(_BreakoutRoomFeatures value, $Res Function(_BreakoutRoomFeatures) _then) = __$BreakoutRoomFeaturesCopyWithImpl;
+@override @useResult
+$Res call({
+ bool isActive
+});
+
+
+
+
+}
+/// @nodoc
+class __$BreakoutRoomFeaturesCopyWithImpl<$Res>
+    implements _$BreakoutRoomFeaturesCopyWith<$Res> {
+  __$BreakoutRoomFeaturesCopyWithImpl(this._self, this._then);
+
+  final _BreakoutRoomFeatures _self;
+  final $Res Function(_BreakoutRoomFeatures) _then;
+
+/// Create a copy of BreakoutRoomFeatures
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? isActive = null,}) {
+  return _then(_BreakoutRoomFeatures(
+isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$RoomFeatures {
 
- WhiteboardFeatures? get whiteboardFeatures; bool get chat; bool get whiteboard; ExternalMediaPlayerFeatures? get externalMediaPlayerFeatures; DisplayExternalLinkFeatures? get displayExternalLinkFeatures;
+ WhiteboardFeatures? get whiteboardFeatures; bool get chat; bool get whiteboard; ExternalMediaPlayerFeatures? get externalMediaPlayerFeatures; DisplayExternalLinkFeatures? get displayExternalLinkFeatures; BreakoutRoomFeatures? get breakoutRoomFeatures;
 /// Create a copy of RoomFeatures
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -338,16 +601,16 @@ $RoomFeaturesCopyWith<RoomFeatures> get copyWith => _$RoomFeaturesCopyWithImpl<R
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RoomFeatures&&(identical(other.whiteboardFeatures, whiteboardFeatures) || other.whiteboardFeatures == whiteboardFeatures)&&(identical(other.chat, chat) || other.chat == chat)&&(identical(other.whiteboard, whiteboard) || other.whiteboard == whiteboard)&&(identical(other.externalMediaPlayerFeatures, externalMediaPlayerFeatures) || other.externalMediaPlayerFeatures == externalMediaPlayerFeatures)&&(identical(other.displayExternalLinkFeatures, displayExternalLinkFeatures) || other.displayExternalLinkFeatures == displayExternalLinkFeatures));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RoomFeatures&&(identical(other.whiteboardFeatures, whiteboardFeatures) || other.whiteboardFeatures == whiteboardFeatures)&&(identical(other.chat, chat) || other.chat == chat)&&(identical(other.whiteboard, whiteboard) || other.whiteboard == whiteboard)&&(identical(other.externalMediaPlayerFeatures, externalMediaPlayerFeatures) || other.externalMediaPlayerFeatures == externalMediaPlayerFeatures)&&(identical(other.displayExternalLinkFeatures, displayExternalLinkFeatures) || other.displayExternalLinkFeatures == displayExternalLinkFeatures)&&(identical(other.breakoutRoomFeatures, breakoutRoomFeatures) || other.breakoutRoomFeatures == breakoutRoomFeatures));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,whiteboardFeatures,chat,whiteboard,externalMediaPlayerFeatures,displayExternalLinkFeatures);
+int get hashCode => Object.hash(runtimeType,whiteboardFeatures,chat,whiteboard,externalMediaPlayerFeatures,displayExternalLinkFeatures,breakoutRoomFeatures);
 
 @override
 String toString() {
-  return 'RoomFeatures(whiteboardFeatures: $whiteboardFeatures, chat: $chat, whiteboard: $whiteboard, externalMediaPlayerFeatures: $externalMediaPlayerFeatures, displayExternalLinkFeatures: $displayExternalLinkFeatures)';
+  return 'RoomFeatures(whiteboardFeatures: $whiteboardFeatures, chat: $chat, whiteboard: $whiteboard, externalMediaPlayerFeatures: $externalMediaPlayerFeatures, displayExternalLinkFeatures: $displayExternalLinkFeatures, breakoutRoomFeatures: $breakoutRoomFeatures)';
 }
 
 
@@ -358,11 +621,11 @@ abstract mixin class $RoomFeaturesCopyWith<$Res>  {
   factory $RoomFeaturesCopyWith(RoomFeatures value, $Res Function(RoomFeatures) _then) = _$RoomFeaturesCopyWithImpl;
 @useResult
 $Res call({
- WhiteboardFeatures? whiteboardFeatures, bool chat, bool whiteboard, ExternalMediaPlayerFeatures? externalMediaPlayerFeatures, DisplayExternalLinkFeatures? displayExternalLinkFeatures
+ WhiteboardFeatures? whiteboardFeatures, bool chat, bool whiteboard, ExternalMediaPlayerFeatures? externalMediaPlayerFeatures, DisplayExternalLinkFeatures? displayExternalLinkFeatures, BreakoutRoomFeatures? breakoutRoomFeatures
 });
 
 
-$WhiteboardFeaturesCopyWith<$Res>? get whiteboardFeatures;$ExternalMediaPlayerFeaturesCopyWith<$Res>? get externalMediaPlayerFeatures;$DisplayExternalLinkFeaturesCopyWith<$Res>? get displayExternalLinkFeatures;
+$WhiteboardFeaturesCopyWith<$Res>? get whiteboardFeatures;$ExternalMediaPlayerFeaturesCopyWith<$Res>? get externalMediaPlayerFeatures;$DisplayExternalLinkFeaturesCopyWith<$Res>? get displayExternalLinkFeatures;$BreakoutRoomFeaturesCopyWith<$Res>? get breakoutRoomFeatures;
 
 }
 /// @nodoc
@@ -375,14 +638,15 @@ class _$RoomFeaturesCopyWithImpl<$Res>
 
 /// Create a copy of RoomFeatures
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? whiteboardFeatures = freezed,Object? chat = null,Object? whiteboard = null,Object? externalMediaPlayerFeatures = freezed,Object? displayExternalLinkFeatures = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? whiteboardFeatures = freezed,Object? chat = null,Object? whiteboard = null,Object? externalMediaPlayerFeatures = freezed,Object? displayExternalLinkFeatures = freezed,Object? breakoutRoomFeatures = freezed,}) {
   return _then(_self.copyWith(
 whiteboardFeatures: freezed == whiteboardFeatures ? _self.whiteboardFeatures : whiteboardFeatures // ignore: cast_nullable_to_non_nullable
 as WhiteboardFeatures?,chat: null == chat ? _self.chat : chat // ignore: cast_nullable_to_non_nullable
 as bool,whiteboard: null == whiteboard ? _self.whiteboard : whiteboard // ignore: cast_nullable_to_non_nullable
 as bool,externalMediaPlayerFeatures: freezed == externalMediaPlayerFeatures ? _self.externalMediaPlayerFeatures : externalMediaPlayerFeatures // ignore: cast_nullable_to_non_nullable
 as ExternalMediaPlayerFeatures?,displayExternalLinkFeatures: freezed == displayExternalLinkFeatures ? _self.displayExternalLinkFeatures : displayExternalLinkFeatures // ignore: cast_nullable_to_non_nullable
-as DisplayExternalLinkFeatures?,
+as DisplayExternalLinkFeatures?,breakoutRoomFeatures: freezed == breakoutRoomFeatures ? _self.breakoutRoomFeatures : breakoutRoomFeatures // ignore: cast_nullable_to_non_nullable
+as BreakoutRoomFeatures?,
   ));
 }
 /// Create a copy of RoomFeatures
@@ -420,6 +684,18 @@ $DisplayExternalLinkFeaturesCopyWith<$Res>? get displayExternalLinkFeatures {
 
   return $DisplayExternalLinkFeaturesCopyWith<$Res>(_self.displayExternalLinkFeatures!, (value) {
     return _then(_self.copyWith(displayExternalLinkFeatures: value));
+  });
+}/// Create a copy of RoomFeatures
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$BreakoutRoomFeaturesCopyWith<$Res>? get breakoutRoomFeatures {
+    if (_self.breakoutRoomFeatures == null) {
+    return null;
+  }
+
+  return $BreakoutRoomFeaturesCopyWith<$Res>(_self.breakoutRoomFeatures!, (value) {
+    return _then(_self.copyWith(breakoutRoomFeatures: value));
   });
 }
 }
@@ -503,10 +779,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( WhiteboardFeatures? whiteboardFeatures,  bool chat,  bool whiteboard,  ExternalMediaPlayerFeatures? externalMediaPlayerFeatures,  DisplayExternalLinkFeatures? displayExternalLinkFeatures)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( WhiteboardFeatures? whiteboardFeatures,  bool chat,  bool whiteboard,  ExternalMediaPlayerFeatures? externalMediaPlayerFeatures,  DisplayExternalLinkFeatures? displayExternalLinkFeatures,  BreakoutRoomFeatures? breakoutRoomFeatures)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RoomFeatures() when $default != null:
-return $default(_that.whiteboardFeatures,_that.chat,_that.whiteboard,_that.externalMediaPlayerFeatures,_that.displayExternalLinkFeatures);case _:
+return $default(_that.whiteboardFeatures,_that.chat,_that.whiteboard,_that.externalMediaPlayerFeatures,_that.displayExternalLinkFeatures,_that.breakoutRoomFeatures);case _:
   return orElse();
 
 }
@@ -524,10 +800,10 @@ return $default(_that.whiteboardFeatures,_that.chat,_that.whiteboard,_that.exter
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( WhiteboardFeatures? whiteboardFeatures,  bool chat,  bool whiteboard,  ExternalMediaPlayerFeatures? externalMediaPlayerFeatures,  DisplayExternalLinkFeatures? displayExternalLinkFeatures)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( WhiteboardFeatures? whiteboardFeatures,  bool chat,  bool whiteboard,  ExternalMediaPlayerFeatures? externalMediaPlayerFeatures,  DisplayExternalLinkFeatures? displayExternalLinkFeatures,  BreakoutRoomFeatures? breakoutRoomFeatures)  $default,) {final _that = this;
 switch (_that) {
 case _RoomFeatures():
-return $default(_that.whiteboardFeatures,_that.chat,_that.whiteboard,_that.externalMediaPlayerFeatures,_that.displayExternalLinkFeatures);case _:
+return $default(_that.whiteboardFeatures,_that.chat,_that.whiteboard,_that.externalMediaPlayerFeatures,_that.displayExternalLinkFeatures,_that.breakoutRoomFeatures);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -544,10 +820,10 @@ return $default(_that.whiteboardFeatures,_that.chat,_that.whiteboard,_that.exter
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( WhiteboardFeatures? whiteboardFeatures,  bool chat,  bool whiteboard,  ExternalMediaPlayerFeatures? externalMediaPlayerFeatures,  DisplayExternalLinkFeatures? displayExternalLinkFeatures)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( WhiteboardFeatures? whiteboardFeatures,  bool chat,  bool whiteboard,  ExternalMediaPlayerFeatures? externalMediaPlayerFeatures,  DisplayExternalLinkFeatures? displayExternalLinkFeatures,  BreakoutRoomFeatures? breakoutRoomFeatures)?  $default,) {final _that = this;
 switch (_that) {
 case _RoomFeatures() when $default != null:
-return $default(_that.whiteboardFeatures,_that.chat,_that.whiteboard,_that.externalMediaPlayerFeatures,_that.displayExternalLinkFeatures);case _:
+return $default(_that.whiteboardFeatures,_that.chat,_that.whiteboard,_that.externalMediaPlayerFeatures,_that.displayExternalLinkFeatures,_that.breakoutRoomFeatures);case _:
   return null;
 
 }
@@ -559,7 +835,7 @@ return $default(_that.whiteboardFeatures,_that.chat,_that.whiteboard,_that.exter
 @JsonSerializable()
 
 class _RoomFeatures implements RoomFeatures {
-  const _RoomFeatures({this.whiteboardFeatures, this.chat = false, this.whiteboard = false, this.externalMediaPlayerFeatures, this.displayExternalLinkFeatures});
+  const _RoomFeatures({this.whiteboardFeatures, this.chat = false, this.whiteboard = false, this.externalMediaPlayerFeatures, this.displayExternalLinkFeatures, this.breakoutRoomFeatures});
   factory _RoomFeatures.fromJson(Map<String, dynamic> json) => _$RoomFeaturesFromJson(json);
 
 @override final  WhiteboardFeatures? whiteboardFeatures;
@@ -567,6 +843,7 @@ class _RoomFeatures implements RoomFeatures {
 @override@JsonKey() final  bool whiteboard;
 @override final  ExternalMediaPlayerFeatures? externalMediaPlayerFeatures;
 @override final  DisplayExternalLinkFeatures? displayExternalLinkFeatures;
+@override final  BreakoutRoomFeatures? breakoutRoomFeatures;
 
 /// Create a copy of RoomFeatures
 /// with the given fields replaced by the non-null parameter values.
@@ -581,16 +858,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RoomFeatures&&(identical(other.whiteboardFeatures, whiteboardFeatures) || other.whiteboardFeatures == whiteboardFeatures)&&(identical(other.chat, chat) || other.chat == chat)&&(identical(other.whiteboard, whiteboard) || other.whiteboard == whiteboard)&&(identical(other.externalMediaPlayerFeatures, externalMediaPlayerFeatures) || other.externalMediaPlayerFeatures == externalMediaPlayerFeatures)&&(identical(other.displayExternalLinkFeatures, displayExternalLinkFeatures) || other.displayExternalLinkFeatures == displayExternalLinkFeatures));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RoomFeatures&&(identical(other.whiteboardFeatures, whiteboardFeatures) || other.whiteboardFeatures == whiteboardFeatures)&&(identical(other.chat, chat) || other.chat == chat)&&(identical(other.whiteboard, whiteboard) || other.whiteboard == whiteboard)&&(identical(other.externalMediaPlayerFeatures, externalMediaPlayerFeatures) || other.externalMediaPlayerFeatures == externalMediaPlayerFeatures)&&(identical(other.displayExternalLinkFeatures, displayExternalLinkFeatures) || other.displayExternalLinkFeatures == displayExternalLinkFeatures)&&(identical(other.breakoutRoomFeatures, breakoutRoomFeatures) || other.breakoutRoomFeatures == breakoutRoomFeatures));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,whiteboardFeatures,chat,whiteboard,externalMediaPlayerFeatures,displayExternalLinkFeatures);
+int get hashCode => Object.hash(runtimeType,whiteboardFeatures,chat,whiteboard,externalMediaPlayerFeatures,displayExternalLinkFeatures,breakoutRoomFeatures);
 
 @override
 String toString() {
-  return 'RoomFeatures(whiteboardFeatures: $whiteboardFeatures, chat: $chat, whiteboard: $whiteboard, externalMediaPlayerFeatures: $externalMediaPlayerFeatures, displayExternalLinkFeatures: $displayExternalLinkFeatures)';
+  return 'RoomFeatures(whiteboardFeatures: $whiteboardFeatures, chat: $chat, whiteboard: $whiteboard, externalMediaPlayerFeatures: $externalMediaPlayerFeatures, displayExternalLinkFeatures: $displayExternalLinkFeatures, breakoutRoomFeatures: $breakoutRoomFeatures)';
 }
 
 
@@ -601,11 +878,11 @@ abstract mixin class _$RoomFeaturesCopyWith<$Res> implements $RoomFeaturesCopyWi
   factory _$RoomFeaturesCopyWith(_RoomFeatures value, $Res Function(_RoomFeatures) _then) = __$RoomFeaturesCopyWithImpl;
 @override @useResult
 $Res call({
- WhiteboardFeatures? whiteboardFeatures, bool chat, bool whiteboard, ExternalMediaPlayerFeatures? externalMediaPlayerFeatures, DisplayExternalLinkFeatures? displayExternalLinkFeatures
+ WhiteboardFeatures? whiteboardFeatures, bool chat, bool whiteboard, ExternalMediaPlayerFeatures? externalMediaPlayerFeatures, DisplayExternalLinkFeatures? displayExternalLinkFeatures, BreakoutRoomFeatures? breakoutRoomFeatures
 });
 
 
-@override $WhiteboardFeaturesCopyWith<$Res>? get whiteboardFeatures;@override $ExternalMediaPlayerFeaturesCopyWith<$Res>? get externalMediaPlayerFeatures;@override $DisplayExternalLinkFeaturesCopyWith<$Res>? get displayExternalLinkFeatures;
+@override $WhiteboardFeaturesCopyWith<$Res>? get whiteboardFeatures;@override $ExternalMediaPlayerFeaturesCopyWith<$Res>? get externalMediaPlayerFeatures;@override $DisplayExternalLinkFeaturesCopyWith<$Res>? get displayExternalLinkFeatures;@override $BreakoutRoomFeaturesCopyWith<$Res>? get breakoutRoomFeatures;
 
 }
 /// @nodoc
@@ -618,14 +895,15 @@ class __$RoomFeaturesCopyWithImpl<$Res>
 
 /// Create a copy of RoomFeatures
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? whiteboardFeatures = freezed,Object? chat = null,Object? whiteboard = null,Object? externalMediaPlayerFeatures = freezed,Object? displayExternalLinkFeatures = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? whiteboardFeatures = freezed,Object? chat = null,Object? whiteboard = null,Object? externalMediaPlayerFeatures = freezed,Object? displayExternalLinkFeatures = freezed,Object? breakoutRoomFeatures = freezed,}) {
   return _then(_RoomFeatures(
 whiteboardFeatures: freezed == whiteboardFeatures ? _self.whiteboardFeatures : whiteboardFeatures // ignore: cast_nullable_to_non_nullable
 as WhiteboardFeatures?,chat: null == chat ? _self.chat : chat // ignore: cast_nullable_to_non_nullable
 as bool,whiteboard: null == whiteboard ? _self.whiteboard : whiteboard // ignore: cast_nullable_to_non_nullable
 as bool,externalMediaPlayerFeatures: freezed == externalMediaPlayerFeatures ? _self.externalMediaPlayerFeatures : externalMediaPlayerFeatures // ignore: cast_nullable_to_non_nullable
 as ExternalMediaPlayerFeatures?,displayExternalLinkFeatures: freezed == displayExternalLinkFeatures ? _self.displayExternalLinkFeatures : displayExternalLinkFeatures // ignore: cast_nullable_to_non_nullable
-as DisplayExternalLinkFeatures?,
+as DisplayExternalLinkFeatures?,breakoutRoomFeatures: freezed == breakoutRoomFeatures ? _self.breakoutRoomFeatures : breakoutRoomFeatures // ignore: cast_nullable_to_non_nullable
+as BreakoutRoomFeatures?,
   ));
 }
 
@@ -664,6 +942,18 @@ $DisplayExternalLinkFeaturesCopyWith<$Res>? get displayExternalLinkFeatures {
 
   return $DisplayExternalLinkFeaturesCopyWith<$Res>(_self.displayExternalLinkFeatures!, (value) {
     return _then(_self.copyWith(displayExternalLinkFeatures: value));
+  });
+}/// Create a copy of RoomFeatures
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$BreakoutRoomFeaturesCopyWith<$Res>? get breakoutRoomFeatures {
+    if (_self.breakoutRoomFeatures == null) {
+    return null;
+  }
+
+  return $BreakoutRoomFeaturesCopyWith<$Res>(_self.breakoutRoomFeatures!, (value) {
+    return _then(_self.copyWith(breakoutRoomFeatures: value));
   });
 }
 }

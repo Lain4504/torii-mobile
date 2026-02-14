@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:torii_app/core/config/app_config.dart';
 import '../../../providers/session_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
@@ -9,9 +10,12 @@ import '../../widgets/landing/device_preview.dart';
 
 /// Join Meeting Screen
 /// 1:1 clone of apps/meet/src/components/landing/index.tsx
-/// Pass [JoinMeetingArgs.token] via [ModalRoute.settings.arguments] to use verifyToken API (e.g. from deep link).
+/// Token from: [initialToken] param, or [ModalRoute.settings.arguments] (e.g. deep link).
 class JoinMeetingScreen extends ConsumerStatefulWidget {
-  const JoinMeetingScreen({super.key});
+  /// Token from MeetLoginScreen or route extra
+  final String? initialToken;
+
+  const JoinMeetingScreen({super.key, this.initialToken});
 
   @override
   ConsumerState<JoinMeetingScreen> createState() => _JoinMeetingScreenState();
@@ -189,8 +193,16 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
       _loadingMessage = 'Đang kết nối đến máy chủ...';
     });
 
-    final args = ModalRoute.of(context)?.settings.arguments as JoinMeetingArgs?;
-    final accessToken = args?.token;
+    // Token: initialToken (from MeetLoginScreen) > route args (deep link)
+    String? accessToken = widget.initialToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      final raw = ModalRoute.of(context)?.settings.arguments;
+      if (raw is JoinMeetingArgs) {
+        accessToken = raw.token;
+      } else if (raw is Map && raw['token'] != null) {
+        accessToken = raw['token']?.toString();
+      }
+    }
 
     try {
       String token;
@@ -252,7 +264,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
       } else {
         // Fallback for dev: placeholder (no verifyToken)
         if (kDebugMode) {
-          natsWSUrls = ['wss://nats.torii.edu.vn'];
+          natsWSUrls = [AppConfig.natsWsUrl];
           token = 'test-token';
           roomId = 'test-room';
           userId = 'user-${DateTime.now().millisecondsSinceEpoch}';

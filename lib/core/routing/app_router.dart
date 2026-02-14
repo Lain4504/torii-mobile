@@ -47,6 +47,7 @@ import 'package:torii_app/features/course/views/pages/wishlist_page.dart';
 import 'package:torii_app/features/instructor/views/pages/instructor_profile_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_list_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_detail_page.dart';
+import 'package:torii_app/features/meet/presentation/screens/landing/meet_entry_screen.dart';
 import 'package:torii_app/features/meet/presentation/screens/landing/join_meeting_screen.dart';
 import 'package:torii_app/features/meet/presentation/screens/room/meeting_room_screen.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
@@ -251,7 +252,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/meet',
-                builder: (context, state) => const JoinMeetingScreen(),
+                builder: (context, state) {
+                  final token = state.extra is Map
+                      ? state.extra['token']?.toString()
+                      : null;
+                  return MeetEntryScreen(initialToken: token);
+                },
               ),
             ],
           ),

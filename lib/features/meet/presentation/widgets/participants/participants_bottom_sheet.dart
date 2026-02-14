@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/session_provider.dart';
+import '../../../data/datasources/meet_api_service.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
 import 'participant_item.dart';
 
 /// Participants Bottom Sheet

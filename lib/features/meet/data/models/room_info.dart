@@ -23,6 +23,16 @@ abstract class RoomInfo with _$RoomInfo {
 }
 
 @freezed
+abstract class BreakoutRoomFeatures with _$BreakoutRoomFeatures {
+  const factory BreakoutRoomFeatures({
+    @Default(false) bool isActive,
+  }) = _BreakoutRoomFeatures;
+
+  factory BreakoutRoomFeatures.fromJson(Map<String, dynamic> json) =>
+      _$BreakoutRoomFeaturesFromJson(json);
+}
+
+@freezed
 abstract class RoomFeatures with _$RoomFeatures {
   const factory RoomFeatures({
     WhiteboardFeatures? whiteboardFeatures,
@@ -30,6 +40,7 @@ abstract class RoomFeatures with _$RoomFeatures {
     @Default(false) bool whiteboard,
     ExternalMediaPlayerFeatures? externalMediaPlayerFeatures,
     DisplayExternalLinkFeatures? displayExternalLinkFeatures,
+    BreakoutRoomFeatures? breakoutRoomFeatures,
   }) = _RoomFeatures;
 
   factory RoomFeatures.fromJson(Map<String, dynamic> json) => _$RoomFeaturesFromJson(json);

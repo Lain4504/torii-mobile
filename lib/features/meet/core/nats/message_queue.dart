@@ -46,13 +46,12 @@ class MessageQueue {
   
   /// Process queued messages
   Future<void> _processQueue() async {
+    if (_js == null) return; // dart_nats has no JetStream; MessageQueue not used for JS
     while (_queue.isNotEmpty && _isConnected) {
       final message = _queue.first;
       
       try {
-        // Send message via JetStream
-        // Note: dart_nats JetStream publish returns a Future<PubAck>
-        // We await it to ensure the message was accepted by the stream
+        // Send message via JetStream (when _js available)
         await _js.publish(message.subject, message.data);
         
         _queue.removeFirst();

@@ -30,6 +30,14 @@ Map<String, dynamic> _$RoomInfoToJson(_RoomInfo instance) => <String, dynamic>{
   'roomSid': instance.roomSid,
 };
 
+_BreakoutRoomFeatures _$BreakoutRoomFeaturesFromJson(
+  Map<String, dynamic> json,
+) => _BreakoutRoomFeatures(isActive: json['isActive'] as bool? ?? false);
+
+Map<String, dynamic> _$BreakoutRoomFeaturesToJson(
+  _BreakoutRoomFeatures instance,
+) => <String, dynamic>{'isActive': instance.isActive};
+
 _RoomFeatures _$RoomFeaturesFromJson(Map<String, dynamic> json) =>
     _RoomFeatures(
       whiteboardFeatures: json['whiteboardFeatures'] == null
@@ -49,6 +57,11 @@ _RoomFeatures _$RoomFeaturesFromJson(Map<String, dynamic> json) =>
           : DisplayExternalLinkFeatures.fromJson(
               json['displayExternalLinkFeatures'] as Map<String, dynamic>,
             ),
+      breakoutRoomFeatures: json['breakoutRoomFeatures'] == null
+          ? null
+          : BreakoutRoomFeatures.fromJson(
+              json['breakoutRoomFeatures'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$RoomFeaturesToJson(_RoomFeatures instance) =>
@@ -58,6 +71,7 @@ Map<String, dynamic> _$RoomFeaturesToJson(_RoomFeatures instance) =>
       'whiteboard': instance.whiteboard,
       'externalMediaPlayerFeatures': instance.externalMediaPlayerFeatures,
       'displayExternalLinkFeatures': instance.displayExternalLinkFeatures,
+      'breakoutRoomFeatures': instance.breakoutRoomFeatures,
     };
 
 _ExternalMediaPlayerFeatures _$ExternalMediaPlayerFeaturesFromJson(
