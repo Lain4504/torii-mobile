@@ -49,7 +49,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
           ),
         ),
       ),
-      body: ZenBackground(
+      body: AppBackground(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
@@ -88,14 +88,14 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               ),
               const SizedBox(height: 48),
 
-              _buildZenTextField(
+              _buildAppTextField(
                 label: 'FULL_NAME',
                 hint: 'Your name',
                 controller: _nameController,
                 icon: Icons.person_outline_rounded,
               ),
               const SizedBox(height: AppSpacing.lg),
-              _buildZenTextField(
+              _buildAppTextField(
                 label: 'EMAIL_ADDRESS',
                 hint: 'Your email',
                 controller: _emailController,
@@ -104,7 +104,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               ),
               const SizedBox(height: 48),
 
-              ZenButton(
+              AppButton(
                 text: 'SAVE CHANGES',
                 onPressed: () {
                   // TODO: Implement save logic
@@ -133,14 +133,14 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     );
   }
 
-  Widget _buildZenTextField({
+  Widget _buildAppTextField({
     required String label,
     required String hint,
     required TextEditingController controller,
     required IconData icon,
     bool readOnly = false,
   }) {
-    return ZenTextField(
+    return AppTextField(
       label: label,
       hintText: hint,
       controller: controller,
@@ -150,5 +150,5 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     );
   }
 }
-// Note: ZenTextField currently doesn't have an 'enabled' prop. I should check if I need to update it or just use it as is.
-// Actually, let's just use regular decoration for consistent look if ZenTextField is too rigid.
+// Note: AppTextField currently doesn't have an 'enabled' prop. I should check if I need to update it or just use it as is.
+// Actually, let's just use regular decoration for consistent look if AppTextField is too rigid.

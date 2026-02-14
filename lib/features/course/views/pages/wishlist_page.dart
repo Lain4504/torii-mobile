@@ -10,7 +10,7 @@ class WishlistPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -46,10 +46,10 @@ class WishlistPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ZenButton(
+          AppButton(
             text: 'BACK',
             onPressed: () => context.pop(),
-            type: ZenButtonType.ghost,
+            type: AppButtonType.ghost,
           ),
           const Text(
             'WISHLIST',
@@ -138,7 +138,7 @@ class _WishlistCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                ZenButton(
+                AppButton(
                   text: 'ADD TO CART',
                   onPressed: () {},
                   fontSize: 9,

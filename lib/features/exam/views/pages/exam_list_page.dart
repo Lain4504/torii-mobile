@@ -16,7 +16,7 @@ class ExamListPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -35,8 +35,9 @@ class ExamListPage extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const SizedBox(height: 60),
-                      Text(
-                        'EXAM_CENTER',
+                       Text(
+                        'TRUNG TÂM LUYỆN THI',
+
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: AppTypography.black,
@@ -45,8 +46,9 @@ class ExamListPage extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'Practice Exams',
+                       Text(
+                        'Đề thi thử',
+
                         style: TextStyle(
                           fontFamily: AppTypography.fontFamilySerif,
                           fontWeight: AppTypography.bold,
@@ -67,17 +69,12 @@ class ExamListPage extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
+                         color: AppColors.surface,
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        boxShadow: AppElevation.softShadow,
                       ),
                       child: const Icon(Icons.history_rounded, size: 20, color: AppColors.textPrimary),
+
                     ),
                   ),
                 ),
@@ -98,10 +95,11 @@ class ExamListPage extends ConsumerWidget {
                   children: [
                     Container(width: 4, height: 16, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
                     const SizedBox(width: 12),
-                    const Text(
-                      'AVAILABLE_EXAMS',
+                     const Text(
+                      'CÁC ĐỀ THI HIỆN CÓ',
                       style: TextStyle(fontSize: 12, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textPrimary),
                     ),
+
                   ],
                 ),
               ),
@@ -138,25 +136,21 @@ class ExamListPage extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(AppRadius.xxl),
-          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.04),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-            ),
-          ],
+         decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+          boxShadow: AppElevation.cardShadow,
         ),
+
         child: Row(
           children: [
-            _buildStatItem(Icons.verified_rounded, '12', 'SYNCED', AppColors.primary),
+             _buildStatItem(Icons.verified_rounded, '12', 'ĐÃ HOÀN THÀNH', AppColors.primary),
             _buildVerticalDivider(),
-            _buildStatItem(Icons.analytics_rounded, '78%', 'NEURAL BAND', AppColors.accentDark),
+            _buildStatItem(Icons.analytics_rounded, '78%', 'TỶ LỆ ĐÚNG', AppColors.accentDark),
             _buildVerticalDivider(),
-            _buildStatItem(Icons.bolt_rounded, '45h', 'RUNTIME', AppColors.successDark),
+            _buildStatItem(Icons.bolt_rounded, '45h', 'THỜI GIAN', AppColors.successDark),
+
           ],
         ),
       ),
@@ -222,17 +216,12 @@ class _ExamCard extends StatelessWidget {
     
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.03),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+        boxShadow: AppElevation.cardShadow,
       ),
+
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadius.xl),
         child: Material(
@@ -345,7 +334,7 @@ class _StartExamSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
         border: Border(top: BorderSide(color: AppColors.grey300.withValues(alpha: 0.4))),
       ),
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
@@ -359,10 +348,11 @@ class _StartExamSheet extends StatelessWidget {
             style: const TextStyle(fontSize: 12, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.primary),
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Initialize Simulation?',
+           const Text(
+            'Bắt đầu làm bài?',
             style: TextStyle(fontFamily: AppTypography.fontFamilySerif, fontSize: 24, fontWeight: AppTypography.extraBold, fontStyle: FontStyle.italic),
           ),
+
           const SizedBox(height: 32),
           Container(
             padding: const EdgeInsets.all(24),
@@ -381,8 +371,9 @@ class _StartExamSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 40),
-          ZenButton(
-            text: 'COMMENCE EVALUATION',
+           AppButton(
+            text: 'BẮT ĐẦU LÀM BÀI',
+
             onPressed: () {
               Navigator.pop(context);
               context.push('/exams/take', extra: exam);
@@ -393,7 +384,8 @@ class _StartExamSheet extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'ABORT MISSION',
+               'HỦY BỎ',
+
               style: TextStyle(fontSize: 12, fontWeight: AppTypography.black, letterSpacing: 1.0, color: AppColors.textTertiary),
             ),
           ),

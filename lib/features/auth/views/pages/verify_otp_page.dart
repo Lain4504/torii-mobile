@@ -77,7 +77,7 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -173,7 +173,7 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
 
                       const SizedBox(height: AppSpacing.xxxl),
                       
-                      ZenButton(
+                      AppButton(
                         onPressed: isLoading ? null : _verifyOTP,
                         isLoading: isLoading,
                         text: 'VERIFY OTP',

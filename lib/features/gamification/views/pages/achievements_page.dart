@@ -10,7 +10,7 @@ class AchievementsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -49,10 +49,10 @@ class AchievementsPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ZenButton(
+          AppButton(
             text: 'BACK',
             onPressed: () => context.pop(),
-            type: ZenButtonType.ghost,
+            type: AppButtonType.ghost,
           ),
           const Text(
             'ACHIEVEMENTS',
@@ -80,7 +80,7 @@ class AchievementsPage extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(color: Colors.white),
         boxShadow: [
           BoxShadow(

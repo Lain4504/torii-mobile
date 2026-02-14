@@ -236,7 +236,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
 
   Widget _buildCommentsList(CommentState state, bool isDark) {
     if (state.isLoading && state.comments.isEmpty) {
-      return const Center(child: ZenLoading(text: 'Loading comments...'));
+      return const Center(child: AppLoading(text: 'Loading comments...'));
     }
 
     if (state.error != null && state.comments.isEmpty) {
@@ -262,7 +262,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              ZenButton(
+              AppButton(
                 text: 'TRY AGAIN',
                 onPressed: () => ref
                     .read(commentProvider(widget.postId).notifier)
@@ -307,7 +307,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              ZenButton(
+              AppButton(
                 text: 'WRITE COMMENT',
                 onPressed: () => _tabController.animateTo(1),
               ),
@@ -328,7 +328,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(AppSpacing.lg),
-              child: ZenLoading(text: 'Loading more...'),
+              child: AppLoading(text: 'Loading more...'),
             ),
           );
         }
@@ -516,7 +516,7 @@ class _CommentModalState extends ConsumerState<CommentModal>
           const SizedBox(height: AppSpacing.xxl),
           SizedBox(
             width: double.infinity,
-            child: ZenButton(
+            child: AppButton(
               text: state.isSubmitting ? 'POSTING...' : 'POST COMMENT',
               onPressed: state.isSubmitting ? null : _submitComment,
             ),

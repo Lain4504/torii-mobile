@@ -21,13 +21,13 @@ class CourseLessonsPage extends ConsumerWidget {
     final state = ref.watch(courseDetailProvider(courseId));
 
     if (state.isLoading && state.course == null) {
-      return const ZenLoadingScreen(text: 'Loading course...');
+      return const AppLoadingScreen(text: 'Loading course...');
     }
 
     if (state.error != null && state.course == null) {
       return Scaffold(
         backgroundColor: AppColors.background,
-        body: ZenBackground(
+        body: AppBackground(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -40,7 +40,7 @@ class CourseLessonsPage extends ConsumerWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
-                ZenButton(
+                AppButton(
                   text: 'TRY AGAIN',
                   onPressed: () {
                     ref.read(courseDetailProvider(courseId).notifier).loadCourseDetail(courseId);
@@ -55,12 +55,12 @@ class CourseLessonsPage extends ConsumerWidget {
 
     final course = state.course;
     if (course == null) {
-      return const ZenLoadingScreen(text: 'Course not found...');
+      return const AppLoadingScreen(text: 'Course not found...');
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -115,7 +115,7 @@ class CourseLessonsPage extends ConsumerWidget {
                       const Center(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
-                          child: ZenLoading(text: 'Syncing curriculum blocks...'),
+                          child: AppLoading(text: 'Syncing curriculum blocks...'),
                         ),
                       )
                     else if (state.curriculum != null && state.curriculum!.modules.isNotEmpty)
@@ -271,7 +271,7 @@ class CourseLessonsPage extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: 24),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(AppRadius.xxl),
+                borderRadius: BorderRadius.circular(AppRadius.card),
                 border: Border.all(
                   color: isLocked
                       ? AppColors.grey300.withValues(alpha: 0.2)
@@ -297,7 +297,7 @@ class CourseLessonsPage extends ConsumerWidget {
                             extra: lesson,
                           );
                         },
-                  borderRadius: BorderRadius.circular(AppRadius.xxl),
+                  borderRadius: BorderRadius.circular(AppRadius.card),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(

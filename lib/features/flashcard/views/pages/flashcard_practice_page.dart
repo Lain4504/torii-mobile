@@ -118,7 +118,7 @@ class _FlashcardPracticePageState extends ConsumerState<FlashcardPracticePage> {
               ),
             ],
           ),
-          body: ZenBackground(
+          body: AppBackground(
             child: Column(
               children: [
                 Padding(
@@ -330,7 +330,7 @@ class _FlashcardPracticePageState extends ConsumerState<FlashcardPracticePage> {
               // Learn Again Button (Primary)
               SizedBox(
                 width: double.infinity,
-                child: ZenButton(
+                child: AppButton(
                   text: 'LEARN AGAIN',
                   onPressed: _restartSession,
                   icon: Icons.refresh_rounded,
@@ -391,7 +391,7 @@ class _FlashcardPracticePageState extends ConsumerState<FlashcardPracticePage> {
     if (!_isFlipped) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: ZenButton(
+        child: AppButton(
           text: 'REVEAL TRUTH',
           onPressed: () => setState(() => _isFlipped = true),
           isFullWidth: true,

@@ -73,7 +73,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -103,7 +103,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xxxl),
-                        ZenTextField(
+                        AppTextField(
                           controller: _passwordController,
                           label: 'New Password',
                           hintText: 'Enter new password',
@@ -126,7 +126,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                           },
                         ),
                         const SizedBox(height: AppSpacing.lg),
-                        ZenTextField(
+                        AppTextField(
                           controller: _confirmPasswordController,
                           label: 'Confirm Password',
                           hintText: 'Re-enter new password',
@@ -172,7 +172,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                           ),
                           const SizedBox(height: AppSpacing.lg),
                         ],
-                        ZenButton(
+                        AppButton(
                           onPressed: isLoading ? null : _resetPassword,
                           isLoading: isLoading,
                           text: 'RESET PASSWORD',

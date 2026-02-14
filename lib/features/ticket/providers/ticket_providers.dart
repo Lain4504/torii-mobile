@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/data/api/api_client.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import '../data/repositories/ticket_repository.dart';
 import '../data/models/ticket_model.dart';

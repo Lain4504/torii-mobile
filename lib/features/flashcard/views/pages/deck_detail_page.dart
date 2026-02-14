@@ -18,7 +18,7 @@ class DeckDetailPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: deckAsync.when(
           data: (freshDeck) {
             final currentDeck = freshDeck ?? deck;

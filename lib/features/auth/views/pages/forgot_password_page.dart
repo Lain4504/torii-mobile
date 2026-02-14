@@ -54,7 +54,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -84,7 +84,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xxxl),
-                        ZenTextField(
+                        AppTextField(
                           controller: _emailController,
                           label: 'Email Address',
                           hintText: 'your.email@example.com',
@@ -124,7 +124,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                           ),
                           const SizedBox(height: AppSpacing.lg),
                         ],
-                        ZenButton(
+                        AppButton(
                           onPressed: isLoading ? null : _requestOTP,
                           isLoading: isLoading,
                           text: 'SEND RESET CODE',

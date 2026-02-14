@@ -18,7 +18,7 @@ class FlashcardListPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -83,7 +83,7 @@ class FlashcardListPage extends ConsumerWidget {
                              children: [
                                const Text('No decks found. Create one to start!', style: TextStyle(color: AppColors.textTertiary)),
                                const SizedBox(height: 20),
-                               ZenButton(
+                               AppButton(
                                  text: 'CREATE FIRST DECK',
                                  onPressed: () => context.push('/flashcards/add-deck'),
                                  icon: Icons.add_circle_outline_rounded,
@@ -189,7 +189,7 @@ class _DeckCard extends ConsumerWidget {
         color: isDark 
             ? AppColors.textPrimary.withValues(alpha: 0.05) 
             : Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
             color: isDark 
                 ? Colors.white.withValues(alpha: 0.1) 

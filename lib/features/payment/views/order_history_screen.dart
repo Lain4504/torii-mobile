@@ -48,14 +48,14 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
               _buildHeader(context),
               Expanded(
                 child: state.isLoading && state.orders.isEmpty
-                    ? const Center(child: ZenLoading(text: 'Đang tải lịch sử...'))
+                    ? const Center(child: AppLoading(text: 'Đang tải lịch sử...'))
                     : state.orders.isEmpty
                         ? _buildEmptyState()
                         : RefreshIndicator(
@@ -125,10 +125,10 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          ZenButton(
+          AppButton(
             text: 'TẢI LẠI',
             onPressed: () => ref.read(orderListProvider.notifier).loadOrders(refresh: true),
-            type: ZenButtonType.ghost,
+            type: AppButtonType.ghost,
           ),
         ],
       ),

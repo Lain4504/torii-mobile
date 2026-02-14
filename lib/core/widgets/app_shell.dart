@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/meet/providers/session_provider.dart';
 
 import '../constants/app_design_system.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/auth/models/auth_state.dart';
-import '../localization/l10n/app_localizations.dart';
 
 /// App Shell - Main Layout Wrapper
 /// 
@@ -21,6 +21,10 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncAuth = ref.watch(authStateProvider);
     final isAuthenticated = asyncAuth.asData?.value.status == AuthStatus.authenticated;
+    
+    // Hide bottom bar during active meeting
+    final isMeetStartup = ref.watch(sessionProvider.select((s) => s.isStartup));
+    final isMeetingActive = !isMeetStartup;
 
     final activeIndex = navigationShell.currentIndex;
     final theme = Theme.of(context);
@@ -28,38 +32,17 @@ class AppShell extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      extendBody: true, // Important for the notch transparency/blur to work if needed
+      extendBody: true,
       body: navigationShell,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/'),
-        shape: const CircleBorder(),
-        backgroundColor: activeIndex == 2 // Home index
-            ? AppColors.primary 
-            : (isDark ? AppColors.surfaceVariantDark : AppColors.surface),
-        elevation: 4,
-        child: Icon(
-          Icons.home_rounded,
-          color: activeIndex == 2 
-             ? Colors.white 
-             : (isDark ? Colors.white : AppColors.textSecondary),
-          size: 30,
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _BottomNavBar(
-        activeIndex: activeIndex,
-        onTap: (path) => _onItemTapped(context, path),
-        isDark: isDark,
-        context: context,
-        isAuthenticated: isAuthenticated,
-      ),
+      bottomNavigationBar: isMeetingActive 
+        ? null 
+        : _BottomNavBar(
+            activeIndex: activeIndex,
+            onTap: (path) => context.go(path),
+            isDark: isDark,
+            isAuthenticated: isAuthenticated,
+          ),
     );
-  }
-
-  void _onItemTapped(BuildContext context, String path) {
-    // We continue to use context.go(path) to support the dynamic auth logic.
-    // GoRouter will automatically map the path to the correct branch.
-    context.go(path);
   }
 }
 
@@ -67,41 +50,53 @@ class _BottomNavBar extends StatelessWidget {
   final int activeIndex;
   final Function(String) onTap;
   final bool isDark;
-  final BuildContext context;
   final bool isAuthenticated;
 
   const _BottomNavBar({
     required this.activeIndex,
     required this.onTap,
     required this.isDark,
-    required this.context,
     required this.isAuthenticated,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 10.0,
-      color: isDark ? AppColors.surfaceDark : AppColors.surface,
-      surfaceTintColor: Colors.transparent,
-      elevation: 20,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
-      padding: EdgeInsets.zero,
-      height: 70, // Fixed height for consistency
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // Left Group
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: isAuthenticated 
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: isAuthenticated
                 ? [
+                    _NavBarItem(
+                      icon: Icons.home_outlined,
+                      activeIcon: Icons.home_rounded,
+                      label: 'Trang chủ',
+                      isSelected: activeIndex == 2,
+                      onTap: () => onTap('/'),
+                      isDark: isDark,
+                    ),
                     _NavBarItem(
                       icon: Icons.auto_stories_outlined,
                       activeIcon: Icons.auto_stories_rounded,
-                      label: 'Learning',
+                      label: 'Học tập',
                       isSelected: activeIndex == 0,
                       onTap: () => onTap('/my-learning'),
                       isDark: isDark,
@@ -109,53 +104,22 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.video_call_outlined,
                       activeIcon: Icons.video_call_rounded,
-                      label: 'Live',
+                      label: 'Trực tiếp',
                       isSelected: activeIndex == 1,
                       onTap: () => onTap('/live-schedule'),
                       isDark: isDark,
                     ),
-                  ]
-                : [
-                    _NavBarItem(
-                      icon: Icons.school_outlined,
-                      activeIcon: Icons.school_rounded,
-                      label: AppLocalizations.of(context)?.courses ?? 'Courses',
-                      isSelected: activeIndex == 0,
-                      onTap: () => onTap('/courses'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.forum_outlined,
-                      activeIcon: Icons.forum_rounded,
-                      label: 'Community',
-                      isSelected: activeIndex == 1,
-                      onTap: () => onTap('/community'),
-                      isDark: isDark,
-                    ),
-                  ],
-            ),
-          ),
-          
-          // Spacer for FAB
-          const SizedBox(width: 60),
-
-          // Right Group
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: isAuthenticated
-                ? [
                     _NavBarItem(
                       icon: Icons.style_outlined,
                       activeIcon: Icons.style_rounded,
-                      label: 'Cards',
+                      label: 'Thẻ',
                       isSelected: activeIndex == 3,
                       onTap: () => onTap('/flashcards'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.video_call_outlined,
-                      activeIcon: Icons.video_call_rounded,
+                      icon: Icons.video_chat_outlined,
+                      activeIcon: Icons.video_chat_rounded,
                       label: 'Meet',
                       isSelected: activeIndex == 5,
                       onTap: () => onTap('/meet'),
@@ -164,7 +128,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
-                      label: 'Profile',
+                      label: 'Cá nhân',
                       isSelected: activeIndex == 4,
                       onTap: () => onTap('/settings'),
                       isDark: isDark,
@@ -172,16 +136,40 @@ class _BottomNavBar extends StatelessWidget {
                   ]
                 : [
                     _NavBarItem(
+                      icon: Icons.home_outlined,
+                      activeIcon: Icons.home_rounded,
+                      label: 'Trang chủ',
+                      isSelected: activeIndex == 2,
+                      onTap: () => onTap('/'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
+                      icon: Icons.school_outlined,
+                      activeIcon: Icons.school_rounded,
+                      label: 'Khóa học',
+                      isSelected: activeIndex == 0,
+                      onTap: () => onTap('/courses'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
+                      icon: Icons.forum_outlined,
+                      activeIcon: Icons.forum_rounded,
+                      label: 'Cộng đồng',
+                      isSelected: activeIndex == 1,
+                      onTap: () => onTap('/community'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
                       icon: Icons.quiz_outlined,
                       activeIcon: Icons.quiz_rounded,
-                      label: 'Exams',
+                      label: 'Bài thi',
                       isSelected: activeIndex == 3,
                       onTap: () => onTap('/exams'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.video_call_outlined,
-                      activeIcon: Icons.video_call_rounded,
+                      icon: Icons.video_chat_outlined,
+                      activeIcon: Icons.video_chat_rounded,
                       label: 'Meet',
                       isSelected: activeIndex == 5,
                       onTap: () => onTap('/meet'),
@@ -190,15 +178,14 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
-                      label: AppLocalizations.of(context)?.live ?? 'Live',
+                      label: 'Tài khoản',
                       isSelected: activeIndex == 4,
                       onTap: () => onTap('/flashcards-preview'),
                       isDark: isDark,
                     ),
                   ],
-            ),
           ),
-        ],
+        ),
       ),
     );
   }

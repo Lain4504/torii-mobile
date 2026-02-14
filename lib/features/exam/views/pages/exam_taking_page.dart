@@ -140,7 +140,7 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
                   ),
                 ),
               ),
-              ZenButton(
+              AppButton(
                 text: 'FINISH',
                 onPressed: _submitExam,
                 // small size
@@ -157,7 +157,7 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
             ),
           ),
         ),
-        body: ZenBackground(
+        body: AppBackground(
           child: Column(
             children: [
               Expanded(
@@ -210,7 +210,7 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.9),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.primary.withValues(alpha: 0.05),
@@ -276,7 +276,7 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
         title: const Text('SYNCH COMPLETE 🎉', style: TextStyle(fontWeight: AppTypography.black)),
         content: Text('You have successfully mapped ${_answers.length} out of ${_questions.length} nodes.'),
         actions: [
-          ZenButton(
+          AppButton(
             text: 'RETURN TO ARCHIVE',
             onPressed: () {
               Navigator.pop(context);
@@ -311,7 +311,7 @@ class _OptionCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(
               color: isSelected ? AppColors.primary : AppColors.grey300.withValues(alpha: 0.3),
               width: 1.5,

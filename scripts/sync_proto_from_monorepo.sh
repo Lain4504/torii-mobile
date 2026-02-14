@@ -31,12 +31,14 @@ echo "Syncing proto: $SRC -> $PROTO_DEST"
 mkdir -p "$PROTO_DEST"
 
 # Copy all .proto and dirs (buf/, logger/); skip buf.lock and BUILD.bazel
+# We exclude google/ because standard protos are local to torii-mobile but not always in monorepo
 rsync -a --delete \
   --include='*/' \
   --include='*.proto' \
   --exclude='buf.lock' \
   --exclude='BUILD.bazel' \
   --exclude='*.md' \
+  --exclude='google/' \
   "$SRC/" "$PROTO_DEST/"
 
 echo "Done. Run ./scripts/generate_proto.sh to generate Dart code."

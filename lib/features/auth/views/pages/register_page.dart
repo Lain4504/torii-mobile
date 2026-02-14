@@ -74,7 +74,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -105,7 +105,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           verticalOffset: 20,
                           child: Column(
                             children: [
-                              ZenTextField(
+                              AppTextField(
                                 label: 'DISPLAY NAME',
                                 controller: _displayNameController,
                                 hintText: 'How should we call you?',
@@ -113,7 +113,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 validator: (val) => (val == null || val.isEmpty) ? 'Please enter your name' : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
-                              ZenTextField(
+                              AppTextField(
                                 label: 'EMAIL ADDRESS',
                                 controller: _emailController,
                                 hintText: 'your.email@example.com',
@@ -122,7 +122,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 validator: (val) => (val == null || !val.contains('@')) ? 'Please enter a valid email' : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
-                              ZenTextField(
+                              AppTextField(
                                 label: 'PASSWORD',
                                 controller: _passwordController,
                                 hintText: '••••••••',
@@ -138,7 +138,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.md),
-                              ZenTextField(
+                              AppTextField(
                                 label: 'CONFIRM PASSWORD',
                                 controller: _confirmPasswordController,
                                 hintText: '••••••••',
@@ -163,7 +163,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         
                         EntryAnimation(
                           index: 4,
-                          child: ZenButton(
+                          child: AppButton(
                             text: 'CREATE ACCOUNT',
                             onPressed: _register,
                             isLoading: isLoading,

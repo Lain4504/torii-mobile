@@ -5,7 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/core/config/app_config.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
-import 'package:torii_app/core/localization/l10n/app_localizations.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 
 /// Login Page - Zen UI Pro Max - Premium Rebuild
@@ -76,7 +75,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -107,17 +106,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           verticalOffset: 20,
                           child: Column(
                             children: [
-                              ZenTextField(
-                                label: AppLocalizations.of(context)!.email,
+                              AppTextField(
+                                label: 'Email',
                                 controller: _emailController,
                                 hintText: 'your.email@example.com',
                                 icon: Icons.alternate_email_rounded,
                                 keyboardType: TextInputType.emailAddress,
-                                validator: (val) => (val == null || !val.contains('@')) ? 'Please enter a valid email' : null,
+                                validator: (val) => (val == null || !val.contains('@')) ? 'Vui lòng nhập email hợp lệ' : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
-                              ZenTextField(
-                                label: AppLocalizations.of(context)!.password,
+                              AppTextField(
+                                label: 'Mật khẩu',
                                 controller: _passwordController,
                                 hintText: '••••••••',
                                 icon: Icons.fingerprint_rounded,
@@ -131,7 +130,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   ),
                                   onPressed: () => setState(() => _obscureText = !_obscureText),
                                 ),
-                                validator: (val) => (val == null || val.length < 6) ? 'Password too short' : null,
+                                validator: (val) => (val == null || val.length < 6) ? 'Mật khẩu quá ngắn' : null,
                               ),
                             ],
                           ),
@@ -145,12 +144,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             alignment: Alignment.centerRight,
                             child: TextButton(
                               onPressed: () => context.push('/auth/forgot-password'),
-                              child: Text(
-                                AppLocalizations.of(context)!.forgotPassword,
+                              child: const Text(
+                                'Quên mật khẩu?',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: AppTypography.bold,
-                                  color: AppColors.primary.withValues(alpha: 0.7),
+                                  color: AppColors.primary,
                                 ),
                               ),
                             ),
@@ -161,8 +160,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         
                         EntryAnimation(
                           index: 5,
-                          child: ZenButton(
-                            text: AppLocalizations.of(context)!.signIn,
+                          child: AppButton(
+                            text: 'Đăng nhập',
                             onPressed: _login,
                             isLoading: isLoading,
                             isFullWidth: true,
@@ -212,8 +211,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             delay: const Duration(milliseconds: 400),
             child: TextButton(
               onPressed: () => context.go('/register'),
-              child: Text(
-                'SIGN UP',
+              child: const Text(
+                'ĐĂNG KÝ',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: AppTypography.black,
@@ -267,7 +266,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                'NEURAL LEARNING PROTOCOL',
+                'HỆ THỐNG HỌC TẬP THÔNG MINH',
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: AppTypography.black,
@@ -319,7 +318,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Text(
-                'GENETIC ACCESS',
+                'HOẶC TIẾP TỤC VỚI',
                 style: TextStyle(fontSize: 8, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
               ),
             ),

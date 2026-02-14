@@ -47,13 +47,19 @@ import 'package:torii_app/features/course/views/pages/wishlist_page.dart';
 import 'package:torii_app/features/instructor/views/pages/instructor_profile_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_list_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_detail_page.dart';
-import 'package:torii_app/features/meet/presentation/screens/meet_landing_screen.dart';
-import 'package:torii_app/features/meet/presentation/screens/meeting_screen.dart';
+import 'package:torii_app/features/meet/presentation/screens/landing/meet_entry_screen.dart';
+import 'package:torii_app/features/meet/presentation/screens/landing/join_meeting_screen.dart';
+import 'package:torii_app/features/meet/presentation/screens/room/meeting_room_screen.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
+
+import 'package:torii_app/features/onboarding/providers/onboarding_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authStateAsync = ref.read(authNotifierProvider);
   final authNotifier = ValueNotifier<AsyncValue<AuthState>>(authStateAsync);
+  
+  final onboardingCompleted = ref.read(onboardingCompletedProvider);
+  final onboardingNotifier = ValueNotifier<bool>(onboardingCompleted);
 
   ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (_, next) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,26 +67,45 @@ final routerProvider = Provider<GoRouter>((ref) {
     });
   });
 
+  ref.listen<bool>(onboardingCompletedProvider, (_, next) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+       onboardingNotifier.value = next;
+    });
+  });
+
   return GoRouter(
     navigatorKey: AppRouter.rootNavigatorKey,
     debugLogDiagnostics: kDebugMode,
     initialLocation: '/',
-    refreshListenable: authNotifier,
+    refreshListenable: Listenable.merge([authNotifier, onboardingNotifier]),
     
     redirect: (context, state) {
+      final onboardingCompletedStatus = ref.read(onboardingCompletedProvider);
+      final matchedLocation = state.matchedLocation;
+
+      // 1. Force onboarding if not completed
+      if (!onboardingCompletedStatus) {
+         if (matchedLocation == '/onboarding') return null;
+         return '/onboarding';
+      }
+
+      // 2. Auth checks
       final authAsync = ref.read(authNotifierProvider);
-      
       if (authAsync is AsyncLoading || authAsync is AsyncError) return null;
 
       final authState = authAsync.asData?.value;
       if (authState == null) return null;
 
       final status = authState.status;
-      final matchedLocation = state.matchedLocation;
       final isLogin = matchedLocation == '/login';
       final isRegister = matchedLocation == '/register';
       final isVerifying2FA = matchedLocation == '/auth/verify-2fa';
       
+      // Prevent going back to onboarding if already completed
+      if (matchedLocation == '/onboarding' && onboardingCompletedStatus) {
+        return '/';
+      }
+
       if (status == AuthStatus.unauthenticated) {
         if (AppRouter.isPublicRoute(matchedLocation)) {
            return null;
@@ -251,7 +276,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/meet',
-                builder: (context, state) => const MeetLandingScreen(),
+                builder: (context, state) {
+                  final token = state.extra is Map
+                      ? (state.extra as Map)['token']?.toString()
+                      : null;
+                  return MeetEntryScreen(initialToken: token);
+                },
               ),
             ],
           ),
@@ -261,7 +291,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/meeting',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const MeetingScreen(),
+        builder: (context, state) => const MeetingRoomScreen(),
       ),
       GoRoute(
         path: '/login',

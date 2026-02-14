@@ -4,8 +4,9 @@ import '../constants/app_design_system.dart';
 
 /// Torii Mobile App Theme
 /// 
-/// Minimalist, zen-inspired theme for a Japanese learning platform.
-/// Emphasizes clarity, calmness, and focus.
+/// Modern, vibrant and block-based theme for a Japanese learning platform.
+/// Emphasizes engagement, clarity, and visual impact.
+
 
 class AppTheme {
   AppTheme._();
@@ -65,13 +66,14 @@ class AppTheme {
     cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 0,
-      shadowColor: AppColors.black.withValues(alpha: 0.04),
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
-        side: const BorderSide(color: AppColors.grey300, width: 1),
+        borderRadius: BorderRadius.circular(AppRadius.card), // Uses the new 16.0 radius
+        side: BorderSide(color: AppColors.grey200.withValues(alpha: 0.5), width: 1),
       ),
       margin: EdgeInsets.zero,
     ),
+
     
     // Input Decoration Theme - Sophisticated & Discrete
     inputDecorationTheme: InputDecorationTheme(
@@ -82,25 +84,26 @@ class AppTheme {
         vertical: AppSpacing.md,
       ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        borderSide: const BorderSide(color: AppColors.grey300),
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        borderSide: BorderSide(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        borderSide: const BorderSide(color: AppColors.grey300),
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        borderSide: BorderSide(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        borderSide: const BorderSide(color: AppColors.error),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        borderRadius: BorderRadius.circular(AppRadius.input),
         borderSide: const BorderSide(color: AppColors.error, width: 1.5),
       ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        borderSide: const BorderSide(color: AppColors.error, width: 2),
+      ),
+
       hintStyle: const TextStyle(
         color: AppColors.textTertiary,
         fontSize: AppTypography.fontSizeMd,
@@ -116,11 +119,11 @@ class AppTheme {
         elevation: 0,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderRadius: BorderRadius.circular(AppRadius.button),
         ),
         textStyle: const TextStyle(
           fontSize: AppTypography.fontSizeMd,
-          fontWeight: AppTypography.semiBold,
+          fontWeight: AppTypography.black, // Bolder text for block style
           letterSpacing: AppTypography.letterSpacingNormal,
         ),
         padding: const EdgeInsets.symmetric(
@@ -130,22 +133,27 @@ class AppTheme {
         minimumSize: const Size(0, 56),
       ),
     ),
+
  
     // Outlined Button Theme
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.primary,
-        side: const BorderSide(color: AppColors.grey300, width: 1.5),
+        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.2), width: 2),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderRadius: BorderRadius.circular(AppRadius.button),
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.xl,
           vertical: AppSpacing.md,
         ),
         minimumSize: const Size(0, 56),
+        textStyle: const TextStyle(
+          fontWeight: AppTypography.bold,
+        ),
       ),
     ),
+
  
     // Navigation Bar Theme - Premium Floating Look
     navigationBarTheme: NavigationBarThemeData(
@@ -282,7 +290,7 @@ class AppTheme {
       color: AppColors.surfaceDark,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         side: const BorderSide(color: AppColors.grey300, width: 1),
       ),
     ),

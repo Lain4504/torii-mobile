@@ -6,6 +6,13 @@ class AppConfig {
   /// API routes: POST /api/verifyToken (JWT in Authorization header).
   static const String apiBaseUrl = 'https://api.torii.sbs';
 
+  /// NATS WebSocket URL for Meet (WAJLC). Used in debug fallback when verifyToken is not available.
+  /// Same host as [apiBaseUrl], path /socket-a (nginx proxies to NATS :8222).
+  static const String natsWsUrl = String.fromEnvironment(
+    'TORII_NATS_WS_URL',
+    defaultValue: 'wss://api.torii.sbs/socket-a',
+  );
+
   // Google OAuth Client ID (Web Client ID for server-side verification)
   static const String googleServerClientId = '236923025711-r70q3l0h749ooaqldbril43tq5nhmdk4.apps.googleusercontent.com';
 

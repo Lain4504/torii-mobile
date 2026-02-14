@@ -16,7 +16,7 @@ class NotificationsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,10 +81,10 @@ class NotificationsPage extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ZenButton(
+          AppButton(
             text: 'BACK',
             onPressed: () => context.pop(),
-            type: ZenButtonType.ghost, 
+            type: AppButtonType.ghost, 
           ),
           const Text(
             'NOTIFICATIONS',

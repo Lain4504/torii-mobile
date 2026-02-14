@@ -20,24 +20,19 @@ class EnrolledCourseCard extends StatelessWidget {
     final progress = 0.65;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.xxl),
+      borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.white,
-              AppColors.primarySurface.withValues(alpha: 0.3),
+              AppColors.surface,
+              AppColors.primarySurface.withValues(alpha: 0.2),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-            ),
-          ],
+          boxShadow: AppElevation.cardShadow,
+
           border: Border.all(
             color: AppColors.primary.withValues(alpha: 0.15),
             width: 1.5,
@@ -47,7 +42,7 @@ class EnrolledCourseCard extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: () => context.push('/courses/${course.id}/lessons'),
-            borderRadius: BorderRadius.circular(AppRadius.xxl),
+            borderRadius: BorderRadius.circular(AppRadius.card),
             child: IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -89,7 +84,8 @@ class EnrolledCourseCard extends StatelessWidget {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'YOUR PROGRESS',
+                                           'TIẾN ĐỘ HỌC TẬP',
+
                                           style: TextStyle(
                                             fontSize: 7,
                                             fontWeight: AppTypography.black,
@@ -107,7 +103,8 @@ class EnrolledCourseCard extends StatelessWidget {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              'Lesson 8 of 12',
+                                               'Bài học 8 / 12',
+
                                               style: TextStyle(
                                                 fontSize: 11,
                                                 color: AppColors.textSecondary,
@@ -161,7 +158,8 @@ class EnrolledCourseCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: AppSpacing.xs),
                                 Text(
-                                  'CONTINUE',
+                                   'TIẾP TỤC HỌC',
+
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: AppTypography.black,
@@ -201,8 +199,8 @@ class EnrolledCourseCard extends StatelessWidget {
           Positioned.fill(
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppRadius.xxl),
-                bottomLeft: Radius.circular(AppRadius.xxl),
+                topLeft: Radius.circular(AppRadius.card),
+                bottomLeft: Radius.circular(AppRadius.card),
               ),
               child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
                   ? Image.network(
@@ -224,8 +222,8 @@ class EnrolledCourseCard extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(AppRadius.xxl),
-                  bottomLeft: Radius.circular(AppRadius.xxl),
+                  topLeft: Radius.circular(AppRadius.card),
+                  bottomLeft: Radius.circular(AppRadius.card),
                 ),
                 gradient: LinearGradient(
                   colors: [
@@ -289,7 +287,8 @@ class EnrolledCourseCard extends StatelessWidget {
                   Icon(Icons.check_circle_rounded, color: Colors.white, size: 10),
                   const SizedBox(width: 3),
                   Text(
-                    'ENROLLED',
+                     'ĐÃ ĐĂNG KÝ',
+
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 7,

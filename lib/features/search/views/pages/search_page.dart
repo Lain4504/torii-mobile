@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/zen_background.dart';
+import '../../../../core/widgets/app_background.dart';
 import '../../../../core/widgets/widgets.dart';
 
 class SearchPage extends StatefulWidget {
@@ -24,7 +24,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: ZenBackground(
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -89,7 +89,7 @@ class _AddDeckPageState extends ConsumerState<AddDeckPage> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: ZenBackground(
+      body: AppBackground(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Form(
@@ -101,7 +101,7 @@ class _AddDeckPageState extends ConsumerState<AddDeckPage> {
                 
                 EntryAnimation(
                   index: 0,
-                  child: ZenTextField(
+                  child: AppTextField(
                     label: 'DECK TITLE',
                     controller: _titleController,
                     hintText: 'e.g. JLPT N5 Daily',
@@ -113,7 +113,7 @@ class _AddDeckPageState extends ConsumerState<AddDeckPage> {
                 
                 EntryAnimation(
                   index: 1,
-                  child: ZenTextField(
+                  child: AppTextField(
                     label: 'DESCRIPTION',
                     controller: _descController,
                     hintText: 'Brief goal of this deck...',
@@ -134,7 +134,7 @@ class _AddDeckPageState extends ConsumerState<AddDeckPage> {
 
                 EntryAnimation(
                   index: 2,
-                  child: ZenButton(
+                  child: AppButton(
                     text: _isEditing ? 'UPDATE DECK' : 'CREATE DECK',
                     onPressed: _submit,
                     isLoading: isLoading,
