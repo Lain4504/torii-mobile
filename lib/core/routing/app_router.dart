@@ -55,6 +55,7 @@ import 'package:torii_app/features/course/views/pages/certificates_page.dart';
 import 'package:torii_app/features/dashboard/views/pages/statistics_page.dart';
 import 'package:torii_app/features/agent/views/pages/roleplay_topic_page.dart';
 import 'package:torii_app/features/agent/views/pages/roleplay_chat_page.dart';
+import 'package:torii_app/features/assessment/views/pages/placement_test_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 import 'package:torii_app/features/onboarding/providers/onboarding_providers.dart';
@@ -454,6 +455,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           final topic = state.extra as String? ?? 'Chủ đề ngẫu nhiên';
           return RoleplayChatPage(topic: topic);
         },
+      ),
+      GoRoute(
+        path: '/assessment/placement',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const PlacementTestPage(),
       ),
       GoRoute(
         path: '/notifications',
