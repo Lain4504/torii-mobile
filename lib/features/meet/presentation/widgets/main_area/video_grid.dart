@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
-import '../../../providers/participant_provider.dart';
 import '../../../providers/session_provider.dart';
 import '../../../providers/livekit_providers.dart';
 import 'video_tile.dart';

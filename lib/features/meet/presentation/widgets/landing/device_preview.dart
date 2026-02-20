@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
-import '../../../providers/room_settings_provider.dart';
 
 /// Device Preview Widget
 /// Shows camera preview and mic/camera controls

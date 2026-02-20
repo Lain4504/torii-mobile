@@ -64,7 +64,7 @@ class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
                               controller: _scrollController,
                               padding: const EdgeInsets.all(AppSpacing.md),
                               itemCount: state.orders.length + (state.isLoading ? 1 : 0),
-                              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+                              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
                               itemBuilder: (context, index) {
                                 if (index == state.orders.length) {
                                   return const Padding(

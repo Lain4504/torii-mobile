@@ -48,7 +48,6 @@ import 'package:torii_app/features/instructor/views/pages/instructor_profile_pag
 import 'package:torii_app/features/ticket/views/pages/ticket_list_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_detail_page.dart';
 import 'package:torii_app/features/meet/presentation/screens/landing/meet_entry_screen.dart';
-import 'package:torii_app/features/meet/presentation/screens/landing/join_meeting_screen.dart';
 import 'package:torii_app/features/meet/presentation/screens/room/meeting_room_screen.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 

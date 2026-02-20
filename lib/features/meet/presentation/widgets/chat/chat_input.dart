@@ -172,7 +172,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
                   color: Theme.of(context).disabledColor,
                 ),
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,

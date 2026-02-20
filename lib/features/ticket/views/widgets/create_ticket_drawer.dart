@@ -81,7 +81,7 @@ class _CreateTicketDialogState extends ConsumerState<CreateTicketDialog> {
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<TicketType>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: const InputDecoration(
                     labelText: 'Ticket Type',
                     border: OutlineInputBorder(),
