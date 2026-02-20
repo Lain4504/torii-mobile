@@ -34,7 +34,7 @@ class PlacementTestPage extends ConsumerWidget {
       case PlacementStatus.testing:
         return _buildTesting(context, state, ref, theme);
       case PlacementStatus.result:
-        return _buildResult(context, state, theme);
+        return _buildResult(context, state, ref, theme);
       case PlacementStatus.error:
         return _buildError(state.error ?? 'Đã có lỗi xảy ra', ref);
     }
@@ -318,7 +318,7 @@ class PlacementTestPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildResult(BuildContext context, PlacementState state, ThemeData theme) {
+  Widget _buildResult(BuildContext context, PlacementState state, WidgetRef ref, ThemeData theme) {
     final result = state.result!;
     
     return SafeArea(

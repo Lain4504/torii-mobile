@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/data/api/api_client.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import '../repositories/assessment_repository.dart';
 import '../models/placement_test_model.dart';
 
