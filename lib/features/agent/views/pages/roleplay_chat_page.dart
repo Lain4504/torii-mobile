@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
 import 'package:torii_app/features/agent/providers/agent_providers.dart';
 import 'package:torii_app/features/agent/models/agent_models.dart';
 
@@ -296,6 +297,11 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
               color: _isListening ? Colors.red : AppColors.textSecondary,
               onPressed: _listen,
             ),
+            if (_isListening)
+              const Padding(
+                padding: EdgeInsets.only(right: 8.0),
+                child: VoiceWaveAnimation(isListening: true, color: Colors.red),
+              ),
             Expanded(
               child: TextField(
                 controller: _messageController,
