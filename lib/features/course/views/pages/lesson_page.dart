@@ -32,6 +32,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
   bool _isVideoInitialized = false;
   String? _currentVideoUrl;
   late TabController _tabController;
+  late TextEditingController _notesController;
   
   List<LessonMaterial> _materials = [];
   // final List<Comment> _comments = [];
@@ -49,17 +50,39 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
+    _notesController = TextEditingController();
+    
     // Delay loading materials to ensure lesson is loaded first
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMaterials();
+      _loadNotes();
     });
     // Comments will be loaded when needed (requires postId which may not be available)
+  }
+
+  Future<void> _loadNotes() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final notes = prefs.getString('notes_${widget.lessonId}') ?? '';
+    setState(() {
+      _notesController.text = notes;
+    });
+  }
+
+  Future<void> _saveNotes() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString('notes_${widget.lessonId}', _notesController.text);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã lưu ghi chú'), duration: Duration(seconds: 1)),
+      );
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _notesController.dispose();
     _videoController?.removeListener(_videoListener);
     _videoController?.dispose();
     super.dispose();
@@ -518,6 +541,10 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                   icon: Icon(Icons.comment_outlined, size: 18),
                   text: 'Thảo luận',
                 ),
+                Tab(
+                  icon: Icon(Icons.note_alt_outlined, size: 18),
+                  text: 'Ghi chú',
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -531,6 +558,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                   _buildContentTab(lesson),
                   _buildResourcesTab(),
                   _buildCommentsTab(),
+                  _buildNotesTab(),
                 ],
               ),
             ),
@@ -904,6 +932,45 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNotesTab() {
+    return Column(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5)),
+            ),
+            child: TextField(
+              controller: _notesController,
+              maxLines: null,
+              expands: true,
+              style: const TextStyle(fontSize: 14, height: 1.6),
+              decoration: const InputDecoration(
+                hintText: 'Nhập ghi chú của bạn cho bài học này...',
+                border: InputBorder.none,
+                hintStyle: TextStyle(color: AppColors.textTertiary),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            AppButton(
+              text: 'LƯU GHI CHÚ',
+              onPressed: _saveNotes,
+              size: AppButtonSize.medium,
+            ),
+          ],
+        ),
+      ],
     );
   }
 

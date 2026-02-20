@@ -28,9 +28,15 @@ class AchievementsPage extends StatelessWidget {
                       const SizedBox(height: AppSpacing.md),
                       _buildBadgesGrid(),
                       const SizedBox(height: AppSpacing.xxl),
-                      _buildSectionHeader('WEEKLY LEADERBOARD'),
+                      GestureDetector(
+                        onTap: () => context.push('/leaderboard'),
+                        child: _buildSectionHeader('WEEKLY LEADERBOARD'),
+                      ),
                       const SizedBox(height: AppSpacing.md),
-                      _buildLeaderboard(),
+                      GestureDetector(
+                        onTap: () => context.push('/leaderboard'),
+                        child: _buildLeaderboard(),
+                      ),
                        const SizedBox(height: AppSpacing.xxl),
                     ],
                   ),

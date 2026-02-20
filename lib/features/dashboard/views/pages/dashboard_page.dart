@@ -63,7 +63,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       child: EntryAnimation(
                         index: 1,
                         verticalOffset: 20,
-                        child: _buildStatsOverview(myLearning.stats),
+                        child: GestureDetector(
+                          onTap: () => context.push('/statistics'),
+                          child: _buildStatsOverview(myLearning.stats),
+                        ),
                       ),
                     ),
       
@@ -440,16 +443,34 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
+          Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.md,
             children: [
-              Expanded(child: _ShortcutTile(Icons.psychology_rounded, 'Ôn tập', () => context.push('/flashcards'))),
-
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: _ShortcutTile(Icons.assignment_turned_in_rounded, 'Kiểm tra', () => context.push('/exams'))),
-
-              const SizedBox(width: AppSpacing.md),
-              Expanded(child: _ShortcutTile(Icons.groups_rounded, 'Cộng đồng', () => context.push('/community'))),
-
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - AppSpacing.xl * 2 - AppSpacing.md * 2) / 3,
+                child: _ShortcutTile(Icons.psychology_rounded, 'Ôn tập', () => context.push('/flashcards')),
+              ),
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - AppSpacing.xl * 2 - AppSpacing.md * 2) / 3,
+                child: _ShortcutTile(Icons.assignment_turned_in_rounded, 'Bài tập', () => context.push('/assignments')),
+              ),
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - AppSpacing.xl * 2 - AppSpacing.md * 2) / 3,
+                child: _ShortcutTile(Icons.workspace_premium_rounded, 'Chứng chỉ', () => context.push('/certificates')),
+              ),
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - AppSpacing.xl * 2 - AppSpacing.md * 2) / 3,
+                child: _ShortcutTile(Icons.quiz_rounded, 'Bài thi', () => context.push('/exams')),
+              ),
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - AppSpacing.xl * 2 - AppSpacing.md * 2) / 3,
+                child: _ShortcutTile(Icons.groups_rounded, 'Cộng đồng', () => context.push('/community')),
+              ),
+               SizedBox(
+                width: (MediaQuery.of(context).size.width - AppSpacing.xl * 2 - AppSpacing.md * 2) / 3,
+                child: _ShortcutTile(Icons.leaderboard_rounded, 'Bảng xếp hạng', () => context.push('/leaderboard')),
+              ),
             ],
           ),
         ],
