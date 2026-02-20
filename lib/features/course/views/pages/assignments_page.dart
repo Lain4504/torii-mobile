@@ -1,62 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../models/assignment_model.dart';
+import '../providers/course_providers.dart';
 
-class AssignmentsPage extends StatelessWidget {
+class AssignmentsPage extends ConsumerWidget {
   const AssignmentsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final assignments = [
-      Assignment(
-        id: '1',
-        title: 'Bài tập: Ngữ pháp N5 cơ bản',
-        description: 'Hoàn thành các bài tập về trợ từ wa, ga, ni.',
-        dueDate: DateTime.now().add(const Duration(days: 2)),
-        status: 'pending',
-        courseTitle: 'Tiếng Nhật N5 Cấp Tốc',
-      ),
-      Assignment(
-        id: '2',
-        title: 'Viết đoạn văn tự giới thiệu',
-        description: 'Viết một đoạn văn khoảng 100 chữ bằng Hiragana.',
-        dueDate: DateTime.now().subtract(const Duration(days: 1)),
-        status: 'overdue',
-        courseTitle: 'Học Hán Tự Qua Hình Ảnh',
-      ),
-      Assignment(
-        id: '3',
-        title: 'Kiểm tra từ vựng Unit 1-5',
-        description: 'Bài kiểm tra trắc nghiệm trên nền tảng.',
-        dueDate: DateTime.now().subtract(const Duration(days: 5)),
-        status: 'graded',
-        grade: 9.5,
-        feedback: 'Làm tốt lắm! Tiếp tục phát huy.',
-        courseTitle: 'Tiếng Nhật N5 Cấp Tốc',
-      ),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final assignmentsAsync = ref.watch(assignmentsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AppBackground(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            _buildAppBar(context),
-            SliverPadding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final assignment = assignments[index];
-                    return _AssignmentCard(assignment: assignment);
-                  },
-                  childCount: assignments.length,
+        child: RefreshIndicator(
+          onRefresh: () => ref.refresh(assignmentsProvider.future),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              _buildAppBar(context),
+              assignmentsAsync.when(
+                data: (assignments) {
+                  if (assignments.isEmpty) {
+                    return const SliverFillRemaining(
+                      child: Center(child: Text('Chưa có bài tập nào')),
+                    );
+                  }
+                  return SliverPadding(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final assignment = assignments[index];
+                          return _AssignmentCard(assignment: assignment);
+                        },
+                        childCount: assignments.length,
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (err, _) => SliverFillRemaining(
+                  child: Center(child: Text('Lỗi: $err')),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -94,22 +87,30 @@ class _AssignmentCard extends StatelessWidget {
     Color statusColor;
     String statusLabel;
 
-    switch (assignment.status) {
-      case 'overdue':
-        statusColor = AppColors.error;
-        statusLabel = 'QUÁ HẠN';
-        break;
-      case 'graded':
-        statusColor = Colors.green;
-        statusLabel = 'ĐÃ CHẤM';
-        break;
-      case 'submitted':
-        statusColor = Colors.blue;
-        statusLabel = 'ĐÃ NỘP';
-        break;
-      default:
-        statusColor = Colors.orange;
-        statusLabel = 'CHƯA NỘP';
+    final subStatus = assignment.userSubmissionStatus?.toUpperCase();
+    final isOverdue = assignment.dueDate != null && assignment.dueDate!.isBefore(DateTime.now()) && subStatus == null;
+
+    if (isOverdue) {
+      statusColor = AppColors.error;
+      statusLabel = 'QUÁ HẠN';
+    } else {
+      switch (subStatus) {
+        case 'GRADED':
+          statusColor = Colors.green;
+          statusLabel = 'ĐÃ CHẤM';
+          break;
+        case 'SUBMITTED':
+          statusColor = Colors.blue;
+          statusLabel = 'ĐÃ NỘP';
+          break;
+        case 'RETURNED':
+          statusColor = Colors.purple;
+          statusLabel = 'ĐÃ TRẢ';
+          break;
+        default:
+          statusColor = Colors.orange;
+          statusLabel = 'CHƯA NỘP';
+      }
     }
 
     return Container(
@@ -138,11 +139,8 @@ class _AssignmentCard extends StatelessWidget {
                   style: TextStyle(fontSize: 8, fontWeight: AppTypography.black, color: statusColor, letterSpacing: 1.0),
                 ),
               ),
-              if (assignment.grade != null)
-                Text(
-                  'ĐIỂM: ${assignment.grade}',
-                  style: const TextStyle(fontSize: 12, fontWeight: AppTypography.black, color: AppColors.primary),
-                ),
+              // We don't have grade in the basic Assignment model from backend yet?
+              // Let's assume passed maxScore/passingScore or similar if needed.
             ],
           ),
           const SizedBox(height: 12),

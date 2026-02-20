@@ -2,36 +2,57 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../course/providers/my_learning_provider.dart';
+import '../../providers/gamification_providers.dart';
 
 class StatisticsPage extends ConsumerWidget {
   const StatisticsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final myLearningState = ref.watch(myLearningProvider);
+    final gamificationProfile = ref.watch(gamificationProfileProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AppBackground(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            _buildAppBar(context),
-            SliverPadding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                   _buildMainStatsCard(),
-                   const SizedBox(height: AppSpacing.xxl),
-                   _buildSectionTitle('HOẠT ĐỘNG HÀNG TUẦN'),
-                   const SizedBox(height: AppSpacing.lg),
-                   _buildWeeklyChart(),
-                   const SizedBox(height: AppSpacing.xxl),
-                   _buildSectionTitle('TIẾN ĐỘ KHÓA HỌC'),
-                   const SizedBox(height: AppSpacing.lg),
-                   _buildCourseProgressList(),
-                ]),
-              ),
-            ),
-          ],
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(myLearningProvider);
+            ref.invalidate(gamificationProfileProvider);
+            return ref.read(myLearningProvider.notifier).loadData();
+          },
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              _buildAppBar(context),
+              if (myLearningState.isLoading)
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (myLearningState.error != null)
+                SliverFillRemaining(
+                  child: Center(child: Text('Lỗi: ${myLearningState.error}')),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      _buildMainStatsCard(myLearningState.stats, gamificationProfile.asData?.value),
+                      const SizedBox(height: AppSpacing.xxl),
+                      _buildSectionTitle('HOẠT ĐỘNG HÀNG TUẦN'),
+                      const SizedBox(height: AppSpacing.lg),
+                      _buildWeeklyChart(),
+                      const SizedBox(height: AppSpacing.xxl),
+                      _buildSectionTitle('TIẾN ĐỘ KHÓA HỌC'),
+                      const SizedBox(height: AppSpacing.lg),
+                      _buildCourseProgressList(myLearningState.myCourses),
+                    ]),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -58,7 +79,11 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildMainStatsCard() {
+  Widget _buildMainStatsCard(Map<String, dynamic> stats, GamificationProfile? profile) {
+    final totalXp = profile?.totalXp ?? (stats['totalXp'] ?? 0);
+    final hours = stats['totalLearningHours']?.toString() ?? '0';
+    final courses = stats['totalCourses']?.toString() ?? '0';
+    
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -69,24 +94,24 @@ class StatisticsPage extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _MiniStat(label: 'TỔNG XP', value: '12,450', icon: Icons.bolt_rounded, color: AppColors.primary),
-              _MiniStat(label: 'GIỜ HỌC', value: '48.5h', icon: Icons.timer_rounded, color: AppColors.accent),
-              _MiniStat(label: 'BÀI HỌC', value: '124', icon: Icons.menu_book_rounded, color: Colors.blue),
+              _MiniStat(label: 'TỔNG XP', value: totalXp.toString(), icon: Icons.bolt_rounded, color: AppColors.primary),
+              _MiniStat(label: 'GIỜ HỌC', value: '${hours}h', icon: Icons.timer_rounded, color: AppColors.accent),
+              _MiniStat(label: 'KHÓA HỌC', value: courses, icon: Icons.menu_book_rounded, color: Colors.blue),
             ],
           ),
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 24),
-          _buildStreakInfo(),
+          _buildStreakInfo(profile?.currentStreak ?? 0),
         ],
       ),
     );
   }
 
-  Widget _buildStreakInfo() {
+  Widget _buildStreakInfo(int streak) {
     return Row(
       children: [
         Container(
@@ -98,15 +123,15 @@ class StatisticsPage extends ConsumerWidget {
           child: const Icon(Icons.local_fire_department_rounded, color: Color(0xFFE63946), size: 32),
         ),
         const SizedBox(width: 16),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'CHUỖI 15 NGÀY',
-                style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0, color: Color(0xFFE63946)),
+                'CHUỖI $streak NGÀY',
+                style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0, color: Color(0xFFE63946)),
               ),
-              Text(
+              const Text(
                 'Bạn đang rất chăm chỉ! Đừng bỏ lỡ ngày nào nhé.',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
@@ -155,39 +180,43 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildCourseProgressList() {
-    final courses = [
-      {'title': 'Tiếng Nhật N5 Cấp Tốc', 'progress': 0.85},
-      {'title': 'Học Hán Tự Qua Hình Ảnh', 'progress': 0.42},
-      {'title': 'Luyện Nghe Chủ Đề Đời Sống', 'progress': 0.15},
-    ];
+  Widget _buildCourseProgressList(List<dynamic> courses) {
+    if (courses.isEmpty) {
+      return const Center(child: Text('Chưa có khóa học nào', style: TextStyle(color: AppColors.textSecondary)));
+    }
 
     return Column(
-      children: courses.map((c) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5)),
+      children: courses.map((course) {
+        final title = course.title?.toString() ?? 'Khóa học';
+        final progress = (course.progress as num?)?.toDouble() ?? 0.0;
+        final progressDecimal = progress / 100.0;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: AppTypography.bold)),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: ProgressBar(progress: progressDecimal, height: 6)),
+                    const SizedBox(width: 12),
+                    Text('${progress.toInt()}%', style: const TextStyle(fontSize: 12, fontWeight: AppTypography.bold)),
+                  ],
+                ),
+              ],
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(c['title'] as String, style: const TextStyle(fontWeight: AppTypography.bold)),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(child: ProgressBar(progress: c['progress'] as double, height: 6)),
-                  const SizedBox(width: 12),
-                  Text('${((c['progress'] as double) * 100).toInt()}%', style: const TextStyle(fontSize: 12, fontWeight: AppTypography.bold)),
-                ],
-              ),
-            ],
-          ),
-        ),
-      )).toList(),
+        );
+      }).toList(),
     );
   }
 }

@@ -1,52 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../models/certificate_model.dart';
+import '../providers/course_providers.dart';
 
-class CertificatesPage extends StatelessWidget {
+class CertificatesPage extends ConsumerWidget {
   const CertificatesPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final certificates = [
-      {
-        'title': 'Tiếng Nhật N5 Cấp Tốc',
-        'date': '20/01/2026',
-        'id': 'TR-50281',
-      },
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final certificatesAsync = ref.watch(certificatesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AppBackground(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            _buildAppBar(context),
-            if (certificates.isEmpty)
-              _buildEmptyState()
-            else
-              SliverPadding(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 1,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.6,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final cert = certificates[index];
-                      return _CertificateItem(
-                        title: cert['title']!,
-                        date: cert['date']!,
-                        certId: cert['id']!,
-                      );
-                    },
-                    childCount: certificates.length,
-                  ),
+        child: RefreshIndicator(
+          onRefresh: () => ref.refresh(certificatesProvider.future),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              _buildAppBar(context),
+              certificatesAsync.when(
+                data: (certificates) {
+                  if (certificates.isEmpty) {
+                    return _buildEmptyState();
+                  }
+                  return SliverPadding(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 1,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 2.2,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final cert = certificates[index];
+                          return _CertificateItem(certificate: cert);
+                        },
+                        childCount: certificates.length,
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (err, _) => SliverFillRemaining(
+                  child: Center(child: Text('Lỗi: $err')),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -92,14 +98,14 @@ class CertificatesPage extends StatelessWidget {
 }
 
 class _CertificateItem extends StatelessWidget {
-  final String title;
-  final String date;
-  final String certId;
+  final Certificate certificate;
 
-  const _CertificateItem({required this.title, required this.date, required this.certId});
+  const _CertificateItem({required this.certificate});
 
   @override
   Widget build(BuildContext context) {
+    final date = '${certificate.issueDate.day}/${certificate.issueDate.month}/${certificate.issueDate.year}';
+    
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -112,37 +118,36 @@ class _CertificateItem extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
-              flex: 3,
+              flex: 1,
               child: Container(
                 width: double.infinity,
                 color: AppColors.primary.withValues(alpha: 0.05),
                 child: const Center(
-                  child: Icon(Icons.workspace_premium_rounded, size: 48, color: AppColors.primary),
+                  child: Icon(Icons.workspace_premium_rounded, size: 32, color: AppColors.primary),
                 ),
               ),
             ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(title, style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 13)),
-                          const SizedBox(height: 4),
-                          Text('ID: $certId • Cấp ngày $date', style: const TextStyle(fontSize: 10, color: AppColors.textTertiary)),
-                        ],
-                      ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(certificate.courseTitle, style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 13)),
+                        const SizedBox(height: 4),
+                        Text('ID: ${certificate.certificateCode} • Cấp ngày $date', style: const TextStyle(fontSize: 10, color: AppColors.textTertiary)),
+                      ],
                     ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.download_rounded, size: 20, color: AppColors.primary),
-                    ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      // Logic to open URL or download
+                    },
+                    icon: const Icon(Icons.download_rounded, size: 20, color: AppColors.primary),
+                  ),
+                ],
               ),
             ),
           ],
