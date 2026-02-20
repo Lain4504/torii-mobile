@@ -210,7 +210,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
 
     // Only show loading if we don't have initial lesson and API is loading
     if (state.isLoading && !hasInitialLesson && lesson == null) {
-      return const AppLoadingScreen(text: 'Loading lesson...');
+      return const AppLoadingScreen(text: 'Đang tải bài học...');
     }
 
     if (state.error != null && lesson == null) {
@@ -230,7 +230,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                 ),
                 const SizedBox(height: 24),
                 AppButton(
-                  text: 'TRY AGAIN',
+                  text: 'THỬ LẠI',
                   onPressed: () {
                     ref.read(lessonDetailProvider(widget.lessonId).notifier).loadLessonDetail(widget.lessonId);
                   },
@@ -243,7 +243,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
     }
 
     if (lesson == null) {
-      return const AppLoadingScreen(text: 'Lesson not found...');
+      return const AppLoadingScreen(text: 'Không tìm thấy bài học...');
     }
 
     // Initialize video if lesson is video type and has videoUrl
@@ -473,7 +473,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                 color: Colors.black,
                 child: const Center(
                   child: Text(
-                    'Video not available',
+                    'Video không khả dụng',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -497,7 +497,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                 borderRadius: BorderRadius.circular(AppRadius.chip),
               ),
               child: Text(
-                'LESSON ${lesson.order}',
+                'BÀI HỌC ${lesson.order}',
                 style: TextStyle(
                   fontSize: 8,
                   fontWeight: AppTypography.black,
@@ -659,7 +659,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(40),
-                child: Text('No article content available'),
+                child: Text('Không có nội dung bài học'),
               ),
             ),
         ],

@@ -28,7 +28,7 @@ class PostListPage extends ConsumerWidget {
               elevation: 0,
               centerTitle: true,
               title: const Text(
-                'COMMUNITY',
+                'CỘNG ĐỒNG',
                 style: TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
                   fontWeight: AppTypography.black,
@@ -70,12 +70,12 @@ class PostListPage extends ConsumerWidget {
                 ),
               ),
               loading: () => const SliverFillRemaining(
-                child: Center(child: AppLoading(text: 'Loading posts...')),
+                child: Center(child: AppLoading(text: 'Đang tải bài viết...')),
               ),
               error: (err, stack) => SliverFillRemaining(
                 child: Center(
                   child: Text(
-                    'Disconnected: $err',
+                    'Mất kết nối: $err',
                     style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0),
                   ),
                 ),

@@ -214,7 +214,7 @@ class CourseCard extends StatelessWidget {
                     Icon(Icons.check_circle_rounded, color: Colors.white, size: 14),
                     SizedBox(width: 6),
                     Text(
-                      'ENROLLED',
+                      'ĐÃ ĐĂNG KÝ',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 9,

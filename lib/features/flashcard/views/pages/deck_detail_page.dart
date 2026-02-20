@@ -58,7 +58,7 @@ class DeckDetailPage extends ConsumerWidget {
                           child: Center(
                             child:  Padding(
                               padding: EdgeInsets.only(top: 50),
-                              child: Text('No cards yet. Add one!', style: TextStyle(color: AppColors.textTertiary)),
+                              child: Text('Chưa có thẻ nào. Hãy thêm thẻ mới!', style: TextStyle(color: AppColors.textTertiary)),
                             ),
                           ),
                         );
@@ -102,14 +102,14 @@ class _CardItem extends ConsumerWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Card'),
-        content: const Text('Permanently delete this card?'),
+        title: const Text('Xóa thẻ'),
+        content: const Text('Xóa vĩnh viễn thẻ này?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true), 
+            onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Delete')
+            child: const Text('Xóa'),
           ),
         ],
       ),
@@ -122,7 +122,7 @@ class _CardItem extends ConsumerWidget {
          // (Handled in controller, but invalidate here is redundant but safe)
          // ref.invalidate(deckContentProvider(deck.id));
          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Card deleted')));
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã xóa thẻ')));
          }
       }
     }

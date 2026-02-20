@@ -24,21 +24,21 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   final List<_OnboardingData> _pages = [
     _OnboardingData(
       icon: Icons.auto_stories_outlined,
-      title: 'Learn Japanese',
-      subtitle: 'Your gateway to the Japanese language',
-      description: 'Master vocabulary, grammar, and kanji through interactive lessons designed for all levels.',
+      title: 'Học Tiếng Nhật',
+      subtitle: 'Cửa ngõ dẫn tới tiếng Nhật',
+      description: 'Làm chủ từ vựng, ngữ pháp và kanji thông qua các bài học tương tác được thiết kế cho mọi cấp độ.',
     ),
     _OnboardingData(
       icon: Icons.psychology_outlined,
-      title: 'Smart Practice',
-      subtitle: 'Powered by spaced repetition',
-      description: 'Our intelligent flashcard system helps you remember what you learn, when you need it most.',
+      title: 'Luyện Tập Thông Minh',
+      subtitle: 'Ứng dụng thuật toán thông minh',
+      description: 'Hệ thống thẻ ghi nhớ giúp bạn ghi nhớ khối lượng kiến thức lớn một cách hiệu quả.',
     ),
     _OnboardingData(
       icon: Icons.emoji_events_outlined,
-      title: 'Track Progress',
-      subtitle: 'Celebrate every milestone',
-      description: 'Set goals, earn streaks, and watch your Japanese skills grow day by day.',
+      title: 'Theo Dõi Tiến Độ',
+      subtitle: 'Ghi nhận mọi cột mốc',
+      description: 'Đặt mục tiêu, duy trì chuỗi học tập và chứng kiến kỹ năng của bạn hoàn thiện từng ngày.',
     ),
   ];
 
@@ -182,7 +182,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                         EntryAnimation(
                           delay: const Duration(milliseconds: 300),
                             child: const Text(
-                              'SKIP',
+                              'BỎ QUA',
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: AppTypography.black,
@@ -234,8 +234,8 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                         delay: const Duration(milliseconds: 500),
                         child: AppButton(
                           text: _currentPage == _pages.length - 1 
-                              ? 'GET STARTED' 
-                              : 'CONTINUE',
+                              ? 'BẮT ĐẦU NGAY' 
+                              : 'TIẾP TỤC',
                           onPressed: _nextPage,
                           isFullWidth: true,
                         ),

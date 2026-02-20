@@ -109,7 +109,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               AppTextField(
                                 label: 'Email',
                                 controller: _emailController,
-                                hintText: 'your.email@example.com',
+                                hintText: 'email.cua.ban@example.com',
                                 icon: Icons.alternate_email_rounded,
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (val) => (val == null || !val.contains('@')) ? 'Vui lòng nhập email hợp lệ' : null,

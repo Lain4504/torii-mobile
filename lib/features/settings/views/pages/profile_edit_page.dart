@@ -40,7 +40,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'EDIT_PROFILE',
+          'CHỈNH SỬA THÔNG TIN',
           style: TextStyle(
             fontFamily: AppTypography.fontFamilySerif,
             fontWeight: AppTypography.black,
@@ -89,15 +89,15 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               const SizedBox(height: 48),
 
               _buildAppTextField(
-                label: 'FULL_NAME',
-                hint: 'Your name',
+                label: 'HỌ TÊN',
+                hint: 'Nhập họ tên...',
                 controller: _nameController,
                 icon: Icons.person_outline_rounded,
               ),
               const SizedBox(height: AppSpacing.lg),
               _buildAppTextField(
-                label: 'EMAIL_ADDRESS',
-                hint: 'Your email',
+                label: 'ĐỊA CHỈ EMAIL',
+                hint: 'Nhập email...',
                 controller: _emailController,
                 icon: Icons.alternate_email_rounded,
                 readOnly: true,
@@ -105,7 +105,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               const SizedBox(height: 48),
 
               AppButton(
-                text: 'SAVE CHANGES',
+                text: 'LƯU THAY ĐỔI',
                 onPressed: () {
                   // TODO: Implement save logic
                   Navigator.pop(context);
@@ -117,7 +117,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'CANCEL',
+                  'HỦY BỎ',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: AppTypography.black,

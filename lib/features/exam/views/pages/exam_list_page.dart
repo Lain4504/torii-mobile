@@ -176,8 +176,8 @@ class ExamListPage extends ConsumerWidget {
     return [
       const Exam(
         id: '1',
-        title: 'JLPT N5 Proficiency Grid',
-        description: 'Comprehensive evaluation of standard grammar, lexicon, and synthesis.',
+        title: 'Bộ Đề Luyện Thi JLPT N5',
+        description: 'Đánh giá toàn diện ngữ pháp, từ vựng và kỹ năng tổng hợp.',
         level: 'N5',
         questionCount: 50,
         durationMinutes: 60,
@@ -185,8 +185,8 @@ class ExamListPage extends ConsumerWidget {
       ),
       const Exam(
         id: '2',
-        title: 'JLPT N4 Technical Bench',
-        description: 'Advanced elementary structures and kanji node recognition.',
+        title: 'Bộ Đề Luyện Thi JLPT N4',
+        description: 'Cấu trúc sơ cấp nâng cao và nhận diện hán tự.',
         level: 'N4',
         questionCount: 60,
         durationMinutes: 75,
@@ -194,8 +194,8 @@ class ExamListPage extends ConsumerWidget {
       ),
       const Exam(
         id: '3',
-        title: 'Kanji Node Master - N5',
-        description: 'Pure visual identification and phonetic mapping protocols.',
+        title: 'Bậc Thầy Hán Tự - N5',
+        description: 'Nhận diện hình ảnh và cách phát âm hán tự.',
         level: 'N5',
         questionCount: 30,
         durationMinutes: 30,
@@ -276,7 +276,7 @@ class _ExamCard extends StatelessWidget {
                           children: [
                             _DetailChip(icon: Icons.timer_rounded, label: exam.durationLabel),
                             const SizedBox(width: 16),
-                            _DetailChip(icon: Icons.grid_view_rounded, label: '${exam.questionCount} POINTS'),
+                             _DetailChip(icon: Icons.grid_view_rounded, label: '${exam.questionCount} CÂU HỎI'),
                           ],
                         ),
                       ],
@@ -364,9 +364,9 @@ class _StartExamSheet extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _SheetStat(label: 'LIMIT', value: exam.durationLabel, icon: Icons.timer_rounded),
-                _SheetStat(label: 'BLOCKS', value: '${exam.questionCount}', icon: Icons.grid_view_rounded),
-                _SheetStat(label: 'GRADE', value: exam.level, icon: Icons.school_rounded),
+                 _SheetStat(label: 'THỜI GIAN', value: exam.durationLabel, icon: Icons.timer_rounded),
+                _SheetStat(label: 'CÂU HỎI', value: '${exam.questionCount}', icon: Icons.grid_view_rounded),
+                _SheetStat(label: 'CẤP ĐỘ', value: exam.level, icon: Icons.school_rounded),
               ],
             ),
           ),

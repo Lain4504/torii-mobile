@@ -46,7 +46,7 @@ class _CreateTicketDialogState extends ConsumerState<CreateTicketDialog> {
         Navigator.pop(context); // Close dialog
         ref.read(ticketListProvider.notifier).refresh(); // Refresh list
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ticket created successfully')),
+          const SnackBar(content: Text('Tạo yêu cầu thành công')),
         );
       }
     }
@@ -71,7 +71,7 @@ class _CreateTicketDialogState extends ConsumerState<CreateTicketDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                      const Text(
-                        'Create Ticket',
+                        'Tạo Yêu Cầu Hỗ Trợ',
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                     IconButton(
@@ -83,14 +83,14 @@ class _CreateTicketDialogState extends ConsumerState<CreateTicketDialog> {
                 DropdownButtonFormField<TicketType>(
                   initialValue: _selectedType,
                   decoration: const InputDecoration(
-                    labelText: 'Ticket Type',
+                    labelText: 'Loại yêu cầu',
                     border: OutlineInputBorder(),
                     contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   ),
                   items: TicketType.values.map((type) {
                     return DropdownMenuItem(
                       value: type,
-                      child: Text(type.toString().split('.').last),
+                      child: Text(type == TicketType.SUPPORT ? 'Hỗ trợ' : 'Hoàn tiền'),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -106,13 +106,13 @@ class _CreateTicketDialogState extends ConsumerState<CreateTicketDialog> {
                   TextFormField(
                     controller: _courseIdController,
                     decoration: const InputDecoration(
-                      labelText: 'Course ID',
+                      labelText: 'ID Khóa học',
                       border: OutlineInputBorder(),
-                      helperText: 'Required for refunds',
+                      helperText: 'Bắt buộc đối với yêu cầu hoàn tiền',
                     ),
                     validator: (value) {
                       if (_selectedType == TicketType.REFUND && (value == null || value.isEmpty)) {
-                        return 'Please enter Course ID';
+                        return 'Vui lòng nhập ID khóa học';
                       }
                       return null;
                     },
@@ -122,12 +122,12 @@ class _CreateTicketDialogState extends ConsumerState<CreateTicketDialog> {
                 TextFormField(
                   controller: _subjectController,
                   decoration: const InputDecoration(
-                    labelText: 'Subject',
+                    labelText: 'Tiêu đề',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a subject';
+                      return 'Vui lòng nhập tiêu đề';
                     }
                     return null;
                   },
@@ -136,14 +136,14 @@ class _CreateTicketDialogState extends ConsumerState<CreateTicketDialog> {
                 TextFormField(
                   controller: _descriptionController,
                   decoration: const InputDecoration(
-                    labelText: 'Description',
+                    labelText: 'Mô tả',
                     border: OutlineInputBorder(),
                     alignLabelWithHint: true,
                   ),
                   maxLines: 5,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a description';
+                      return 'Vui lòng nhập mô tả';
                     }
                     return null;
                   },
@@ -174,7 +174,7 @@ class _CreateTicketDialogState extends ConsumerState<CreateTicketDialog> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('Submit', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          : const Text('Gửi yêu cầu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

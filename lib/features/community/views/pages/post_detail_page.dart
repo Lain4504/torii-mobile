@@ -73,7 +73,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                                       style: const TextStyle(fontWeight: AppTypography.extraBold, fontSize: 16),
                                     ),
                                     Text(
-                                      'MASTER_LEARNER • ${DateFormat.yMMMd().format(post.createdAt)}',
+                                      'HỌC VIÊN • ${DateFormat.yMMMd().format(post.createdAt)}',
                                       style: TextStyle(fontSize: 10, fontWeight: AppTypography.bold, color: AppColors.textTertiary),
                                     ),
                                   ],
@@ -91,7 +91,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                               style: TextStyle(fontSize: 16, height: 1.6, color: AppColors.textPrimary),
                             ),
                             const SizedBox(height: 32),
-                            const SectionDivider(title: 'COMMUNICATIONS'),
+                            const SectionDivider(title: 'THẢO LUẬN'),
                           ],
                         ),
                       ),
@@ -108,12 +108,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                       ),
                     ),
                     loading: () => const SliverToBoxAdapter(
-                      child: Center(child: AppLoading(text: 'Accessing Communications...')),
+                      child: Center(child: AppLoading(text: 'Đang tải thảo luận...')),
                     ),
                     error: (err, stack) => SliverToBoxAdapter(
                       child: Center(
                         child: Text(
-                          'CONNECTION LOST: $err',
+                          'MẤT KẾT NỐI: $err',
                           style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 1.0),
                         ),
                       ),
@@ -167,7 +167,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 controller: _commentController,
                 style: const TextStyle(fontSize: 14, fontWeight: AppTypography.medium),
                 decoration: const InputDecoration(
-                  hintText: 'Add to neural forum...',
+                  hintText: 'Viết bình luận...',
                   border: InputBorder.none,
                   hintStyle: TextStyle(fontSize: 13, color: AppColors.textTertiary, letterSpacing: 0.5),
                 ),
@@ -252,7 +252,7 @@ class _CommentTile extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Reply',
+                      'Trả lời',
                       style: TextStyle(fontSize: 11, fontWeight: AppTypography.black, color: AppColors.primary, letterSpacing: 0.5),
                     ),
                     const SizedBox(width: 16),

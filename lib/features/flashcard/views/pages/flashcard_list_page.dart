@@ -38,7 +38,7 @@ class FlashcardListPage extends ConsumerWidget {
                     children: [
                       const SizedBox(height: 60),
                       Text(
-                        'PRACTICE_DECKS',
+                        'BỘ THẺ HỌC',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: AppTypography.black,
@@ -48,7 +48,7 @@ class FlashcardListPage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'Flashcard Sets',
+                        'Bộ Thẻ Ghi Nhớ',
                         style: TextStyle(
                           fontFamily: AppTypography.fontFamilySerif,
                           fontWeight: AppTypography.bold,
@@ -81,10 +81,10 @@ class FlashcardListPage extends ConsumerWidget {
                            padding: const EdgeInsets.only(top: 50),
                            child: Column(
                              children: [
-                               const Text('No decks found. Create one to start!', style: TextStyle(color: AppColors.textTertiary)),
+                               const Text('Không tìm thấy bộ thẻ nào. Hãy tạo một bộ để bắt đầu!', style: TextStyle(color: AppColors.textTertiary)),
                                const SizedBox(height: 20),
                                AppButton(
-                                 text: 'CREATE FIRST DECK',
+                                 text: 'TẠO BỘ THẺ ĐẦU TIÊN',
                                  onPressed: () => context.push('/flashcards/add-deck'),
                                  icon: Icons.add_circle_outline_rounded,
                                ),
@@ -128,7 +128,7 @@ class FlashcardListPage extends ConsumerWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.full)),
           icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
           label: const Text(
-            'NEW DECK',
+            'BỘ THẺ MỚI',
             style: TextStyle(
               color: Colors.white, 
               fontWeight: AppTypography.black, 
@@ -151,17 +151,17 @@ class _DeckCard extends ConsumerWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Deck'),
-        content: const Text('Are you sure you want to delete this deck? This action cannot be undone.'),
+        title: const Text('Xóa bộ thẻ'),
+        content: const Text('Bạn có chắc chắn muốn xóa bộ thẻ này? Hành động này không thể hoàn tác.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('Hủy'),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Delete'),
+            child: const Text('Xóa'),
           ),
         ],
       ),
@@ -171,7 +171,7 @@ class _DeckCard extends ConsumerWidget {
        final success = await ref.read(flashcardControllerProvider.notifier).deleteDeck(deck.id);
        if (success && context.mounted) {
          ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('Deck deleted successfully')),
+           const SnackBar(content: Text('Đã xóa bộ thẻ thành công')),
          );
        }
     }
@@ -265,7 +265,7 @@ class _DeckCard extends ConsumerWidget {
                                 //   color: AppColors.primary,
                                 // ),
                                 _StatLabel(
-                                  label: '${deck.totalCards} NODES',
+                                  label: '${deck.totalCards} THẺ',
                                   color: AppColors.textTertiary,
                                 ),
                               ],
@@ -295,7 +295,7 @@ class _DeckCard extends ConsumerWidget {
                                children: [
                                  Icon(Icons.list_alt_rounded, color: AppColors.textSecondary, size: 20),
                                  SizedBox(width: 8),
-                                 Text('Manage Cards'),
+                                 Text('Quản lý thẻ'),
                                ],
                              ),
                            ),
@@ -305,7 +305,7 @@ class _DeckCard extends ConsumerWidget {
                                children: [
                                  Icon(Icons.add_rounded, color: AppColors.textSecondary, size: 20),
                                  SizedBox(width: 8),
-                                 Text('Add Card'),
+                                 Text('Thêm thẻ'),
                                ],
                              ),
                            ),
@@ -315,7 +315,7 @@ class _DeckCard extends ConsumerWidget {
                                children: [
                                  Icon(Icons.edit_rounded, size: 20),
                                  SizedBox(width: 8),
-                                 Text('Edit Deck'),
+                                 Text('Sửa bộ thẻ'),
                                ],
                              ),
                            ),
@@ -325,7 +325,7 @@ class _DeckCard extends ConsumerWidget {
                                children: [
                                  Icon(Icons.delete_outline_rounded, size: 20, color: AppColors.error),
                                  SizedBox(width: 8),
-                                 Text('Delete', style: TextStyle(color: AppColors.error)),
+                                 Text('Xóa', style: TextStyle(color: AppColors.error)),
                                ],
                              ),
                            ),
