@@ -49,6 +49,9 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
         <!-- Required for url_launcher to open HTTPS URLs -->
         <intent>
             <action android:name="android.intent.action.VIEW" />

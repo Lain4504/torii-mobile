@@ -471,6 +471,10 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 width: (MediaQuery.of(context).size.width - AppSpacing.xl * 2 - AppSpacing.md * 2) / 3,
                 child: _ShortcutTile(Icons.leaderboard_rounded, 'Bảng xếp hạng', () => context.push('/leaderboard')),
               ),
+              SizedBox(
+                width: (MediaQuery.of(context).size.width - AppSpacing.xl * 2 - AppSpacing.md * 2) / 3,
+                child: _ShortcutTile(Icons.auto_awesome_rounded, 'AI Roleplay', () => context.push('/roleplay/topic')),
+              ),
             ],
           ),
         ],

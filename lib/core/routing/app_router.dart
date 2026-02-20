@@ -53,6 +53,8 @@ import 'package:torii_app/features/gamification/views/pages/leaderboard_page.dar
 import 'package:torii_app/features/course/views/pages/assignments_page.dart';
 import 'package:torii_app/features/course/views/pages/certificates_page.dart';
 import 'package:torii_app/features/dashboard/views/pages/statistics_page.dart';
+import 'package:torii_app/features/agent/views/pages/roleplay_topic_page.dart';
+import 'package:torii_app/features/agent/views/pages/roleplay_chat_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 import 'package:torii_app/features/onboarding/providers/onboarding_providers.dart';
@@ -439,6 +441,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/statistics',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const StatisticsPage(),
+      ),
+      GoRoute(
+        path: '/roleplay/topic',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const RoleplayTopicPage(),
+      ),
+      GoRoute(
+        path: '/roleplay/chat',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final topic = state.extra as String? ?? 'Chủ đề ngẫu nhiên';
+          return RoleplayChatPage(topic: topic);
+        },
       ),
       GoRoute(
         path: '/notifications',
