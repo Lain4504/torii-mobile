@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../../models/lesson_model.dart';
-import '../../models/lesson_material_model.dart';
-import '../../providers/lesson_providers.dart';
-import '../../repositories/course_repository.dart';
-import '../../../auth/providers/auth_providers.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/features/course/models/lesson_model.dart';
+import 'package:torii_app/features/course/models/lesson_material_model.dart';
+import 'package:torii_app/features/course/providers/lesson_providers.dart';
+import 'package:torii_app/features/course/repositories/course_repository.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/core/providers/shared_prefs_provider.dart';
 
 class LessonPage extends ConsumerStatefulWidget {
   final String courseId;
@@ -966,7 +967,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
             AppButton(
               text: 'LƯU GHI CHÚ',
               onPressed: _saveNotes,
-              size: AppButtonSize.medium,
+              // size: AppButtonSize.medium,
             ),
           ],
         ),

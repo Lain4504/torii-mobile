@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../../../course/providers/my_learning_provider.dart';
-import '../../providers/gamification_providers.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/features/course/providers/my_learning_provider.dart';
+import 'package:torii_app/features/gamification/providers/gamification_providers.dart';
+import 'package:torii_app/features/gamification/models/gamification_models.dart';
 
 class StatisticsPage extends ConsumerWidget {
   const StatisticsPage({super.key});

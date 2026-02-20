@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../models/assignment_model.dart';
-import '../providers/course_providers.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/features/course/models/assignment_model.dart';
+import 'package:torii_app/features/course/providers/course_providers.dart';
 
 class AssignmentsPage extends ConsumerWidget {
   const AssignmentsPage({super.key});
@@ -163,7 +163,7 @@ class _AssignmentCard extends StatelessWidget {
               const Icon(Icons.access_time_rounded, size: 14, color: AppColors.textTertiary),
               const SizedBox(width: 8),
               Text(
-                'Hạn: ${_formatDate(assignment.dueDate)}',
+                    'HẠN CHÓT: ${_formatDate(assignment.dueDate)}',
                 style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
               ),
               const Spacer(),
@@ -171,7 +171,9 @@ class _AssignmentCard extends StatelessWidget {
                 text: 'CHI TIẾT',
                 onPressed: () {},
                 type: AppButtonType.ghost,
-                size: AppButtonSize.small,
+                // size: AppButtonSize.small,
+                height: 40,
+                fontSize: 12,
               ),
             ],
           ),
@@ -180,7 +182,8 @@ class _AssignmentCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'N/A';
     return '${date.day}/${date.month}/${date.year}';
   }
 }

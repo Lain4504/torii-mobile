@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/theme/colors.dart';
-import '../../../../core/theme/typography.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class RoleplayTopicPage extends ConsumerStatefulWidget {
   const RoleplayTopicPage({super.key});
@@ -41,7 +40,7 @@ class _RoleplayTopicPageState extends ConsumerState<RoleplayTopicPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('AI Roleplay', style: TextStyle(fontWeight: AppTypography.bold)),
+        title: Text('AI Roleplay', style: TextStyle(fontWeight: AppTypography.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: AppColors.textPrimary,
@@ -56,7 +55,7 @@ class _RoleplayTopicPageState extends ConsumerState<RoleplayTopicPage> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -66,7 +65,7 @@ class _RoleplayTopicPageState extends ConsumerState<RoleplayTopicPage> {
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'Roleplay với Sensei',
               style: TextStyle(
                 fontSize: 28,
@@ -75,7 +74,7 @@ class _RoleplayTopicPageState extends ConsumerState<RoleplayTopicPage> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Chọn một chủ đề hoặc nhập chủ đề của riêng bạn.\nSensei sẽ cùng bạn luyện tập hội thoại.',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -113,7 +112,7 @@ class _RoleplayTopicPageState extends ConsumerState<RoleplayTopicPage> {
                   ),
                   elevation: 2,
                 ),
-                child: const Text(
+                child: Text(
                   'Bắt đầu hội thoại',
                   style: TextStyle(fontSize: 18, fontWeight: AppTypography.bold),
                 ),
@@ -122,7 +121,7 @@ class _RoleplayTopicPageState extends ConsumerState<RoleplayTopicPage> {
             const SizedBox(height: 40),
             const Divider(height: 1),
             const SizedBox(height: 32),
-            const Text(
+            Text(
               'GỢI Ý CHỦ ĐỀ',
               style: TextStyle(
                 fontSize: 12,
@@ -149,7 +148,7 @@ class _RoleplayTopicPageState extends ConsumerState<RoleplayTopicPage> {
                     ),
                     child: Text(
                       topic,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: AppTypography.medium,
                         color: AppColors.textSecondary,

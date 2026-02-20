@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../models/certificate_model.dart';
-import '../providers/course_providers.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/features/course/models/certificate_model.dart';
+import 'package:torii_app/features/course/providers/course_providers.dart';
 
 class CertificatesPage extends ConsumerWidget {
   const CertificatesPage({super.key});

@@ -4,6 +4,7 @@ class Assignment {
   final String description;
   final String? type;
   final String? courseId;
+  final String? courseTitle;
   final int? maxScore;
   final int? passingScore;
   final DateTime? dueDate;
@@ -16,6 +17,7 @@ class Assignment {
     required this.description,
     this.type,
     this.courseId,
+    this.courseTitle,
     this.maxScore,
     this.passingScore,
     this.dueDate,
@@ -30,6 +32,7 @@ class Assignment {
       description: json['description']?.toString() ?? '',
       type: json['type']?.toString(),
       courseId: json['courseId']?.toString(),
+      courseTitle: json['courseTitle']?.toString(),
       maxScore: json['maxScore'] as int?,
       passingScore: json['passingScore'] as int?,
       dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null,
@@ -45,6 +48,7 @@ class Assignment {
       'description': description,
       'type': type,
       'courseId': courseId,
+      'courseTitle': courseTitle,
       'maxScore': maxScore,
       'passingScore': passingScore,
       'dueDate': dueDate?.toIso8601String(),

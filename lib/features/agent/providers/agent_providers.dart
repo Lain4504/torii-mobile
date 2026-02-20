@@ -4,8 +4,8 @@ import '../models/agent_models.dart';
 import '../repositories/agent_repository.dart';
 
 final agentRepositoryProvider = Provider<AgentRepository>((ref) {
-  final dio = ref.watch(apiClientProvider);
-  return AgentRepository(dio: dio);
+  final apiClient = ref.watch(apiClientProvider);
+  return AgentRepository(dio: apiClient.client);
 });
 
 class RoleplayState {

@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import '../../../../core/theme/colors.dart';
-import '../../../../core/theme/typography.dart';
-import '../providers/agent_providers.dart';
-import '../models/agent_models.dart';
+import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/features/agent/providers/agent_providers.dart';
+import 'package:torii_app/features/agent/models/agent_models.dart';
 
 class RoleplayChatPage extends ConsumerStatefulWidget {
   final String topic;
@@ -64,8 +64,8 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
   void _listen() async {
     if (!_isListening) {
       bool available = await _speech.initialize(
-        onStatus: (val) => print('onStatus: $val'),
-        onError: (val) => print('onError: $val'),
+        onStatus: null,
+        onError: null,
       );
       if (available) {
         setState(() => _isListening = true);
@@ -123,7 +123,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.topic, style: const TextStyle(fontSize: 18, fontWeight: AppTypography.bold)),
+            Text(widget.topic, style: TextStyle(fontSize: 18, fontWeight: AppTypography.bold)),
             Text(
               state.isFinished ? 'Đã kết thúc' : 'Sensei đang hội thoại...',
               style: TextStyle(fontSize: 12, color: state.isFinished ? Colors.green : Colors.orange),
@@ -138,7 +138,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
           if (!state.isFinished && state.messages.where((m) => m.role == 'user').length >= 5)
             TextButton(
               onPressed: () => notifier.finish(),
-              child: const Text('KẾT THÚC', style: TextStyle(color: Colors.green, fontWeight: AppTypography.bold)),
+              child: Text('KẾT THÚC', style: TextStyle(color: Colors.green, fontWeight: AppTypography.bold)),
             ),
         ],
       ),
@@ -184,7 +184,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
               border: msg.isFeedback ? Border.all(color: Colors.green[200]!) : null,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
@@ -270,7 +270,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            child: const Text('QUAY LẠI', style: TextStyle(fontWeight: AppTypography.bold, color: Colors.white)),
+            child: Text('QUAY LẠI', style: TextStyle(fontWeight: AppTypography.bold, color: Colors.white)),
           ),
         ),
       );
@@ -282,7 +282,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
