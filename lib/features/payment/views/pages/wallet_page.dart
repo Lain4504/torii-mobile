@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../gamification/providers/gamification_providers.dart';
-import '../providers/coupon_providers.dart';
-import '../providers/payment_providers.dart';
+import '../../../gamification/providers/gamification_providers.dart'
+    hide myCouponsProvider;
+import '../../providers/coupon_providers.dart';
+import '../../providers/payment_providers.dart';
 import 'package:intl/intl.dart';
 
 class WalletPage extends ConsumerStatefulWidget {
@@ -15,19 +16,16 @@ class WalletPage extends ConsumerStatefulWidget {
   ConsumerState<WalletPage> createState() => _WalletPageState();
 }
 
-class _WalletPageState extends ConsumerState<WalletPage> with SingleTickerProviderStateMixin {
+class _WalletPageState extends ConsumerState<WalletPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
-    // Initial data fetch
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(gamificationHistoryProvider.notifier).refresh();
-      ref.read(balanceHistoryProvider.notifier).refresh();
-    });
+
+    // Data will auto-fetch when providers are watched
   }
 
   @override
@@ -52,7 +50,9 @@ class _WalletPageState extends ConsumerState<WalletPage> with SingleTickerProvid
                   headerSliverBuilder: (context, innerBoxIsScrolled) => [
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                        ),
                         child: Column(
                           children: [
                             const SizedBox(height: AppSpacing.md),
@@ -87,10 +87,7 @@ class _WalletPageState extends ConsumerState<WalletPage> with SingleTickerProvid
                   ],
                   body: TabBarView(
                     controller: _tabController,
-                    children: [
-                      _buildHistoryTab(),
-                      _buildCouponsTab(),
-                    ],
+                    children: [_buildHistoryTab(), _buildCouponsTab()],
                   ),
                 ),
               ),
@@ -103,7 +100,10 @@ class _WalletPageState extends ConsumerState<WalletPage> with SingleTickerProvid
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.md,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -240,89 +240,132 @@ class _WalletPageState extends ConsumerState<WalletPage> with SingleTickerProvid
     return Consumer(
       builder: (context, ref, child) {
         final pointsHistory = ref.watch(gamificationHistoryProvider);
-        final coinsHistory = ref.watch(balanceHistoryProvider);
+        final coinsHistoryState = ref.watch(balanceHistoryProvider);
 
-        if (pointsHistory.isLoading && pointsHistory.items.isEmpty) {
+        if (coinsHistoryState.isLoading && coinsHistoryState.items.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final allItems = [
-          ...pointsHistory.items.map((e) => _HistoryItem(
-            title: e.description ?? 'Thưởng hoạt động',
-            subtitle: DateFormat('HH:mm, dd/MM/yyyy').format(e.createdAt),
-            amount: e.amount,
-            isPoints: true,
-            icon: Icons.stars_rounded,
-          )),
-          ...coinsHistory.items.map((e) => _HistoryItem(
-            title: e['description'] ?? 'Giao dịch ví',
-            subtitle: DateFormat('HH:mm, dd/MM/yyyy').format(DateTime.parse(e['createdAt'])),
-            amount: (e['amount'] as num).toInt(),
-            isPoints: false,
-            icon: Icons.account_balance_wallet_rounded,
-          )),
-        ];
-
-        // Sort by date descending (mock for now as we merged lists)
-        // In real app might want to sort properly if timestamp is available
-
-        if (allItems.isEmpty) {
-          return const Center(child: Text('Chưa có lịch sử giao dịch'));
-        }
-
-        return ListView.separated(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          itemCount: allItems.length,
-          separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
-          itemBuilder: (context, index) {
-            final item = allItems[index];
-            final isPositive = item.amount > 0;
-
-            return Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5)),
+        return pointsHistory.when(
+          data: (pointsData) {
+            final allItems = <_HistoryItem>[
+              ...pointsData.map(
+                (e) => _HistoryItem(
+                  title: e['description']?.toString() ?? 'Thưởng hoạt động',
+                  subtitle: DateFormat('HH:mm, dd/MM/yyyy').format(
+                    e['createdAt'] is DateTime
+                        ? e['createdAt']
+                        : DateTime.parse(e['createdAt'].toString()),
+                  ),
+                  amount: (e['amount'] as num?)?.toInt() ?? 0,
+                  isPoints: true,
+                  icon: Icons.stars_rounded,
+                ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: (item.isPoints ? Colors.orange : AppColors.primary).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(item.icon, size: 20, color: item.isPoints ? Colors.orange : AppColors.primary),
+              ...coinsHistoryState.items.map(
+                (e) => _HistoryItem(
+                  title: e['description']?.toString() ?? 'Giao dịch ví',
+                  subtitle: DateFormat('HH:mm, dd/MM/yyyy').format(
+                    e['createdAt'] is DateTime
+                        ? e['createdAt']
+                        : DateTime.parse(e['createdAt'].toString()),
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.title,
-                          style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 13),
-                        ),
-                        Text(
-                          item.subtitle,
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    '${isPositive ? "+" : ""}${NumberFormat('#,###').format(item.amount)}',
-                    style: TextStyle(
-                      fontWeight: AppTypography.black,
-                      fontSize: 15,
-                      color: isPositive ? Colors.green : AppColors.textPrimary,
-                    ),
-                  ),
-                ],
+                  amount: (e['amount'] as num?)?.toInt() ?? 0,
+                  isPoints: false,
+                  icon: Icons.account_balance_wallet_rounded,
+                ),
               ),
+            ];
+
+            if (allItems.isEmpty) {
+              return const Center(
+                child: Text(
+                  'Chưa có lịch sử giao dịch',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              );
+            }
+
+            allItems.sort((a, b) => b.subtitle.compareTo(a.subtitle));
+
+            return ListView.separated(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              itemCount: allItems.length,
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: AppSpacing.md),
+              itemBuilder: (context, index) {
+                final item = allItems[index];
+                final isPositive = item.amount > 0;
+
+                return Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    border: Border.all(
+                      color: AppColors.grey200.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color:
+                              (item.isPoints
+                                      ? Colors.orange
+                                      : AppColors.primary)
+                                  .withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          item.icon,
+                          size: 20,
+                          color: item.isPoints
+                              ? Colors.orange
+                              : AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.title,
+                              style: const TextStyle(
+                                fontWeight: AppTypography.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              item.subtitle,
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        '${isPositive ? "+" : ""}${NumberFormat('#,###').format(item.amount)}',
+                        style: TextStyle(
+                          fontWeight: AppTypography.black,
+                          fontSize: 15,
+                          color: isPositive
+                              ? Colors.green
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             );
           },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Lỗi: $err')),
         );
       },
     );
@@ -341,7 +384,8 @@ class _WalletPageState extends ConsumerState<WalletPage> with SingleTickerProvid
             return ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.xl),
               itemCount: coupons.length,
-              separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
+              separatorBuilder: (context, index) =>
+                  const SizedBox(height: AppSpacing.md),
               itemBuilder: (context, index) {
                 final coupon = coupons[index];
                 return Container(
@@ -349,11 +393,17 @@ class _WalletPageState extends ConsumerState<WalletPage> with SingleTickerProvid
                   decoration: BoxDecoration(
                     color: AppColors.white,
                     borderRadius: BorderRadius.circular(AppRadius.lg),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.confirmation_number_rounded, color: AppColors.primary, size: 32),
+                      const Icon(
+                        Icons.confirmation_number_rounded,
+                        color: AppColors.primary,
+                        size: 32,
+                      ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Column(
@@ -370,11 +420,17 @@ class _WalletPageState extends ConsumerState<WalletPage> with SingleTickerProvid
                             ),
                             Text(
                               coupon.name,
-                              style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 12),
+                              style: const TextStyle(
+                                fontWeight: AppTypography.bold,
+                                fontSize: 12,
+                              ),
                             ),
                             Text(
                               'Hết hạn: ${DateFormat('dd/MM/yyyy').format(coupon.validUntil)}',
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 10,
+                              ),
                             ),
                           ],
                         ),
@@ -428,11 +484,12 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => _tabBar.preferredSize.height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: AppColors.background,
-      child: _tabBar,
-    );
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(color: AppColors.background, child: _tabBar);
   }
 
   @override

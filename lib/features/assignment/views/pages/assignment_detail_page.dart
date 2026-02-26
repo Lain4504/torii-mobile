@@ -6,8 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../models/assignment_model.dart';
-import '../providers/assignment_providers.dart';
+import '../../models/assignment_model.dart';
+import '../../providers/assignment_providers.dart';
 
 class AssignmentDetailPage extends ConsumerStatefulWidget {
   final String assignmentId;

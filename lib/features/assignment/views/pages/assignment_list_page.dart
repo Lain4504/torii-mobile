@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../models/assignment_model.dart';
-import '../providers/assignment_providers.dart';
+import '../../models/assignment_model.dart';
+import '../../providers/assignment_providers.dart';
 
 class AssignmentListPage extends ConsumerStatefulWidget {
   const AssignmentListPage({super.key});

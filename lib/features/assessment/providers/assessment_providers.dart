@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/data/api/api_client.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import '../repositories/assessment_repository.dart';
 import '../models/placement_test_model.dart';
@@ -47,22 +46,37 @@ class PlacementState {
   }
 }
 
-class PlacementNotifier extends StateNotifier<PlacementState> {
-  final AssessmentRepository _repository;
+class PlacementNotifier extends Notifier<PlacementState> {
+  AssessmentRepository get _repository =>
+      ref.read(assessmentRepositoryProvider);
 
-  PlacementNotifier(this._repository) : super(PlacementState());
+  @override
+  PlacementState build() {
+    return PlacementState();
+  }
 
   Future<void> startTest() async {
     state = state.copyWith(status: PlacementStatus.loading);
     try {
       final test = await _repository.generatePlacementTest(15);
       if (test != null) {
-        state = state.copyWith(status: PlacementStatus.testing, test: test, answers: {}, currentIndex: 0);
+        state = state.copyWith(
+          status: PlacementStatus.testing,
+          test: test,
+          answers: {},
+          currentIndex: 0,
+        );
       } else {
-        state = state.copyWith(status: PlacementStatus.error, error: 'Failed to generate test');
+        state = state.copyWith(
+          status: PlacementStatus.error,
+          error: 'Failed to generate test',
+        );
       }
     } catch (e) {
-      state = state.copyWith(status: PlacementStatus.error, error: e.toString());
+      state = state.copyWith(
+        status: PlacementStatus.error,
+        error: e.toString(),
+      );
     }
   }
 
@@ -91,14 +105,23 @@ class PlacementNotifier extends StateNotifier<PlacementState> {
     if (state.test == null) return;
     state = state.copyWith(status: PlacementStatus.evaluating);
     try {
-      final result = await _repository.evaluatePlacementTest(state.test!.testId, state.answers);
+      final result = await _repository.evaluatePlacementTest(
+        state.test!.testId,
+        state.answers,
+      );
       if (result != null) {
         state = state.copyWith(status: PlacementStatus.result, result: result);
       } else {
-        state = state.copyWith(status: PlacementStatus.error, error: 'Failed to evaluate test');
+        state = state.copyWith(
+          status: PlacementStatus.error,
+          error: 'Failed to evaluate test',
+        );
       }
     } catch (e) {
-      state = state.copyWith(status: PlacementStatus.error, error: e.toString());
+      state = state.copyWith(
+        status: PlacementStatus.error,
+        error: e.toString(),
+      );
     }
   }
 
@@ -107,11 +130,12 @@ class PlacementNotifier extends StateNotifier<PlacementState> {
   }
 }
 
-final placementProvider = StateNotifierProvider<PlacementNotifier, PlacementState>((ref) {
-  final repository = ref.watch(assessmentRepositoryProvider);
-  return PlacementNotifier(repository);
-});
+final placementProvider = NotifierProvider<PlacementNotifier, PlacementState>(
+  () {
+    return PlacementNotifier();
+  },
+);
 
-// Using a simple StateProvider for tokenService because I don't want to overcomplicate the imports, 
+// Using a simple StateProvider for tokenService because I don't want to overcomplicate the imports,
 // but I should check where tokenServiceProvider is defined if possible.
 // Actually, I'll just look for auth_providers.dart again.

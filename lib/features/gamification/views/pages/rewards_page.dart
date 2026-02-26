@@ -26,19 +26,28 @@ class RewardsPage extends ConsumerWidget {
                 child: rewardsAsync.when(
                   data: (rewards) {
                     if (rewards.isEmpty) {
-                      return const Center(child: Text('Hiện không có quà tặng nào khả dụng'));
+                      return const Center(
+                        child: Text('Hiện không có quà tặng nào khả dụng'),
+                      );
                     }
                     return ListView.separated(
                       padding: const EdgeInsets.all(AppSpacing.xl),
                       itemCount: rewards.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.lg),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: AppSpacing.lg),
                       itemBuilder: (context, index) {
                         final reward = rewards[index];
-                        return _buildRewardCard(context, ref, reward, profileAsync.asData?.value.points ?? 0);
+                        return _buildRewardCard(
+                          context,
+                          ref,
+                          reward,
+                          profileAsync.asData?.value.points ?? 0,
+                        );
                       },
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (err, stack) => Center(child: Text('Lỗi: $err')),
                 ),
               ),
@@ -51,7 +60,10 @@ class RewardsPage extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xl,
+        vertical: AppSpacing.md,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -108,7 +120,11 @@ class RewardsPage extends ConsumerWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                loading: () => const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2)),
+                loading: () => const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
                 error: (_, __) => const Text('---'),
               ),
             ],
@@ -118,7 +134,12 @@ class RewardsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildRewardCard(BuildContext context, WidgetRef ref, dynamic reward, int currentPoints) {
+  Widget _buildRewardCard(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic reward,
+    int currentPoints,
+  ) {
     final canAfford = currentPoints >= reward.points;
 
     return Container(
@@ -140,7 +161,10 @@ class RewardsPage extends ConsumerWidget {
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
-                child: const Icon(Icons.confirmation_number_outlined, color: AppColors.primary),
+                child: const Icon(
+                  Icons.confirmation_number_outlined,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -149,12 +173,18 @@ class RewardsPage extends ConsumerWidget {
                   children: [
                     Text(
                       reward.name,
-                      style: const TextStyle(fontWeight: AppTypography.black, fontSize: 16),
+                      style: const TextStyle(
+                        fontWeight: AppTypography.black,
+                        fontSize: 16,
+                      ),
                     ),
                     if (reward.description != null)
                       Text(
                         reward.description!,
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -169,7 +199,11 @@ class RewardsPage extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.stars_rounded, color: Colors.orange, size: 16),
+                  const Icon(
+                    Icons.stars_rounded,
+                    color: Colors.orange,
+                    size: 16,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     '${NumberFormat('#,###').format(reward.points)} POINTS',
@@ -183,8 +217,12 @@ class RewardsPage extends ConsumerWidget {
               ),
               AppButton(
                 text: 'ĐỔI QUÀ',
-                onPressed: canAfford ? () => _handleRedeem(context, ref, reward) : null,
-                type: canAfford ? AppButtonType.primary : AppButtonType.disabled,
+                onPressed: canAfford
+                    ? () => _handleRedeem(context, ref, reward)
+                    : null,
+                type: canAfford
+                    ? AppButtonType.primary
+                    : AppButtonType.disabled,
                 size: AppButtonSize.small,
               ),
             ],
@@ -194,40 +232,56 @@ class RewardsPage extends ConsumerWidget {
     );
   }
 
-  void _handleRedeem(BuildContext context, WidgetRef ref, dynamic reward) async {
+  void _handleRedeem(
+    BuildContext context,
+    WidgetRef ref,
+    dynamic reward,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Xác nhận đổi quà'),
-        content: Text('Bạn có chắc chắn muốn dùng ${reward.points} điểm để đổi lấy "${reward.name}"?'),
+        content: Text(
+          'Bạn có chắc chắn muốn dùng ${reward.points} điểm để đổi lấy "${reward.name}"?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('HỦY')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('ĐỔI NGAY')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('HỦY'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('ĐỔI NGAY'),
+          ),
         ],
       ),
     );
 
     if (confirmed == true) {
       try {
-        final success = await ref.read(gamificationRepositoryProvider).redeemPoints(reward.id);
-        if (success) {
-          // Refresh data
-          ref.invalidate(gamificationProfileProvider);
-          ref.invalidate(gamificationHistoryProvider);
-          ref.invalidate(myCouponsProvider);
-          
-          if (context.mounted) {
-            showDialog(
-              context: context,
-              builder: (context) => _RedeemSuccessDialog(rewardName: reward.name),
+        await ref
+            .read(gamificationRepositoryProvider)
+            .redeemPoints(
+              rewardId: reward['id'] as String,
+              pointsCost: reward['points'] as int,
             );
-          }
+        // Refresh data
+        ref.invalidate(gamificationProfileProvider);
+        ref.invalidate(gamificationHistoryProvider);
+        ref.invalidate(myCouponsProvider);
+
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) =>
+                _RedeemSuccessDialog(rewardName: reward['name'] as String),
+          );
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Lỗi: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
         }
       }
     }
@@ -242,7 +296,9 @@ class _RedeemSuccessDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
@@ -254,12 +310,20 @@ class _RedeemSuccessDialog extends StatelessWidget {
                 color: Colors.green.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 64),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.green,
+                size: 64,
+              ),
             ),
             const SizedBox(height: AppSpacing.xl),
             const Text(
               'ĐỔI QUÀ THÀNH CÔNG!',
-              style: TextStyle(fontWeight: AppTypography.black, fontSize: 18, letterSpacing: 1.0),
+              style: TextStyle(
+                fontWeight: AppTypography.black,
+                fontSize: 18,
+                letterSpacing: 1.0,
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -279,7 +343,13 @@ class _RedeemSuccessDialog extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('ĐÓNG', style: TextStyle(color: AppColors.textTertiary, fontWeight: AppTypography.black)),
+              child: const Text(
+                'ĐÓNG',
+                style: TextStyle(
+                  color: AppColors.textTertiary,
+                  fontWeight: AppTypography.black,
+                ),
+              ),
             ),
           ],
         ),

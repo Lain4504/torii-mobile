@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 enum GamificationTransactionType { earn, redeem, bonus, expiration, other }
 
 enum ActivityType {
@@ -64,7 +62,9 @@ class UserGamification {
       balance: json['balance'] as int?,
       currentStreak: json['currentStreak'] as int,
       longestStreak: json['longestStreak'] as int,
-      lastActiveDate: json['lastActiveDate'] != null ? DateTime.parse(json['lastActiveDate'] as String) : null,
+      lastActiveDate: json['lastActiveDate'] != null
+          ? DateTime.parse(json['lastActiveDate'] as String)
+          : null,
       freezeCount: json['freezeCount'] as int,
       totalActiveDays: json['totalActiveDays'] as int,
       weeklyActiveCount: json['weeklyActiveCount'] as int,
@@ -119,28 +119,44 @@ class GamificationHistory {
   factory GamificationHistory.fromJson(Map<String, dynamic> json) {
     GamificationTransactionType parseType(String type) {
       switch (type.toUpperCase()) {
-        case 'EARN': return GamificationTransactionType.earn;
-        case 'REDEEM': return GamificationTransactionType.redeem;
-        case 'BONUS': return GamificationTransactionType.bonus;
-        case 'EXPIRATION': return GamificationTransactionType.expiration;
-        default: return GamificationTransactionType.other;
+        case 'EARN':
+          return GamificationTransactionType.earn;
+        case 'REDEEM':
+          return GamificationTransactionType.redeem;
+        case 'BONUS':
+          return GamificationTransactionType.bonus;
+        case 'EXPIRATION':
+          return GamificationTransactionType.expiration;
+        default:
+          return GamificationTransactionType.other;
       }
     }
 
     ActivityType? parseActivityType(String? type) {
       if (type == null) return null;
       switch (type.toUpperCase()) {
-        case 'LESSON_COMPLETE': return ActivityType.lessonComplete;
-        case 'QUIZ_ANSWER': return ActivityType.quizAnswer;
-        case 'VIDEO_WATCH': return ActivityType.videoWatch;
-        case 'REVIEW': return ActivityType.review;
-        case 'PRACTICE': return ActivityType.practice;
-        case 'FLASHCARD_REVIEW': return ActivityType.flashcardReview;
-        case 'EXAM_COMPLETE': return ActivityType.examComplete;
-        case 'BLOG_CREATE': return ActivityType.blogCreate;
-        case 'COMMENT_CREATE': return ActivityType.commentCreate;
-        case 'LOGIN': return ActivityType.login;
-        default: return null;
+        case 'LESSON_COMPLETE':
+          return ActivityType.lessonComplete;
+        case 'QUIZ_ANSWER':
+          return ActivityType.quizAnswer;
+        case 'VIDEO_WATCH':
+          return ActivityType.videoWatch;
+        case 'REVIEW':
+          return ActivityType.review;
+        case 'PRACTICE':
+          return ActivityType.practice;
+        case 'FLASHCARD_REVIEW':
+          return ActivityType.flashcardReview;
+        case 'EXAM_COMPLETE':
+          return ActivityType.examComplete;
+        case 'BLOG_CREATE':
+          return ActivityType.blogCreate;
+        case 'COMMENT_CREATE':
+          return ActivityType.commentCreate;
+        case 'LOGIN':
+          return ActivityType.login;
+        default:
+          return null;
       }
     }
 

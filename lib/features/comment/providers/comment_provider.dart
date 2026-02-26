@@ -51,16 +51,19 @@ class CommentState {
 }
 
 /// Comment Notifier
-class CommentNotifier extends StateNotifier<CommentState> {
-  final CommentService _commentService;
-  final String postId;
+class CommentNotifier extends AutoDisposeFamilyNotifier<CommentState, String> {
+  CommentService get _commentService => ref.read(commentServiceProvider);
+  String get postId => arg;
 
-  CommentNotifier(this._commentService, this.postId) : super(CommentState());
+  @override
+  CommentState build(String arg) {
+    return CommentState();
+  }
 
   /// Load comments
   Future<void> loadComments({bool refresh = false}) async {
     if (refresh) {
-      state = CommentState(isLoading: true);
+      state = CommentState(isLoading: true, comments: []);
     } else if (state.isLoading || state.isLoadingMore) {
       return;
     }
@@ -191,11 +194,4 @@ class CommentNotifier extends StateNotifier<CommentState> {
 
 /// Comment Provider Family
 /// Usage: ref.watch(commentProvider(postId))
-final commentProvider =
-    StateNotifierProvider.family<CommentNotifier, CommentState, String>((
-      ref,
-      postId,
-    ) {
-      final service = ref.watch(commentServiceProvider);
-      return CommentNotifier(service, postId);
-    });
+final commentProvider = AutoDisposeNotifierProvider.family<CommentNotifier, CommentState, String>(CommentNotifier.new);

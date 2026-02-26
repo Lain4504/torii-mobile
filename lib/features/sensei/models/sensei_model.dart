@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_design_system.dart';
 
+// --- CHATBOT MODELS ---
+
 enum ChatMessageRole { user, assistant }
 
 class ChatMessage {
@@ -38,17 +40,105 @@ class GrammarCorrection {
     }
 }
 
+// --- ROLEPLAY MODELS (Merged from Agent) ---
+
 class RoleplayMessage {
-  final ChatMessageRole role;
+  final String id;
+  final ChatMessageRole role; 
   final String content;
-  final String? audioUrl; // For TTS
+  final String? romaji;
+  final String? english;
+  final bool isFeedback;
+  final String? audioUrl; // Added to support TTS
 
   const RoleplayMessage({
+    required this.id,
     required this.role,
     required this.content,
+    this.romaji,
+    this.english,
+    this.isFeedback = false,
     this.audioUrl,
   });
+
+  factory RoleplayMessage.fromAssistantResponse(RoleplayResponse response) {
+    return RoleplayMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      role: ChatMessageRole.assistant,
+      content: response.response,
+      romaji: response.romaji,
+      english: response.english,
+    );
+  }
+
+  factory RoleplayMessage.fromFeedback(String feedback) {
+    return RoleplayMessage(
+      id: (DateTime.now().millisecondsSinceEpoch + 1).toString(),
+      role: ChatMessageRole.assistant,
+      content: feedback,
+      isFeedback: true,
+    );
+  }
 }
+
+class RoleplayResponse {
+  final String response;
+  final String? romaji;
+  final String? english;
+  final String? feedback;
+  final bool isFinished;
+
+  RoleplayResponse({
+    required this.response,
+    this.romaji,
+    this.english,
+    this.feedback,
+    required this.isFinished,
+  });
+
+  factory RoleplayResponse.fromJson(Map<String, dynamic> json) {
+    return RoleplayResponse(
+      response: json['response'] ?? '',
+      romaji: json['romaji'],
+      english: json['english'],
+      feedback: json['feedback'],
+      isFinished: json['isFinished'] ?? false,
+    );
+  }
+}
+
+class TTSResponse {
+  final String url;
+
+  TTSResponse({required this.url});
+
+  factory TTSResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? json;
+    return TTSResponse(
+      url: data['url'] ?? '',
+    );
+  }
+}
+
+class RoleplayTopic {
+  final String id;
+  final String title;
+  final String description;
+  final String level; // N5-N1
+  final String scenario; // e.g. 'restaurant', 'shopping'
+  final String icon; // Emoji or asset path
+
+  const RoleplayTopic({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.level,
+    required this.scenario,
+    required this.icon,
+  });
+}
+
+// --- MENU ---
 
 class SenseiMenuItem {
   final String title;
@@ -79,7 +169,7 @@ final senseiMenuItems = [
     description: 'Luyện hội thoại theo tình huống',
     icon: Icons.people_alt_outlined,
     color: Colors.orange,
-    route: '/sensei/roleplay',
+    route: '/sensei/roleplay-topics', // Changed to topics list
   ),
   const SenseiMenuItem(
     title: 'AI Drill',

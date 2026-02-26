@@ -48,8 +48,8 @@ class LeaderboardResponse {
       users: (json['users'] as List? ?? [])
           .map((u) => LeaderboardUser.fromJson(u))
           .toList(),
-      currentUser: json['currentUser'] != null 
-          ? LeaderboardUser.fromJson(json['currentUser']) 
+      currentUser: json['currentUser'] != null
+          ? LeaderboardUser.fromJson(json['currentUser'])
           : null,
       totalUsers: json['totalUsers'] as int? ?? 0,
       type: json['type']?.toString() ?? 'global',
@@ -64,6 +64,7 @@ class GamificationProfile {
   final int nextLevelXp;
   final int currentStreak;
   final int longestStreak;
+  final int points;
 
   const GamificationProfile({
     required this.level,
@@ -72,6 +73,7 @@ class GamificationProfile {
     required this.nextLevelXp,
     required this.currentStreak,
     required this.longestStreak,
+    required this.points,
   });
 
   factory GamificationProfile.fromJson(Map<String, dynamic> json) {
@@ -82,6 +84,7 @@ class GamificationProfile {
       nextLevelXp: json['nextLevelXp'] as int? ?? 100,
       currentStreak: json['currentStreak'] as int? ?? 0,
       longestStreak: json['longestStreak'] as int? ?? 0,
+      points: json['points'] as int? ?? 0,
     );
   }
 }
@@ -109,8 +112,12 @@ class UserAchievement {
       achievementId: json['achievementId']?.toString() ?? '',
       isUnlocked: json['isUnlocked'] as bool? ?? false,
       progress: json['progress'],
-      unlockedAt: json['unlockedAt'] != null ? DateTime.parse(json['unlockedAt'] as String) : null,
-      achievement: Achievement.fromJson(json['achievement'] as Map<String, dynamic>),
+      unlockedAt: json['unlockedAt'] != null
+          ? DateTime.parse(json['unlockedAt'] as String)
+          : null,
+      achievement: Achievement.fromJson(
+        json['achievement'] as Map<String, dynamic>,
+      ),
     );
   }
 }

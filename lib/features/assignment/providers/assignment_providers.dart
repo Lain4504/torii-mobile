@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/api/api_client.dart';
+import '../../auth/providers/auth_providers.dart';
 import '../repositories/assignment_repository.dart';
 import '../models/assignment_model.dart';
 import 'assignment_state.dart';
@@ -39,8 +39,8 @@ class AssignmentListNotifier extends Notifier<AssignmentListState> {
         status: _currentStatus,
       );
 
-      final newAssignments = refresh 
-          ? response.assignments 
+      final newAssignments = refresh
+          ? response.assignments
           : [...state.assignments, ...response.assignments];
 
       state = state.copyWith(
@@ -49,13 +49,10 @@ class AssignmentListNotifier extends Notifier<AssignmentListState> {
         total: response.total,
         hasMore: newAssignments.length < response.total,
       );
-      
+
       _currentPage++;
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -66,11 +63,15 @@ class AssignmentListNotifier extends Notifier<AssignmentListState> {
   }
 }
 
-final assignmentListProvider = NotifierProvider<AssignmentListNotifier, AssignmentListState>(
-  AssignmentListNotifier.new,
-);
+final assignmentListProvider =
+    NotifierProvider<AssignmentListNotifier, AssignmentListState>(
+      AssignmentListNotifier.new,
+    );
 
-final assignmentDetailProvider = FutureProvider.family<Assignment, String>((ref, id) async {
+final assignmentDetailProvider = FutureProvider.family<Assignment, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(assignmentRepositoryProvider);
   return await repository.getAssignmentDetails(id);
 });

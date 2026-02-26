@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/api/api_client.dart';
+import '../../auth/providers/auth_providers.dart';
 import '../repositories/notebook_repository.dart';
 import '../models/notebook_model.dart';
 import 'notebook_state.dart';
@@ -21,7 +21,7 @@ class NotebookListNotifier extends Notifier<NotebookListState> {
 
     try {
       final repository = ref.read(notebookRepositoryProvider);
-      
+
       final results = await Future.wait([
         repository.getMyNotebooks(),
         repository.getPublicNotebooks(),
@@ -33,14 +33,15 @@ class NotebookListNotifier extends Notifier<NotebookListState> {
         publicNotebooks: results[1],
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
-  Future<bool> createNotebook(String name, String? description, bool isPublic) async {
+  Future<bool> createNotebook(
+    String name,
+    String? description,
+    bool isPublic,
+  ) async {
     try {
       final repository = ref.read(notebookRepositoryProvider);
       final newNotebook = await repository.createNotebook(
@@ -48,10 +49,8 @@ class NotebookListNotifier extends Notifier<NotebookListState> {
         description: description,
         isPublic: isPublic,
       );
-      
-      state = state.copyWith(
-        myNotebooks: [newNotebook, ...state.myNotebooks],
-      );
+
+      state = state.copyWith(myNotebooks: [newNotebook, ...state.myNotebooks]);
       return true;
     } catch (e) {
       return false;
@@ -59,11 +58,15 @@ class NotebookListNotifier extends Notifier<NotebookListState> {
   }
 }
 
-final notebookListProvider = NotifierProvider<NotebookListNotifier, NotebookListState>(
-  NotebookListNotifier.new,
-);
+final notebookListProvider =
+    NotifierProvider<NotebookListNotifier, NotebookListState>(
+      NotebookListNotifier.new,
+    );
 
-final notebookDetailProvider = FutureProvider.family<Notebook, String>((ref, id) async {
+final notebookDetailProvider = FutureProvider.family<Notebook, String>((
+  ref,
+  id,
+) async {
   final repository = ref.watch(notebookRepositoryProvider);
   return await repository.getNotebookById(id);
 });

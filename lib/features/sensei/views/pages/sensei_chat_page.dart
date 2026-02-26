@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torri_mobile/core/widgets/app_scaffold.dart';
 
+import '../../models/sensei_model.dart';
 import '../../providers/sensei_providers.dart';
 
 class SenseiChatPage extends ConsumerStatefulWidget {
@@ -44,18 +44,18 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
 
     ref.listen(senseiChatProvider, (_, __) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-         if (_scrollController.hasClients) {
-            _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-         }
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
       });
     });
 
-    return AppScaffold(
-      title: 'AI Chatbot',
+    return Scaffold(
+      appBar: AppBar(title: const Text('AI Chatbot')),
       body: Column(
         children: [
           Expanded(
@@ -67,20 +67,33 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
                 final message = chatMessages[index];
                 final isUser = message.role == ChatMessageRole.user;
                 return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: isUser
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 12,
+                    ),
                     margin: const EdgeInsets.only(bottom: 8),
                     decoration: BoxDecoration(
-                      color: isUser ? colorScheme.primary : colorScheme.surfaceVariant,
+                      color: isUser
+                          ? colorScheme.primary
+                          : colorScheme.surfaceVariant,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: message.isLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : Text(
                             message.content,
                             style: textTheme.bodyMedium?.copyWith(
-                              color: isUser ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                              color: isUser
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.onSurfaceVariant,
                             ),
                           ),
                   ),
@@ -121,10 +134,7 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
                 onSubmitted: (_) => _sendMessage(),
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.send),
-              onPressed: _sendMessage,
-            ),
+            IconButton(icon: const Icon(Icons.send), onPressed: _sendMessage),
           ],
         ),
       ),

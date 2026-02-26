@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/widgets/app_scaffold.dart';
 import '../../models/sensei_model.dart';
 
 class SenseiDashboardPage extends StatelessWidget {
@@ -10,8 +9,8 @@ class SenseiDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return AppScaffold(
-      title: 'AI Sensei',
+    return Scaffold(
+      appBar: AppBar(title: const Text('AI Sensei')),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: senseiMenuItems.length,
@@ -21,7 +20,9 @@ class SenseiDashboardPage extends StatelessWidget {
           return Card(
             elevation: 0,
             shape: RoundedRectangleBorder(
-              side: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             clipBehavior: Clip.antiAlias,
@@ -31,7 +32,10 @@ class SenseiDashboardPage extends StatelessWidget {
               subtitle: Text(item.description, style: textTheme.bodySmall),
               trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
               onTap: () => context.push(item.route),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 12,
+                horizontal: 16,
+              ),
             ),
           );
         },

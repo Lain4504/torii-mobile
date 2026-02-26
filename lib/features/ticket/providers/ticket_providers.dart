@@ -11,11 +11,14 @@ final ticketRepositoryProvider = Provider<TicketRepository>((ref) {
 });
 
 // Ticket List Provider
-class TicketListNotifier extends StateNotifier<AsyncValue<List<Ticket>>> {
-  final TicketRepository _repository;
+class TicketListNotifier extends AutoDisposeNotifier<AsyncValue<List<Ticket>>> {
+  TicketRepository get _repository => ref.read(ticketRepositoryProvider);
 
-  TicketListNotifier(this._repository) : super(const AsyncValue.loading()) {
-    fetchTickets();
+  @override
+  AsyncValue<List<Ticket>> build() {
+    ref.watch(authStateProvider); // Watch auth state to force refresh on login/logout
+    Future.microtask(() => fetchTickets());
+    return const AsyncValue.loading();
   }
 
   Future<void> fetchTickets({
@@ -45,12 +48,7 @@ class TicketListNotifier extends StateNotifier<AsyncValue<List<Ticket>>> {
   }
 }
 
-final ticketListProvider = StateNotifierProvider.autoDispose<TicketListNotifier, AsyncValue<List<Ticket>>>((ref) {
-  // Watch auth state to force refresh on login/logout
-  ref.watch(authStateProvider);
-  final repository = ref.watch(ticketRepositoryProvider);
-  return TicketListNotifier(repository);
-});
+final ticketListProvider = NotifierProvider.autoDispose<TicketListNotifier, AsyncValue<List<Ticket>>>(TicketListNotifier.new);
 
 // Ticket Detail Provider
 final ticketDetailProvider = FutureProvider.autoDispose.family<Ticket, String>((ref, id) async {
@@ -83,10 +81,13 @@ class CreateTicketState {
   }
 }
 
-class CreateTicketNotifier extends StateNotifier<CreateTicketState> {
-  final TicketRepository _repository;
+class CreateTicketNotifier extends AutoDisposeNotifier<CreateTicketState> {
+  TicketRepository get _repository => ref.read(ticketRepositoryProvider);
 
-  CreateTicketNotifier(this._repository) : super(const CreateTicketState());
+  @override
+  CreateTicketState build() {
+    return const CreateTicketState();
+  }
 
   Future<bool> createTicket(CreateTicketDTO dto) async {
     state = state.copyWith(isLoading: true, error: null, isSuccess: false);
@@ -105,7 +106,4 @@ class CreateTicketNotifier extends StateNotifier<CreateTicketState> {
   }
 }
 
-final createTicketProvider = StateNotifierProvider.autoDispose<CreateTicketNotifier, CreateTicketState>((ref) {
-  final repository = ref.watch(ticketRepositoryProvider);
-  return CreateTicketNotifier(repository);
-});
+final createTicketProvider = NotifierProvider.autoDispose<CreateTicketNotifier, CreateTicketState>(CreateTicketNotifier.new);

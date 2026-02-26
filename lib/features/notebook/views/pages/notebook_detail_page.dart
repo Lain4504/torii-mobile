@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../models/notebook_model.dart';
-import '../providers/notebook_providers.dart';
+import '../../models/notebook_model.dart';
+import '../../providers/notebook_providers.dart';
 
 class NotebookDetailPage extends ConsumerStatefulWidget {
   final String notebookId;
@@ -27,17 +27,29 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
   }
 
   void _showAddWordModal(BuildContext context, {NoteEntry? existingEntry}) {
-    final wordController = TextEditingController(text: existingEntry?.word ?? '');
-    final phoneticController = TextEditingController(text: existingEntry?.phonetic ?? '');
-    final meaningController = TextEditingController(text: existingEntry?.meaning ?? '');
-    final noteController = TextEditingController(text: existingEntry?.note ?? '');
+    final wordController = TextEditingController(
+      text: existingEntry?.word ?? '',
+    );
+    final phoneticController = TextEditingController(
+      text: existingEntry?.phonetic ?? '',
+    );
+    final meaningController = TextEditingController(
+      text: existingEntry?.meaning ?? '',
+    );
+    final noteController = TextEditingController(
+      text: existingEntry?.note ?? '',
+    );
     String partOfSpeech = existingEntry?.partOfSpeech ?? 'noun';
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.card),
+        ),
+      ),
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Padding(
           padding: EdgeInsets.only(
@@ -51,13 +63,21 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(existingEntry == null ? 'Thêm từ mới' : 'Sửa từ', style: const TextStyle(fontSize: 20, fontWeight: AppTypography.black)),
+                Text(
+                  existingEntry == null ? 'Thêm từ mới' : 'Sửa từ',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: AppTypography.black,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 TextField(
                   controller: wordController,
                   decoration: InputDecoration(
                     labelText: 'Từ vựng *',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -65,7 +85,9 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
                   controller: phoneticController,
                   decoration: InputDecoration(
                     labelText: 'Phiên âm (tùy chọn)',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -73,7 +95,9 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
                   controller: meaningController,
                   decoration: InputDecoration(
                     labelText: 'Nghĩa *',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -82,17 +106,23 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
                   isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Từ loại',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
                   ),
                   items: const [
                     DropdownMenuItem(value: 'noun', child: Text('Danh từ')),
                     DropdownMenuItem(value: 'verb', child: Text('Động từ')),
-                    DropdownMenuItem(value: 'adjective', child: Text('Tính từ')),
+                    DropdownMenuItem(
+                      value: 'adjective',
+                      child: Text('Tính từ'),
+                    ),
                     DropdownMenuItem(value: 'adverb', child: Text('Trạng từ')),
                     DropdownMenuItem(value: 'particle', child: Text('Trợ từ')),
                     DropdownMenuItem(value: 'other', child: Text('Khác')),
                   ],
-                  onChanged: (val) => setState(() => partOfSpeech = val ?? 'noun'),
+                  onChanged: (val) =>
+                      setState(() => partOfSpeech = val ?? 'noun'),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 TextField(
@@ -100,7 +130,9 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
                   maxLines: 3,
                   decoration: InputDecoration(
                     labelText: 'Ghi chú (tùy chọn)',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -108,17 +140,23 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
                   text: 'LƯU',
                   isFullWidth: true,
                   onPressed: () async {
-                    if (wordController.text.trim().isEmpty || meaningController.text.trim().isEmpty) return;
-                    
+                    if (wordController.text.trim().isEmpty ||
+                        meaningController.text.trim().isEmpty)
+                      return;
+
                     try {
                       final repo = ref.read(notebookRepositoryProvider);
                       if (existingEntry == null) {
                         await repo.addEntry(
                           widget.notebookId,
                           word: wordController.text.trim(),
-                          phonetic: phoneticController.text.trim().isEmpty ? null : phoneticController.text.trim(),
+                          phonetic: phoneticController.text.trim().isEmpty
+                              ? null
+                              : phoneticController.text.trim(),
                           meaning: meaningController.text.trim(),
-                          note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+                          note: noteController.text.trim().isEmpty
+                              ? null
+                              : noteController.text.trim(),
                           partOfSpeech: partOfSpeech,
                         );
                       } else {
@@ -126,9 +164,13 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
                           widget.notebookId,
                           existingEntry.id,
                           word: wordController.text.trim(),
-                          phonetic: phoneticController.text.trim().isEmpty ? null : phoneticController.text.trim(),
+                          phonetic: phoneticController.text.trim().isEmpty
+                              ? null
+                              : phoneticController.text.trim(),
                           meaning: meaningController.text.trim(),
-                          note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+                          note: noteController.text.trim().isEmpty
+                              ? null
+                              : noteController.text.trim(),
                           partOfSpeech: partOfSpeech,
                         );
                       }
@@ -136,7 +178,9 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
                       if (context.mounted) Navigator.pop(context);
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
                       }
                     }
                   },
@@ -152,10 +196,14 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
 
   void _deleteEntry(String entryId) async {
     try {
-      await ref.read(notebookRepositoryProvider).deleteEntry(widget.notebookId, entryId);
+      await ref
+          .read(notebookRepositoryProvider)
+          .deleteEntry(widget.notebookId, entryId);
       ref.invalidate(notebookDetailProvider(widget.notebookId));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Không thể xóa: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Không thể xóa: $e')));
     }
   }
 
@@ -169,7 +217,10 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.textPrimary,
+          ),
           onPressed: () => context.pop(),
         ),
         title: asyncNotebook.when(
@@ -189,11 +240,14 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
         actions: [
           asyncNotebook.maybeWhen(
             data: (notebook) => IconButton(
-              icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+              icon: const Icon(
+                Icons.add_circle_outline_rounded,
+                color: AppColors.primary,
+              ),
               onPressed: () => _showAddWordModal(context),
             ),
             orElse: () => const SizedBox(),
-          )
+          ),
         ],
       ),
       body: asyncNotebook.when(
@@ -201,7 +255,8 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
           final entries = notebook.entries.where((e) {
             if (_searchQuery.isEmpty) return true;
             final query = _searchQuery.toLowerCase();
-            return e.word.toLowerCase().contains(query) || e.meaning.toLowerCase().contains(query);
+            return e.word.toLowerCase().contains(query) ||
+                e.meaning.toLowerCase().contains(query);
           }).toList();
 
           return Column(
@@ -229,14 +284,19 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
                 child: entries.isEmpty
                     ? Center(
                         child: Text(
-                          _searchQuery.isEmpty ? 'Chưa có từ vựng nào' : 'Không tìm thấy kết quả',
-                          style: const TextStyle(color: AppColors.textSecondary),
+                          _searchQuery.isEmpty
+                              ? 'Chưa có từ vựng nào'
+                              : 'Không tìm thấy kết quả',
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.all(AppSpacing.md),
                         itemCount: entries.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: AppSpacing.sm),
                         itemBuilder: (context, index) {
                           final entry = entries[index];
                           return Container(
@@ -251,38 +311,81 @@ class _NotebookDetailPageState extends ConsumerState<NotebookDetailPage> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
-                                          Text(entry.word, style: const TextStyle(fontSize: 18, fontWeight: AppTypography.black)),
+                                          Text(
+                                            entry.word,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: AppTypography.black,
+                                            ),
+                                          ),
                                           if (entry.phonetic != null) ...[
                                             const SizedBox(width: 8),
-                                            Text('[${entry.phonetic}]', style: const TextStyle(fontSize: 14, color: AppColors.textTertiary)),
+                                            Text(
+                                              '[${entry.phonetic}]',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: AppColors.textTertiary,
+                                              ),
+                                            ),
                                           ],
                                         ],
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(entry.meaning, style: const TextStyle(fontSize: 15, fontWeight: AppTypography.medium)),
+                                      Text(
+                                        entry.meaning,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: AppTypography.medium,
+                                        ),
+                                      ),
                                       if (entry.note != null) ...[
                                         const SizedBox(height: 4),
-                                        Text(entry.note!, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontStyle: FontStyle.italic)),
+                                        Text(
+                                          entry.note!,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.textSecondary,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
                                       ],
                                     ],
                                   ),
                                 ),
                                 PopupMenuButton<String>(
-                                  icon: const Icon(Icons.more_vert_rounded, color: AppColors.textTertiary),
+                                  icon: const Icon(
+                                    Icons.more_vert_rounded,
+                                    color: AppColors.textTertiary,
+                                  ),
                                   onSelected: (val) {
                                     if (val == 'edit') {
-                                      _showAddWordModal(context, existingEntry: entry);
+                                      _showAddWordModal(
+                                        context,
+                                        existingEntry: entry,
+                                      );
                                     } else if (val == 'delete') {
                                       _deleteEntry(entry.id);
                                     }
                                   },
                                   itemBuilder: (context) => [
-                                    const PopupMenuItem(value: 'edit', child: Text('Sửa')),
-                                    const PopupMenuItem(value: 'delete', child: Text('Xóa', style: TextStyle(color: AppColors.error))),
+                                    const PopupMenuItem(
+                                      value: 'edit',
+                                      child: Text('Sửa'),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'delete',
+                                      child: Text(
+                                        'Xóa',
+                                        style: TextStyle(
+                                          color: AppColors.error,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],

@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../models/notebook_model.dart';
-import '../providers/notebook_providers.dart';
+import '../../models/notebook_model.dart';
+import '../../providers/notebook_providers.dart';
 
 class NotebookListPage extends ConsumerStatefulWidget {
   const NotebookListPage({super.key});
@@ -14,7 +14,8 @@ class NotebookListPage extends ConsumerStatefulWidget {
   ConsumerState<NotebookListPage> createState() => _NotebookListPageState();
 }
 
-class _NotebookListPageState extends ConsumerState<NotebookListPage> with SingleTickerProviderStateMixin {
+class _NotebookListPageState extends ConsumerState<NotebookListPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -42,7 +43,9 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.card),
+        ),
       ),
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Padding(
@@ -56,13 +59,18 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Tạo sổ tay mới', style: TextStyle(fontSize: 20, fontWeight: AppTypography.black)),
+              const Text(
+                'Tạo sổ tay mới',
+                style: TextStyle(fontSize: 20, fontWeight: AppTypography.black),
+              ),
               const SizedBox(height: AppSpacing.lg),
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: 'Tên sổ tay',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -70,13 +78,18 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
                 controller: descController,
                 decoration: InputDecoration(
                   labelText: 'Mô tả (tùy chọn)',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
-                  const Text('Công khai:', style: TextStyle(fontWeight: AppTypography.medium)),
+                  const Text(
+                    'Công khai:',
+                    style: TextStyle(fontWeight: AppTypography.medium),
+                  ),
                   const Spacer(),
                   Switch(
                     value: isPublic,
@@ -91,11 +104,15 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
                 isFullWidth: true,
                 onPressed: () async {
                   if (nameController.text.trim().isEmpty) return;
-                  final success = await ref.read(notebookListProvider.notifier).createNotebook(
-                    nameController.text.trim(),
-                    descController.text.trim().isEmpty ? null : descController.text.trim(),
-                    isPublic,
-                  );
+                  final success = await ref
+                      .read(notebookListProvider.notifier)
+                      .createNotebook(
+                        nameController.text.trim(),
+                        descController.text.trim().isEmpty
+                            ? null
+                            : descController.text.trim(),
+                        isPublic,
+                      );
                   if (success) {
                     if (context.mounted) Navigator.pop(context);
                   } else {
@@ -137,13 +154,19 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
                 ],
               ),
               Expanded(
-                child: state.isLoading && state.myNotebooks.isEmpty && state.publicNotebooks.isEmpty
+                child:
+                    state.isLoading &&
+                        state.myNotebooks.isEmpty &&
+                        state.publicNotebooks.isEmpty
                     ? const Center(child: CircularProgressIndicator())
                     : TabBarView(
                         controller: _tabController,
                         children: [
                           _buildNotebookList(state.myNotebooks, isOwner: true),
-                          _buildNotebookList(state.publicNotebooks, isOwner: false),
+                          _buildNotebookList(
+                            state.publicNotebooks,
+                            isOwner: false,
+                          ),
                         ],
                       ),
               ),
@@ -161,11 +184,17 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: AppColors.textPrimary,
+            ),
             onPressed: () => context.pop(),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -194,7 +223,10 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
             const SizedBox(height: AppSpacing.lg),
             Text(
               isOwner ? 'Chưa có sổ tay nào' : 'Chưa có sổ tay công khai nào',
-              style: const TextStyle(fontSize: 16, color: AppColors.textSecondary),
+              style: const TextStyle(
+                fontSize: 16,
+                color: AppColors.textSecondary,
+              ),
             ),
           ],
         ),
@@ -216,7 +248,9 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(AppRadius.xl),
-                border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: AppColors.grey300.withValues(alpha: 0.5),
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -230,22 +264,38 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.menu_book_rounded, color: AppColors.primary),
+                      const Icon(
+                        Icons.menu_book_rounded,
+                        color: AppColors.primary,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           nb.name,
-                          style: const TextStyle(fontSize: 16, fontWeight: AppTypography.bold),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: AppTypography.bold,
+                          ),
                         ),
                       ),
                       if (nb.isPublic)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text('Công khai', style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: AppTypography.bold)),
+                          child: const Text(
+                            'Công khai',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.primary,
+                              fontWeight: AppTypography.bold,
+                            ),
+                          ),
                         ),
                     ],
                   ),
@@ -253,13 +303,23 @@ class _NotebookListPageState extends ConsumerState<NotebookListPage> with Single
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       nb.description!,
-                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                   const SizedBox(height: AppSpacing.md),
-                  Text('${nb.entryCount} từ', style: const TextStyle(fontSize: 12, color: AppColors.textTertiary, fontWeight: AppTypography.bold)),
+                  Text(
+                    '${nb.entryCount} từ',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textTertiary,
+                      fontWeight: AppTypography.bold,
+                    ),
+                  ),
                 ],
               ),
             ),

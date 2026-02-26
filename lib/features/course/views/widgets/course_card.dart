@@ -27,7 +27,10 @@ class CourseCard extends StatelessWidget {
               offset: const Offset(0, 10),
             ),
           ],
-          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3), width: 1.0),
+          border: Border.all(
+            color: AppColors.grey300.withValues(alpha: 0.3),
+            width: 1.0,
+          ),
         ),
         child: Material(
           color: Colors.transparent,
@@ -49,107 +52,119 @@ class CourseCard extends StatelessWidget {
                 // Premium Thumbnail - No padding to fill corners
                 _buildThumbnail(isDark),
 
-              // Refined Content
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Badge Row
-                    _buildMetadata(theme),
-                    const SizedBox(height: AppSpacing.sm),
+                // Refined Content
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Badge Row
+                      _buildMetadata(theme),
+                      const SizedBox(height: AppSpacing.sm),
 
-                    // Elegant Title
-                    Text(
-                      course.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: AppTypography.extraBold,
-                        color: AppColors.textPrimary,
-                        fontSize: 19,
-                        height: 1.2,
-                        letterSpacing: -0.5,
+                      // Elegant Title
+                      Text(
+                        course.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: AppTypography.extraBold,
+                          color: AppColors.textPrimary,
+                          fontSize: 19,
+                          height: 1.2,
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.md),
 
-                    // Instructor with cleaner profile
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
-                          ),
-                          child: CircleAvatar(
-                            radius: 12,
-                            backgroundColor: AppColors.primarySurface,
-                            backgroundImage: course.instructorAvatarUrl.isNotEmpty
-                                ? NetworkImage(course.instructorAvatarUrl)
-                                : null,
-                            child: course.instructorAvatarUrl.isEmpty
-                                ? const Icon(Icons.person_rounded, size: 14, color: AppColors.primary)
-                                : null,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            course.instructorName,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                              fontWeight: AppTypography.medium,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: AppSpacing.lg),
-
-                    // Stats & Price Bar
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Premium Rating
-                        // Premium Rating
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.star_rounded,
-                              size: 16,
-                              color: Color(0xFFFFB800),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${course.rating}',
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                fontWeight: AppTypography.black,
-                                color: AppColors.textSecondary,
-                                letterSpacing: 1.0,
+                      // Instructor with cleaner profile
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.primary.withValues(alpha: 0.1),
                               ),
                             ),
-                          ],
-                        ),
-
-                        // Bold Price
-                        Text(
-                          course.priceLabel,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: AppTypography.black,
-                            fontSize: 20,
+                            child: CircleAvatar(
+                              radius: 12,
+                              backgroundColor: AppColors.primarySurface,
+                              backgroundImage:
+                                  course.instructorAvatarUrl.isNotEmpty
+                                  ? NetworkImage(course.instructorAvatarUrl)
+                                  : null,
+                              child: course.instructorAvatarUrl.isEmpty
+                                  ? const Icon(
+                                      Icons.person_rounded,
+                                      size: 14,
+                                      color: AppColors.primary,
+                                    )
+                                  : null,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Text(
+                              course.instructorName,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: AppColors.textSecondary,
+                                fontWeight: AppTypography.medium,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // Stats & Price Bar
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Premium Rating
+                          // Premium Rating
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                size: 16,
+                                color: Color(0xFFFFB800),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${course.rating}',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  fontWeight: AppTypography.black,
+                                  color: AppColors.textSecondary,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Bold Price
+                          Text(
+                            course.priceLabel,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: AppTypography.black,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               ],
             ),
           ),
@@ -172,12 +187,14 @@ class CourseCard extends StatelessWidget {
               bottomLeft: Radius.circular(0),
               bottomRight: Radius.circular(0),
             ),
-            child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
+            child:
+                course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
                 ? Image.network(
-              course.thumbnailUrl!,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => _buildPlaceholder(isDark),
-            )
+                    course.thumbnailUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildPlaceholder(isDark),
+                  )
                 : _buildPlaceholder(isDark),
           ),
 
@@ -185,7 +202,10 @@ class CourseCard extends StatelessWidget {
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.black.withValues(alpha: 0.2), Colors.transparent],
+                colors: [
+                  Colors.black.withValues(alpha: 0.2),
+                  Colors.transparent,
+                ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -198,21 +218,29 @@ class CourseCard extends StatelessWidget {
               top: 12,
               right: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.success,
                   borderRadius: BorderRadius.circular(AppRadius.full),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.success.withValues(alpha: 0.2),
-                      blurRadius: 10, offset: const Offset(0, 4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle_rounded, color: Colors.white, size: 14),
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: Colors.white,
+                      size: 14,
+                    ),
                     SizedBox(width: 6),
                     Text(
                       'ĐÃ ĐĂNG KÝ',
@@ -244,13 +272,13 @@ class CourseCard extends StatelessWidget {
     final now = DateTime.now();
     final difference = expiresAt.difference(now).inDays;
     final isUrgent = difference < 7;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: (isUrgent ? const Color(0xFFE63946) : AppColors.textTertiary).withValues(alpha: 0.9),
+        color: (isUrgent ? const Color(0xFFE63946) : AppColors.textTertiary)
+            .withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        backdropFilter: const ColorFilter.mode(Colors.black12, BlendMode.darken),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -258,7 +286,9 @@ class CourseCard extends StatelessWidget {
           const Icon(Icons.timer_outlined, color: Colors.white, size: 12),
           const SizedBox(width: 4),
           Text(
-            isUrgent ? 'CÒN $difference NGÀY' : 'HẾT HẠN: ${DateFormat('dd/MM/yyyy').format(expiresAt)}',
+            isUrgent
+                ? 'CÒN $difference NGÀY'
+                : 'HẾT HẠN: ${DateFormat('dd/MM/yyyy').format(expiresAt)}',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 10,
