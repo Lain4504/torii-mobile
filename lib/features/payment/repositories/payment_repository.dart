@@ -145,4 +145,31 @@ class PaymentRepository {
       throw Exception('Failed to fetch orders: $e');
     }
   }
+
+  /// Get user balance transaction history
+  Future<List<Map<String, dynamic>>> getBalanceHistory({
+    int page = 1,
+    int limit = 10,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/api/orders/wallet/balance-history',
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map<String, dynamic> && data['success'] == true) {
+          final list = data['data']['data'] as List;
+          return list.cast<Map<String, dynamic>>();
+        }
+      }
+      throw Exception('Failed to fetch balance history');
+    } catch (e) {
+      throw Exception('Failed to fetch balance history: $e');
+    }
+  }
 }

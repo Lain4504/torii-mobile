@@ -18,11 +18,14 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _obscureText = true;
+  bool _obscurePassword = true;
   String? _googleError;
+
+  // Create a GoogleSignIn instance
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
   @override
   void dispose() {
@@ -34,22 +37,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref.read(authStateProvider.notifier).login(
-      _emailController.text.trim(), 
-      _passwordController.text.trim()
-   );
+    await ref
+        .read(authStateProvider.notifier)
+        .login(_emailController.text.trim(), _passwordController.text.trim());
   }
+
+  static bool _isGoogleSignInInitialized = false;
 
   Future<void> _loginWithGoogle() async {
     try {
       setState(() => _googleError = null);
-      final googleSignIn = GoogleSignIn(
-        serverClientId: AppConfig.googleServerClientId,
-      );
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return;
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final idToken = googleAuth.idToken;
 
       if (idToken != null) {
@@ -60,8 +63,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     } catch (e) {
       debugPrint('Google Login Error: $e');
       setState(() {
-        _googleError = e.toString().contains('10') 
-            ? 'Cấu hình Google không khớp (Lỗi 10). Vui lòng kiểm tra mã SHA-1.' 
+        _googleError = e.toString().contains('10')
+            ? 'Cấu hình Google không khớp (Lỗi 10). Vui lòng kiểm tra mã SHA-1.'
             : 'Lỗi đăng nhập Google: $e';
       });
     }
@@ -80,11 +83,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             children: [
               _buildAppBar(context),
-              
+
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                  ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -92,7 +97,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         const SizedBox(height: AppSpacing.xl),
                         _buildHeader(context),
                         const SizedBox(height: AppSpacing.xxxl),
-                        
+
                         if (errorMessage != null) ...[
                           EntryAnimation(
                             index: 2,
@@ -100,7 +105,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           const SizedBox(height: AppSpacing.lg),
                         ],
-                        
+
                         EntryAnimation(
                           index: 3,
                           verticalOffset: 20,
@@ -112,7 +117,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 hintText: 'email.cua.ban@example.com',
                                 icon: Icons.alternate_email_rounded,
                                 keyboardType: TextInputType.emailAddress,
-                                validator: (val) => (val == null || !val.contains('@')) ? 'Vui lòng nhập email hợp lệ' : null,
+                                validator: (val) =>
+                                    (val == null || !val.contains('@'))
+                                    ? 'Vui lòng nhập email hợp lệ'
+                                    : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
                               AppTextField(
@@ -120,30 +128,39 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 controller: _passwordController,
                                 hintText: '••••••••',
                                 icon: Icons.fingerprint_rounded,
-                                obscureText: _obscureText,
+                                obscureText: _obscurePassword,
                                 textInputAction: TextInputAction.done,
                                 onSubmitted: (_) => _login(),
                                 suffixIcon: IconButton(
                                   icon: Icon(
-                                    _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                    size: 18, color: AppColors.textTertiary,
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 18,
+                                    color: AppColors.textTertiary,
                                   ),
-                                  onPressed: () => setState(() => _obscureText = !_obscureText),
+                                  onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword,
+                                  ),
                                 ),
-                                validator: (val) => (val == null || val.length < 6) ? 'Mật khẩu quá ngắn' : null,
+                                validator: (val) =>
+                                    (val == null || val.length < 6)
+                                    ? 'Mật khẩu quá ngắn'
+                                    : null,
                               ),
                             ],
                           ),
                         ),
-                        
+
                         const SizedBox(height: AppSpacing.lg),
-                        
+
                         EntryAnimation(
                           index: 4,
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () => context.push('/auth/forgot-password'),
+                              onPressed: () =>
+                                  context.push('/auth/forgot-password'),
                               child: const Text(
                                 'Quên mật khẩu?',
                                 style: TextStyle(
@@ -155,9 +172,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: AppSpacing.xl),
-                        
+
                         EntryAnimation(
                           index: 5,
                           child: AppButton(
@@ -168,13 +185,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             icon: Icons.login_rounded,
                           ),
                         ),
-                        
+
                         const SizedBox(height: AppSpacing.xxxl),
-                        
-                        EntryAnimation(
-                          index: 6,
-                          child: _buildFooter(context),
-                        ),
+
+                        EntryAnimation(index: 6, child: _buildFooter(context)),
                       ],
                     ),
                   ),
@@ -234,18 +248,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           index: 0,
           verticalOffset: -20,
           child: Container(
-            width: 72, height: 72,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
               color: AppColors.primary,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 25, offset: const Offset(0, 8),
+                  blurRadius: 25,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: const Icon(Icons.waves_rounded, color: Colors.white, size: 36),
+            child: const Icon(
+              Icons.waves_rounded,
+              color: Colors.white,
+              size: 36,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -291,7 +311,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.error,
+            size: 18,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -314,15 +338,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(width: 40, height: 1, color: AppColors.grey300.withValues(alpha: 0.4)),
+            Container(
+              width: 40,
+              height: 1,
+              color: AppColors.grey300.withValues(alpha: 0.4),
+            ),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Text(
                 'HOẶC TIẾP TỤC VỚI',
-                style: TextStyle(fontSize: 8, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: AppTypography.black,
+                  letterSpacing: 2.0,
+                  color: AppColors.textTertiary,
+                ),
               ),
             ),
-            Container(width: 40, height: 1, color: AppColors.grey300.withValues(alpha: 0.4)),
+            Container(
+              width: 40,
+              height: 1,
+              color: AppColors.grey300.withValues(alpha: 0.4),
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -330,8 +367,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _SocialLoginButton(
-              icon: Icons.g_mobiledata_rounded, 
-              onPressed: _loginWithGoogle
+              icon: Icons.g_mobiledata_rounded,
+              onPressed: _loginWithGoogle,
             ),
           ],
         ),
@@ -352,7 +389,8 @@ class _SocialLoginButton extends StatelessWidget {
       onTap: onPressed,
       borderRadius: BorderRadius.circular(AppRadius.full),
       child: Container(
-        width: 56, height: 56,
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.6),
           shape: BoxShape.circle,

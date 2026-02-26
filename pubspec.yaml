@@ -55,7 +55,7 @@ dependencies:
   cookie_jar: ^4.0.0
   video_player: ^2.8.2
   flutter_html: ^3.0.0-beta.2
-  
+
   # Firebase packages
   google_sign_in: ^6.2.1
   # Meet dependencies

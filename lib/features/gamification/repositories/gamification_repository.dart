@@ -20,7 +20,10 @@ class GamificationRepository {
 
   Future<LeaderboardResponse> getLeaderboard({String type = 'global'}) async {
     try {
-      final response = await _dio.get('/api/gamification/leaderboard', queryParameters: {'type': type});
+      final response = await _dio.get(
+        '/api/gamification/leaderboard',
+        queryParameters: {'type': type},
+      );
       if (response.statusCode == 200 && response.data['success'] == true) {
         return LeaderboardResponse.fromJson(response.data['data']);
       }
@@ -41,6 +44,23 @@ class GamificationRepository {
       throw Exception('Failed to load achievements');
     } catch (e) {
       throw Exception('Failed to load achievements: $e');
+    }
+  }
+
+  Future<void> redeemPoints({
+    required String rewardId,
+    required int pointsCost,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/gamification/redeem',
+        data: {'rewardId': rewardId, 'pointsCost': pointsCost},
+      );
+      if (response.statusCode != 200 || response.data['success'] != true) {
+        throw Exception(response.data['message'] ?? 'Failed to redeem points');
+      }
+    } catch (e) {
+      throw Exception('Failed to redeem points: $e');
     }
   }
 }

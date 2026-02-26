@@ -1,12 +1,62 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_providers.dart';
-import '../models/agent_models.dart';
-import '../repositories/agent_repository.dart';
+import '../models/sensei_model.dart';
+import '../repositories/sensei_repository.dart';
 
-final agentRepositoryProvider = Provider<AgentRepository>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return AgentRepository(dio: apiClient.client);
+final senseiRepositoryProvider = Provider<SenseiRepository>((ref) {
+  final dio = ref.watch(apiClientProvider).client;
+  return SenseiRepository(dio: dio);
 });
+
+class SenseiChatNotifier extends StateNotifier<List<ChatMessage>> {
+  final SenseiRepository _repository;
+
+  SenseiChatNotifier(this._repository) : super([]);
+
+  Future<void> sendMessage(String message) async {
+    final history = state.where((m) => !m.isError && !m.isLoading).map((m) {
+      return {'role': m.role.name, 'content': m.content};
+    }).toList();
+
+    state = [
+      ...state,
+      ChatMessage(role: ChatMessageRole.user, content: message),
+      const ChatMessage(
+        role: ChatMessageRole.assistant,
+        content: '',
+        isLoading: true,
+      ),
+    ];
+
+    try {
+      final response = await _repository.chat(
+        message: message,
+        history: history,
+      );
+      state = [
+        ...state.sublist(0, state.length - 1), // Remove the loading message
+        response,
+      ];
+    } catch (e) {
+      state = [
+        ...state.sublist(0, state.length - 1), // Remove the loading message
+        ChatMessage(
+          role: ChatMessageRole.assistant,
+          content: 'Đã có lỗi xảy ra. Vui lòng thử lại. ($e)',
+          isError: true,
+        ),
+      ];
+    }
+  }
+}
+
+final senseiChatProvider =
+    StateNotifierProvider<SenseiChatNotifier, List<ChatMessage>>((ref) {
+      final repository = ref.watch(senseiRepositoryProvider);
+      return SenseiChatNotifier(repository);
+    });
+
+// --- ROLEPLAY STATE ---
 
 class RoleplayState {
   final List<RoleplayMessage> messages;
@@ -40,31 +90,30 @@ class RoleplayState {
   }
 }
 
-class RoleplayNotifier extends StateNotifier<RoleplayState> {
-  final AgentRepository _repository;
+class SenseiRoleplayNotifier extends StateNotifier<RoleplayState> {
+  final SenseiRepository _repository;
   final String topic;
 
-  RoleplayNotifier({
-    required AgentRepository repository,
-    required this.topic,
-  }) : _repository = repository, super(RoleplayState());
+  SenseiRoleplayNotifier(this._repository, this.topic) : super(RoleplayState());
 
   Future<void> start() async {
     if (state.isLoading) return;
-    
+
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _repository.roleplay(
+      final response = await _repository.sendRoleplayMessage(
         topic: topic,
         message: "",
         history: [],
       );
 
       final aiMsg = RoleplayMessage.fromAssistantResponse(response);
-      
+
       state = state.copyWith(
         messages: [aiMsg],
-        history: [{'role': 'model', 'content': response.response}], // Backend expect string or object depending on NATS, but typically history is passed as is
+        history: [
+          {'role': 'model', 'content': response.response},
+        ],
         isLoading: false,
       );
     } catch (e) {
@@ -77,12 +126,15 @@ class RoleplayNotifier extends StateNotifier<RoleplayState> {
 
     final userMsg = RoleplayMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      role: 'user',
+      role: ChatMessageRole.user,
       content: text,
     );
 
     final updatedMessages = [...state.messages, userMsg];
-    final updatedHistory = [...state.history, {'role': 'user', 'content': text}];
+    final updatedHistory = [
+      ...state.history,
+      {'role': 'user', 'content': text},
+    ];
 
     state = state.copyWith(
       messages: updatedMessages,
@@ -92,17 +144,20 @@ class RoleplayNotifier extends StateNotifier<RoleplayState> {
     );
 
     try {
-      final response = await _repository.roleplay(
+      final response = await _repository.sendRoleplayMessage(
         topic: topic,
         message: text,
         history: updatedHistory,
       );
 
       final aiMsg = RoleplayMessage.fromAssistantResponse(response);
-      final newHistory = [...updatedHistory, {'role': 'model', 'content': response.response}];
+      final newHistory = [
+        ...updatedHistory,
+        {'role': 'model', 'content': response.response},
+      ];
 
       final nextMessages = [...updatedMessages, aiMsg];
-      
+
       if (response.isFinished && response.feedback != null) {
         nextMessages.add(RoleplayMessage.fromFeedback(response.feedback!));
       }
@@ -123,7 +178,7 @@ class RoleplayNotifier extends StateNotifier<RoleplayState> {
 
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _repository.roleplay(
+      final response = await _repository.sendRoleplayMessage(
         topic: topic,
         message: "",
         history: state.history,
@@ -131,11 +186,11 @@ class RoleplayNotifier extends StateNotifier<RoleplayState> {
       );
 
       final nextMessages = [...state.messages];
-      
+
       if (response.response.isNotEmpty) {
         nextMessages.add(RoleplayMessage.fromAssistantResponse(response));
       }
-      
+
       if (response.feedback != null) {
         nextMessages.add(RoleplayMessage.fromFeedback(response.feedback!));
       }
@@ -155,7 +210,10 @@ class RoleplayNotifier extends StateNotifier<RoleplayState> {
   }
 }
 
-final roleplayNotifierProvider = StateNotifierProvider.family<RoleplayNotifier, RoleplayState, String>((ref, topic) {
-  final repository = ref.watch(agentRepositoryProvider);
-  return RoleplayNotifier(repository: repository, topic: topic);
-});
+final senseiRoleplayProvider =
+    StateNotifierProvider.family<SenseiRoleplayNotifier, RoleplayState, String>(
+      (ref, topic) {
+        final repository = ref.watch(senseiRepositoryProvider);
+        return SenseiRoleplayNotifier(repository, topic);
+      },
+    );

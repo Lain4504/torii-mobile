@@ -4,16 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/shared_prefs_provider.dart';
 
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return ThemeModeNotifier(prefs);
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(() {
+  return ThemeModeNotifier();
 });
 
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  final SharedPreferences _prefs;
+class ThemeModeNotifier extends Notifier<ThemeMode> {
   static const _themeKey = 'theme_mode';
 
-  ThemeModeNotifier(this._prefs) : super(_getInitialTheme(_prefs));
+  @override
+  ThemeMode build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return _getInitialTheme(prefs);
+  }
 
   static ThemeMode _getInitialTheme(SharedPreferences prefs) {
     final savedTheme = prefs.getString(_themeKey);
@@ -29,7 +31,8 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 
   Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
-    await _prefs.setString(_themeKey, mode.toString());
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_themeKey, mode.toString());
   }
 
   Future<void> toggleTheme() async {

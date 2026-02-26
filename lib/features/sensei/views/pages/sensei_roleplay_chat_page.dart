@@ -4,20 +4,20 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:go_router/go_router.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
-import 'package:torii_app/core/widgets/widgets.dart';
-import 'package:torii_app/features/agent/providers/agent_providers.dart';
-import 'package:torii_app/features/agent/models/agent_models.dart';
+import '../../../../core/constants/app_design_system.dart';
+import '../../../../core/widgets/widgets.dart';
+import '../../providers/sensei_providers.dart';
+import '../../models/sensei_model.dart';
 
-class RoleplayChatPage extends ConsumerStatefulWidget {
+class SenseiRoleplayChatPage extends ConsumerStatefulWidget {
   final String topic;
-  const RoleplayChatPage({super.key, required this.topic});
+  const SenseiRoleplayChatPage({super.key, required this.topic});
 
   @override
-  ConsumerState<RoleplayChatPage> createState() => _RoleplayChatPageState();
+  ConsumerState<SenseiRoleplayChatPage> createState() => _SenseiRoleplayChatPageState();
 }
 
-class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
+class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   
@@ -35,7 +35,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
     _initTts();
     
     // Start roleplay on entry
-    Future.microtask(() => ref.read(roleplayNotifierProvider(widget.topic).notifier).start());
+    Future.microtask(() => ref.read(senseiRoleplayProvider(widget.topic).notifier).start());
   }
 
   void _initTts() async {
@@ -87,7 +87,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
     if (!_autoPlay) return;
     
     try {
-      final repo = ref.read(agentRepositoryProvider);
+      final repo = ref.read(senseiRepositoryProvider);
       final tts = await repo.getTTS(message.content);
       if (tts.url.isNotEmpty) {
         await _audioPlayer.play(UrlSource(tts.url));
@@ -103,17 +103,17 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(roleplayNotifierProvider(widget.topic));
-    final notifier = ref.read(roleplayNotifierProvider(widget.topic).notifier);
+    final state = ref.watch(senseiRoleplayProvider(widget.topic));
+    final notifier = ref.read(senseiRoleplayProvider(widget.topic).notifier);
 
     // Auto-scroll on new messages
-    ref.listen(roleplayNotifierProvider(widget.topic), (previous, next) {
+    ref.listen(senseiRoleplayProvider(widget.topic), (previous, next) {
       if (next.messages.length > (previous?.messages.length ?? 0)) {
         Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
         
         // Auto-play last AI message
         final lastMsg = next.messages.last;
-        if (lastMsg.role == 'assistant' && !lastMsg.isFeedback) {
+        if (lastMsg.role == ChatMessageRole.assistant && !lastMsg.isFeedback) {
           _playResponse(lastMsg);
         }
       }
@@ -136,7 +136,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
             icon: Icon(_autoPlay ? Icons.volume_up : Icons.volume_off),
             onPressed: () => setState(() => _autoPlay = !_autoPlay),
           ),
-          if (!state.isFinished && state.messages.where((m) => m.role == 'user').length >= 5)
+          if (!state.isFinished && state.messages.where((m) => m.role == ChatMessageRole.user).length >= 5)
             TextButton(
               onPressed: () => notifier.finish(),
               child: Text('KẾT THÚC', style: TextStyle(color: Colors.green, fontWeight: AppTypography.bold)),
@@ -166,7 +166,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
   }
 
   Widget _buildMessageBubble(RoleplayMessage msg) {
-    final isAI = msg.role == 'assistant';
+    final isAI = msg.role == ChatMessageRole.assistant;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -258,7 +258,7 @@ class _RoleplayChatPageState extends ConsumerState<RoleplayChatPage> {
     );
   }
 
-  Widget _buildInputBar(RoleplayState state, RoleplayNotifier notifier) {
+  Widget _buildInputBar(RoleplayState state, dynamic notifier) {
     if (state.isFinished) {
       return Container(
         padding: const EdgeInsets.all(24),

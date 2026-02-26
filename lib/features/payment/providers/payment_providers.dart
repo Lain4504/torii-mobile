@@ -225,3 +225,87 @@ class OrderListNotifier extends Notifier<OrderListState> {
 final orderListProvider = NotifierProvider<OrderListNotifier, OrderListState>(
   OrderListNotifier.new,
 );
+
+/// Balance History State
+class BalanceHistoryState {
+  final List<Map<String, dynamic>> items;
+  final bool isLoading;
+  final String? error;
+  final int page;
+  final bool hasMore;
+
+  const BalanceHistoryState({
+    this.items = const [],
+    this.isLoading = false,
+    this.error,
+    this.page = 1,
+    this.hasMore = true,
+  });
+
+  BalanceHistoryState copyWith({
+    List<Map<String, dynamic>>? items,
+    bool? isLoading,
+    String? error,
+    int? page,
+    bool? hasMore,
+  }) {
+    return BalanceHistoryState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+      page: page ?? this.page,
+      hasMore: hasMore ?? this.hasMore,
+    );
+  }
+}
+
+/// Balance History Notifier
+class BalanceHistoryNotifier extends AutoDisposeNotifier<BalanceHistoryState> {
+  @override
+  BalanceHistoryState build() {
+    return const BalanceHistoryState();
+  }
+
+  Future<void> loadMore() async {
+    if (state.isLoading || !state.hasMore) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final repository = ref.read(paymentRepositoryProvider);
+      final newItems = await repository.getBalanceHistory(page: state.page, limit: 10);
+
+      state = state.copyWith(
+        items: [...state.items, ...newItems],
+        isLoading: false,
+        page: state.page + 1,
+        hasMore: newItems.length >= 10,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> refresh() async {
+    state = const BalanceHistoryState(isLoading: true);
+    
+    try {
+      final repository = ref.read(paymentRepositoryProvider);
+      final newItems = await repository.getBalanceHistory(page: 1, limit: 10);
+
+      state = state.copyWith(
+        items: newItems,
+        isLoading: false,
+        page: 2,
+        hasMore: newItems.length >= 10,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+}
+
+/// Balance History Provider
+final balanceHistoryProvider = AutoDisposeNotifierProvider<BalanceHistoryNotifier, BalanceHistoryState>(
+  BalanceHistoryNotifier.new,
+);
