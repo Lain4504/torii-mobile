@@ -100,38 +100,108 @@ class SettingsPage extends ConsumerWidget {
             borderRadius: BorderRadius.circular(AppRadius.card),
             border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
           ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => context.push('/payment/history'),
-              borderRadius: BorderRadius.circular(AppRadius.card),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 20),
+          child: Column(
+            children: [
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => context.push('/wallet'),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.card)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary, size: 20),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Ví & Thưởng', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                              Text('Quản lý số dư, điểm thưởng và mã giảm giá', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary.withValues(alpha: 0.5)),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Lịch sử đơn hàng', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
-                          Text('Xem lịch sử mua khóa học và bài thi', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary.withValues(alpha: 0.5)),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => context.push('/leaderboard'),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.emoji_events_rounded, color: Colors.orange, size: 20),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Bảng xếp hạng', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                              Text('Xem vị trí của bạn và thành tích học tập', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary.withValues(alpha: 0.5)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Divider(height: 1, indent: 64, color: AppColors.grey200.withValues(alpha: 0.5)),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => context.push('/payment/history'),
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadius.card)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 20),
+                        ),
+                        const SizedBox(width: 16),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Lịch sử đơn hàng', style: TextStyle(fontSize: 16, fontWeight: AppTypography.bold)),
+                              Text('Xem lịch sử mua khóa học và bài thi', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary.withValues(alpha: 0.5)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],

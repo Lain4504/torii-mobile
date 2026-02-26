@@ -30,6 +30,7 @@ class Course {
   final List<String> tags;
   final List<String> learningOutcomes;
   final List<String> requirements;
+  final DateTime? expiresAt;
 
   const Course({
     required this.id,
@@ -57,6 +58,7 @@ class Course {
     this.tags = const [],
     this.learningOutcomes = const [],
     this.requirements = const [],
+    this.expiresAt,
   });
 
   factory Course.fromJson(Map<String, dynamic> json) {
@@ -153,6 +155,7 @@ class Course {
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       learningOutcomes: parseJsonArray(json['learningOutcomes']),
       requirements: parseJsonArray(json['requirements']),
+      expiresAt: json['expiresAt'] != null ? DateTime.parse(json['expiresAt'].toString()) : null,
     );
   }
 
@@ -183,6 +186,7 @@ class Course {
       'tags': tags,
       'learningOutcomes': learningOutcomes,
       'requirements': requirements,
+      'expiresAt': expiresAt?.toIso8601String(),
     };
   }
 

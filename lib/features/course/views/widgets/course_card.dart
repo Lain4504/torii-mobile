@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../models/course_model.dart';
 
@@ -226,6 +227,44 @@ class CourseCard extends StatelessWidget {
                 ),
               ),
             ),
+
+          // Expiration Badge
+          if (course.expiresAt != null)
+            Positioned(
+              bottom: 12,
+              left: 12,
+              child: _buildExpirationBadge(course.expiresAt!),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpirationBadge(DateTime expiresAt) {
+    final now = DateTime.now();
+    final difference = expiresAt.difference(now).inDays;
+    final isUrgent = difference < 7;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: (isUrgent ? const Color(0xFFE63946) : AppColors.textTertiary).withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        backdropFilter: const ColorFilter.mode(Colors.black12, BlendMode.darken),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_outlined, color: Colors.white, size: 12),
+          const SizedBox(width: 4),
+          Text(
+            isUrgent ? 'CÒN $difference NGÀY' : 'HẾT HẠN: ${DateFormat('dd/MM/yyyy').format(expiresAt)}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: AppTypography.bold,
+            ),
+          ),
         ],
       ),
     );
