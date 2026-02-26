@@ -18,7 +18,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart' as data_msg;
-import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import 'package:torii_app/features/meet/data/models/chat_message.dart';
 import 'package:torii_app/features/meet/data/models/poll.dart';
 import 'package:torii_app/features/meet/providers/whiteboard_provider.dart';

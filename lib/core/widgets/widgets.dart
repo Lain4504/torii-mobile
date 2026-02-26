@@ -36,6 +36,7 @@ export 'dividers/section_divider.dart';
 
 // Animations
 export 'animations/entry_animation.dart';
+export 'animations/voice_wave_animation.dart';
 
 // Shell
 export 'app_shell.dart';

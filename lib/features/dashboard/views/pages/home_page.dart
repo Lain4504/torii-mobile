@@ -53,12 +53,21 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: _buildGreetingSection(context, user),
               ),
             ),
+
+            // Placement Test Promotion
+            if (user != null)
+              SliverToBoxAdapter(
+                child: EntryAnimation(
+                  index: 1,
+                  child: _buildPlacementPromotion(context),
+                ),
+              ),
             
             // Learning Progress Terminal
             if (user != null) 
               SliverToBoxAdapter(
                 child: EntryAnimation(
-                  index: 1,
+                  index: 2,
                   verticalOffset: 30,
                   child: _buildProgressSection(context),
                 ),
@@ -268,6 +277,82 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPlacementPromotion(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'BẠN ĐANG Ở TRÌNH ĐỘ NÀO?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: AppTypography.black,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Làm bài kiểm tra trình độ bằng AI để nhận lộ trình học tập cá nhân hóa.',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: AppTypography.bold,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => context.push('/assessment/placement'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                elevation: 0,
+              ),
+              child: const Text(
+                'KIỂM TRA NGAY',
+                style: TextStyle(fontWeight: AppTypography.black, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

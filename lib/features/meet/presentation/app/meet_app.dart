@@ -23,7 +23,6 @@ class MeetApp extends ConsumerWidget {
           primary: const Color(0xFF1976D2),
           secondary: const Color(0xFFFF4081),
           surface: const Color(0xFF1E1E1E),
-          background: const Color(0xFF121212),
         ),
         scaffoldBackgroundColor: const Color(0xFF121212),
       ),

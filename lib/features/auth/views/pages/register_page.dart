@@ -59,7 +59,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
            if (!next.isLoading && !next.hasError && previous!.isLoading) {
               // Completed loading successfully
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Registration successful! Please login.')),
+                const SnackBar(content: Text('Đăng ký thành công! Vui lòng đăng nhập.')),
               );
               WidgetsBinding.instance.addPostFrameCallback((_) {
                  if (mounted) context.go('/login');
@@ -106,29 +106,29 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           child: Column(
                             children: [
                               AppTextField(
-                                label: 'DISPLAY NAME',
+                                label: 'TÊN HIỂN THỊ',
                                 controller: _displayNameController,
-                                hintText: 'How should we call you?',
+                                hintText: 'Chúng tôi nên gọi bạn là gì?',
                                 icon: Icons.face_retouching_natural_rounded,
-                                validator: (val) => (val == null || val.isEmpty) ? 'Please enter your name' : null,
+                                validator: (val) => (val == null || val.isEmpty) ? 'Vui lòng nhập tên của bạn' : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
                               AppTextField(
-                                label: 'EMAIL ADDRESS',
+                                label: 'ĐỊA CHỈ EMAIL',
                                 controller: _emailController,
-                                hintText: 'your.email@example.com',
+                                hintText: 'email.cua.ban@example.com',
                                 icon: Icons.alternate_email_rounded,
                                 keyboardType: TextInputType.emailAddress,
-                                validator: (val) => (val == null || !val.contains('@')) ? 'Please enter a valid email' : null,
+                                validator: (val) => (val == null || !val.contains('@')) ? 'Vui lòng nhập email hợp lệ' : null,
                               ),
                               const SizedBox(height: AppSpacing.md),
                               AppTextField(
-                                label: 'PASSWORD',
+                                label: 'MẬT KHẨU',
                                 controller: _passwordController,
                                 hintText: '••••••••',
                                 icon: Icons.fingerprint_rounded,
                                 obscureText: _obscurePassword,
-                                validator: (val) => (val == null || val.length < 8) ? 'Password must be at least 8 characters' : null,
+                                validator: (val) => (val == null || val.length < 8) ? 'Mật khẩu phải có ít nhất 8 ký tự' : null,
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -139,12 +139,12 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                               ),
                               const SizedBox(height: AppSpacing.md),
                               AppTextField(
-                                label: 'CONFIRM PASSWORD',
+                                label: 'XÁC NHẬN MẬT KHẨU',
                                 controller: _confirmPasswordController,
                                 hintText: '••••••••',
                                 icon: Icons.verified_user_outlined,
                                 obscureText: _obscureConfirmPassword,
-                                validator: (val) => (val != _passwordController.text) ? 'Passwords do not match' : null,
+                                validator: (val) => (val != _passwordController.text) ? 'Mật khẩu không khớp' : null,
                                 textInputAction: TextInputAction.done,
                                 onSubmitted: (_) => _register(),
                                 suffixIcon: IconButton(
@@ -164,7 +164,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         EntryAnimation(
                           index: 4,
                           child: AppButton(
-                            text: 'CREATE ACCOUNT',
+                            text: 'TẠO TÀI KHOẢN',
                             onPressed: _register,
                             isLoading: isLoading,
                             isFullWidth: true,
@@ -179,7 +179,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                             child: Text(
-                              'By creating an account, you agree to our terms of service and privacy protocols within the Torii ecosystem.',
+                              'Bằng cách tạo tài khoản, bạn đồng ý với các điều khoản dịch vụ và giao thức bảo mật trong hệ sinh thái Torii.',
                               style: TextStyle(
                                 fontSize: 10,
                                 color: AppColors.textTertiary.withValues(alpha: 0.5),
@@ -266,7 +266,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                'INITIALIZE LEARNING PROTOCOL',
+                'KHỞI TẠO TIẾN TRÌNH HỌC TẬP',
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: AppTypography.black,
@@ -315,7 +315,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'ALREADY A LEARNER?',
+              'ĐÃ CÓ TÀI KHOẢN?',
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary.withValues(alpha: 0.5),
@@ -327,7 +327,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               onTap: () => context.go('/login'),
               borderRadius: BorderRadius.circular(4),
               child: const Text(
-                'SIGN IN',
+                'ĐĂNG NHẬP',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: AppTypography.black,

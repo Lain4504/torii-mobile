@@ -141,7 +141,7 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
                 ),
               ),
               AppButton(
-                text: 'FINISH',
+                text: 'HOÀN THÀNH',
                 onPressed: _submitExam,
                 // small size
               ),
@@ -167,7 +167,7 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'NODE ${_currentIndex + 1} OF ${_questions.length}',
+                        'CÂU ${_currentIndex + 1} / ${_questions.length}',
                         style: const TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
                       ),
                       const SizedBox(height: AppSpacing.lg),
@@ -227,12 +227,12 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
                     children: [
                       _NavButton(
                         icon: Icons.chevron_left_rounded,
-                        label: 'PREVIOUS',
+                        label: 'CÂU TRƯỚC',
                         onPressed: _currentIndex > 0 ? () => setState(() => _currentIndex--) : null,
                       ),
                       _NavButton(
                         icon: Icons.chevron_right_rounded,
-                        label: _currentIndex < _questions.length - 1 ? 'NEXT' : 'SUBMIT',
+                        label: _currentIndex < _questions.length - 1 ? 'TIẾP THEO' : 'NỘP BÀI',
                         isPrimary: true,
                         onPressed: () {
                           if (_currentIndex < _questions.length - 1) {
@@ -257,11 +257,11 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
     return await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Abort Mission?', style: TextStyle(fontWeight: AppTypography.black)),
-        content: const Text('Your current simulation progress will be purged from memory.'),
+        title: const Text('Hủy bỏ làm bài?', style: TextStyle(fontWeight: AppTypography.black)),
+        content: const Text('Tiến trình làm bài hiện tại của bạn sẽ bị xóa bỏ.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('CONTINUE')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('ABORT', style: TextStyle(color: AppColors.error))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('TIẾP TỤC')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('HỦY BỎ', style: TextStyle(color: AppColors.error))),
         ],
       ),
     ) ?? false;
@@ -273,11 +273,11 @@ class _ExamTakingPageState extends State<ExamTakingPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('SYNCH COMPLETE 🎉', style: TextStyle(fontWeight: AppTypography.black)),
-        content: Text('You have successfully mapped ${_answers.length} out of ${_questions.length} nodes.'),
+        title: const Text('HOÀN THÀNH 🎉', style: TextStyle(fontWeight: AppTypography.black)),
+        content: Text('Bạn đã hoàn thành ${_answers.length} trên tổng số ${_questions.length} câu hỏi.'),
         actions: [
           AppButton(
-            text: 'RETURN TO ARCHIVE',
+            text: 'QUAY LẠI',
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context);

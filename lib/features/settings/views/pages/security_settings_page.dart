@@ -46,7 +46,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'SECURITY_SETTINGS',
+          'THIẾT LẬP BẢO MẬT',
           style: TextStyle(
             fontFamily: AppTypography.fontFamilySerif,
             fontWeight: AppTypography.black,
@@ -59,7 +59,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
       ),
       body: AppBackground(
         child: state.isLoading && state.status == null
-            ? const Center(child: AppLoading(text: 'Loading...'))
+            ? const Center(child: AppLoading(text: 'Đang tải...'))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
@@ -119,13 +119,13 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isEnabled ? '2FA_PROTECTED' : '2FA_NOT_ENABLED',
+                    isEnabled ? 'ĐÃ BẢO VỆ 2FA' : 'CHƯA BẬT 2FA',
                     style: const TextStyle(fontWeight: AppTypography.black, fontSize: 14, letterSpacing: 0.5),
                   ),
                   Text(
                     isEnabled 
-                      ? 'Your account is secured with secondary verification.' 
-                      : 'Add an extra layer of security to your account.',
+                      ? 'Tài khoản của bạn đã được bảo vệ bằng xác thực hai yếu tố.' 
+                      : 'Thêm một lớp bảo mật bổ sung cho tài khoản của bạn.',
                     style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                   ),
                 ],
@@ -144,13 +144,13 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'TWO-FACTOR_AUTHENTICATION',
+            'XÁC THỰC HAI YẾU TỐ (2FA)',
             style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 3.0, color: AppColors.primary),
           ),
           const SizedBox(height: 16),
           if (state.setupData == null)
             AppButton(
-              text: 'Enable Two-Factor Authentication',
+              text: 'Bật xác thực hai yếu tố',
               onPressed: () => ref.read(twoFactorProvider.notifier).startSetup(),
               isLoading: state.isLoading,
               isFullWidth: true,
@@ -176,7 +176,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           child: Column(
             children: [
               const Text(
-                'Scan QR Code',
+                'Quét mã QR',
                 style: TextStyle(fontWeight: AppTypography.bold, fontSize: 12),
               ),
               const SizedBox(height: 16),
@@ -189,7 +189,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Or enter manually',
+                'Hoặc nhập thủ công',
                 style: TextStyle(fontSize: 10, fontWeight: AppTypography.extraBold, color: AppColors.textTertiary),
               ),
               const SizedBox(height: 8),
@@ -202,12 +202,12 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'VERIFY_CODE',
+          'MÃ XÁC THỰC',
           style: TextStyle(fontWeight: AppTypography.black, fontSize: 10, letterSpacing: 2.0),
         ),
         const SizedBox(height: 16),
         AppTextField(
-          label: 'Authenticator Code',
+          label: 'Mã xác thực',
           hintText: '000000',
           controller: _otpController,
           icon: Icons.lock_outline_rounded,
@@ -220,7 +220,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         ),
         const SizedBox(height: 24),
         AppButton(
-          text: 'ACTIVATE 2FA',
+          text: 'KÍCH HOẠT 2FA',
           onPressed: () => ref.read(twoFactorProvider.notifier).enable(_otpController.text),
           isLoading: state.isLoading,
           isFullWidth: true,
@@ -240,7 +240,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'RECOVERY_CODES',
+            'MÃ PHỤC HỒI',
             style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: AppColors.textTertiary),
           ),
           const SizedBox(height: 16),
@@ -254,12 +254,12 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
             child: Column(
               children: [
                 const Text(
-                    'Keep these codes secure. They are your only way to regain access if you lose your device.',
+                    'Hãy giữ các mã này cẩn thận. Đây là cách duy nhất để bạn truy cập lại tài khoản nếu mất thiết bị.',
                     style: TextStyle(fontSize: 12, height: 1.5),
                 ),
                 const SizedBox(height: 16),
                 AppButton(
-                  text: 'REGENERATE_BACKUP_CODES',
+                  text: 'TẠO LẠI MÃ SAO LƯU',
                   onPressed: () => _showRegenerateDialog(state),
                   isPrimary: false,
                   isFullWidth: true,
@@ -279,12 +279,12 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'TERMINATION_PROTOCOL',
+            'PROTOCOL HỦY BỎ',
             style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 2.0, color: Color(0xFFE63946)),
           ),
           const SizedBox(height: 16),
           AppButton(
-            text: 'DISABLE_TWO_FACTOR',
+            text: 'TẤT XÁC THỰC 2FA',
             onPressed: () => _showDisableDialog(),
             isPrimary: false,
             isFullWidth: true,
@@ -298,27 +298,27 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Deactivation'),
+        title: const Text('Xác nhận tắt 2FA'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Enter your password to disable 2FA security.'),
+            const Text('Nhập mật khẩu của bạn để tắt bảo mật 2FA.'),
             const SizedBox(height: 16),
             TextField(
               controller: _passwordController,
               obscureText: true,
-              decoration: const InputDecoration(hintText: 'Password'),
+              decoration: const InputDecoration(hintText: 'Mật khẩu'),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Hủy bỏ')),
           TextButton(
             onPressed: () {
               ref.read(twoFactorProvider.notifier).disable(_passwordController.text);
               Navigator.pop(context);
             },
-            child: const Text('Disable', style: TextStyle(color: Colors.red)),
+            child: const Text('Tắt 2FA', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -329,11 +329,11 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
      showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Backup Codes'),
+        title: const Text('Mã sao lưu'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('New backup codes have been generated. SAVE THEM NOW.'),
+            const Text('Mã sao lưu mới đã được tạo. HÃY LƯU CHÚNG NGAY BÂY GIỜ.'),
             const SizedBox(height: 16),
             Wrap(
               spacing: 8,
@@ -351,7 +351,7 @@ class _SecuritySettingsPageState extends ConsumerState<SecuritySettingsPage> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Done')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Xong')),
         ],
       ),
     );

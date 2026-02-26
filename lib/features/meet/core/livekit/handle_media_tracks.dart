@@ -14,7 +14,6 @@ import 'package:livekit_client/livekit_client.dart';
 
 // Providers
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
-import 'package:torii_app/features/meet/providers/session_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/active_speakers_provider.dart';
 

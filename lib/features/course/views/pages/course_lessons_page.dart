@@ -21,7 +21,7 @@ class CourseLessonsPage extends ConsumerWidget {
     final state = ref.watch(courseDetailProvider(courseId));
 
     if (state.isLoading && state.course == null) {
-      return const AppLoadingScreen(text: 'Loading course...');
+      return const AppLoadingScreen(text: 'Đang tải khóa học...');
     }
 
     if (state.error != null && state.course == null) {
@@ -41,7 +41,7 @@ class CourseLessonsPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 AppButton(
-                  text: 'TRY AGAIN',
+                  text: 'THỬ LẠI',
                   onPressed: () {
                     ref.read(courseDetailProvider(courseId).notifier).loadCourseDetail(courseId);
                   },
@@ -55,7 +55,7 @@ class CourseLessonsPage extends ConsumerWidget {
 
     final course = state.course;
     if (course == null) {
-      return const AppLoadingScreen(text: 'Course not found...');
+      return const AppLoadingScreen(text: 'Không tìm thấy khóa học...');
     }
 
     return Scaffold(
@@ -108,14 +108,14 @@ class CourseLessonsPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Section Title
-                    _buildSectionTitle('Course Content'),
+                    _buildSectionTitle('Nội dung khóa học'),
                     const SizedBox(height: AppSpacing.lg),
                     
                     if (state.isLoadingCurriculum)
                       const Center(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
-                          child: AppLoading(text: 'Syncing curriculum blocks...'),
+                          child: AppLoading(text: 'Đang tải chương trình học...'),
                         ),
                       )
                     else if (state.curriculum != null && state.curriculum!.modules.isNotEmpty)
@@ -148,7 +148,7 @@ class CourseLessonsPage extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.all(AppSpacing.md),
                         child: Text(
-                          'No curriculum archive found',
+                          'Không tìm thấy chương trình học',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: AppColors.textTertiary,
                             fontStyle: FontStyle.italic,
@@ -221,7 +221,7 @@ class CourseLessonsPage extends ConsumerWidget {
                   ),
                   if (module.durationLabel.isNotEmpty)
                     Text(
-                      '${module.lessons.length} Lessons • ${module.durationLabel}',
+                      '${module.lessons.length} Bài học • ${module.durationLabel}',
                       style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.textTertiary,
@@ -345,7 +345,7 @@ class CourseLessonsPage extends ConsumerWidget {
                               Row(
                                 children: [
                                   if (lesson.isPreview && !course.isEnrolled) ...[
-                                    _buildBadge('PREVIEW', AppColors.successLight, AppColors.success),
+                                    _buildBadge('XEM THỬ', AppColors.successLight, AppColors.success),
                                     const SizedBox(width: 8),
                                   ],
                                   Icon(
@@ -355,7 +355,7 @@ class CourseLessonsPage extends ConsumerWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    lesson.isVideo ? lesson.durationLabel : 'Draft',
+                                    lesson.isVideo ? lesson.durationLabel : 'Bản thảo',
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: AppColors.textTertiary,

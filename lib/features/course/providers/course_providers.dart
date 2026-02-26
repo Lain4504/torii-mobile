@@ -4,6 +4,8 @@ import 'course_detail_state.dart';
 import '../repositories/course_repository.dart';
 import '../repositories/wishlist_repository.dart';
 import '../models/course_model.dart';
+import '../models/assignment_model.dart';
+import '../models/certificate_model.dart';
 import '../../../features/auth/providers/auth_providers.dart';
 
 /// Provider for course list state
@@ -192,3 +194,13 @@ class CourseDetailNotifier extends FamilyNotifier<CourseDetailState, String> {
     state = state.copyWith(clearError: true);
   }
 }
+
+/// Provider for user assignments
+final assignmentsProvider = FutureProvider<List<Assignment>>((ref) async {
+  return ref.watch(courseRepositoryProvider).getAssignments();
+});
+
+/// Provider for user certificates
+final certificatesProvider = FutureProvider<List<Certificate>>((ref) async {
+  return ref.watch(courseRepositoryProvider).getCertificates();
+});

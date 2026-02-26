@@ -48,8 +48,14 @@ import 'package:torii_app/features/instructor/views/pages/instructor_profile_pag
 import 'package:torii_app/features/ticket/views/pages/ticket_list_page.dart';
 import 'package:torii_app/features/ticket/views/pages/ticket_detail_page.dart';
 import 'package:torii_app/features/meet/presentation/screens/landing/meet_entry_screen.dart';
-import 'package:torii_app/features/meet/presentation/screens/landing/join_meeting_screen.dart';
 import 'package:torii_app/features/meet/presentation/screens/room/meeting_room_screen.dart';
+import 'package:torii_app/features/gamification/views/pages/leaderboard_page.dart';
+import 'package:torii_app/features/course/views/pages/assignments_page.dart';
+import 'package:torii_app/features/course/views/pages/certificates_page.dart';
+import 'package:torii_app/features/dashboard/views/pages/statistics_page.dart';
+import 'package:torii_app/features/agent/views/pages/roleplay_topic_page.dart';
+import 'package:torii_app/features/agent/views/pages/roleplay_chat_page.dart';
+import 'package:torii_app/features/assessment/views/pages/placement_test_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 import 'package:torii_app/features/onboarding/providers/onboarding_providers.dart';
@@ -144,7 +150,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           return AppShell(navigationShell: navigationShell, state: state);
         },
         branches: [
-          // Branch 0: Learning / Courses
+          // Branch 0: Home
+          StatefulShellBranch(
+            routes: [
+               GoRoute(
+                path: '/',
+                builder: (context, state) => const RootScreenWrapper(),
+              ),
+            ],
+          ),
+
+          // Branch 1: Learning / Courses
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -178,7 +194,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           
-          // Branch 1: Live (Member) / Community (Guest)
+          // Branch 2: Live (Member) / Community (Guest)
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -198,16 +214,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     },
                   ),
                 ],
-              ),
-            ],
-          ),
-
-          // Branch 2: Home
-          StatefulShellBranch(
-            routes: [
-               GoRoute(
-                path: '/',
-                builder: (context, state) => const RootScreenWrapper(),
               ),
             ],
           ),
@@ -270,24 +276,19 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-
-          // Branch 5: Meet Explorer
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/meet',
-                builder: (context, state) {
-                  final token = state.extra is Map
-                      ? (state.extra as Map)['token']?.toString()
-                      : null;
-                  return MeetEntryScreen(initialToken: token);
-                },
-              ),
-            ],
-          ),
         ],
       ),
       // Root Routes (Overlay)
+      GoRoute(
+        path: '/meet',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final token = state.extra is Map
+              ? (state.extra as Map)['token']?.toString()
+              : null;
+          return MeetEntryScreen(initialToken: token);
+        },
+      ),
       GoRoute(
         path: '/meeting',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
@@ -421,6 +422,44 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/downloads',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const DownloadsPage(),
+      ),
+      GoRoute(
+        path: '/leaderboard',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const LeaderboardPage(),
+      ),
+      GoRoute(
+        path: '/assignments',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const AssignmentsPage(),
+      ),
+      GoRoute(
+        path: '/certificates',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const CertificatesPage(),
+      ),
+      GoRoute(
+        path: '/statistics',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const StatisticsPage(),
+      ),
+      GoRoute(
+        path: '/roleplay/topic',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const RoleplayTopicPage(),
+      ),
+      GoRoute(
+        path: '/roleplay/chat',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final topic = state.extra as String? ?? 'Chủ đề ngẫu nhiên';
+          return RoleplayChatPage(topic: topic);
+        },
+      ),
+      GoRoute(
+        path: '/assessment/placement',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const PlacementTestPage(),
       ),
       GoRoute(
         path: '/notifications',

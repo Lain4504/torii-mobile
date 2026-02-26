@@ -12,7 +12,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dart_nats/dart_nats.dart' as nats;
@@ -23,7 +22,6 @@ import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart
 import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart' as data_msg;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_analytics.pb.dart' as analytics;
 import 'package:torii_app/features/meet/data/models/proto/wajlc_insights.pb.dart' as insights;
-import 'package:protobuf/protobuf.dart' as $pb;
 
 // Handlers
 import 'handle_room_data.dart';
@@ -59,7 +57,7 @@ class ConnectNats {
   
   // Connection config
   final List<String> _natsWSUrls;
-  String _token;
+  final String _token;
   final String _roomId;
   final String _userId;
   String _userName = '';
@@ -103,7 +101,7 @@ class ConnectNats {
 
   // Connection state
   bool _isConnected = false;
-  bool _isConnecting = false;
+  final bool _isConnecting = false;
 
   // Callbacks (matching web's callbacks)
   Function(bool)? onConnectionStatusChange;

@@ -23,7 +23,7 @@ class PaymentPage extends StatelessWidget {
                 onPressed: () => context.pop(),
               ),
               title: const Text(
-                'PAYMENT_PROTOCOL',
+                'CỔNG THANH TOÁN',
                 style: TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
                   fontWeight: AppTypography.black,
@@ -42,7 +42,7 @@ class PaymentPage extends StatelessWidget {
                     Icon(Icons.account_balance_wallet_rounded, size: 64, color: AppColors.primary),
                     SizedBox(height: 24),
                     Text(
-                      'GATEWAY_INITIALIZING',
+                      'ĐANG KHỞI TẠO THANH TOÁN',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: AppTypography.black,
@@ -54,7 +54,7 @@ class PaymentPage extends StatelessWidget {
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
                       child: Text(
-                        'Secure transaction protocols are being established. Please wait for the master link.',
+                        'Giao dịch bảo mật đang được thiết lập. Vui lòng chờ trong giây lát.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,

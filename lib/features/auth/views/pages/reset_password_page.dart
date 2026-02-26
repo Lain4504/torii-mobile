@@ -59,7 +59,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
          if (prevStatus != null) {
           // Password reset successful
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Password reset successful! Please login.')),
+            const SnackBar(content: Text('Đổi mật khẩu thành công! Vui lòng đăng nhập.')),
           );
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) context.go('/login');
@@ -88,7 +88,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                       children: [
                         const SizedBox(height: AppSpacing.xxxl),
                         Text(
-                          'NEW PASSWORD',
+                          'MẬT KHẨU MỚI',
                           style: Theme.of(context).textTheme.displaySmall?.copyWith(
                             fontWeight: AppTypography.bold,
                             letterSpacing: -1.2,
@@ -96,7 +96,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
-                          'Create a strong new password for\n${widget.email}',
+                          'Tạo mật khẩu mới cho\n${widget.email}',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: AppColors.textSecondary,
@@ -105,8 +105,8 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                         const SizedBox(height: AppSpacing.xxxl),
                         AppTextField(
                           controller: _passwordController,
-                          label: 'New Password',
-                          hintText: 'Enter new password',
+                          label: 'Mật khẩu mới',
+                          hintText: 'Nhập mật khẩu mới',
                           icon: Icons.lock_outlined,
                           obscureText: _obscurePassword,
                           suffixIcon: IconButton(
@@ -117,10 +117,10 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter a password';
+                              return 'Vui lòng nhập mật khẩu';
                             }
                             if (value.length < 8) {
-                              return 'Password must be at least 8 characters';
+                              return 'Mật khẩu phải có ít nhất 8 ký tự';
                             }
                             return null;
                           },
@@ -128,8 +128,8 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                         const SizedBox(height: AppSpacing.lg),
                         AppTextField(
                           controller: _confirmPasswordController,
-                          label: 'Confirm Password',
-                          hintText: 'Re-enter new password',
+                          label: 'Xác nhận mật khẩu',
+                          hintText: 'Nhập lại mật khẩu mới',
                           icon: Icons.lock_outlined,
                           obscureText: _obscureConfirmPassword,
                           suffixIcon: IconButton(
@@ -140,10 +140,10 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please confirm your password';
+                              return 'Vui lòng xác nhận mật khẩu';
                             }
                             if (value != _passwordController.text) {
-                              return 'Passwords do not match';
+                              return 'Mật khẩu không khớp';
                             }
                             return null;
                           },
@@ -175,7 +175,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                         AppButton(
                           onPressed: isLoading ? null : _resetPassword,
                           isLoading: isLoading,
-                          text: 'RESET PASSWORD',
+                          text: 'ĐẶT LẠI MẬT KHẨU',
                         ),
                       ],
                     ),

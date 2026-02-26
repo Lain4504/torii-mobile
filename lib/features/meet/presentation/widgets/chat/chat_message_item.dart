@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:torii_app/features/meet/data/models/chat_message.dart';
-import '../../../providers/chat_messages_provider.dart';
 import 'package:intl/intl.dart';
 
 /// Chat Message Item Widget
@@ -25,7 +24,7 @@ class ChatMessageItem extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 8),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
@@ -82,7 +81,7 @@ class ChatMessageItem extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isMe
                       ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.surfaceVariant,
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.only(
                     topLeft: const Radius.circular(20),
                     topRight: const Radius.circular(20),

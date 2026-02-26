@@ -42,7 +42,7 @@ class MyLearningPage extends ConsumerWidget {
                 IconButton(
                   onPressed: () => context.push('/downloads'),
                   icon: const Icon(Icons.download_done_rounded, color: AppColors.textPrimary),
-                  tooltip: 'Downloads',
+                  tooltip: 'Tải xuống',
                 ),
                 const SizedBox(width: AppSpacing.md),
               ],
@@ -83,7 +83,7 @@ class MyLearningPage extends ConsumerWidget {
 
             if (state.isLoading)
               const SliverFillRemaining(
-                child: Center(child: AppLoading(text: 'Accessing Depositories...')),
+                child: Center(child: AppLoading(text: 'Đang tải khóa học...')),
               )
             else if (state.myCourses.isEmpty)
               SliverFillRemaining(

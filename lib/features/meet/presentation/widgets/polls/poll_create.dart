@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fixnum/fixnum.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls_pb;
 import '../../../providers/session_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';

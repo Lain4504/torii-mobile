@@ -25,7 +25,7 @@ class CourseDetailPage extends ConsumerWidget {
     final state = ref.watch(courseDetailProvider(courseId));
 
     if (state.isLoading && state.course == null) {
-      return const AppLoadingScreen(text: 'Loading course...');
+      return const AppLoadingScreen(text: 'Đang tải khóa học...');
     }
 
     if (state.error != null && state.course == null) {
@@ -49,7 +49,7 @@ class CourseDetailPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 AppButton(
-                  text: 'TRY AGAIN',
+                  text: 'THỬ LẠI',
                   onPressed: () {
                     ref
                         .read(courseDetailProvider(courseId).notifier)
@@ -67,7 +67,7 @@ class CourseDetailPage extends ConsumerWidget {
     if (course == null) {
       return const Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(child: Text('Protocol Missing')),
+        body: Center(child: Text('Không tìm thấy dữ liệu')),
       );
     }
 
@@ -184,7 +184,7 @@ class CourseDetailPage extends ConsumerWidget {
                             vertical: AppSpacing.xxxl,
                           ),
                           child: AppLoading(
-                            text: 'Syncing curriculum blocks...',
+                            text: 'Đang tải chương trình học...',
                           ),
                         ),
                       )
@@ -218,7 +218,7 @@ class CourseDetailPage extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.all(AppSpacing.md),
                         child: Text(
-                          'No curriculum archive found',
+                          'Không tìm thấy chương trình học',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: AppColors.textTertiary,
                             fontStyle: FontStyle.italic,
@@ -432,7 +432,7 @@ class CourseDetailPage extends ConsumerWidget {
         if (course.isEnrolled) ...[
           const SizedBox(width: 8),
           _buildBadge(
-            'SYNCHRONIZED',
+            'ĐÃ ĐĂNG KÝ',
             AppColors.successLight,
             AppColors.successDark,
           ),
@@ -497,7 +497,7 @@ class CourseDetailPage extends ConsumerWidget {
                 ),
               ),
               Text(
-                'Principal Instructor',
+                'Giáo viên chính',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.textTertiary,
                 ),
@@ -536,7 +536,7 @@ class CourseDetailPage extends ConsumerWidget {
     String duration =
         curriculum?.totalDurationLabel ??
         (course.durationWeeks != null
-            ? '${course.durationWeeks} weeks'
+            ? '${course.durationWeeks} tuần'
             : 'N/A');
     String studentCount = course.enrolledCount >= 1000
         ? '${(course.enrolledCount / 1000).toStringAsFixed(1)}k'
@@ -553,15 +553,15 @@ class CourseDetailPage extends ConsumerWidget {
 
       child: Row(
         children: [
-          _buildStatItem(Icons.timer_rounded, duration, 'HOURS'),
+          _buildStatItem(Icons.timer_rounded, duration, 'GIỜ'),
           _buildVerticalDivider(),
           _buildStatItem(
             Icons.layers_rounded,
             course.totalLessons.toString(),
-            'LESSONS',
+            'BÀI HỌC',
           ),
           _buildVerticalDivider(),
-          _buildStatItem(Icons.group_rounded, studentCount, 'STUDENTS'),
+          _buildStatItem(Icons.group_rounded, studentCount, 'HỌC VIÊN'),
         ],
       ),
     );
@@ -762,7 +762,7 @@ class CourseDetailPage extends ConsumerWidget {
           ),
           if (isFree)
             _buildBadge(
-              'PREVIEW',
+              'XEM THỬ',
               AppColors.successLight,
               AppColors.successDark,
             )
@@ -840,7 +840,7 @@ class CourseDetailPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'ACCESS COST',
+                      'HỌC PHÍ',
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: AppTypography.black,
@@ -886,7 +886,7 @@ class CourseDetailPage extends ConsumerWidget {
               Expanded(
                 flex: 6,
                 child: AppButton(
-                  text: course.isEnrolled ? 'RESUME' : 'ENROLL NOW',
+                  text: course.isEnrolled ? 'TIẾP TỤC' : 'ĐĂNG KÝ NGAY',
                   onPressed: () async {
                     if (course.isEnrolled) {
                       // Navigate to course content

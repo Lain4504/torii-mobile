@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/constants/app_design_system.dart';
-import '../../../../core/widgets/widgets.dart';
-import '../../models/lesson_model.dart';
-import '../../models/lesson_material_model.dart';
-import '../../providers/lesson_providers.dart';
-import '../../repositories/course_repository.dart';
-import '../../../auth/providers/auth_providers.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/features/course/models/lesson_model.dart';
+import 'package:torii_app/features/course/models/lesson_material_model.dart';
+import 'package:torii_app/features/course/providers/lesson_providers.dart';
+import 'package:torii_app/features/course/repositories/course_repository.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/core/providers/shared_prefs_provider.dart';
 
 class LessonPage extends ConsumerStatefulWidget {
   final String courseId;
@@ -32,6 +33,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
   bool _isVideoInitialized = false;
   String? _currentVideoUrl;
   late TabController _tabController;
+  late TextEditingController _notesController;
   
   List<LessonMaterial> _materials = [];
   // final List<Comment> _comments = [];
@@ -49,17 +51,39 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
+    _notesController = TextEditingController();
+    
     // Delay loading materials to ensure lesson is loaded first
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMaterials();
+      _loadNotes();
     });
     // Comments will be loaded when needed (requires postId which may not be available)
+  }
+
+  Future<void> _loadNotes() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final notes = prefs.getString('notes_${widget.lessonId}') ?? '';
+    setState(() {
+      _notesController.text = notes;
+    });
+  }
+
+  Future<void> _saveNotes() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString('notes_${widget.lessonId}', _notesController.text);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã lưu ghi chú'), duration: Duration(seconds: 1)),
+      );
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _notesController.dispose();
     _videoController?.removeListener(_videoListener);
     _videoController?.dispose();
     super.dispose();
@@ -186,7 +210,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
 
     // Only show loading if we don't have initial lesson and API is loading
     if (state.isLoading && !hasInitialLesson && lesson == null) {
-      return const AppLoadingScreen(text: 'Loading lesson...');
+      return const AppLoadingScreen(text: 'Đang tải bài học...');
     }
 
     if (state.error != null && lesson == null) {
@@ -206,7 +230,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                 ),
                 const SizedBox(height: 24),
                 AppButton(
-                  text: 'TRY AGAIN',
+                  text: 'THỬ LẠI',
                   onPressed: () {
                     ref.read(lessonDetailProvider(widget.lessonId).notifier).loadLessonDetail(widget.lessonId);
                   },
@@ -219,7 +243,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
     }
 
     if (lesson == null) {
-      return const AppLoadingScreen(text: 'Lesson not found...');
+      return const AppLoadingScreen(text: 'Không tìm thấy bài học...');
     }
 
     // Initialize video if lesson is video type and has videoUrl
@@ -449,7 +473,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                 color: Colors.black,
                 child: const Center(
                   child: Text(
-                    'Video not available',
+                    'Video không khả dụng',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -473,7 +497,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                 borderRadius: BorderRadius.circular(AppRadius.chip),
               ),
               child: Text(
-                'LESSON ${lesson.order}',
+                'BÀI HỌC ${lesson.order}',
                 style: TextStyle(
                   fontSize: 8,
                   fontWeight: AppTypography.black,
@@ -518,6 +542,10 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                   icon: Icon(Icons.comment_outlined, size: 18),
                   text: 'Thảo luận',
                 ),
+                Tab(
+                  icon: Icon(Icons.note_alt_outlined, size: 18),
+                  text: 'Ghi chú',
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -531,6 +559,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                   _buildContentTab(lesson),
                   _buildResourcesTab(),
                   _buildCommentsTab(),
+                  _buildNotesTab(),
                 ],
               ),
             ),
@@ -630,7 +659,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(40),
-                child: Text('No article content available'),
+                child: Text('Không có nội dung bài học'),
               ),
             ),
         ],
@@ -904,6 +933,45 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNotesTab() {
+    return Column(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5)),
+            ),
+            child: TextField(
+              controller: _notesController,
+              maxLines: null,
+              expands: true,
+              style: const TextStyle(fontSize: 14, height: 1.6),
+              decoration: const InputDecoration(
+                hintText: 'Nhập ghi chú của bạn cho bài học này...',
+                border: InputBorder.none,
+                hintStyle: TextStyle(color: AppColors.textTertiary),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            AppButton(
+              text: 'LƯU GHI CHÚ',
+              onPressed: _saveNotes,
+              // size: AppButtonSize.medium,
+            ),
+          ],
+        ),
+      ],
     );
   }
 

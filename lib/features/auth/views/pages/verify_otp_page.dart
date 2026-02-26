@@ -50,7 +50,7 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
   void _resendOTP() {
     ref.read(authStateProvider.notifier).resendOTP(widget.email);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('OTP code resent!')),
+      const SnackBar(content: Text('Mã OTP đã được gửi lại!')),
     );
   }
 
@@ -96,7 +96,7 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       Text(
-                        'VERIFY REQUEST',
+                        'XÁC THỰC YÊU CẦU',
                         style: TextStyle(
                             fontFamily: AppTypography.fontFamilySerif,
                             fontSize: AppTypography.fontSize2xl,
@@ -108,7 +108,7 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
                       ),
                        const SizedBox(height: 4),
                        Text(
-                        'CHECK YOUR INBOX',
+                        'KIỂM TRA HÒM THƯ',
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: AppTypography.black,
@@ -118,7 +118,7 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       Text(
-                        'Please enter the 6-digit code sent to\n${widget.email}',
+                        'Vui lòng nhập mã có 6 chữ số được gửi tới\n${widget.email}',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppColors.textSecondary,
@@ -176,13 +176,13 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
                       AppButton(
                         onPressed: isLoading ? null : _verifyOTP,
                         isLoading: isLoading,
-                        text: 'VERIFY OTP',
+                        text: 'XÁC THỰC OTP',
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       TextButton(
                         onPressed: isLoading ? null : _resendOTP,
                         child: Text(
-                          'Didn\'t receive code? RESEND',
+                          'Không nhận được mã? GỬI LẠI',
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: AppTypography.semiBold,

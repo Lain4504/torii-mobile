@@ -3,6 +3,8 @@ import '../models/course_model.dart';
 import '../models/curriculum_model.dart';
 import '../models/lesson_model.dart';
 import '../models/lesson_material_model.dart';
+import '../models/assignment_model.dart';
+import '../models/certificate_model.dart';
 
 /// Course Repository - Handles API calls for courses
 class CourseRepository {
@@ -318,6 +320,36 @@ class CourseRepository {
       throw Exception('Failed to fetch lesson materials: ${e.message}');
     } catch (e) {
       throw Exception('Failed to fetch lesson materials: $e');
+    }
+  }
+
+  /// Get all assignments for the learner
+  Future<List<Assignment>> getAssignments({int page = 1, int limit = 50}) async {
+    try {
+      final response = await _dio.get('/api/assignments', queryParameters: {'page': page, 'limit': limit});
+      if (response.statusCode == 200 && (response.data['success'] == true || response.data['success'] == null)) {
+        final dynamic data = response.data['data'];
+        final List list = data is List ? data : (data['data'] ?? []);
+        return list.map((item) => Assignment.fromJson(item)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to fetch assignments: $e');
+    }
+  }
+
+  /// Get all certificates for the learner
+  Future<List<Certificate>> getCertificates({int page = 1, int limit = 50}) async {
+    try {
+      final response = await _dio.get('/api/certificates', queryParameters: {'page': page, 'limit': limit});
+      if (response.statusCode == 200 && (response.data['success'] == true || response.data['success'] == null)) {
+        final dynamic data = response.data['data'];
+        final List list = data is List ? data : (data['data'] ?? []);
+        return list.map((item) => Certificate.fromJson(item)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to fetch certificates: $e');
     }
   }
 

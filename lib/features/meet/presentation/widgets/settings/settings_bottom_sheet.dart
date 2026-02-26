@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:livekit_client/livekit_client.dart';
 import '../../../providers/room_settings_provider.dart';
 import '../../../providers/session_provider.dart';
 
@@ -157,7 +156,7 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
         _isLoadingDevices
             ? const Center(child: CircularProgressIndicator())
             : DropdownButtonFormField<String>(
-                value: _selectedAudioInput,
+                initialValue: _selectedAudioInput,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -200,7 +199,7 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
         _isLoadingDevices
             ? const Center(child: CircularProgressIndicator())
             : DropdownButtonFormField<String>(
-                value: _selectedAudioOutput,
+                initialValue: _selectedAudioOutput,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -252,7 +251,7 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
         _isLoadingDevices
             ? const Center(child: CircularProgressIndicator())
             : DropdownButtonFormField<String>(
-                value: _selectedVideoDevice,
+                initialValue: _selectedVideoDevice,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -293,7 +292,7 @@ class _SettingsBottomSheetState extends ConsumerState<SettingsBottomSheet>
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _videoQuality,
+          initialValue: _videoQuality,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
