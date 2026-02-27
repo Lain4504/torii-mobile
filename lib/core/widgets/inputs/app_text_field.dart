@@ -41,24 +41,22 @@ class AppTextField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 8),
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             label.toUpperCase(),
             style: const TextStyle(
               fontSize: 10,
               fontWeight: AppTypography.black,
-              letterSpacing: 2.5,
-              color: AppColors.textTertiary,
+              letterSpacing: 1.5,
+              color: AppColors.mutedForeground,
             ),
           ),
         ),
         Container(
-          height: maxLines > 1 ? null : 60,
+          height: maxLines > 1 ? null : 56,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.input),
-            boxShadow: AppElevation.softShadow,
           ),
-
           child: Center(
             child: TextFormField(
               maxLines: maxLines,
@@ -73,44 +71,51 @@ class AppTextField extends StatelessWidget {
                 fontSize: 15,
                 fontWeight: AppTypography.bold,
                 color: AppColors.textPrimary,
-                letterSpacing: 0.5,
+                letterSpacing: 0.1,
               ),
               decoration: InputDecoration(
                 hintText: hintText,
                 hintStyle: TextStyle(
-                  color: AppColors.textTertiary.withValues(alpha: 0.3),
+                  color: AppColors.mutedForeground.withValues(alpha: 0.3),
                   fontWeight: AppTypography.medium,
                   fontSize: 14,
                 ),
                 filled: true,
                 fillColor: enabled 
-                    ? AppColors.white.withValues(alpha: 0.7) 
-                    : AppColors.grey100.withValues(alpha: 0.5),
+                    ? Colors.white.withValues(alpha: 0.5) 
+                    : AppColors.secondary.withValues(alpha: 0.3),
                 prefixIcon: Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: Icon(icon, size: 20, color: AppColors.primary.withValues(alpha: 0.4)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Icon(
+                    icon, 
+                    size: 18, 
+                    color: AppColors.primary.withValues(alpha: 0.6),
+                  ),
                 ),
+                prefixIconConstraints: const BoxConstraints(minWidth: 40),
                 suffixIcon: suffixIcon,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.input),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: AppColors.border.withValues(alpha: 0.5),
+                    width: 1,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.input),
                   borderSide: BorderSide(
-                    color: AppColors.grey200.withValues(alpha: 0.8),
-                    width: 1.5,
+                    color: AppColors.border.withValues(alpha: 0.8),
+                    width: 1,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.input),
                   borderSide: const BorderSide(
                     color: AppColors.primary,
-                    width: 2,
+                    width: 1.5,
                   ),
                 ),
-
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
               validator: validator,
             ),

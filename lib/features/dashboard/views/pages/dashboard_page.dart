@@ -35,7 +35,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: AppBackground(
         child: myLearning.isLoading && myLearning.myCourses.isEmpty
             ? const Center(child: CircularProgressIndicator())
@@ -240,10 +240,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(AppRadius.card),
-          border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
-          boxShadow: AppElevation.cardShadow,
+          border: Border.all(color: AppColors.border),
         ),
 
         child: Row(
@@ -515,10 +514,9 @@ class _BlockContainer extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5), width: 1.5),
-        boxShadow: AppElevation.cardShadow,
+        border: Border.all(color: AppColors.border),
       ),
       child: child,
     );
@@ -544,10 +542,9 @@ class _ShortcutTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 24),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(AppRadius.card),
-            border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5), width: 1.5),
-            boxShadow: AppElevation.softShadow,
+            border: Border.all(color: AppColors.border),
           ),
 
           child: Column(
@@ -581,9 +578,9 @@ class _HeaderAction extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.cardColor,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8)),
+        border: Border.all(color: AppColors.border),
       ),
 
       child: IconButton(

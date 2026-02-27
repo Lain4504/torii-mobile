@@ -83,20 +83,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             children: [
               _buildAppBar(context),
-
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   child: Form(
                     key: _formKey,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: AppSpacing.xl),
                         _buildHeader(context),
-                        const SizedBox(height: AppSpacing.xxxl),
+                        const SizedBox(height: 48),
 
                         if (errorMessage != null) ...[
                           EntryAnimation(
@@ -122,7 +120,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                     ? 'Vui lòng nhập email hợp lệ'
                                     : null,
                               ),
-                              const SizedBox(height: AppSpacing.md),
+                              const SizedBox(height: AppSpacing.lg),
                               AppTextField(
                                 label: 'Mật khẩu',
                                 controller: _passwordController,
@@ -137,7 +135,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                         ? Icons.visibility_off_outlined
                                         : Icons.visibility_outlined,
                                     size: 18,
-                                    color: AppColors.textTertiary,
+                                    color: AppColors.mutedForeground,
                                   ),
                                   onPressed: () => setState(
                                     () => _obscurePassword = !_obscurePassword,
@@ -152,19 +150,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                         ),
 
-                        const SizedBox(height: AppSpacing.lg),
+                        const SizedBox(height: AppSpacing.md),
 
                         EntryAnimation(
                           index: 4,
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () =>
-                                  context.push('/auth/forgot-password'),
+                              onPressed: () => context.push('/auth/forgot-password'),
+                              style: TextButton.styleFrom(
+                                minimumSize: Size.zero,
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
                               child: const Text(
                                 'Quên mật khẩu?',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 13,
                                   fontWeight: AppTypography.bold,
                                   color: AppColors.primary,
                                 ),
@@ -187,8 +189,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
 
                         const SizedBox(height: AppSpacing.xxxl),
-
                         EntryAnimation(index: 6, child: _buildFooter(context)),
+                        const SizedBox(height: AppSpacing.xxl),
                       ],
                     ),
                   ),
@@ -203,36 +205,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Widget _buildAppBar(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          EntryAnimation(
-            delay: const Duration(milliseconds: 200),
-            child: IconButton(
-              icon: const Icon(Icons.close_rounded, size: 20),
-              onPressed: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go('/');
-                }
-              },
-              color: AppColors.textPrimary.withValues(alpha: 0.4),
-            ),
+          IconButton(
+            icon: const Icon(Icons.close_rounded, size: 22),
+            onPressed: () => context.canPop() ? context.pop() : context.go('/'),
+            color: AppColors.mutedForeground,
           ),
-          EntryAnimation(
-            delay: const Duration(milliseconds: 400),
-            child: TextButton(
-              onPressed: () => context.go('/register'),
-              child: const Text(
-                'ĐĂNG KÝ',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: AppTypography.black,
-                  letterSpacing: 1.0,
-                  color: AppColors.primary,
-                ),
+          TextButton(
+            onPressed: () => context.go('/register'),
+            child: const Text(
+              'ĐĂNG KÝ',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: AppTypography.black,
+                letterSpacing: 2.0,
+                color: AppColors.primary,
               ),
             ),
           ),
@@ -246,25 +236,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       children: [
         EntryAnimation(
           index: 0,
-          verticalOffset: -20,
+          verticalOffset: -10,
           child: Container(
-            width: 72,
-            height: 72,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: AppColors.primary,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 25,
+                  blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: const Icon(
-              Icons.waves_rounded,
+              Icons.auto_awesome_rounded,
               color: Colors.white,
-              size: 36,
+              size: 32,
             ),
           ),
         ),
@@ -274,24 +264,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Column(
             children: [
               Text(
-                'TORII APP',
+                'Chào mừng trở lại',
                 style: TextStyle(
                   fontFamily: AppTypography.fontFamilySerif,
-                  fontSize: AppTypography.fontSize2xl,
-                  letterSpacing: -1.0,
+                  fontSize: 28,
                   fontWeight: AppTypography.bold,
-                  fontStyle: FontStyle.italic,
+                  letterSpacing: -0.5,
                   color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               Text(
-                'HỆ THỐNG HỌC TẬP THÔNG MINH',
+                'TORII EDUCATIONAL SYSTEM',
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: AppTypography.black,
-                  letterSpacing: 5.0,
-                  color: AppColors.primary.withValues(alpha: 0.5),
+                  letterSpacing: 3.0,
+                  color: AppColors.mutedForeground,
                 ),
               ),
             ],
@@ -305,25 +294,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
+        color: AppColors.destructive.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: AppColors.destructive.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.error_outline_rounded,
-            color: AppColors.error,
-            size: 18,
-          ),
+          const Icon(Icons.error_outline_rounded, color: AppColors.destructive, size: 18),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
               style: const TextStyle(
-                color: AppColors.errorDark,
+                color: AppColors.destructive,
                 fontSize: 12,
-                fontWeight: AppTypography.bold,
+                fontWeight: AppTypography.semiBold,
               ),
             ),
           ),
@@ -336,41 +321,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Column(
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 40,
-              height: 1,
-              color: AppColors.grey300.withValues(alpha: 0.4),
-            ),
+            Expanded(child: Divider(color: AppColors.border.withValues(alpha: 0.5))),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Text(
                 'HOẶC TIẾP TỤC VỚI',
                 style: TextStyle(
-                  fontSize: 8,
+                  fontSize: 9,
                   fontWeight: AppTypography.black,
-                  letterSpacing: 2.0,
-                  color: AppColors.textTertiary,
+                  letterSpacing: 1.5,
+                  color: AppColors.mutedForeground,
                 ),
               ),
             ),
-            Container(
-              width: 40,
-              height: 1,
-              color: AppColors.grey300.withValues(alpha: 0.4),
-            ),
+            Expanded(child: Divider(color: AppColors.border.withValues(alpha: 0.5))),
           ],
         ),
         const SizedBox(height: AppSpacing.xl),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _SocialLoginButton(
-              icon: Icons.g_mobiledata_rounded,
-              onPressed: _loginWithGoogle,
-            ),
-          ],
+        _SocialLoginButton(
+          label: 'Đăng nhập bằng Google',
+          icon: Icons.g_mobiledata_rounded,
+          onPressed: _loginWithGoogle,
         ),
       ],
     );
@@ -378,25 +350,46 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 }
 
 class _SocialLoginButton extends StatelessWidget {
+  final String label;
   final IconData icon;
   final VoidCallback onPressed;
 
-  const _SocialLoginButton({required this.icon, required this.onPressed});
+  const _SocialLoginButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(AppRadius.full),
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.6),
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.3)),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            border: Border.all(color: AppColors.border),
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppColors.textPrimary, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: AppTypography.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
         ),
-        child: Icon(icon, color: AppColors.textPrimary, size: 32),
       ),
     );
   }

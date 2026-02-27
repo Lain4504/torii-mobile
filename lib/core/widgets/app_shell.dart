@@ -32,13 +32,13 @@ class AppShell extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      extendBody: true,
+      // No extendBody as we want a solid bottom bar for block aesthetic
       body: navigationShell,
       bottomNavigationBar: isMeetingActive 
         ? null 
         : _BottomNavBar(
             activeIndex: activeIndex,
-            onTap: (path) => context.go(path),
+            onTap: (index) => navigationShell.goBranch(index),
             isDark: isDark,
             isAuthenticated: isAuthenticated,
           ),
@@ -48,7 +48,7 @@ class AppShell extends ConsumerWidget {
 
 class _BottomNavBar extends StatelessWidget {
   final int activeIndex;
-  final Function(String) onTap;
+  final Function(int) onTap;
   final bool isDark;
   final bool isAuthenticated;
 
@@ -61,118 +61,68 @@ class _BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final items = isAuthenticated ? _authenticatedItems : _guestItems;
+
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        color: theme.navigationBarTheme.backgroundColor,
         border: Border(
           top: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+            color: theme.colorScheme.outline,
             width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
       ),
       child: SafeArea(
-        child: SizedBox(
-          height: 60,
+        child: Container(
+          height: 64, // Refined height
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: isAuthenticated
-                ? [
-                    _NavBarItem(
-                      icon: Icons.home_outlined,
-                      activeIcon: Icons.home_rounded,
-                      label: 'Trang chủ',
-                      isSelected: activeIndex == 0,
-                      onTap: () => onTap('/'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.auto_stories_outlined,
-                      activeIcon: Icons.auto_stories_rounded,
-                      label: 'Học tập',
-                      isSelected: activeIndex == 1,
-                      onTap: () => onTap('/my-learning'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.video_call_outlined,
-                      activeIcon: Icons.video_call_rounded,
-                      label: 'Trực tiếp',
-                      isSelected: activeIndex == 2,
-                      onTap: () => onTap('/live-schedule'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.style_outlined,
-                      activeIcon: Icons.style_rounded,
-                      label: 'Thẻ',
-                      isSelected: activeIndex == 3,
-                      onTap: () => onTap('/flashcards'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.person_outline_rounded,
-                      activeIcon: Icons.person_rounded,
-                      label: 'Cá nhân',
-                      isSelected: activeIndex == 4,
-                      onTap: () => onTap('/settings'),
-                      isDark: isDark,
-                    ),
-                  ]
-                : [
-                    _NavBarItem(
-                      icon: Icons.home_outlined,
-                      activeIcon: Icons.home_rounded,
-                      label: 'Trang chủ',
-                      isSelected: activeIndex == 0,
-                      onTap: () => onTap('/'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.school_outlined,
-                      activeIcon: Icons.school_rounded,
-                      label: 'Khóa học',
-                      isSelected: activeIndex == 1,
-                      onTap: () => onTap('/courses'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.forum_outlined,
-                      activeIcon: Icons.forum_rounded,
-                      label: 'Cộng đồng',
-                      isSelected: activeIndex == 2,
-                      onTap: () => onTap('/community'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.quiz_outlined,
-                      activeIcon: Icons.quiz_rounded,
-                      label: 'Bài thi',
-                      isSelected: activeIndex == 3,
-                      onTap: () => onTap('/exams'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.person_outline_rounded,
-                      activeIcon: Icons.person_rounded,
-                      label: 'Tài khoản',
-                      isSelected: activeIndex == 4,
-                      onTap: () => onTap('/flashcards-preview'),
-                      isDark: isDark,
-                    ),
-                  ],
+            children: List.generate(items.length, (index) {
+              final item = items[index];
+              final isSelected = activeIndex == index;
+              
+              return Expanded(
+                child: _NavBarItem(
+                  icon: item.icon,
+                  activeIcon: item.activeIcon,
+                  label: item.label,
+                  isSelected: isSelected,
+                  onTap: () => onTap(index),
+                  isDark: isDark,
+                ),
+              );
+            }),
           ),
         ),
       ),
     );
   }
+
+  static const _authenticatedItems = [
+    _NavItem(Icons.home_outlined, Icons.home_rounded, 'Trang chủ'),
+    _NavItem(Icons.auto_stories_outlined, Icons.auto_stories_rounded, 'Học tập'),
+    _NavItem(Icons.video_call_outlined, Icons.video_call_rounded, 'Trực tiếp'),
+    _NavItem(Icons.style_outlined, Icons.style_rounded, 'Thẻ thẻ'),
+    _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Cá nhân'),
+  ];
+
+  static const _guestItems = [
+    _NavItem(Icons.home_outlined, Icons.home_rounded, 'Khám phá'),
+    _NavItem(Icons.school_outlined, Icons.school_rounded, 'Khóa học'),
+    _NavItem(Icons.forum_outlined, Icons.forum_rounded, 'Cộng đồng'),
+    _NavItem(Icons.quiz_outlined, Icons.quiz_rounded, 'Bài thi'),
+    _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Tài khoản'),
+  ];
+}
+
+class _NavItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  const _NavItem(this.icon, this.activeIcon, this.label);
 }
 
 class _NavBarItem extends StatelessWidget {
@@ -194,35 +144,48 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final navTheme = theme.navigationBarTheme;
+    
     final color = isSelected
-        ? AppColors.primary
-        : (isDark ? AppColors.textTertiary : AppColors.textSecondary);
+        ? theme.colorScheme.primary
+        : theme.textTheme.bodyMedium?.color ?? Colors.grey;
 
     return InkWell(
       onTap: onTap,
-      customBorder: const CircleBorder(),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              color: isSelected 
+                  ? theme.colorScheme.primary.withValues(alpha: 0.1) 
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
               isSelected ? activeIcon : icon,
               color: color,
               size: 24,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.medium,
             ),
-          ],
-        ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

@@ -199,18 +199,14 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    // If lesson object is provided, use it immediately (has videoUrl from curriculum)
-    // Otherwise, load from API
     final hasInitialLesson = widget.lesson != null && 
                              (widget.lesson!.videoUrl != null || widget.lesson!.articleContent != null);
     
     final state = ref.watch(lessonDetailProvider(widget.lessonId));
-    // Prefer loaded lesson from API (has full details), fallback to initial lesson
     final lesson = state.lesson ?? widget.lesson;
 
-    // Only show loading if we don't have initial lesson and API is loading
     if (state.isLoading && !hasInitialLesson && lesson == null) {
-      return const AppLoadingScreen(text: 'Đang tải bài học...');
+      return const AppLoadingScreen(text: 'Đang chuẩn bị bài học...');
     }
 
     if (state.error != null && lesson == null) {
@@ -225,7 +221,6 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                 const SizedBox(height: 16),
                 Text(
                   state.error!,
-                  style: Theme.of(context).textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -246,9 +241,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
       return const AppLoadingScreen(text: 'Không tìm thấy bài học...');
     }
 
-    // Initialize video if lesson is video type and has videoUrl
     if (lesson.isVideo && lesson.videoUrl != null && lesson.videoUrl!.isNotEmpty) {
-      // Check if we need to initialize or reinitialize video
       final needsInit = _videoController == null || 
                        !_isVideoInitialized ||
                        (_currentVideoUrl != lesson.videoUrl);
@@ -264,23 +257,29 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // App Bar
             SliverAppBar(
               floating: true,
               pinned: true,
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppColors.background,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.textPrimary),
                 onPressed: () => Navigator.pop(context),
               ),
+              title: Text(
+                'Chi tiết bài học',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: AppTypography.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              centerTitle: true,
             ),
 
-            // Video Player (only for video lessons)
             if (lesson.isVideo) _buildVideoPlayer(lesson),
             
-            // Tabs for content, materials, and comments
             _buildTabsContent(lesson),
           ],
         ),
@@ -290,269 +289,164 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
 
   Widget _buildVideoPlayer(Lesson lesson) {
     return SliverToBoxAdapter(
-      child: lesson.videoUrl != null && lesson.videoUrl!.isNotEmpty
-          ? AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                color: Colors.black,
-                child: _isVideoInitialized && _videoController != null
-                    ? GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _showVideoControls = !_showVideoControls;
-                          });
-                          // Auto-hide controls after 3 seconds
-                          if (_showVideoControls) {
-                            Future.delayed(const Duration(seconds: 3), () {
-                              if (mounted && _videoController != null && _videoController!.value.isPlaying) {
-                                setState(() {
-                                  _showVideoControls = false;
-                                });
-                              }
-                            });
-                          }
-                        },
-                        child: Stack(
-                          children: [
-                            // Video Player
-                            VideoPlayer(_videoController!),
-                            
-                            // Controls Overlay
-                            AnimatedOpacity(
-                              opacity: _showVideoControls ? 1.0 : 0.0,
-                              duration: const Duration(milliseconds: 300),
-                              child: Container(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                child: Stack(
-                                  children: [
-                                    // Center Play/Pause Button
-                                    Center(
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: _togglePlayPause,
-                                          borderRadius: BorderRadius.circular(50),
-                                          child: Container(
-                                            width: 80,
-                                            height: 80,
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withValues(alpha: 0.6),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Icon(
-                                              _isVideoPlaying
-                                                  ? Icons.pause
-                                                  : Icons.play_arrow,
-                                              color: Colors.white,
-                                              size: 48,
-                                            ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Container(
+              color: Colors.black,
+              child: _isVideoInitialized && _videoController != null
+                  ? GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _showVideoControls = !_showVideoControls;
+                        });
+                      },
+                      child: Stack(
+                        children: [
+                          VideoPlayer(_videoController!),
+                          
+                          AnimatedOpacity(
+                            opacity: _showVideoControls ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 300),
+                            child: Container(
+                              color: Colors.black.withValues(alpha: 0.4),
+                              child: Stack(
+                                children: [
+                                  Center(
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: _togglePlayPause,
+                                        borderRadius: BorderRadius.circular(50),
+                                        child: Container(
+                                          width: 64,
+                                          height: 64,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.2),
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                                          ),
+                                          child: Icon(
+                                            _isVideoPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                                            color: Colors.white,
+                                            size: 40,
                                           ),
                                         ),
                                       ),
                                     ),
-                                    
-                                    // Bottom Controls Bar
-                                    Positioned(
-                                      bottom: 0,
-                                      left: 0,
-                                      right: 0,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.transparent,
-                                              Colors.black.withValues(alpha: 0.8),
-                                            ],
-                                          ),
+                                  ),
+                                  
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
                                         ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            // Seek Bar
-                                            SliderTheme(
-                                              data: SliderTheme.of(context).copyWith(
-                                                trackHeight: 4,
-                                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                                                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-                                                activeTrackColor: AppColors.primary,
-                                                inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
-                                                thumbColor: AppColors.primary,
-                                                overlayColor: AppColors.primary.withValues(alpha: 0.2),
-                                              ),
-                                              child: Slider(
-                                                value: _videoDuration.inMilliseconds > 0
-                                                    ? _videoPosition.inMilliseconds.toDouble()
-                                                    : 0.0,
-                                                max: _videoDuration.inMilliseconds > 0
-                                                    ? _videoDuration.inMilliseconds.toDouble()
-                                                    : 1.0,
-                                                onChanged: (value) {
-                                                  _seekTo(Duration(milliseconds: value.toInt()));
-                                                },
-                                              ),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SliderTheme(
+                                            data: SliderTheme.of(context).copyWith(
+                                              trackHeight: 3,
+                                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                                              activeTrackColor: AppColors.primary,
+                                              inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
+                                              thumbColor: Colors.white,
                                             ),
-                                            
-                                            // Time and Controls
-                                            Row(
+                                            child: Slider(
+                                              value: _videoDuration.inMilliseconds > 0
+                                                  ? _videoPosition.inMilliseconds.toDouble()
+                                                  : 0.0,
+                                              max: _videoDuration.inMilliseconds > 0
+                                                  ? _videoDuration.inMilliseconds.toDouble()
+                                                  : 1.0,
+                                              onChanged: (value) {
+                                                _seekTo(Duration(milliseconds: value.toInt()));
+                                              },
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                                            child: Row(
                                               children: [
-                                                // Play/Pause Button
-                                                Material(
-                                                  color: Colors.transparent,
-                                                  child: InkWell(
-                                                    onTap: _togglePlayPause,
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.all(8),
-                                                      child: Icon(
-                                                        _isVideoPlaying
-                                                            ? Icons.pause
-                                                            : Icons.play_arrow,
-                                                        color: Colors.white,
-                                                        size: 28,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                
-                                                const SizedBox(width: 12),
-                                                
-                                                // Time Display
                                                 Text(
                                                   '${_formatDuration(_videoPosition)} / ${_formatDuration(_videoDuration)}',
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
+                                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                                                 ),
-                                                
                                                 const Spacer(),
-                                                
-                                                // Fullscreen Button (optional)
-                                                Material(
-                                                  color: Colors.transparent,
-                                                  child: InkWell(
-                                                    onTap: () {
-                                                      // TODO: Implement fullscreen
-                                                    },
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    child: const Padding(
-                                                      padding: EdgeInsets.all(8),
-                                                      child: Icon(
-                                                        Icons.fullscreen,
-                                                        color: Colors.white,
-                                                        size: 24,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
+                                                const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 20),
                                               ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      )
-                    : const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                          ),
+                        ],
                       ),
-              ),
-            )
-          : AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                color: Colors.black,
-                child: const Center(
-                  child: Text(
-                    'Video không khả dụng',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ),
+                    )
+                  : const Center(child: CircularProgressIndicator(color: AppColors.primary)),
             ),
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildTabsContent(Lesson lesson) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Lesson Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppRadius.chip),
-              ),
-              child: Text(
-                'BÀI HỌC ${lesson.order}',
-                style: TextStyle(
-                  fontSize: 8,
-                  fontWeight: AppTypography.black,
-                  color: AppColors.primary,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ),
+            StatusBadge(label: 'BÀI HỌC ${lesson.order}', type: StatusType.info),
             const SizedBox(height: 12),
             Text(
               lesson.title,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: AppTypography.extraBold,
-                letterSpacing: -0.5,
+              style: TextStyle(
+                fontFamily: AppTypography.fontFamilySerif,
+                fontSize: 24,
+                fontWeight: AppTypography.bold,
+                height: 1.2,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 24),
             
-            // Tabs
             TabBar(
               controller: _tabController,
               labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textTertiary,
+              unselectedLabelColor: AppColors.mutedForeground,
               indicatorColor: AppColors.primary,
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: AppTypography.bold,
-                letterSpacing: 1.0,
-              ),
+              indicatorWeight: 3,
+              labelStyle: const TextStyle(fontSize: 12, fontWeight: AppTypography.bold, letterSpacing: 0.5),
               tabs: const [
-                Tab(
-                  icon: Icon(Icons.book_outlined, size: 18),
-                  text: 'Bài học',
-                ),
-                Tab(
-                  icon: Icon(Icons.description_outlined, size: 18),
-                  text: 'Tài liệu',
-                ),
-                Tab(
-                  icon: Icon(Icons.comment_outlined, size: 18),
-                  text: 'Thảo luận',
-                ),
-                Tab(
-                  icon: Icon(Icons.note_alt_outlined, size: 18),
-                  text: 'Ghi chú',
-                ),
+                Tab(text: 'Nội dung'),
+                Tab(text: 'Tài liệu'),
+                Tab(text: 'Thảo luận'),
+                Tab(text: 'Ghi chú'),
               ],
             ),
             const SizedBox(height: 24),
             
-            // Tab Content
             SizedBox(
-              height: 400,
+              height: 500,
               child: TabBarView(
                 controller: _tabController,
                 children: [
@@ -563,7 +457,6 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                 ],
               ),
             ),
-            const SizedBox(height: 120),
           ],
         ),
       ),
@@ -576,287 +469,97 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppSpacing.md),
           if (lesson.isArticle && lesson.articleContent != null && lesson.articleContent!.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(AppRadius.card),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.03),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Html(
-                data: lesson.articleContent!,
-                style: {
-                  "body": Style(
-                    margin: Margins.zero,
-                    padding: HtmlPaddings.zero,
-                    fontSize: FontSize(16),
-                    lineHeight: const LineHeight(1.8),
-                    color: AppColors.textPrimary,
-                    fontFamily: AppTypography.fontFamily,
-                  ),
-                  "p": Style(
-                    margin: Margins.only(bottom: 20),
-                    textAlign: TextAlign.justify,
-                  ),
-                  "h1": Style(
-                    fontSize: FontSize(22),
-                    fontWeight: FontWeight.bold,
-                    margin: Margins.only(top: 24, bottom: 16),
-                    color: AppColors.primary,
-                  ),
-                  "h2": Style(
-                    fontSize: FontSize(18),
-                    fontWeight: FontWeight.bold,
-                    margin: Margins.only(top: 20, bottom: 12),
-                    color: AppColors.primary,
-                  ),
-                  "strong": Style(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  "blockquote": Style(
-                    margin: Margins.only(left: 0, top: 16, bottom: 16),
-                    padding: HtmlPaddings.only(left: 16),
-                    border: Border(left: BorderSide(color: AppColors.primary.withValues(alpha: 0.5), width: 4)),
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.textSecondary,
-                  ),
-                },
-              ),
+            Html(
+              data: lesson.articleContent!,
+              style: {
+                "body": Style(
+                  margin: Margins.zero,
+                  padding: HtmlPaddings.zero,
+                  fontSize: FontSize(15),
+                  lineHeight: const LineHeight(1.7),
+                  color: AppColors.textPrimary,
+                ),
+                "p": Style(margin: Margins.only(bottom: 16)),
+                "h1,h2,h3": Style(
+                  fontWeight: FontWeight.bold,
+                  margin: Margins.only(top: 20, bottom: 8),
+                  color: AppColors.primary,
+                ),
+                "blockquote": Style(
+                  margin: Margins.only(left: 0, top: 16, bottom: 16),
+                  padding: HtmlPaddings.only(left: 16),
+                  border: const Border(left: BorderSide(color: AppColors.primary, width: 3)),
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.mutedForeground,
+                ),
+              },
             )
           else if (lesson.description != null && lesson.description!.isNotEmpty)
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.card),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.02),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: AppColors.secondary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
               ),
               child: Text(
                 lesson.description!,
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.8,
-                  color: AppColors.textSecondary,
-                ),
+                style: const TextStyle(fontSize: 15, height: 1.6, color: AppColors.textPrimary),
               ),
             )
           else
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(40),
-                child: Text('Không có nội dung bài học'),
-              ),
-            ),
+            const EmptyState(message: 'Không có thông tin mô tả cho bài học này'),
         ],
       ),
     );
   }
 
   Widget _buildResourcesTab() {
-    if (_isLoadingMaterials) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_materialsError != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Lỗi khi tải tài liệu',
-              style: TextStyle(color: AppColors.error),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _loadMaterials,
-              child: const Text('Thử lại'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_materials.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.description_outlined,
-              size: 48,
-              color: AppColors.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Chưa có tài liệu',
-              style: TextStyle(
-                color: AppColors.textTertiary,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    if (_isLoadingMaterials) return const Center(child: CircularProgressIndicator());
+    if (_materialsError != null) return Center(child: AppButton(text: 'Thử lại', onPressed: _loadMaterials));
+    if (_materials.isEmpty) return const EmptyState(message: 'Chưa có tài liệu đính kèm', icon: Icons.description_outlined);
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.zero,
       itemCount: _materials.length,
       itemBuilder: (context, index) {
         final material = _materials[index];
         return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () async {
-                final uri = Uri.parse(material.fileUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.grey300.withValues(alpha: 0.2),
-                  ),
-                  color: AppColors.grey100.withValues(alpha: 0.3),
-                ),
-                child: Row(
-                  children: [
-                    // Icon
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppColors.grey300.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Icon(
-                        material.isPdf
-                            ? Icons.picture_as_pdf
-                            : material.isVideo
-                                ? Icons.video_library
-                                : Icons.description,
-                        color: AppColors.primary,
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    // Content
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Tài liệu đi kèm',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: AppTypography.black,
-                              letterSpacing: 3.0,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            material.title ?? 'Tài liệu ${index + 1}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: AppTypography.extraBold,
-                              letterSpacing: -0.5,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Text(
-                                material.fileExtension.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: AppTypography.black,
-                                  letterSpacing: 2.0,
-                                  color: AppColors.textTertiary,
-                                ),
-                              ),
-                              Container(
-                                width: 4,
-                                height: 4,
-                                margin: const EdgeInsets.symmetric(horizontal: 8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.4),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              Text(
-                                material.formattedFileSize,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: AppTypography.black,
-                                  letterSpacing: 2.0,
-                                  color: AppColors.textTertiary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Download Button
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.download,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Tải',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: AppTypography.black,
-                              letterSpacing: 2.0,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.secondary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                material.isPdf ? Icons.picture_as_pdf_rounded : Icons.file_present_rounded,
+                color: AppColors.primary,
+                size: 24,
               ),
             ),
+            title: Text(
+              material.title ?? 'Tài liệu ${index + 1}',
+              style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 14),
+            ),
+            subtitle: Text(
+              material.fileExtension.toUpperCase(),
+              style: const TextStyle(fontSize: 11, color: AppColors.mutedForeground),
+            ),
+            trailing: const Icon(Icons.download_rounded, size: 20, color: AppColors.primary),
+            onTap: () async {
+              final uri = Uri.parse(material.fileUrl);
+              if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+            },
           ),
         );
       },
@@ -864,112 +567,27 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
   }
 
   Widget _buildCommentsTab() {
-    // Comments require postId, which may not be available for lessons
-    // For now, show a placeholder similar to web-learner
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Icon(
-              Icons.comment_outlined,
-              size: 48,
-              color: AppColors.primary.withValues(alpha: 0.3),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Diễn đàn thảo luận',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: AppTypography.black,
-              letterSpacing: 2.0,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Tham gia Trao đổi kiến thức',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: AppTypography.extraBold,
-              letterSpacing: -0.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              'Tương tác với các học viên khác và đội ngũ giảng viên chuyên môn để giải đáp thắc mắc.',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textTertiary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              // TODO: Implement comment functionality when postId is available
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Tính năng đang phát triển')),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Bắt đầu thảo luận'),
-          ),
-        ],
-      ),
-    );
+    return const Center(child: EmptyState(message: 'Tính năng thảo luận đang được cập nhật', icon: Icons.forum_outlined));
   }
 
   Widget _buildNotesTab() {
     return Column(
       children: [
         Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppRadius.card),
-              border: Border.all(color: AppColors.grey200.withValues(alpha: 0.5)),
-            ),
-            child: TextField(
-              controller: _notesController,
-              maxLines: null,
-              expands: true,
-              style: const TextStyle(fontSize: 14, height: 1.6),
-              decoration: const InputDecoration(
-                hintText: 'Nhập ghi chú của bạn cho bài học này...',
-                border: InputBorder.none,
-                hintStyle: TextStyle(color: AppColors.textTertiary),
-              ),
-            ),
+          child: AppTextField(
+            label: 'Ghi chú của bạn',
+            controller: _notesController,
+            hintText: 'Nhập ghi chú tại đây...',
+            icon: Icons.edit_note_rounded,
+            maxLines: 10,
           ),
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            AppButton(
-              text: 'LƯU GHI CHÚ',
-              onPressed: _saveNotes,
-              // size: AppButtonSize.medium,
-            ),
-          ],
+        AppButton(
+          text: 'LƯU GHI CHÚ',
+          onPressed: _saveNotes,
+          isFullWidth: true,
+          icon: Icons.save_rounded,
         ),
       ],
     );

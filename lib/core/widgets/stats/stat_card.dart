@@ -28,9 +28,9 @@ class StatCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     
     final cardBg = backgroundColor ?? 
-        (isDark ? AppColors.surfaceDark : AppColors.surface);
+        (isDark ? AppColors.cardDark : AppColors.card);
     
-    final borderColor = isDark ? AppColors.grey300 : AppColors.grey300;
+    final borderColor = isDark ? Colors.white10 : AppColors.border;
     
     return Material(
       color: Colors.transparent,
@@ -38,7 +38,7 @@ class StatCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.card),
         child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xl),
           decoration: BoxDecoration(
             color: cardBg,
             borderRadius: BorderRadius.circular(AppRadius.card),
@@ -51,21 +51,28 @@ class StatCard extends StatelessWidget {
               if (icon != null) ...[
                 Icon(
                   icon,
-                  size: AppIconSize.sm,
+                  size: 20,
                   color: iconColor ?? AppColors.primary,
                 ),
-                const SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.md),
               ],
               Text(
                 value,
                 style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: AppTypography.bold,
+                  fontWeight: AppTypography.black,
+                  fontSize: 24,
+                  letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: AppSpacing.xxs),
+              const SizedBox(height: 4),
               Text(
-                label,
-                style: theme.textTheme.bodySmall,
+                label.toUpperCase(),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.mutedForeground,
+                  fontWeight: AppTypography.black,
+                  fontSize: 8,
+                  letterSpacing: 1.5,
+                ),
               ),
             ],
           ),
@@ -99,21 +106,23 @@ class StatRow extends StatelessWidget {
         if (icon != null) ...[
           Icon(
             icon,
-            size: AppIconSize.sm,
-            color: iconColor ?? AppColors.textSecondary,
+            size: 16,
+            color: iconColor ?? AppColors.mutedForeground,
           ),
           const SizedBox(width: AppSpacing.sm),
         ],
         Expanded(
           child: Text(
             label,
-            style: theme.textTheme.bodyMedium,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: AppColors.mutedForeground,
+            ),
           ),
         ),
         Text(
           value,
           style: theme.textTheme.bodyLarge?.copyWith(
-            fontWeight: AppTypography.semiBold,
+            fontWeight: AppTypography.bold,
           ),
         ),
       ],

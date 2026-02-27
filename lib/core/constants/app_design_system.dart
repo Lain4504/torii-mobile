@@ -12,100 +12,77 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary - Cyan/Teal (from Web: oklch(0.75 0.12 195))
-  static const Color primary = Color(0xFF2BC5C5);
-  static const Color primaryLight = Color(0xFF4EDCDC); // Estimated lighter
-  static const Color primaryDark = Color(0xFF00A5A5); // Dark mode primary
-  static const Color primarySurface = Color(0xFFEDF7F7); // Secondary/Accent from web
+  // Core Palette (Mapped from Web OKLCH)
+  // Primary: oklch(0.59 0.14 242) -> Vibrant Blue
+  static const Color primary = Color(0xFF3B82F6);
+  static const Color primaryForeground = Color(0xFFF8FAFC);
   
-  // Secondary / Accent (from Web: oklch(0.97 0.01 195))
-  static const Color accent = Color(0xFFEDF7F7);
-  static const Color accentLight = Color(0xFFF4FBFB);
-  static const Color accentDark = Color(0xFF2A807F); // Secondary foreground
-  static const Color accentSurface = Color(0xFFF6F8FB);
+  // Secondary / Accent: oklch(0.967 0.001 286.375) -> Stone/Slate Ultra Light
+  static const Color secondary = Color(0xFFF5F5F4);
+  static const Color secondaryForeground = Color(0xFF1C1917);
   
-  // Detail / Muted (from Web: oklch(0.97 0 0))
-  static const Color detail = Color(0xFFF4F4F4);
-  static const Color detailLight = Color(0xFFFAFAFA);
-  static const Color detailSurface = Color(0xFFF4F4F4);
+  static const Color muted = Color(0xFFF5F5F4);
+  static const Color mutedForeground = Color(0xFF78716C);
   
-  // Semantic Colors
-  static const Color success = Color(0xFF2BC5C5); // Using primary for success/brand
-  static const Color successLight = Color(0xFFEDF7F7);
-  static const Color successDark = Color(0xFF00A5A5);
-  
-  static const Color error = Color(0xFFE8565F); // Destructive
-  static const Color errorLight = Color(0xFFFEECEE);
-  static const Color errorDark = Color(0xFFB8463B);
-  
-  static const Color warning = Color(0xFFD4A373); // Kept from original for now
-  static const Color warningLight = Color(0xFFFAF3EB);
-  static const Color warningDark = Color(0xFF9E7A56);
-  
-  static const Color info = Color(0xFF2BC5C5);
-  static const Color infoLight = Color(0xFFEDF7F7);
-  static const Color infoDark = Color(0xFF00A5A5);
+  static const Color accent = Color(0xFFF5F5F4);
+  static const Color accentForeground = Color(0xFF1C1917);
 
-  // Neutral
+  // Semantic
+  static const Color destructive = Color(0xFFEF4444);
+  static const Color destructiveForeground = Color(0xFFF8FAFC);
+  
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color info = Color(0xFF3B82F6);
+
+  // Neutral / Backgrounds
+  static const Color background = Color(0xFFFFFFFF);
+  static const Color foreground = Color(0xFF1C1917);
+  static const Color card = Color(0xFFFFFFFF);
+  static const Color cardForeground = Color(0xFF1C1917);
+  static const Color popover = Color(0xFFFFFFFF);
+  static const Color popoverForeground = Color(0xFF1C1917);
+  
+  // Borders & Inputs
+  static const Color border = Color(0xFFE7E5E4); // oklch(0.92 0.004 286.32)
+  static const Color input = Color(0xFFE7E5E4);
+  static const Color ring = Color(0xFFD6D3D1);
+
+  // Dark Mode (approximate mapping from .dark in globals.css)
+  static const Color backgroundDark = Color(0xFF1C1917);
+  static const Color foregroundDark = Color(0xFFF5F5F4);
+  static const Color cardDark = Color(0xFF292524);
+  static const Color primaryDark = Color(0xFF60A5FA);
+
+  // Legacy mappings for compatibility during transition
   static const Color white = Color(0xFFFFFFFF);
-  static const Color black = Color(0xFF0E141C); // Foreground
-  
-  // Grey Scale (Mapped from Web borders/inputs)
-  static const Color grey50 = Color(0xFFF6F8FB); // Background
-  static const Color grey100 = Color(0xFFF1F1F1); // Input
-  static const Color grey200 = Color(0xFFDEDDDD); // Border
-  static const Color grey300 = Color(0xFFDEDDDD);
-  static const Color grey400 = Color(0xFFA0A8B4); // Dark Foreground
-  static const Color grey500 = Color(0xFF6E7177); // Muted Foreground
-  static const Color grey600 = Color(0xFF596374);
-  static const Color grey700 = Color(0xFF313A4A); // Dark Border
-  static const Color grey800 = Color(0xFF191F28); // Dark Input
-  static const Color grey900 = Color(0xFF0E141C); // Dark Card
+  static const Color black = Color(0xFF000000);
+  static const Color grey50 = Color(0xFFF9FAFB);
+  static const Color grey100 = Color(0xFFF3F4F6);
+  static const Color grey200 = Color(0xFFE5E7EB);
+  static const Color grey300 = Color(0xFFD1D5DB);
+  static const Color grey400 = Color(0xFF9CA3AF);
+  static const Color grey500 = Color(0xFF6B7280);
+  static const Color grey600 = Color(0xFF4B5563);
+  static const Color grey700 = Color(0xFF374151);
+  static const Color grey800 = Color(0xFF1F2937);
+  static const Color grey900 = Color(0xFF111827);
 
-  // Light Mode Backgrounds
-  static const Color background = Color(0xFFF6F8FB); 
-  static const Color surface = Color(0xFFFFFFFF); // Card
-  static const Color surfaceVariant = Color(0xFFEDF7F7);
-  static const Color surfaceElevated = Color(0xFFFFFFFF);
+  // Semantic Aliases
+  static const Color textPrimary = foreground;
+  static const Color textSecondary = mutedForeground;
+  static const Color textTertiary = Color(0xFFA8A29E);
+  static const Color textOnPrimary = primaryForeground;
 
-  // Light Mode Text
-  static const Color textPrimary = Color(0xFF0E141C); // Foreground
-  static const Color textSecondary = Color(0xFF6E7177); // Muted Foreground
-  static const Color textTertiary = Color(0xFFA0A8B4);
-  static const Color textOnPrimary = Color(0xFFFFFFFF);
-  static const Color textOnAccent = Color(0xFF2A807F); // Secondary Foreground
-
-  // Dark Mode Backgrounds
-  static const Color backgroundDark = Color(0xFF191F28);
-  static const Color surfaceDark = Color(0xFF0E141C); // Card Dark
-  static const Color surfaceVariantDark = Color(0xFF252E3D); // Muted Dark
-  static const Color surfaceElevatedDark = Color(0xFF192130); // Secondary Dark
-
-  // Dark Mode Text
-  static const Color textPrimaryDark = Color(0xFFA0A8B4); // Foreground Dark
-  static const Color textSecondaryDark = Color(0xFF596374); // Muted Foreground Dark
-  static const Color textTertiaryDark = Color(0xFF596374);
-
-  // Borders
-  static const Color borderLight = Color(0xFFDEDDDD);
-  static const Color borderDark = Color(0xFF313A4A);
+  static const Color surface = card;
+  static const Color surfaceVariant = secondary;
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF2BC5C5), Color(0xFF4EDCDC)],
+    colors: [primary, Color(0xFF60A5FA)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-  
-  static const LinearGradient zenGradient = LinearGradient(
-    colors: [Color(0xFFF6F8FB), Color(0xFFFFFFFF)],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-  );
-
-  // Glass Effects
-  static Color glassLight = white.withValues(alpha: 0.8);
-  static Color glassDark = Color(0xFF0E141C).withValues(alpha: 0.8);
 }
 
 // ============================================================================
@@ -133,7 +110,7 @@ class AppSpacing {
 }
 
 // ============================================================================
-// BORDER RADIUS - Extra Rounded Zen Style
+// BORDER RADIUS - Shadcn Style
 // ============================================================================
 
 class AppRadius {
@@ -141,19 +118,18 @@ class AppRadius {
   
   static const double xs = 2.0;
   static const double sm = 4.0;
-  static const double md = 8.0;
-  static const double lg = 12.0;
-  static const double xl = 16.0;
-  static const double xxl = 24.0;
-  static const double xxxl = 32.0;
+  static const double md = 6.0;
+  static const double lg = 10.0; // Matches --radius: 0.625rem (10px)
+  static const double xl = 14.0;
+  static const double xxl = 18.0;
+  static const double xxxl = 22.0;
   static const double full = 9999.0;
   
   // Semantic
-  static const double card = 16.0; // Reduced from 32 for block style
-  static const double button = 12.0;
-  static const double input = 12.0;
+  static const double card = 10.0; 
+  static const double button = 10.0;
+  static const double input = 10.0;
   static const double chip = 9999.0;
-
 }
 
 // ============================================================================

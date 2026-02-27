@@ -38,7 +38,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: AppBackground(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -124,10 +124,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             height: 44,
             decoration: BoxDecoration(
               color: AppColors.primary,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -362,10 +362,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: AppElevation.cardShadow,
-          border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+          border: Border.all(color: AppColors.border),
         ),
 
         child: ClipRRect(
@@ -679,7 +678,11 @@ class _HeaderIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(right: AppSpacing.sm),
-      decoration: BoxDecoration(color: AppColors.surface, shape: BoxShape.circle, border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8))),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.border),
+      ),
 
       child: IconButton(icon: Icon(icon, size: 20, color: AppColors.textPrimary), onPressed: onPressed),
     );
@@ -706,10 +709,9 @@ class _QuickActionTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.xl),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(AppRadius.card),
-            border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
-            boxShadow: AppElevation.softShadow,
+            border: Border.all(color: AppColors.border),
           ),
 
           child: Column(

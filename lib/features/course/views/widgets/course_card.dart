@@ -18,20 +18,13 @@ class CourseCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.card),
       child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.03),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-            ),
-          ],
-          border: Border.all(
-            color: AppColors.grey300.withValues(alpha: 0.3),
-            width: 1.0,
-          ),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        border: Border.all(
+          color: AppColors.border,
+          width: 1.0,
         ),
+      ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -88,27 +81,27 @@ class CourseCard extends StatelessWidget {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                              ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.1),
                             ),
-                            child: CircleAvatar(
-                              radius: 12,
-                              backgroundColor: AppColors.primarySurface,
-                              backgroundImage:
-                                  course.instructorAvatarUrl.isNotEmpty
-                                  ? NetworkImage(course.instructorAvatarUrl)
-                                  : null,
-                              child: course.instructorAvatarUrl.isEmpty
-                                  ? const Icon(
-                                      Icons.person_rounded,
-                                      size: 14,
-                                      color: AppColors.primary,
-                                    )
-                                  : null,
-                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: AppColors.secondary,
+                            backgroundImage:
+                                course.instructorAvatarUrl.isNotEmpty
+                                ? NetworkImage(course.instructorAvatarUrl)
+                                : null,
+                            child: course.instructorAvatarUrl.isEmpty
+                                ? const Icon(
+                                    Icons.person_rounded,
+                                    size: 14,
+                                    color: AppColors.primary,
+                                  )
+                                : null,
+                          ),
                           ),
                           const SizedBox(width: AppSpacing.sm),
                           Expanded(
@@ -154,10 +147,10 @@ class CourseCard extends StatelessWidget {
                           // Bold Price
                           Text(
                             course.priceLabel,
-                            style: theme.textTheme.titleLarge?.copyWith(
+                            style: theme.textTheme.titleMedium?.copyWith(
                               color: AppColors.primary,
                               fontWeight: AppTypography.black,
-                              fontSize: 20,
+                              fontSize: 18,
                             ),
                           ),
                         ],
@@ -225,13 +218,6 @@ class CourseCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.success,
                   borderRadius: BorderRadius.circular(AppRadius.full),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.success.withValues(alpha: 0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -276,7 +262,7 @@ class CourseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: (isUrgent ? const Color(0xFFE63946) : AppColors.textTertiary)
+        color: (isUrgent ? const Color(0xFFE63946) : AppColors.mutedForeground)
             .withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
@@ -302,24 +288,23 @@ class CourseCard extends StatelessWidget {
 
   Widget _buildPlaceholder(bool isDark) {
     return Container(
-      color: isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
+      color: theme.brightness == Brightness.dark ? AppColors.secondary : AppColors.secondary,
       child: Center(
         child: Icon(
           Icons.landscape_rounded,
           size: 48,
-          color: isDark ? AppColors.grey600 : AppColors.grey300,
+          color: theme.brightness == Brightness.dark ? Colors.white24 : Colors.black12,
         ),
       ),
     );
   }
 
-  Widget _buildMetadata(ThemeData theme) {
     return Row(
       children: [
         // Level Tag
         _buildTag(
           text: course.levelLabel,
-          backgroundColor: AppColors.primarySurface,
+          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
           textColor: AppColors.primary,
         ),
         const SizedBox(width: AppSpacing.sm),
@@ -328,11 +313,11 @@ class CourseCard extends StatelessWidget {
         _buildTag(
           text: course.typeLabel.toUpperCase(),
           backgroundColor: course.type == CourseType.liveClass
-              ? AppColors.detailSurface
-              : AppColors.grey50,
+              ? AppColors.detail.withValues(alpha: 0.1)
+              : AppColors.secondary,
           textColor: course.type == CourseType.liveClass
               ? AppColors.detail
-              : AppColors.textSecondary,
+              : AppColors.mutedForeground,
         ),
       ],
     );
@@ -344,11 +329,10 @@ class CourseCard extends StatelessWidget {
     required Color textColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: backgroundColor.withValues(alpha: 0.8),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: backgroundColor.withValues(alpha: 0.2)),
       ),
       child: Text(
         text.toUpperCase(),
@@ -356,7 +340,7 @@ class CourseCard extends StatelessWidget {
           color: textColor,
           fontSize: 8,
           fontWeight: AppTypography.black,
-          letterSpacing: 2.5,
+          letterSpacing: 2.0,
         ),
       ),
     );

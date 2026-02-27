@@ -52,42 +52,42 @@ class AppButton extends StatelessWidget {
 
     switch (type) {
       case AppButtonType.primary:
-        bgGradient = !disabled ? AppColors.primaryGradient : null;
-        bgColor = disabled ? AppColors.grey300 : null;
-        textColor = Colors.white;
+        bgColor = AppColors.primary;
+        textColor = AppColors.primaryForeground;
+        // Subtle shadcn-like shadow
         shadows = !disabled
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.35),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ]
             : null;
         break;
       case AppButtonType.secondary:
-        bgColor = Colors.transparent;
+        bgColor = AppColors.secondary;
+        textColor = AppColors.secondaryForeground;
         border = Border.all(
-          color: AppColors.primary.withValues(alpha: 0.5),
-          width: 1.5,
+          color: AppColors.border,
+          width: 1,
         );
-        textColor = AppColors.primary;
         break;
       case AppButtonType.ghost:
         bgColor = Colors.transparent;
-        textColor = AppColors.textSecondary; // Ghost usually subtle
+        textColor = AppColors.mutedForeground;
         break;
       case AppButtonType.outline:
         bgColor = Colors.transparent;
         border = Border.all(
-          color: disabled ? AppColors.grey300 : AppColors.primary,
+          color: disabled ? AppColors.border : AppColors.primary,
           width: 1.5,
         );
-        textColor = disabled ? AppColors.grey300 : AppColors.primary;
+        textColor = disabled ? AppColors.mutedForeground : AppColors.primary;
         break;
       case AppButtonType.disabled:
-        bgColor = AppColors.grey300;
-        textColor = AppColors.grey500;
+        bgColor = AppColors.secondary;
+        textColor = AppColors.mutedForeground;
         break;
     }
 
@@ -137,12 +137,11 @@ class AppButton extends StatelessWidget {
                     const SizedBox(width: 12),
                   ],
                   Text(
-                    text.toUpperCase(),
+                    text,
                     style: TextStyle(
                       color: textColor,
-                      fontWeight: AppTypography.black,
-                      fontSize: fontSize ?? 13,
-                      letterSpacing: 2.0,
+                      fontWeight: AppTypography.bold,
+                      fontSize: fontSize ?? (size == AppButtonSize.small ? 13 : 15),
                     ),
                   ),
                 ],

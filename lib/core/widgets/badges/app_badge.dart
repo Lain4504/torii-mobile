@@ -29,17 +29,17 @@ class AppBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    final bgColor = color ?? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant);
-    final fgColor = textColor ?? (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary);
+    final bgColor = color ?? (isDark ? Colors.white10 : AppColors.secondary);
+    final fgColor = textColor ?? (isDark ? AppColors.mutedForeground : AppColors.mutedForeground);
     
     return Container(
       padding: padding ?? const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
+        horizontal: 10,
+        vertical: 4,
       ),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(AppRadius.xs),
+        borderRadius: BorderRadius.circular(AppRadius.full),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -49,11 +49,12 @@ class AppBadge extends StatelessWidget {
             const SizedBox(width: 4),
           ],
           Text(
-            label,
+            label.toUpperCase(),
             style: TextStyle(
               color: fgColor,
-              fontSize: fontSize ?? AppTypography.fontSizeXs,
-              fontWeight: fontWeight ?? AppTypography.semiBold,
+              fontSize: fontSize ?? 8,
+              fontWeight: fontWeight ?? AppTypography.black,
+              letterSpacing: 1.5,
               height: 1,
             ),
           ),
@@ -81,24 +82,24 @@ class StatusBadge extends StatelessWidget {
     
     switch (status) {
       case StatusType.success:
-        bgColor = AppColors.successLight;
-        fgColor = AppColors.successDark;
+        bgColor = AppColors.success.withValues(alpha: 0.1);
+        fgColor = AppColors.success;
         break;
       case StatusType.warning:
-        bgColor = AppColors.warningLight;
-        fgColor = AppColors.warningDark;
+        bgColor = const Color(0xFFF59E0B).withValues(alpha: 0.1);
+        fgColor = const Color(0xFFD97706);
         break;
       case StatusType.error:
-        bgColor = AppColors.errorLight;
-        fgColor = AppColors.errorDark;
+        bgColor = AppColors.destructive.withValues(alpha: 0.1);
+        fgColor = AppColors.destructive;
         break;
       case StatusType.info:
-        bgColor = AppColors.infoLight;
-        fgColor = AppColors.infoDark;
+        bgColor = AppColors.primary.withValues(alpha: 0.1);
+        fgColor = AppColors.primary;
         break;
       case StatusType.neutral:
-        bgColor = AppColors.surfaceVariant;
-        fgColor = AppColors.textSecondary;
+        bgColor = AppColors.secondary;
+        fgColor = AppColors.mutedForeground;
         break;
     }
     
@@ -128,7 +129,7 @@ class LevelBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppBadge(
       label: level,
-      color: AppColors.primarySurface,
+      color: AppColors.primary.withValues(alpha: 0.1),
       textColor: AppColors.primary,
     );
   }

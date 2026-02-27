@@ -29,9 +29,9 @@ class MinimalCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     
     final cardBackground = backgroundColor ?? 
-        (isDark ? AppColors.surfaceDark : AppColors.surface);
+        (isDark ? AppColors.cardDark : AppColors.card);
     
-    final borderColor = isDark ? AppColors.grey300 : AppColors.grey300;
+    final borderColor = isDark ? Colors.white10 : AppColors.border;
     
     return Material(
       color: Colors.transparent,
@@ -53,8 +53,6 @@ class MinimalCard extends StatelessWidget {
 }
 
 /// Elevated Card - For emphasized content
-/// 
-/// Use for content that needs visual prominence.
 class ElevatedCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -77,7 +75,7 @@ class ElevatedCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     
     final cardBackground = backgroundColor ?? 
-        (isDark ? AppColors.surfaceDark : AppColors.surface);
+        (isDark ? AppColors.cardDark : AppColors.card);
     
     return Material(
       color: Colors.transparent,
@@ -89,9 +87,13 @@ class ElevatedCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: cardBackground,
             borderRadius: borderRadius ?? BorderRadius.circular(AppRadius.card),
-            boxShadow: isDark 
-                ? AppElevation.darkSoftShadow 
-                : AppElevation.cardShadow,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: child,
         ),
@@ -101,8 +103,6 @@ class ElevatedCard extends StatelessWidget {
 }
 
 /// Accent Card - For highlighted or featured content
-/// 
-/// Use sparingly for content that needs to stand out.
 class AccentCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -126,8 +126,8 @@ class AccentCard extends StatelessWidget {
     
     final accent = accentColor ?? AppColors.primary;
     final cardBackground = isDark 
-        ? AppColors.surfaceVariantDark 
-        : AppColors.primarySurface;
+        ? AppColors.cardDark.withValues(alpha: 0.5) 
+        : AppColors.secondary;
     
     return Material(
       color: Colors.transparent,
@@ -140,7 +140,7 @@ class AccentCard extends StatelessWidget {
             color: cardBackground,
             borderRadius: borderRadius ?? BorderRadius.circular(AppRadius.card),
             border: Border.all(
-              color: accent.withValues(alpha: 0.3),
+              color: accent.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
@@ -152,8 +152,6 @@ class AccentCard extends StatelessWidget {
 }
 
 /// Interactive Card - Press animation with feedback
-/// 
-/// For cards that are primary touch targets.
 class InteractiveCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -205,9 +203,9 @@ class _InteractiveCardState extends State<InteractiveCard>
     final isDark = theme.brightness == Brightness.dark;
     
     final cardBackground = widget.backgroundColor ?? 
-        (isDark ? AppColors.surfaceDark : AppColors.surface);
+        (isDark ? AppColors.cardDark : AppColors.card);
     
-    final borderColor = isDark ? AppColors.grey300 : AppColors.grey300;
+    final borderColor = isDark ? Colors.white10 : AppColors.border;
     
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
@@ -229,9 +227,13 @@ class _InteractiveCardState extends State<InteractiveCard>
                 border: widget.showBorder 
                     ? Border.all(color: borderColor, width: 1) 
                     : null,
-                boxShadow: isDark 
-                    ? AppElevation.darkSoftShadow 
-                    : AppElevation.softShadow,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: widget.child,
             ),

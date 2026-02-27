@@ -30,7 +30,7 @@ class ProgressBar extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     
     final bgColor = backgroundColor ?? 
-        (isDark ? AppColors.surfaceVariantDark : AppColors.grey200);
+        (isDark ? Colors.white10 : AppColors.secondary);
     final fgColor = progressColor ?? AppColors.primary;
     final radius = borderRadius ?? BorderRadius.circular(height / 2);
     
@@ -74,12 +74,16 @@ class ProgressBar extends StatelessWidget {
               if (label != null)
                 Text(
                   label!,
-                  style: theme.textTheme.bodySmall,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.mutedForeground,
+                    fontWeight: AppTypography.medium,
+                  ),
                 ),
               Text(
                 '${(progress * 100).round()}%',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  fontWeight: AppTypography.medium,
+                  color: AppColors.primary,
+                  fontWeight: AppTypography.bold,
                 ),
               ),
             ],
@@ -119,7 +123,7 @@ class CircularProgress extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     
     final bgColor = backgroundColor ?? 
-        (isDark ? AppColors.surfaceVariantDark : AppColors.grey200);
+        (isDark ? Colors.white10 : AppColors.secondary);
     final fgColor = progressColor ?? AppColors.primary;
     
     return SizedBox(
