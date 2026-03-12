@@ -12,68 +12,77 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary - Cyan/Teal (from Web: oklch(0.75 0.12 195))
-  static const Color primary = Color(0xFF2BC5C5);
-  static const Color primaryLight = Color(0xFF4EDCDC); // Estimated lighter
-  static const Color primaryDark = Color(0xFF00A5A5); // Dark mode primary
-  static const Color primarySurface = Color(0xFFEDF7F7); // Secondary/Accent from web
+  // Primary - Blue (#5D81BB)
+  static const Color primary = Color(0xFF5D81BB);
+  static const Color primaryLight = Color(0xFF8BA5CF);
+  static const Color primaryDark = Color(0xFF1F3E72); 
+  static const Color primarySurface = Color(0xFFE8EEF7);
   
-  // Secondary / Accent (from Web: oklch(0.97 0.01 195))
-  static const Color accent = Color(0xFFEDF7F7);
-  static const Color accentLight = Color(0xFFF4FBFB);
-  static const Color accentDark = Color(0xFF2A807F); // Secondary foreground
-  static const Color accentSurface = Color(0xFFF6F8FB);
+  // Secondary - Deep Blue (#1F3E72)
+  static const Color secondary = Color(0xFF1F3E72);
+  static const Color secondaryLight = Color(0xFF4A6899);
+  static const Color secondaryDark = Color(0xFF132747);
+  static const Color deepBlue = Color(0xFF1F3E72);
   
-  // Detail / Muted (from Web: oklch(0.97 0 0))
-  static const Color detail = Color(0xFFF4F4F4);
-  static const Color detailLight = Color(0xFFFAFAFA);
-  static const Color detailSurface = Color(0xFFF4F4F4);
+  // Success - Green (#87C744)
+  static const Color success = Color(0xFF87C744);
+  static const Color successLight = Color(0xFFEBF6E1);
+  static const Color successDark = Color(0xFF6DA336);
+  
+  // Accent - Teal (#02A190)
+  static const Color accent = Color(0xFF02A190);
+  static const Color accentLight = Color(0xFFE6F6F4);
+  static const Color accentDark = Color(0xFF018073);
+  static const Color accentSurface = Color(0xFFF1F8F7);
   
   // Semantic Colors
-  static const Color success = Color(0xFF2BC5C5); // Using primary for success/brand
-  static const Color successLight = Color(0xFFEDF7F7);
-  static const Color successDark = Color(0xFF00A5A5);
-  
-  static const Color error = Color(0xFFE8565F); // Destructive
+  static const Color error = Color(0xFFE8565F);
   static const Color errorLight = Color(0xFFFEECEE);
   static const Color errorDark = Color(0xFFB8463B);
   
-  static const Color warning = Color(0xFFD4A373); // Kept from original for now
+  static const Color warning = Color(0xFFD4A373);
   static const Color warningLight = Color(0xFFFAF3EB);
   static const Color warningDark = Color(0xFF9E7A56);
   
-  static const Color info = Color(0xFF2BC5C5);
-  static const Color infoLight = Color(0xFFEDF7F7);
-  static const Color infoDark = Color(0xFF00A5A5);
+  static const Color info = Color(0xFF5E82BB);
+  static const Color infoLight = Color(0xFFE8EEF7);
+  static const Color infoDark = Color(0xFF1F3E72);
+  static const Color infoSurface = Color(0xFFE8EEF7);
+  
+  // Custom Semantic Tags
+  static const Color detail = Color(0xFF7D58A1); // Purple for live/detail tags
+  static const Color detailSurface = Color(0xFFF3E8FF);
+  static const Color detailDark = Color(0xFF5B4178);
 
   // Neutral
   static const Color white = Color(0xFFFFFFFF);
-  static const Color black = Color(0xFF0E141C); // Foreground
+  static const Color black = Color(0xFF1F3E72); // Using deep blue for text instead of pure black
   
-  // Grey Scale (Mapped from Web borders/inputs)
-  static const Color grey50 = Color(0xFFF6F8FB); // Background
-  static const Color grey100 = Color(0xFFF1F1F1); // Input
-  static const Color grey200 = Color(0xFFDEDDDD); // Border
-  static const Color grey300 = Color(0xFFDEDDDD);
-  static const Color grey400 = Color(0xFFA0A8B4); // Dark Foreground
-  static const Color grey500 = Color(0xFF6E7177); // Muted Foreground
-  static const Color grey600 = Color(0xFF596374);
-  static const Color grey700 = Color(0xFF313A4A); // Dark Border
-  static const Color grey800 = Color(0xFF191F28); // Dark Input
-  static const Color grey900 = Color(0xFF0E141C); // Dark Card
+  // Grey Scale
+  static const Color grey50 = Color(0xFFF8F9FA);
+  static const Color grey100 = Color(0xFFF1F3F5);
+  static const Color grey200 = Color(0xFFE9ECEF);
+  static const Color grey300 = Color(0xFFDEE2E6);
+  static const Color grey400 = Color(0xFFCED4DA);
+  static const Color grey500 = Color(0xFFADB5BD);
+  static const Color grey600 = Color(0xFF868E96);
+  static const Color grey700 = Color(0xFF495057);
+  static const Color grey800 = Color(0xFF343A40);
+  static const Color grey900 = Color(0xFF212529);
 
-  // Light Mode Backgrounds
-  static const Color background = Color(0xFFF6F8FB); 
-  static const Color surface = Color(0xFFFFFFFF); // Card
-  static const Color surfaceVariant = Color(0xFFEDF7F7);
+  // Backgrounds
+  static const Color background = Color(0xFFF6F7F7); 
+  static const Color backgroundLight = Color(0xFFF6F7F7); 
+  static const Color surface = Color(0xFFFFFFFF);
+  static const Color surfaceVariant = Color(0xFFE8EEF7);
   static const Color surfaceElevated = Color(0xFFFFFFFF);
 
-  // Light Mode Text
-  static const Color textPrimary = Color(0xFF0E141C); // Foreground
-  static const Color textSecondary = Color(0xFF6E7177); // Muted Foreground
-  static const Color textTertiary = Color(0xFFA0A8B4);
+  // Text
+  static const Color textPrimary = Color(0xFF1F3E72); // Deep blue
+  static const Color textSecondary = Color(0xFF5E82BB); // Medium blue
+  static const Color textTertiary = Color(0xFFADB5BD); // Grey
   static const Color textOnPrimary = Color(0xFFFFFFFF);
-  static const Color textOnAccent = Color(0xFF2A807F); // Secondary Foreground
+  static const Color textOnAccent = Color(0xFFFFFFFF);
 
   // Dark Mode Backgrounds
   static const Color backgroundDark = Color(0xFF191F28);
