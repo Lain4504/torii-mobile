@@ -122,7 +122,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.person_rounded,
                       label: 'Cá nhân',
                       isSelected: activeIndex == 4,
-                      onTap: () => onTap('/settings'),
+                      onTap: () => onTap('/profile'),
                       isDark: isDark,
                     ),
                   ]
@@ -164,7 +164,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.person_rounded,
                       label: 'Tài khoản',
                       isSelected: activeIndex == 4,
-                      onTap: () => onTap('/flashcards-preview'),
+                      onTap: () => onTap('/profile'),
                       isDark: isDark,
                     ),
                   ],

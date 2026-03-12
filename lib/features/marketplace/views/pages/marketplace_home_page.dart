@@ -277,6 +277,54 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                 ),
               ),
 
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
+
+              // ----------------------------------------------------------------------
+              // Section 4.5: Latest from Blog
+              // ----------------------------------------------------------------------
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildSectionHeader('Blog Nhật ngữ'),
+                          TextButton(
+                            onPressed: () => context.push('/blog'),
+                            child: const Text('Xem tất cả', style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildBlogMiniCard(
+                              'https://picsum.photos/seed/blog1/400/250',
+                              'Lịch thi JLPT 2024 mới nhất',
+                              'Admin',
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            _buildBlogMiniCard(
+                              'https://picsum.photos/seed/blog2/400/250',
+                              'Cách nhớ 100 chữ Hán trong 1 ngày',
+                              'Sensei Hiro',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
 
               // ----------------------------------------------------------------------
@@ -508,6 +556,53 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxxl)),
             ],
           ),
+        ),
+      ),
+    );
+  }
+  Widget _buildBlogMiniCard(String imageUrl, String title, String author) {
+    return GestureDetector(
+      onTap: () => context.push('/blog/detail'),
+      child: Container(
+        width: 220,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.network(
+              imageUrl,
+              height: 100,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: AppTypography.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    author,
+                    style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

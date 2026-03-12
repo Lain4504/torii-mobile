@@ -107,7 +107,7 @@ class ProfilePage extends ConsumerWidget {
                   _buildMenuItem('Achievements', Icons.military_tech_rounded, () => context.push('/achievements')),
                   _buildMenuItem('Certificates', Icons.workspace_premium_rounded, () => {}),
                   _buildMenuItem('Payment History', Icons.receipt_long_rounded, () => context.push('/payment/history')),
-                  _buildMenuItem('Settings', Icons.settings_rounded, () => context.push('/settings')),
+                  _buildMenuItem('Settings', Icons.settings_rounded, () => context.push('/profile/settings')),
                   const SizedBox(height: AppSpacing.lg),
                   _buildMenuItem('Logout', Icons.logout_rounded, () => {}, isDestructive: true),
                 ]),
