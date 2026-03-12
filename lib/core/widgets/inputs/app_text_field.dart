@@ -13,6 +13,7 @@ class AppTextField extends StatelessWidget {
   final TextInputAction textInputAction;
   final String? Function(String?)? validator;
   final void Function(String)? onSubmitted;
+  final void Function(String)? onChanged;
   final bool enabled;
   final bool readOnly;
   final int maxLines;
@@ -30,6 +31,7 @@ class AppTextField extends StatelessWidget {
     this.textInputAction = TextInputAction.next,
     this.validator,
     this.onSubmitted,
+    this.onChanged,
     this.enabled = true,
     this.readOnly = false,
     this.maxLines = 1,
@@ -67,6 +69,7 @@ class AppTextField extends StatelessWidget {
               keyboardType: keyboardType,
               textInputAction: textInputAction,
               onFieldSubmitted: onSubmitted,
+              onChanged: onChanged,
               enabled: enabled,
               readOnly: readOnly,
               style: const TextStyle(

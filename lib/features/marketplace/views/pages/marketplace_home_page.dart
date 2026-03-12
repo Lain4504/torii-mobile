@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 
@@ -11,7 +13,7 @@ class MarketplaceHomePage extends ConsumerStatefulWidget {
 }
 
 class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
-  final List<String> _categories = [
+  final List<String> _categories = const [
     'JLPT N5',
     'JLPT N4',
     'Hán tự',
@@ -19,6 +21,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
     'Giao tiếp',
     'Nghe hiểu',
   ];
+
   int _selectedCategoryIndex = 0;
 
   @override
@@ -29,9 +32,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
-              // ----------------------------------------------------------------------
-              // Top Navigation: Logo, Search Bar, Profile
-              // ----------------------------------------------------------------------
+              // Top navigation: logo, search bar, avatar
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
@@ -58,7 +59,10 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                                 Expanded(
                                   child: Text(
                                     'Tìm khóa học...',
-                                    style: TextStyle(color: AppColors.textTertiary, fontSize: 13),
+                                    style: TextStyle(
+                                      color: AppColors.textTertiary,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -76,9 +80,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                 ),
               ),
 
-              // ----------------------------------------------------------------------
-              // Section 1: Hero Banner
-              // ----------------------------------------------------------------------
+              // Hero banner
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -100,7 +102,11 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                             bottom: -20,
                             child: Opacity(
                               opacity: 0.1,
-                              child: Icon(Icons.language, size: 150, color: AppColors.white),
+                              child: Icon(
+                                Icons.language,
+                                size: 150,
+                                color: AppColors.white,
+                              ),
                             ),
                           ),
                           Padding(
@@ -152,9 +158,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
 
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
 
-              // ----------------------------------------------------------------------
-              // Section 2: Continue Learning
-              // ----------------------------------------------------------------------
+              // Continue learning
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -190,9 +194,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
 
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
 
-              // ----------------------------------------------------------------------
-              // Section 3: Recommended Courses
-              // ----------------------------------------------------------------------
+              // Recommended courses
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -205,7 +207,10 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                           _buildSectionHeader('Khóa học đề xuất'),
                           TextButton(
                             onPressed: () => context.push('/marketplace/discovery'),
-                            child: const Text('Xem tất cả', style: TextStyle(fontSize: 12)),
+                            child: const Text(
+                              'Xem tất cả',
+                              style: TextStyle(fontSize: 12),
+                            ),
                           ),
                         ],
                       ),
@@ -214,7 +219,6 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                   ),
                 ),
               ),
-
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 sliver: SliverGrid(
@@ -233,9 +237,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
 
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
 
-              // ----------------------------------------------------------------------
-              // Section 4: Course Categories
-              // ----------------------------------------------------------------------
+              // Course categories
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -277,14 +279,9 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                 ),
               ),
 
-                ),
-              ),
-
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
 
-              // ----------------------------------------------------------------------
-              // Section 4.5: Latest from Blog
-              // ----------------------------------------------------------------------
+              // Latest from blog
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -327,9 +324,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
 
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
 
-              // ----------------------------------------------------------------------
-              // Section 5: Upcoming Live Seminars
-              // ----------------------------------------------------------------------
+              // Upcoming seminars
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -474,13 +469,17 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                     const SizedBox(width: 2),
                     Text(
                       '4.9',
-                      style: TextStyle(fontSize: 11, fontWeight: AppTypography.bold, color: AppColors.grey700),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: AppTypography.bold,
+                        color: AppColors.grey700,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  '$19.99',
+                  '\$19.99',
                   style: TextStyle(
                     color: AppColors.secondary,
                     fontWeight: AppTypography.bold,
@@ -534,7 +533,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.secondarySurface,
+              color: AppColors.primarySurface,
               borderRadius: BorderRadius.circular(AppRadius.xs),
               border: Border.all(color: AppColors.secondary.withValues(alpha: 0.1)),
             ),
@@ -551,15 +550,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
       ),
     );
   }
-}
 
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxxl)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
   Widget _buildBlogMiniCard(String imageUrl, String title, String author) {
     return GestureDetector(
       onTap: () => context.push('/blog/detail'),
@@ -608,3 +599,4 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
     );
   }
 }
+

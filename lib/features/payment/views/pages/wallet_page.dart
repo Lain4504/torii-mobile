@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
-import '../../../gamification/providers/gamification_providers.dart'
-    hide myCouponsProvider;
 import '../../providers/coupon_providers.dart';
 import '../../providers/payment_providers.dart';
 import 'package:intl/intl.dart';
@@ -36,7 +34,7 @@ class _WalletPageState extends ConsumerState<WalletPage>
 
   @override
   Widget build(BuildContext context) {
-    final profileAsync = ref.watch(gamificationProfileProvider);
+    final profileAsync = const AsyncValue.data(null);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -132,7 +130,7 @@ class _WalletPageState extends ConsumerState<WalletPage>
         children: [
           _buildWalletCard(
             title: 'SỐ DƯ VÍ TORII',
-            value: NumberFormat('#,###').format(profile.balance ?? 0),
+            value: NumberFormat('#,###').format(0),
             unit: 'COINS',
             icon: Icons.account_balance_wallet_rounded,
             color: AppColors.primary,
@@ -144,7 +142,7 @@ class _WalletPageState extends ConsumerState<WalletPage>
           const SizedBox(height: AppSpacing.md),
           _buildWalletCard(
             title: 'ĐIỂM THƯỞNG (XP)',
-            value: NumberFormat('#,###').format(profile.points),
+            value: NumberFormat('#,###').format(0),
             unit: 'POINTS',
             icon: Icons.stars_rounded,
             color: Colors.orange,
@@ -239,133 +237,107 @@ class _WalletPageState extends ConsumerState<WalletPage>
   Widget _buildHistoryTab() {
     return Consumer(
       builder: (context, ref, child) {
-        final pointsHistory = ref.watch(gamificationHistoryProvider);
         final coinsHistoryState = ref.watch(balanceHistoryProvider);
 
         if (coinsHistoryState.isLoading && coinsHistoryState.items.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return pointsHistory.when(
-          data: (pointsData) {
-            final allItems = <_HistoryItem>[
-              ...pointsData.map(
-                (e) => _HistoryItem(
-                  title: e['description']?.toString() ?? 'Thưởng hoạt động',
-                  subtitle: DateFormat('HH:mm, dd/MM/yyyy').format(
-                    e['createdAt'] is DateTime
-                        ? e['createdAt']
-                        : DateTime.parse(e['createdAt'].toString()),
-                  ),
-                  amount: (e['amount'] as num?)?.toInt() ?? 0,
-                  isPoints: true,
-                  icon: Icons.stars_rounded,
+        final allItems = <_HistoryItem>[
+          ...coinsHistoryState.items.map(
+            (e) => _HistoryItem(
+              title: e['description']?.toString() ?? 'Giao dịch ví',
+              subtitle: DateFormat('HH:mm, dd/MM/yyyy').format(
+                e['createdAt'] is DateTime
+                    ? e['createdAt']
+                    : DateTime.parse(e['createdAt'].toString()),
+              ),
+              amount: (e['amount'] as num?)?.toInt() ?? 0,
+              isPoints: false,
+              icon: Icons.account_balance_wallet_rounded,
+            ),
+          ),
+        ];
+
+        if (allItems.isEmpty) {
+          return const Center(
+            child: Text(
+              'Chưa có lịch sử giao dịch',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          );
+        }
+
+        allItems.sort((a, b) => b.subtitle.compareTo(a.subtitle));
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          itemCount: allItems.length,
+          separatorBuilder: (context, index) =>
+              const SizedBox(height: AppSpacing.md),
+          itemBuilder: (context, index) {
+            final item = allItems[index];
+            final isPositive = item.amount > 0;
+
+            return Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(
+                  color: AppColors.grey200.withValues(alpha: 0.5),
                 ),
               ),
-              ...coinsHistoryState.items.map(
-                (e) => _HistoryItem(
-                  title: e['description']?.toString() ?? 'Giao dịch ví',
-                  subtitle: DateFormat('HH:mm, dd/MM/yyyy').format(
-                    e['createdAt'] is DateTime
-                        ? e['createdAt']
-                        : DateTime.parse(e['createdAt'].toString()),
-                  ),
-                  amount: (e['amount'] as num?)?.toInt() ?? 0,
-                  isPoints: false,
-                  icon: Icons.account_balance_wallet_rounded,
-                ),
-              ),
-            ];
-
-            if (allItems.isEmpty) {
-              return const Center(
-                child: Text(
-                  'Chưa có lịch sử giao dịch',
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-              );
-            }
-
-            allItems.sort((a, b) => b.subtitle.compareTo(a.subtitle));
-
-            return ListView.separated(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              itemCount: allItems.length,
-              separatorBuilder: (context, index) =>
-                  const SizedBox(height: AppSpacing.md),
-              itemBuilder: (context, index) {
-                final item = allItems[index];
-                final isPositive = item.amount > 0;
-
-                return Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    border: Border.all(
-                      color: AppColors.grey200.withValues(alpha: 0.5),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet_rounded,
+                      size: 20,
+                      color: AppColors.primary,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color:
-                              (item.isPoints
-                                      ? Colors.orange
-                                      : AppColors.primary)
-                                  .withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          style: const TextStyle(
+                            fontWeight: AppTypography.bold,
+                            fontSize: 13,
+                          ),
                         ),
-                        child: Icon(
-                          item.icon,
-                          size: 20,
-                          color: item.isPoints
-                              ? Colors.orange
-                              : AppColors.primary,
+                        Text(
+                          item.subtitle,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.title,
-                              style: const TextStyle(
-                                fontWeight: AppTypography.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              item.subtitle,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        '${isPositive ? "+" : ""}${NumberFormat('#,###').format(item.amount)}',
-                        style: TextStyle(
-                          fontWeight: AppTypography.black,
-                          fontSize: 15,
-                          color: isPositive
-                              ? Colors.green
-                              : AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                );
-              },
+                  Text(
+                    '${isPositive ? "+" : ""}${NumberFormat('#,###').format(item.amount)}',
+                    style: TextStyle(
+                      fontWeight: AppTypography.black,
+                      fontSize: 15,
+                      color: isPositive
+                          ? Colors.green
+                          : AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(child: Text('Lỗi: $err')),
         );
       },
     );

@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 import 'package:torii_app/features/course/providers/my_learning_provider.dart';
-import 'package:torii_app/features/gamification/providers/gamification_providers.dart';
-import 'package:torii_app/features/gamification/models/gamification_models.dart';
 
 class StatisticsPage extends ConsumerWidget {
   const StatisticsPage({super.key});
@@ -12,7 +10,6 @@ class StatisticsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final myLearningState = ref.watch(myLearningProvider);
-    final gamificationProfile = ref.watch(gamificationProfileProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -20,7 +17,6 @@ class StatisticsPage extends ConsumerWidget {
         child: RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(myLearningProvider);
-            ref.invalidate(gamificationProfileProvider);
             return ref.read(myLearningProvider.notifier).loadData();
           },
           child: CustomScrollView(
@@ -40,7 +36,7 @@ class StatisticsPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(AppSpacing.xl),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      _buildMainStatsCard(myLearningState.stats, gamificationProfile.asData?.value),
+                      _buildMainStatsCard(myLearningState.stats),
                       const SizedBox(height: AppSpacing.xxl),
                       _buildSectionTitle('HOẠT ĐỘNG HÀNG TUẦN'),
                       const SizedBox(height: AppSpacing.lg),
@@ -80,8 +76,8 @@ class StatisticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildMainStatsCard(Map<String, dynamic> stats, GamificationProfile? profile) {
-    final totalXp = profile?.totalXp ?? (stats['totalXp'] ?? 0);
+  Widget _buildMainStatsCard(Map<String, dynamic> stats) {
+    final totalXp = stats['totalXp'] ?? 0;
     final hours = stats['totalLearningHours']?.toString() ?? '0';
     final courses = stats['totalCourses']?.toString() ?? '0';
     
@@ -106,7 +102,7 @@ class StatisticsPage extends ConsumerWidget {
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 24),
-          _buildStreakInfo(profile?.currentStreak ?? 0),
+          _buildStreakInfo((stats['streak'] as int?) ?? 0),
         ],
       ),
     );

@@ -21,69 +21,36 @@ import 'package:torii_app/features/payment/views/order_history_screen.dart';
 import 'package:torii_app/features/dashboard/views/pages/home_page.dart';
 import 'package:torii_app/features/dashboard/views/pages/dashboard_page.dart';
 import 'package:torii_app/features/course/views/pages/my_learning_page.dart';
-import 'package:torii_app/features/exam/views/pages/exam_list_page.dart';
-import 'package:torii_app/features/exam/views/pages/exam_taking_page.dart';
-import 'package:torii_app/features/exam/models/exam_model.dart';
-import 'package:torii_app/features/flashcard/views/pages/flashcard_list_page.dart';
-import 'package:torii_app/features/flashcard/views/pages/flashcard_practice_page.dart';
-import 'package:torii_app/features/flashcard/views/pages/deck_detail_page.dart';
-import 'package:torii_app/features/flashcard/views/pages/add_deck_page.dart';
-import 'package:torii_app/features/flashcard/views/pages/add_flashcard_page.dart';
-import 'package:torii_app/features/flashcard/models/flashcard_model.dart';
 import 'package:torii_app/features/course/views/pages/lesson_page.dart';
 import 'package:torii_app/features/course/models/lesson_model.dart';
-import 'package:torii_app/features/live_class/views/pages/live_class_schedule_page.dart';
-import 'package:torii_app/features/onboarding/views/pages/onboarding_page.dart';
-import 'package:torii_app/features/settings/views/pages/settings_page.dart';
-import 'package:torii_app/features/community/views/pages/post_list_page.dart';
-import 'package:torii_app/features/community/views/pages/post_detail_page.dart';
-import 'package:torii_app/features/community/models/post_model.dart';
-import 'package:torii_app/features/settings/views/pages/profile_edit_page.dart';
-import 'package:torii_app/features/settings/views/pages/security_settings_page.dart';
 import 'package:torii_app/features/notifications/views/pages/notifications_page.dart';
 import 'package:torii_app/features/profile/views/pages/profile_page.dart';
 import 'package:torii_app/features/blog/views/pages/blog_list_page.dart';
 import 'package:torii_app/features/blog/views/pages/blog_article_page.dart';
-import 'package:torii_app/features/search/views/pages/search_page.dart';
-import 'package:torii_app/features/offline/views/pages/downloads_page.dart';
 import 'package:torii_app/features/gamification/views/pages/achievements_page.dart';
 import 'package:torii_app/features/course/views/pages/wishlist_page.dart';
-import 'package:torii_app/features/instructor/views/pages/instructor_profile_page.dart';
-import 'package:torii_app/features/ticket/views/pages/ticket_list_page.dart';
-import 'package:torii_app/features/ticket/views/pages/ticket_detail_page.dart';
 import 'package:torii_app/features/meet/presentation/screens/landing/meet_entry_screen.dart';
 import 'package:torii_app/features/meet/presentation/screens/room/meeting_room_screen.dart';
-import 'package:torii_app/features/gamification/views/pages/leaderboard_page.dart';
 import 'package:torii_app/features/course/views/pages/assignments_page.dart';
 import 'package:torii_app/features/course/views/pages/certificates_page.dart';
 import 'package:torii_app/features/dashboard/views/pages/statistics_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_chat_page.dart';
-import 'package:torii_app/features/assessment/views/pages/placement_test_page.dart';
 import 'package:torii_app/features/marketplace/views/pages/marketplace_home_page.dart';
 import 'package:torii_app/features/marketplace/views/pages/course_discovery_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
-
-import 'package:torii_app/features/onboarding/providers/onboarding_providers.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authStateAsync = ref.read(authNotifierProvider);
   final authNotifier = ValueNotifier<AsyncValue<AuthState>>(authStateAsync);
   
-  final onboardingCompleted = ref.read(onboardingCompletedProvider);
-  final onboardingNotifier = ValueNotifier<bool>(onboardingCompleted);
-
   ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (_, next) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
        authNotifier.value = next;
     });
   });
 
-  ref.listen<bool>(onboardingCompletedProvider, (_, next) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-       onboardingNotifier.value = next;
-    });
-  });
+  final onboardingNotifier = ValueNotifier<bool>(true);
 
   return GoRouter(
     navigatorKey: AppRouter.rootNavigatorKey,
@@ -92,7 +59,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: Listenable.merge([authNotifier, onboardingNotifier]),
     
     redirect: (context, state) {
-      final onboardingCompletedStatus = ref.read(onboardingCompletedProvider);
+      const onboardingCompletedStatus = true;
       final matchedLocation = state.matchedLocation;
 
       // 1. Force onboarding if not completed
@@ -147,10 +114,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/onboarding',
-        builder: (context, state) => const OnboardingPage(),
-      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return AppShell(navigationShell: navigationShell, state: state);
@@ -203,38 +166,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           // Branch 2: Live (Member) / Community (Guest)
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: '/live-schedule',
-                builder: (context, state) => const LiveClassSchedulePage(),
-              ),
-              GoRoute(
-                path: '/community',
-                builder: (context, state) => const PostListPage(),
-                routes: [
-                  GoRoute(
-                    path: ':id',
-                    builder: (context, state) {
-                      final post = state.extra as Post?;
-                      final id = state.pathParameters['id'] ?? '';
-                      return PostDetailPage(postId: id, post: post);
-                    },
-                  ),
-                ],
-              ),
+              // Live / community routes are not available in this build.
             ],
           ),
 
           // Branch 3: Flashcards (Member) / Exams (Guest)
           StatefulShellBranch(
             routes: [
-              GoRoute(
-                path: '/flashcards',
-                builder: (context, state) => const FlashcardListPage(),
-              ),
-              GoRoute(
-                path: '/exams',
-                builder: (context, state) => const ExamListPage(),
-              ),
+              // Flashcards / exams routes are not available in this build.
             ],
           ),
 
@@ -244,47 +183,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 builder: (context, state) => const ProfilePage(),
-                routes: [
-                  GoRoute(
-                    path: 'settings',
-                    builder: (context, state) => const SettingsPage(),
-                    routes: [
-                      GoRoute(
-                        path: 'edit',
-                        builder: (context, state) => const ProfileEditPage(),
-                      ),
-                      GoRoute(
-                        path: 'security',
-                        builder: (context, state) => const SecuritySettingsPage(),
-                      ),
-                      GoRoute(
-                        path: 'tickets',
-                        parentNavigatorKey: AppRouter.rootNavigatorKey,
-                        builder: (context, state) => const TicketListPage(),
-                        routes: [
-                          GoRoute(
-                            path: ':id',
-                            parentNavigatorKey: AppRouter.rootNavigatorKey,
-                            builder: (context, state) {
-                              final id = state.pathParameters['id'] ?? '';
-                              return TicketDetailPage(ticketId: id);
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              // Use /flashcards/preview path for guest to avoid duplication errors if any,
-              // or just reuse /flashcards if router allows in different branches.
-              GoRoute(
-                path: '/flashcards-preview',
-                builder: (context, state) => const FlashcardListPage(),
-              ),
-              GoRoute(
-                path: '/live-schedule',
-                builder: (context, state) => const LiveClassSchedulePage(),
               ),
             ],
           ),
@@ -382,53 +280,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
-        path: '/exams/take',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) {
-          final exam = state.extra as Exam?;
-          return ExamTakingPage(exam: exam);
-        },
-      ),
-      GoRoute(
-        path: '/flashcards/practice',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) {
-          final deck = state.extra as FlashcardDeck?;
-          return FlashcardPracticePage(deck: deck);
-        },
-      ),
-      GoRoute(
-        path: '/flashcards/add-deck',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) {
-           final deckToEdit = state.extra as FlashcardDeck?;
-           return AddDeckPage(deckToEdit: deckToEdit);
-        },
-      ),
-      GoRoute(
-        path: '/flashcards/deck-detail',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) {
-          final deck = state.extra as FlashcardDeck;
-          // Must import DeckDetailPage. I'll add import at top next.
-          return DeckDetailPage(deck: deck);
-        },
-      ),
-      GoRoute(
-        path: '/flashcards/add-card',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) {
-          if (state.extra is FlashcardDeck) {
-             return AddFlashcardPage(deck: state.extra as FlashcardDeck);
-          }
-          final map = state.extra as Map;
-          return AddFlashcardPage(
-             deck: map['deck'] as FlashcardDeck,
-             cardToEdit: map['card'] as Flashcard?,
-          );
-        },
-      ),
-      GoRoute(
         path: '/payment',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) {
@@ -459,21 +310,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OrderHistoryScreen(),
       ),
       GoRoute(
-        path: '/search',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const SearchPage(),
-      ),
-      GoRoute(
-        path: '/downloads',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const DownloadsPage(),
-      ),
-      GoRoute(
-        path: '/leaderboard',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const LeaderboardPage(),
-      ),
-      GoRoute(
         path: '/assignments',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const AssignmentsPage(),
@@ -502,11 +338,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        path: '/assessment/placement',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const PlacementTestPage(),
-      ),
-      GoRoute(
         path: '/notifications',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const NotificationsPage(),
@@ -532,14 +363,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const BlogArticlePage(),
           ),
         ],
-      ),
-      GoRoute(
-        path: '/instructor/:id',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
-          return InstructorProfilePage(instructorId: id);
-        },
       ),
       GoRoute(
         path: '/learning/:courseId/:lessonId',
@@ -570,13 +393,10 @@ class AppRouter {
 
   static const protectedRoutes = [
     '/my-learning',
-    '/settings/profile/edit',
     '/notifications',
     '/downloads',
     '/achievements',
     '/wishlist',
-    '/exams/take',
-    '/flashcards/practice',
     '/payment',
     '/payment/history',
     '/profile',
@@ -593,7 +413,6 @@ class AppRouter {
     '/login',
     '/register',
     '/courses',
-    '/onboarding',
     '/auth/forgot-password',
     '/auth/verify-otp',
     '/auth/reset-password',
@@ -601,12 +420,6 @@ class AppRouter {
     '/auth/success',
     '/marketplace',
     '/achievements',
-    '/community',
-    '/search',
-    '/flashcards',
-    '/flashcards-preview',
-    '/settings',
-    '/exams',
     '/blog',
     '/blog/detail',
     '/meet',

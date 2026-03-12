@@ -9,8 +9,7 @@ class AppButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool isFullWidth;
-  final AppButtonType
-  type; // Replaces simple isPrimary boolean for more variants
+  final AppButtonType type;
   final AppButtonSize size;
   final IconData? icon;
   final bool isLoading;
@@ -32,11 +31,7 @@ class AppButton extends StatelessWidget {
     this.height = 56,
     this.fontSize,
     this.width,
-    // Backward compatibility helper if needed, though we prefer 'type'
-    bool isPrimary = true,
-  }) : assert(true); // Simplified for now, we will rely on 'type' mostly.
-  // If isPrimary was passed as false in legacy calls, they should ideally be migrated,
-  // but for now default 'type' is primary.
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -150,6 +150,8 @@ class MyLearningPage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
   Widget _buildContinueLearningCard(dynamic course) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),

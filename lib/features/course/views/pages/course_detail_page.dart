@@ -8,8 +8,6 @@ import '../../providers/course_providers.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../auth/providers/auth_providers.dart';
-import '../../../review/views/review_icon_button.dart';
-import '../../../review/providers/review_provider.dart';
 
 /// Course Detail Page - Modern Vibrant Educational UI
 
@@ -320,13 +318,6 @@ class CourseDetailPage extends ConsumerWidget {
                     }
                   },
           ),
-        ),
-        const SizedBox(width: 12),
-        ReviewIconButton(
-          entityId: course.id,
-          type: ReviewType.course,
-          entityTitle: course.title,
-          isDark: isDark,
         ),
         const SizedBox(width: 12),
         Container(

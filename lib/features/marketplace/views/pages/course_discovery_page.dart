@@ -254,9 +254,9 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      '$24.99',
-                      style: TextStyle(
+                    Text(
+                      '\$24.99',
+                      style: const TextStyle(
                         color: AppColors.secondary,
                         fontWeight: AppTypography.bold,
                         fontSize: 15,

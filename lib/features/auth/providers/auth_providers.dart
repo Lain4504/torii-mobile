@@ -9,8 +9,6 @@ import 'package:torii_app/data/models/auth_model.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/repositories/auth_repository.dart';
 import 'package:torii_app/features/auth/repositories/token_storage.dart';
-import 'package:torii_app/features/flashcard/providers/flashcard_providers.dart';
-import 'package:torii_app/features/ticket/providers/ticket_providers.dart';
 
 // --- DATA LAYER ---
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
@@ -109,10 +107,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       }
       await _userService.saveUserProfile(data.user);
 
-      try {
-        ref.invalidate(flashcardDecksProvider);
-        ref.invalidate(ticketListProvider);
-      } catch (_) {}
+      // Invalidate feature-specific caches if those providers are available.
 
       state = AsyncValue.data(AuthState.authenticated(data.user));
     } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {
@@ -131,11 +126,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         await _userService.saveUserProfile(authData.user);
         
         // Clear flashcard cache from previous account
-        try {
-          ref.invalidate(flashcardDecksProvider);
-        } catch (_) {
-          // Ignore if provider doesn't exist yet
-        }
+        // Optionally invalidate feature-specific providers here.
         
         state = AsyncValue.data(AuthState.authenticated(authData.user));
         return true;
@@ -249,11 +240,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       await _repository.logout();
     } catch (_) {}
     await _userService.clearUserProfile();
-    try {
-      ref.invalidate(flashcardDecksProvider);
-      ref.invalidate(ticketListProvider);
-      ref.invalidate(apiClientProvider);
-    } catch (_) {}
+    // Optionally invalidate feature-specific providers here.
     state = AsyncValue.data(AuthState.unauthenticated());
   }
 }

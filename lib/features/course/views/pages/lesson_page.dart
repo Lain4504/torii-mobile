@@ -336,189 +336,25 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
                   child: _isVideoInitialized && _videoController != null
-                      ? GestureDetector(
-                          onTap: () {
-                          setState(() {
-                            _showVideoControls = !_showVideoControls;
-                          });
-                          // Auto-hide controls after 3 seconds
-                          if (_showVideoControls) {
-                            Future.delayed(const Duration(seconds: 3), () {
-                              if (mounted && _videoController != null && _videoController!.value.isPlaying) {
-                                setState(() {
-                                  _showVideoControls = false;
-                                });
-                              }
-                            });
-                          }
-                        },
-                        child: Stack(
-                          children: [
-                            // Video Player
-                            VideoPlayer(_videoController!),
-                            
-                            // Controls Overlay
-                            AnimatedOpacity(
-                              opacity: _showVideoControls ? 1.0 : 0.0,
-                              duration: const Duration(milliseconds: 300),
-                              child: Container(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                child: Stack(
-                                  children: [
-                                    // Center Play/Pause Button
-                                    Center(
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: _togglePlayPause,
-                                          borderRadius: BorderRadius.circular(50),
-                                          child: Container(
-                                            width: 80,
-                                            height: 80,
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withValues(alpha: 0.6),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: Icon(
-                                              _isVideoPlaying
-                                                  ? Icons.pause
-                                                  : Icons.play_arrow,
-                                              color: Colors.white,
-                                              size: 48,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    
-                                    // Bottom Controls Bar
-                                    Positioned(
-                                      bottom: 0,
-                                      left: 0,
-                                      right: 0,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.transparent,
-                                              Colors.black.withValues(alpha: 0.8),
-                                            ],
-                                          ),
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            // Seek Bar
-                                            SliderTheme(
-                                              data: SliderTheme.of(context).copyWith(
-                                                trackHeight: 4,
-                                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                                                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-                                                activeTrackColor: AppColors.primary,
-                                                inactiveTrackColor: Colors.white.withValues(alpha: 0.3),
-                                                thumbColor: AppColors.primary,
-                                                overlayColor: AppColors.primary.withValues(alpha: 0.2),
-                                              ),
-                                              child: Slider(
-                                                value: _videoDuration.inMilliseconds > 0
-                                                    ? _videoPosition.inMilliseconds.toDouble()
-                                                    : 0.0,
-                                                max: _videoDuration.inMilliseconds > 0
-                                                    ? _videoDuration.inMilliseconds.toDouble()
-                                                    : 1.0,
-                                                onChanged: (value) {
-                                                  _seekTo(Duration(milliseconds: value.toInt()));
-                                                },
-                                              ),
-                                            ),
-                                            
-                                            // Time and Controls
-                                            Row(
-                                              children: [
-                                                // Play/Pause Button
-                                                Material(
-                                                  color: Colors.transparent,
-                                                  child: InkWell(
-                                                    onTap: _togglePlayPause,
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.all(8),
-                                                      child: Icon(
-                                                        _isVideoPlaying
-                                                            ? Icons.pause
-                                                            : Icons.play_arrow,
-                                                        color: Colors.white,
-                                                        size: 28,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                
-                                                const SizedBox(width: 12),
-                                                
-                                                // Time Display
-                                                Text(
-                                                  '${_formatDuration(_videoPosition)} / ${_formatDuration(_videoDuration)}',
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                                
-                                                const Spacer(),
-                                                
-                                                // Fullscreen Button (optional)
-                                                Material(
-                                                  color: Colors.transparent,
-                                                  child: InkWell(
-                                                    onTap: () {
-                                                      // TODO: Implement fullscreen
-                                                    },
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    child: const Padding(
-                                                      padding: EdgeInsets.all(8),
-                                                      child: Icon(
-                                                        Icons.fullscreen,
-                                                        color: Colors.white,
-                                                        size: 24,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                      ? VideoPlayer(_videoController!)
+                      : const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
                         ),
-                      )
-                    : const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      ),
-              ),
-            )
-          : AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                color: Colors.black,
-                child: const Center(
-                  child: Text(
-                    'Video không khả dụng',
-                    style: TextStyle(color: Colors.white),
+                ),
+              )
+            : AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Container(
+                  color: Colors.black,
+                  child: const Center(
+                    child: Text(
+                      'Video không khả dụng',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
@@ -533,63 +369,13 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        lesson.title,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: AppTypography.extraBold,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Giảng viên: ${lesson.instructorName ?? "N/A"}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Tiến độ bài học',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: AppTypography.bold,
-                        color: AppColors.textSecondary,
-                      ),
+                  child: Text(
+                    lesson.title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: AppTypography.extraBold,
+                      letterSpacing: -0.5,
                     ),
-                    Text(
-                      '${(lesson.progress * 100).toInt()}%',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: AppTypography.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: LinearProgressIndicator(
-                    value: lesson.progress,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                    minHeight: 4,
                   ),
                 ),
               ],
@@ -619,7 +405,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
           Expanded(
             child: AppButton(
               text: 'BÀI TRƯỚC',
-              variant: AppButtonVariant.outline,
+              type: AppButtonType.outline,
               onPressed: () {},
             ),
           ),

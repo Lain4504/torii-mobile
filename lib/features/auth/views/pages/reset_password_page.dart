@@ -132,6 +132,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                               label: 'New Password',
                               controller: _passwordController,
                               hintText: 'Minimum 8 characters',
+                              icon: Icons.lock_outline_rounded,
                               obscureText: _obscurePassword,
                               onChanged: _onPasswordChanged,
                               suffixIcon: IconButton(
@@ -162,6 +163,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                               label: 'Confirm Password',
                               controller: _confirmPasswordController,
                               hintText: 'Repeat your password',
+                              icon: Icons.lock_outline_rounded,
                               obscureText: _obscureConfirmPassword,
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -178,8 +180,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                               text: 'Reset Password',
                               onPressed: _resetPassword,
                               isLoading: isLoading,
-                              backgroundColor: AppColors.secondary,
-                              borderRadius: AppRadius.md,
                             ),
                           ],
                         ),

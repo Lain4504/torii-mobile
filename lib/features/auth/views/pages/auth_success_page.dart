@@ -85,8 +85,6 @@ class AuthSuccessPage extends StatelessWidget {
                     child: AppButton(
                       text: buttonText,
                       onPressed: () => context.go(nextRoute),
-                      backgroundColor: AppColors.secondary,
-                      borderRadius: AppRadius.md,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xxl),

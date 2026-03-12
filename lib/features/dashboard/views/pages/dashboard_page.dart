@@ -7,7 +7,6 @@ import '../../../auth/providers/auth_providers.dart';
 import '../../../course/providers/my_learning_provider.dart';
 import '../../../course/views/widgets/course_card.dart';
 import 'package:torii_app/core/theme/theme_provider.dart';
-import 'package:torii_app/features/notification/providers/notification_providers.dart';
 
 /// Dashboard Page - Focused Learning Matrix for Authenticated Users
 class DashboardPage extends ConsumerStatefulWidget {
@@ -143,49 +142,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         ),
         _HeaderAction(
           icon: Icons.search_rounded,
-          onPressed: () => context.push('/search'),
-        ),
-        Consumer(
-          builder: (context, ref, child) {
-            final unreadCountAsync = ref.watch(notificationUnreadCountProvider);
-            final count = unreadCountAsync.valueOrNull ?? 0;
-            
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                _HeaderAction(
-                  icon: Icons.notifications_none_rounded,
-                  onPressed: () => context.push('/notifications'),
-                ),
-                if (count > 0)
-                  Positioned(
-                    right: 4,
-                    top: 4,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.error,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
-                      ),
-                      child: Text(
-                        count > 99 ? '99+' : '$count',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          height: 1,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
+          onPressed: () {},
         ),
         const SizedBox(width: AppSpacing.md),
       ],

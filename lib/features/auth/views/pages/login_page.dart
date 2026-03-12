@@ -121,6 +121,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               label: 'Email',
                               controller: _emailController,
                               hintText: 'Enter your email',
+                              icon: Icons.email_outlined,
                               keyboardType: TextInputType.emailAddress,
                               validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
                             ),
@@ -129,6 +130,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               label: 'Password',
                               controller: _passwordController,
                               hintText: '••••••••',
+                              icon: Icons.lock_outline_rounded,
                               obscureText: _obscurePassword,
                               suffixIcon: IconButton(
                                 icon: Icon(
@@ -165,8 +167,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               text: 'Login',
                               onPressed: _login,
                               isLoading: isLoading,
-                              backgroundColor: AppColors.secondary,
-                              borderRadius: AppRadius.md,
                             ),
                           ],
                         ),
