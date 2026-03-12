@@ -140,7 +140,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.school_rounded,
                       label: 'Khóa học',
                       isSelected: activeIndex == 1,
-                      onTap: () => onTap('/courses'),
+                      onTap: () => onTap('/marketplace'),
                       isDark: isDark,
                     ),
                     _NavBarItem(

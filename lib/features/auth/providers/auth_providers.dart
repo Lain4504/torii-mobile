@@ -78,14 +78,16 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
   }
 
-  Future<void> login(String email, String password) async {
+  Future<bool> login(String email, String password) async {
     state = const AsyncValue.loading();
     try {
       final (result, data, error) = await _repository.login(email, password);
       await _handleAuthResult(result, data, error);
+      return result == AuthResult.success || result == AuthResult.requires2FA;
     } catch (e) {
       await _repository.tokenStorage.clear();
       state = AsyncValue.error(e, StackTrace.current);
+      return false;
     }
   }
 
@@ -121,7 +123,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
   }
 
-  Future<void> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
+  Future<bool> verify2FA(String tempToken, String code, {bool isBackupCode = false}) async {
     state = const AsyncValue.loading();
     try {
       final authData = await _repository.verify2FA(tempToken, code, isBackupCode: isBackupCode);
@@ -136,15 +138,18 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         }
         
         state = AsyncValue.data(AuthState.authenticated(authData.user));
+        return true;
       } else {
         state = AsyncValue.data(AuthState.pending2FA(tempToken, error: 'Verification failed. Please check your code.'));
+        return false;
       }
     } catch (e) {
       state = AsyncValue.data(AuthState.pending2FA(tempToken, error: 'Error: $e'));
+      return false;
     }
   }
 
-  Future<void> register(String email, String password, String displayName) async {
+  Future<bool> register(String email, String password, String displayName) async {
     state = const AsyncValue.loading();
     try {
       final response = await _repository.authService.register(
@@ -154,32 +159,38 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       );
       if (response.success) {
         state = AsyncValue.data(AuthState.unauthenticated());
+        return true;
       } else {
         state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
+        return false;
       }
     } catch (e) {
       state = AsyncValue.data(AuthState.unauthenticated(error: 'Registration failed'));
+      return false;
     }
   }
 
-  Future<void> forgotPassword(String email) async {
+  Future<bool> forgotPassword(String email) async {
     state = const AsyncValue.loading();
     try {
       final response = await _repository.authService.forgotPassword(email);
       if (response.success) {
         state = AsyncValue.data(AuthState.requiresOTP(email));
+        return true;
       } else {
         // Ensure clean state on failure
         await _repository.tokenStorage.clear();
         state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
+        return false;
       }
     } catch (e) {
       await _repository.tokenStorage.clear();
       state = AsyncValue.data(AuthState.unauthenticated(error: 'Failed to send OTP'));
+      return false;
     }
   }
 
-  Future<void> verifyOTP(String email, String code) async {
+  Future<bool> verifyOTP(String email, String code) async {
      state = const AsyncValue.loading();
      try {
         final response = await _repository.authService.verifyOTP(email, code);
@@ -191,30 +202,37 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
                  email: email,
                  tempToken: tempToken
              ));
+             return true;
           } else {
              state = AsyncValue.data(AuthState.requiresOTP(email, error: 'Invalid OTP response'));
+             return false;
           }
         } else {
           state = AsyncValue.data(AuthState.requiresOTP(email, error: response.message));
+          return false;
         }
      } catch (e) {
        state = AsyncValue.data(AuthState.requiresOTP(email, error: 'Invalid OTP code'));
+       return false;
      }
   }
 
-  Future<void> resetPassword(String tempToken, String newPassword) async {
+  Future<bool> resetPassword(String tempToken, String newPassword) async {
     state = const AsyncValue.loading();
     try {
       final response = await _repository.authService.resetPassword(tempToken, newPassword);
       if (response.success) {
         state = AsyncValue.data(AuthState.unauthenticated());
+        return true;
       } else {
         await _repository.tokenStorage.clear();
         state = AsyncValue.data(AuthState.unauthenticated(error: response.message));
+        return false;
       }
     } catch (e) {
       await _repository.tokenStorage.clear();
       state = AsyncValue.data(AuthState.unauthenticated(error: 'Failed to reset password'));
+      return false;
     }
   }
 

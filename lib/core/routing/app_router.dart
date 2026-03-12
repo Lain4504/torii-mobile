@@ -11,6 +11,7 @@ import 'package:torii_app/features/auth/views/pages/forgot_password_page.dart';
 import 'package:torii_app/features/auth/views/pages/verify_otp_page.dart';
 import 'package:torii_app/features/auth/views/pages/reset_password_page.dart';
 import 'package:torii_app/features/auth/views/pages/two_factor_verify_page.dart';
+import 'package:torii_app/features/auth/views/pages/auth_success_page.dart';
 import 'package:torii_app/features/course/views/pages/course_list_page.dart';
 import 'package:torii_app/features/course/views/pages/course_detail_page.dart';
 import 'package:torii_app/features/course/views/pages/course_lessons_page.dart';
@@ -39,7 +40,10 @@ import 'package:torii_app/features/community/views/pages/post_detail_page.dart';
 import 'package:torii_app/features/community/models/post_model.dart';
 import 'package:torii_app/features/settings/views/pages/profile_edit_page.dart';
 import 'package:torii_app/features/settings/views/pages/security_settings_page.dart';
-import 'package:torii_app/features/notification/views/pages/notifications_page.dart';
+import 'package:torii_app/features/notifications/views/pages/notifications_page.dart';
+import 'package:torii_app/features/profile/views/pages/profile_page.dart';
+import 'package:torii_app/features/blog/views/pages/blog_list_page.dart';
+import 'package:torii_app/features/blog/views/pages/blog_article_page.dart';
 import 'package:torii_app/features/search/views/pages/search_page.dart';
 import 'package:torii_app/features/offline/views/pages/downloads_page.dart';
 import 'package:torii_app/features/gamification/views/pages/achievements_page.dart';
@@ -56,6 +60,8 @@ import 'package:torii_app/features/dashboard/views/pages/statistics_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_chat_page.dart';
 import 'package:torii_app/features/assessment/views/pages/placement_test_page.dart';
+import 'package:torii_app/features/marketplace/views/pages/marketplace_home_page.dart';
+import 'package:torii_app/features/marketplace/views/pages/course_discovery_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 import 'package:torii_app/features/onboarding/providers/onboarding_providers.dart';
@@ -236,29 +242,35 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/settings',
-                builder: (context, state) => const SettingsPage(),
+                path: '/profile',
+                builder: (context, state) => const ProfilePage(),
                 routes: [
                   GoRoute(
-                    path: 'profile/edit',
-                    builder: (context, state) => const ProfileEditPage(),
-                  ),
-                  GoRoute(
-                    path: 'security',
-                    builder: (context, state) => const SecuritySettingsPage(),
-                  ),
-                  GoRoute(
-                    path: 'tickets',
-                    parentNavigatorKey: AppRouter.rootNavigatorKey,
-                    builder: (context, state) => const TicketListPage(),
+                    path: 'settings',
+                    builder: (context, state) => const SettingsPage(),
                     routes: [
                       GoRoute(
-                        path: ':id',
+                        path: 'edit',
+                        builder: (context, state) => const ProfileEditPage(),
+                      ),
+                      GoRoute(
+                        path: 'security',
+                        builder: (context, state) => const SecuritySettingsPage(),
+                      ),
+                      GoRoute(
+                        path: 'tickets',
                         parentNavigatorKey: AppRouter.rootNavigatorKey,
-                        builder: (context, state) {
-                          final id = state.pathParameters['id'] ?? '';
-                          return TicketDetailPage(ticketId: id);
-                        },
+                        builder: (context, state) => const TicketListPage(),
+                        routes: [
+                          GoRoute(
+                            path: ':id',
+                            parentNavigatorKey: AppRouter.rootNavigatorKey,
+                            builder: (context, state) {
+                              final id = state.pathParameters['id'] ?? '';
+                              return TicketDetailPage(ticketId: id);
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -316,8 +328,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/auth/verify-otp',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>? ?? {};
-          return VerifyOTPPage(email: extra['email'] as String? ?? '');
+          final extra = state.extra is Map<String, dynamic> 
+              ? state.extra as Map<String, dynamic>
+              : {'email': state.extra?.toString() ?? ''};
+          return VerifyOTPPage(
+            email: extra['email'] as String? ?? '',
+            nextRoute: extra['nextRoute'] as String?,
+            successTitle: extra['successTitle'] as String?,
+            successMessage: extra['successMessage'] as String?,
+          );
         },
       ),
       GoRoute(
@@ -335,6 +354,32 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/auth/verify-2fa',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const TwoFactorVerifyPage(),
+      ),
+      GoRoute(
+        path: '/auth/success',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra is Map<String, dynamic> 
+              ? state.extra as Map<String, dynamic>
+              : {};
+          return AuthSuccessPage(
+            title: extra['title'] as String? ?? 'Thành công!',
+            message: extra['message'] as String? ?? 'Thao tác của bạn đã được thực hiện thành công.',
+            nextRoute: extra['nextRoute'] as String? ?? '/login',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/marketplace',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const MarketplaceHomePage(),
+        routes: [
+          GoRoute(
+            path: 'discovery',
+            parentNavigatorKey: AppRouter.rootNavigatorKey,
+            builder: (context, state) => const CourseDiscoveryPage(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/exams/take',
@@ -477,6 +522,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const WishlistPage(),
       ),
       GoRoute(
+        path: '/blog',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const BlogListPage(),
+        routes: [
+          GoRoute(
+            path: 'detail',
+            parentNavigatorKey: AppRouter.rootNavigatorKey,
+            builder: (context, state) => const BlogArticlePage(),
+          ),
+        ],
+      ),
+      GoRoute(
         path: '/instructor/:id',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) {
@@ -537,6 +594,8 @@ class AppRouter {
     '/auth/verify-otp',
     '/auth/reset-password',
     '/auth/verify-2fa',
+    '/auth/success',
+    '/marketplace',
     '/achievements',
     '/community',
     '/search',

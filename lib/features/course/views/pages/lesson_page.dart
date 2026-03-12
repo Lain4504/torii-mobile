@@ -261,27 +261,60 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AppBackground(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
+        pattern: BackgroundPattern.checkerboard,
+        child: Column(
+          children: [
             // App Bar
-            SliverAppBar(
-              floating: true,
-              pinned: true,
-              backgroundColor: Colors.transparent,
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-                onPressed: () => Navigator.pop(context),
+            SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                        boxShadow: AppElevation.softShadow,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary, size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                        boxShadow: AppElevation.softShadow,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.more_vert_rounded, color: AppColors.textPrimary, size: 20),
+                        onPressed: () {},
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
-            // Video Player (only for video lessons)
-            if (lesson.isVideo) _buildVideoPlayer(lesson),
+            Expanded(
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  // Video Player (only for video lessons)
+                  if (lesson.isVideo) _buildVideoPlayer(lesson),
+                  
+                  // Progress and Tabs
+                  _buildLessonInfo(lesson),
+                  
+                  _buildTabsContent(lesson),
+                ],
+              ),
+            ),
             
-            // Tabs for content, materials, and comments
-            _buildTabsContent(lesson),
+            _buildBottomNagivation(lesson),
           ],
         ),
       ),
@@ -290,14 +323,21 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
 
   Widget _buildVideoPlayer(Lesson lesson) {
     return SliverToBoxAdapter(
-      child: lesson.videoUrl != null && lesson.videoUrl!.isNotEmpty
-          ? AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                color: Colors.black,
-                child: _isVideoInitialized && _videoController != null
-                    ? GestureDetector(
-                        onTap: () {
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: lesson.videoUrl != null && lesson.videoUrl!.isNotEmpty
+            ? Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  boxShadow: AppElevation.cardShadow,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: _isVideoInitialized && _videoController != null
+                      ? GestureDetector(
+                          onTap: () {
                           setState(() {
                             _showVideoControls = !_showVideoControls;
                           });
@@ -482,6 +522,119 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
     );
   }
 
+  Widget _buildLessonInfo(Lesson lesson) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        lesson.title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: AppTypography.extraBold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Giảng viên: ${lesson.instructorName ?? "N/A"}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Tiến độ bài học',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: AppTypography.bold,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    Text(
+                      '${(lesson.progress * 100).toInt()}%',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: AppTypography.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: lesson.progress,
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    minHeight: 4,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNagivation(Lesson lesson) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        MediaQuery.of(context).padding.bottom + AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border(
+          top: BorderSide(color: AppColors.borderLight, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: AppButton(
+              text: 'BÀI TRƯỚC',
+              variant: AppButtonVariant.outline,
+              onPressed: () {},
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: AppButton(
+              text: 'BÀI TIẾP THEO',
+              onPressed: () {},
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTabsContent(Lesson lesson) {
     return SliverToBoxAdapter(
       child: Padding(
@@ -489,33 +642,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Lesson Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppRadius.chip),
-              ),
-              child: Text(
-                'BÀI HỌC ${lesson.order}',
-                style: TextStyle(
-                  fontSize: 8,
-                  fontWeight: AppTypography.black,
-                  color: AppColors.primary,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              lesson.title,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: AppTypography.extraBold,
-                letterSpacing: -0.5,
-              ),
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.md),
             
             // Tabs
             TabBar(
@@ -523,29 +650,18 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.textTertiary,
               indicatorColor: AppColors.primary,
+              indicatorWeight: 3,
               indicatorSize: TabBarIndicatorSize.tab,
               labelStyle: const TextStyle(
                 fontSize: 12,
                 fontWeight: AppTypography.bold,
-                letterSpacing: 1.0,
+                letterSpacing: 0.5,
               ),
               tabs: const [
-                Tab(
-                  icon: Icon(Icons.book_outlined, size: 18),
-                  text: 'Bài học',
-                ),
-                Tab(
-                  icon: Icon(Icons.description_outlined, size: 18),
-                  text: 'Tài liệu',
-                ),
-                Tab(
-                  icon: Icon(Icons.comment_outlined, size: 18),
-                  text: 'Thảo luận',
-                ),
-                Tab(
-                  icon: Icon(Icons.note_alt_outlined, size: 18),
-                  text: 'Ghi chú',
-                ),
+                Tab(text: 'TỔNG QUAN'),
+                Tab(text: 'TÀI LIỆU'),
+                Tab(text: 'THẢO LUẬN'),
+                Tab(text: 'GHI CHÚ'),
               ],
             ),
             const SizedBox(height: 24),
@@ -577,93 +693,111 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: AppSpacing.md),
-          if (lesson.isArticle && lesson.articleContent != null && lesson.articleContent!.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(AppRadius.card),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.03),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Html(
-                data: lesson.articleContent!,
-                style: {
-                  "body": Style(
-                    margin: Margins.zero,
-                    padding: HtmlPaddings.zero,
-                    fontSize: FontSize(16),
-                    lineHeight: const LineHeight(1.8),
-                    color: AppColors.textPrimary,
-                    fontFamily: AppTypography.fontFamily,
-                  ),
-                  "p": Style(
-                    margin: Margins.only(bottom: 20),
-                    textAlign: TextAlign.justify,
-                  ),
-                  "h1": Style(
-                    fontSize: FontSize(22),
-                    fontWeight: FontWeight.bold,
-                    margin: Margins.only(top: 24, bottom: 16),
-                    color: AppColors.primary,
-                  ),
-                  "h2": Style(
-                    fontSize: FontSize(18),
-                    fontWeight: FontWeight.bold,
-                    margin: Margins.only(top: 20, bottom: 12),
-                    color: AppColors.primary,
-                  ),
-                  "strong": Style(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  "blockquote": Style(
-                    margin: Margins.only(left: 0, top: 16, bottom: 16),
-                    padding: HtmlPaddings.only(left: 16),
-                    border: Border(left: BorderSide(color: AppColors.primary.withValues(alpha: 0.5), width: 4)),
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.textSecondary,
-                  ),
-                },
-              ),
-            )
-          else if (lesson.description != null && lesson.description!.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.card),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.02),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Text(
-                lesson.description!,
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.8,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            )
-          else
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(40),
-                child: Text('Không có nội dung bài học'),
+          if (lesson.description != null && lesson.description!.isNotEmpty) ...[
+            Text(
+              'MÔ TẢ BÀI HỌC',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: AppTypography.black,
+                color: AppColors.textTertiary,
+                letterSpacing: 1.5,
               ),
             ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              lesson.description!,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                height: 1.6,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+          
+          Text(
+            'TỪ VỰNG TRONG BÀI',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: AppTypography.black,
+              color: AppColors.textTertiary,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _buildVocabularyList(),
+          const SizedBox(height: AppSpacing.lg),
+          
+          if (lesson.isArticle && lesson.articleContent != null) ...[
+            Text(
+              'CHI TIẾT BÀI HỌC',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: AppTypography.black,
+                color: AppColors.textTertiary,
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Html(data: lesson.articleContent!),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildVocabularyList() {
+    final vocab = [
+      {'jp': '尊敬語', 'ro': 'Sonkeigo', 'vi': 'Kính ngữ'},
+      {'jp': '謙譲語', 'ro': 'Kenjougo', 'vi': 'Khiêm nhường ngữ'},
+      {'jp': '丁寧語', 'ro': 'Teineigo', 'vi': 'Từ lịch sự'},
+    ];
+
+    return Column(
+      children: vocab.map((item) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(AppRadius.xs),
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item['jp']!,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: AppTypography.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  Text(
+                    item['ro']!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                item['vi']!,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: AppTypography.medium,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 

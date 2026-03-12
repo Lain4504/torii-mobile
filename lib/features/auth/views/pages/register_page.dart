@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 
-/// Register Page - Zen UI Pro Max - Premium Rebuild
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
 
@@ -18,327 +16,229 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _displayNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  double _passwordStrength = 0;
 
   @override
   void dispose() {
     _displayNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _register() async {
+  void _onPasswordChanged(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        _passwordStrength = 0;
+      } else if (value.length < 6) {
+        _passwordStrength = 0.25;
+      } else if (value.length < 10) {
+        _passwordStrength = 0.6;
+      } else {
+        _passwordStrength = 1.0;
+      }
+    });
+  }
+
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    await ref.read(authStateProvider.notifier).register(
+    
+    final success = await ref.read(authStateProvider.notifier).register(
       _emailController.text.trim(),
       _passwordController.text.trim(),
       _displayNameController.text.trim(),
     );
+
+    if (success && mounted) {
+      // Navigate to verification page
+      context.push('/auth/verify-otp', extra: _emailController.text.trim());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final asyncAuth = ref.watch(authStateProvider);
-    
-    // Listen for registration completion
-    ref.listen<AsyncValue<AuthState>>(authStateProvider, (previous, next) {
-       final prevStatus = previous?.asData?.value.status;
-       final nextState = next.asData?.value;
-
-      if (nextState != null && prevStatus != nextState.status) {
-        if (nextState.status == AuthStatus.unauthenticated && prevStatus != null) { 
-           // Technically if we were loading/unauth before, and now unauth?
-           // The logic for "success" in registration is tricky because both start and end might be unauth unless we have a specific "loading" STATE inside AuthState too, or we infer from AsyncLoading -> AsyncData(Unauth).
-           // But AsyncNotifier handles AsyncLoading.
-           
-           if (!next.isLoading && !next.hasError && previous!.isLoading) {
-              // Completed loading successfully
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đăng ký thành công! Vui lòng đăng nhập.')),
-              );
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                 if (mounted) context.go('/login');
-              });
-           }
-        }
-      }
-    });
-
     final isLoading = asyncAuth.isLoading;
-    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
+    final errorMessage = asyncAuth.error?.toString();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: AppBackground(
+        pattern: BackgroundPattern.checkerboard,
         child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(context),
-              
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                  child: Form(
-                    key: _formKey,
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: AppSpacing.xl),
+                  // Header Section
+                  EntryAnimation(
+                    index: 0,
                     child: Column(
                       children: [
-                        const SizedBox(height: AppSpacing.lg),
-                        _buildHeader(context),
-                        const SizedBox(height: AppSpacing.xxl),
-                        
-                        if (errorMessage != null) ...[
-                          EntryAnimation(
-                            index: 2,
-                            child: _buildErrorBanner(errorMessage),
+                        const ToriiIcon(size: 64),
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          'Create your Torii Nihongo account',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: AppTypography.bold,
+                            color: AppColors.secondary,
+                            letterSpacing: -0.5,
                           ),
-                          const SizedBox(height: AppSpacing.lg),
-                        ],
-                        
-                        EntryAnimation(
-                          index: 3,
-                          verticalOffset: 20,
-                          child: Column(
-                            children: [
-                              AppTextField(
-                                label: 'TÊN HIỂN THỊ',
-                                controller: _displayNameController,
-                                hintText: 'Chúng tôi nên gọi bạn là gì?',
-                                icon: Icons.face_retouching_natural_rounded,
-                                validator: (val) => (val == null || val.isEmpty) ? 'Vui lòng nhập tên của bạn' : null,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              AppTextField(
-                                label: 'ĐỊA CHỈ EMAIL',
-                                controller: _emailController,
-                                hintText: 'email.cua.ban@example.com',
-                                icon: Icons.alternate_email_rounded,
-                                keyboardType: TextInputType.emailAddress,
-                                validator: (val) => (val == null || !val.contains('@')) ? 'Vui lòng nhập email hợp lệ' : null,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              AppTextField(
-                                label: 'MẬT KHẨU',
-                                controller: _passwordController,
-                                hintText: '••••••••',
-                                icon: Icons.fingerprint_rounded,
-                                obscureText: _obscurePassword,
-                                validator: (val) => (val == null || val.length < 8) ? 'Mật khẩu phải có ít nhất 8 ký tự' : null,
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                    size: 18, color: AppColors.textTertiary,
-                                  ),
-                                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              AppTextField(
-                                label: 'XÁC NHẬN MẬT KHẨU',
-                                controller: _confirmPasswordController,
-                                hintText: '••••••••',
-                                icon: Icons.verified_user_outlined,
-                                obscureText: _obscureConfirmPassword,
-                                validator: (val) => (val != _passwordController.text) ? 'Mật khẩu không khớp' : null,
-                                textInputAction: TextInputAction.done,
-                                onSubmitted: (_) => _register(),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                    size: 18, color: AppColors.textTertiary,
-                                  ),
-                                  onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                                ),
-                              ),
-                            ],
-                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        
-                        const SizedBox(height: AppSpacing.xl),
-                        
-                        EntryAnimation(
-                          index: 4,
-                          child: AppButton(
-                            text: 'TẠO TÀI KHOẢN',
-                            onPressed: _register,
-                            isLoading: isLoading,
-                            isFullWidth: true,
-                            icon: Icons.person_add_rounded,
-                          ),
-                        ),
-                        
-                        const SizedBox(height: AppSpacing.lg),
-                        
-                        EntryAnimation(
-                          index: 5,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                            child: Text(
-                              'Bằng cách tạo tài khoản, bạn đồng ý với các điều khoản dịch vụ và giao thức bảo mật trong hệ sinh thái Torii.',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: AppColors.textTertiary.withValues(alpha: 0.5),
-                                height: 1.6,
-                                fontWeight: AppTypography.medium,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        
-                        const SizedBox(height: AppSpacing.xxl),
-                        EntryAnimation(
-                          index: 6,
-                          child: _buildFooter(context),
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
                       ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  // Register Card
+                  EntryAnimation(
+                    index: 1,
+                    verticalOffset: 20,
+                    child: ElevatedCard(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (errorMessage != null) ...[
+                              _buildErrorBanner(errorMessage),
+                              const SizedBox(height: AppSpacing.md),
+                            ],
+                            AppTextField(
+                              label: 'Full Name',
+                              controller: _displayNameController,
+                              hintText: 'Enter your full name',
+                              validator: (val) => (val == null || val.isEmpty) ? 'Name is required' : null,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              label: 'Email address',
+                              controller: _emailController,
+                              hintText: 'Enter your email',
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              label: 'Password',
+                              controller: _passwordController,
+                              hintText: 'Minimum 8 characters',
+                              obscureText: _obscurePassword,
+                              onChanged: _onPasswordChanged,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  size: 20,
+                                  color: AppColors.textTertiary,
+                                ),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                              validator: (val) => (val == null || val.length < 8) ? 'Password must be at least 8 characters' : null,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            // Password Strength Indicator
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: LinearProgressIndicator(
+                                value: _passwordStrength,
+                                backgroundColor: AppColors.grey200,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  _passwordStrength < 0.5 ? AppColors.error : (_passwordStrength < 0.8 ? AppColors.warning : AppColors.accent),
+                                ),
+                                minHeight: 4,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            AppButton(
+                              text: 'Create account',
+                              onPressed: _register,
+                              isLoading: isLoading,
+                              backgroundColor: AppColors.secondary,
+                              borderRadius: AppRadius.md,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppSpacing.lg),
+
+                  // Agreement
+                  const EntryAnimation(
+                    index: 2,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                      child: Text(
+                        'By creating an account, you agree to our Terms of service and privacy policy.',
+                        style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppSpacing.xxxl),
+
+                  // Bottom Text
+                  EntryAnimation(
+                    index: 3,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Already have an account?",
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                        TextButton(
+                          onPressed: () => context.go('/login'),
+                          child: const Text(
+                            'Sign in',
+                            style: TextStyle(
+                              fontWeight: AppTypography.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Row(
-        children: [
-          EntryAnimation(
-            delay: const Duration(milliseconds: 200),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-              onPressed: () => context.go('/login'),
-              color: AppColors.textPrimary.withValues(alpha: 0.4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Column(
-      children: [
-        EntryAnimation(
-          index: 0,
-          verticalOffset: -20,
-          child: Container(
-            width: 72, height: 72,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 25, offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.waves_rounded, color: Colors.white, size: 36),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        EntryAnimation(
-          index: 1,
-          child: Column(
-            children: [
-              Text(
-                'TORII Nihongo',
-                style: TextStyle(
-                  fontFamily: AppTypography.fontFamilySerif,
-                  fontSize: AppTypography.fontSize2xl,
-                  letterSpacing: -1.0,
-                  fontWeight: AppTypography.bold,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'KHỞI TẠO TIẾN TRÌNH HỌC TẬP',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: AppTypography.black,
-                  letterSpacing: 5.0,
-                  color: AppColors.primary.withValues(alpha: 0.5),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
   Widget _buildErrorBanner(String message) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.errorLight.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(AppRadius.full),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
+        color: AppColors.errorLight.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 18),
-          const SizedBox(width: 12),
+          const Icon(Icons.error_outline, color: AppColors.error, size: 16),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                color: AppColors.errorDark,
-                fontSize: 12,
-                fontWeight: AppTypography.bold,
-              ),
+              style: const TextStyle(color: AppColors.errorDark, fontSize: 12),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'ĐÃ CÓ TÀI KHOẢN?',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
-                fontWeight: AppTypography.medium,
-              ),
-            ),
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: () => context.go('/login'),
-              borderRadius: BorderRadius.circular(4),
-              child: const Text(
-                'ĐĂNG NHẬP',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: AppTypography.black,
-                  letterSpacing: 1.0,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

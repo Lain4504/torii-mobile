@@ -74,6 +74,7 @@ class CourseDetailPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AppBackground(
+        pattern: BackgroundPattern.checkerboard,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -256,8 +257,8 @@ class CourseDetailPage extends ConsumerWidget {
       leading: Container(
         margin: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          shape: BoxShape.circle,
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppRadius.xs),
           boxShadow: AppElevation.softShadow,
         ),
 
@@ -275,15 +276,9 @@ class CourseDetailPage extends ConsumerWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.9),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.xs),
+            boxShadow: AppElevation.softShadow,
           ),
           child: IconButton(
             icon: isTogglingWishlist
@@ -339,15 +334,9 @@ class CourseDetailPage extends ConsumerWidget {
           height: 40,
           margin: const EdgeInsets.only(right: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.9),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.xs),
+            boxShadow: AppElevation.softShadow,
           ),
           child: IconButton(
             icon: const Icon(
@@ -446,7 +435,7 @@ class CourseDetailPage extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: bg.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppRadius.full),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
         border: Border.all(color: textCol.withValues(alpha: 0.2)),
       ),
       child: Text(
@@ -543,12 +532,11 @@ class CourseDetailPage extends ConsumerWidget {
         : course.enrolledCount.toString();
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
-        boxShadow: AppElevation.cardShadow,
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.borderLight),
       ),
 
       child: Row(
@@ -669,8 +657,9 @@ class CourseDetailPage extends ConsumerWidget {
       margin: const EdgeInsets.only(top: 16, bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primarySurface.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xs),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Row(
         children: [
@@ -721,10 +710,9 @@ class CourseDetailPage extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
-        boxShadow: AppElevation.softShadow,
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xs),
+        border: Border.all(color: AppColors.borderLight),
       ),
 
       child: Row(

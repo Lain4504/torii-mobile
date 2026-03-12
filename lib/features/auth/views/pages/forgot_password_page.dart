@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 
@@ -26,132 +25,144 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   Future<void> _requestOTP() async {
     if (!_formKey.currentState!.validate()) return;
     
-    await ref.read(authStateProvider.notifier).forgotPassword(
+    final success = await ref.read(authStateProvider.notifier).forgotPassword(
       _emailController.text.trim(),
     );
+
+    if (success && mounted) {
+      context.push('/auth/verify-otp', extra: {
+        'email': _emailController.text.trim(),
+        'nextRoute': '/auth/reset-password',
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final asyncAuth = ref.watch(authStateProvider);
-    
-    // Navigate to OTP page when state changes
-    ref.listen<AsyncValue<AuthState>>(authStateProvider, (previous, next) {
-      final prevStatus = previous?.asData?.value.status;
-      final nextState = next.asData?.value;
-      
-      if (nextState != null && prevStatus != nextState.status && nextState.status == AuthStatus.requiresOTP) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && nextState.email != null) {
-            context.go('/auth/verify-otp', extra: {'email': nextState.email});
-          }
-        });
-      }
-    });
-    
     final isLoading = asyncAuth.isLoading;
-    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
+    final errorMessage = asyncAuth.error?.toString();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: AppBackground(
+        pattern: BackgroundPattern.checkerboard,
         child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(context),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                  child: Form(
-                    key: _formKey,
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: AppSpacing.xl),
+                  // Header Section
+                  EntryAnimation(
+                    index: 0,
                     child: Column(
                       children: [
-                        const SizedBox(height: AppSpacing.xxxl),
+                        const ToriiIcon(size: 64),
+                        const SizedBox(height: AppSpacing.md),
                         Text(
-                          'RESET PASSWORD',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          'Forgot Password',
+                          style: TextStyle(
+                            fontSize: 24,
                             fontWeight: AppTypography.bold,
-                            letterSpacing: -1.2,
+                            color: AppColors.secondary,
+                            letterSpacing: -0.5,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          'Enter your email to receive a verification code',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        const Text(
+                          "Enter your email and we'll send you a code to reset your password.",
+                          style: TextStyle(
                             color: AppColors.textSecondary,
+                            fontSize: 14,
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxxl),
-                        AppTextField(
-                          controller: _emailController,
-                          label: 'Email Address',
-                          hintText: 'your.email@example.com',
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                              return 'Please enter a valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        if (errorMessage != null && errorMessage.isNotEmpty) ...[
-                          Container(
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            decoration: BoxDecoration(
-                              color: AppColors.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.error_outline, color: AppColors.error, size: 20),
-                                const SizedBox(width: AppSpacing.sm),
-                                Expanded(
-                                  child: Text(
-                                    errorMessage,
-                                    style: TextStyle(color: AppColors.error, fontSize: 14),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                        ],
-                        AppButton(
-                          onPressed: isLoading ? null : _requestOTP,
-                          isLoading: isLoading,
-                          text: 'SEND RESET CODE',
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  // Form Card
+                  EntryAnimation(
+                    index: 1,
+                    verticalOffset: 20,
+                    child: ElevatedCard(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (errorMessage != null) ...[
+                              _buildErrorBanner(errorMessage),
+                              const SizedBox(height: AppSpacing.md),
+                            ],
+                            AppTextField(
+                              label: 'Email address',
+                              controller: _emailController,
+                              hintText: 'Enter your email',
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            AppButton(
+                              text: 'Send Reset Code',
+                              onPressed: _requestOTP,
+                              isLoading: isLoading,
+                              backgroundColor: AppColors.secondary,
+                              borderRadius: AppRadius.md,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppSpacing.xxxl),
+
+                  // Bottom Text
+                  EntryAnimation(
+                    index: 2,
+                    child: TextButton(
+                      onPressed: () => context.go('/login'),
+                      child: const Text(
+                        'Back to sign in',
+                        style: TextStyle(
+                          fontWeight: AppTypography.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+  Widget _buildErrorBanner(String message) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppColors.errorLight.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+      ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => context.go('/login'),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.surface,
-              foregroundColor: AppColors.textPrimary,
+          const Icon(Icons.error_outline, color: AppColors.error, size: 16),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: AppColors.errorDark, fontSize: 12),
             ),
           ),
         ],

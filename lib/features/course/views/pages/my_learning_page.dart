@@ -27,22 +27,18 @@ class MyLearningPage extends ConsumerWidget {
               elevation: 0,
               centerTitle: true,
               title: const Text(
-                'DỰ ÁN CÁ NHÂN',
-
+                'MY COURSES',
                 style: TextStyle(
-                  fontFamily: AppTypography.fontFamilySerif,
                   fontWeight: AppTypography.black,
-                  fontSize: 18,
-                  fontStyle: FontStyle.italic,
+                  fontSize: 16,
                   letterSpacing: 2.0,
                   color: AppColors.textPrimary,
                 ),
               ),
               actions: [
                 IconButton(
-                  onPressed: () => context.push('/downloads'),
-                  icon: const Icon(Icons.download_done_rounded, color: AppColors.textPrimary),
-                  tooltip: 'Tải xuống',
+                  onPressed: () {},
+                  icon: const Icon(Icons.search_rounded, color: AppColors.textPrimary),
                 ),
                 const SizedBox(width: AppSpacing.md),
               ],
@@ -55,25 +51,27 @@ class MyLearningPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                       'KHÓA HỌC ĐÃ ĐĂNG KÝ',
-
+                      'CONTINUE LEARNING',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: AppTypography.black,
-                        letterSpacing: 3.0,
-                        color: AppColors.primary.withValues(alpha: 0.5),
+                        letterSpacing: 2.0,
+                        color: AppColors.textTertiary,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                       'Đang học',
-
+                    const SizedBox(height: AppSpacing.md),
+                    // If there are courses, show the first one as "Continue Learning"
+                    if (!state.isLoading && state.myCourses.isNotEmpty)
+                       _buildContinueLearningCard(state.myCourses.first),
+                    
+                    const SizedBox(height: AppSpacing.xl),
+                    Text(
+                      'ALL ENROLLED COURSES',
                       style: TextStyle(
-                        fontFamily: AppTypography.fontFamilySerif,
-                        fontSize: 32, 
-                        fontWeight: AppTypography.bold,
-                        letterSpacing: -1.0,
-                        fontStyle: FontStyle.italic,
+                        fontSize: 10,
+                        fontWeight: AppTypography.black,
+                        letterSpacing: 2.0,
+                        color: AppColors.textTertiary,
                       ),
                     ),
                   ],
@@ -150,6 +148,82 @@ class MyLearningPage extends ConsumerWidget {
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
         ),
+      ),
+    );
+  Widget _buildContinueLearningCard(dynamic course) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: AppElevation.softShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadius.xs),
+                  image: course.thumbnailUrl != null
+                      ? DecorationImage(image: NetworkImage(course.thumbnailUrl!), fit: BoxFit.cover)
+                      : null,
+                  color: AppColors.grey100,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course.title,
+                      style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 16),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Next: Lesson ${course.completedLessons + 1}',
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: course.progress,
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                    valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                    minHeight: 6,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Text(
+                '${(course.progress * 100).toInt()}%',
+                style: const TextStyle(fontSize: 12, fontWeight: AppTypography.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppButton(
+            text: 'CONTINUE',
+            onPressed: () {},
+            isFullWidth: true,
+          ),
+        ],
       ),
     );
   }

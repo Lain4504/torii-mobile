@@ -22,6 +22,31 @@ class ModernPatternPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+/// Checkerboard Pattern Painter
+class CheckerboardPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppColors.primary.withValues(alpha: 0.03)
+      ..style = PaintingStyle.fill;
+
+    const size_sq = 20.0;
+    for (double i = 0; i < size.width; i += size_sq * 2) {
+      for (double j = 0; j < size.height; j += size_sq * 2) {
+        // Draw a square at (i, j)
+        canvas.drawRect(Rect.fromLTWH(i, j, size_sq, size_sq), paint);
+        // Draw a square at (i + size_sq, j + size_sq) to complete the checkerboard
+        canvas.drawRect(Rect.fromLTWH(i + size_sq, j + size_sq, size_sq, size_sq), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+
+enum BackgroundPattern { dots, checkerboard, none }
 
 /// Zen Background Widget - A premium background with soft glows and patterns
 class AppBackground extends StatelessWidget {
@@ -29,12 +54,14 @@ class AppBackground extends StatelessWidget {
   final Widget child;
   final List<Widget>? overlay;
   final bool animate;
+  final BackgroundPattern pattern;
 
   const AppBackground({
     super.key,
     required this.child,
     this.overlay,
     this.animate = true,
+    this.pattern = BackgroundPattern.dots,
   });
 
   @override
@@ -69,11 +96,14 @@ class AppBackground extends StatelessWidget {
         ),
         
         // Pattern
-        Positioned.fill(
-          child: CustomPaint(
-            painter: ModernPatternPainter(),
+        if (pattern != BackgroundPattern.none)
+          Positioned.fill(
+            child: CustomPaint(
+              painter: pattern == BackgroundPattern.dots 
+                  ? ModernPatternPainter() 
+                  : CheckerboardPatternPainter(),
+            ),
           ),
-        ),
 
         
         // Optional Overlays

@@ -18,6 +18,9 @@ export 'cards/minimal_card.dart' hide ElevatedCard;
 // Badges
 export 'badges/app_badge.dart';
 
+// Icons
+export 'icons/torii_icon.dart';
+
 // Stats
 export 'stats/stat_card.dart';
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 
@@ -26,6 +25,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  double _passwordStrength = 0;
 
   @override
   void dispose() {
@@ -34,172 +34,201 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
     super.dispose();
   }
 
+  void _onPasswordChanged(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        _passwordStrength = 0;
+      } else if (value.length < 6) {
+        _passwordStrength = 0.25;
+      } else if (value.length < 10) {
+        _passwordStrength = 0.6;
+      } else {
+        _passwordStrength = 1.0;
+      }
+    });
+  }
+
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
     
-    await ref.read(authStateProvider.notifier).resetPassword(
+    final success = await ref.read(authStateProvider.notifier).resetPassword(
       widget.tempToken,
       _passwordController.text.trim(),
     );
+
+    if (success && mounted) {
+      context.go('/auth/success', extra: {
+        'title': 'Password Updated!',
+        'message': 'Your password has been reset successfully. Please sign in with your new credentials.',
+        'nextRoute': '/login',
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final asyncAuth = ref.watch(authStateProvider);
-    
-    // Navigate to login on successful reset
-    ref.listen<AsyncValue<AuthState>>(authStateProvider, (previous, next) {
-      final prevStatus = previous?.asData?.value.status;
-      final nextState = next.asData?.value;
-      
-      if (nextState != null && prevStatus != nextState.status && nextState.status == AuthStatus.unauthenticated) {
-        // Technically logic is trickier with async value, usually success means next has no error and we came from a flow.
-        // But here unauthenticated usually means we cleared the temp token etc.
-        // Assuming Reset Password action sets state to Unauthenticated on success.
-         if (prevStatus != null) {
-          // Password reset successful
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Đổi mật khẩu thành công! Vui lòng đăng nhập.')),
-          );
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) context.go('/login');
-          });
-        }
-      }
-    });
-
     final isLoading = asyncAuth.isLoading;
-    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
+    final errorMessage = asyncAuth.error?.toString();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: AppBackground(
+        pattern: BackgroundPattern.checkerboard,
         child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(context),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                  child: Form(
-                    key: _formKey,
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: AppSpacing.xl),
+                  // Header Section
+                  EntryAnimation(
+                    index: 0,
                     child: Column(
                       children: [
-                        const SizedBox(height: AppSpacing.xxxl),
+                        const ToriiIcon(size: 64),
+                        const SizedBox(height: AppSpacing.md),
                         Text(
-                          'MẬT KHẨU MỚI',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          'New Password',
+                          style: TextStyle(
+                            fontSize: 24,
                             fontWeight: AppTypography.bold,
-                            letterSpacing: -1.2,
+                            color: AppColors.secondary,
+                            letterSpacing: -0.5,
                           ),
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
-                          'Tạo mật khẩu mới cho\n${widget.email}',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          'Create a secure password for ${widget.email}',
+                          style: const TextStyle(
                             color: AppColors.textSecondary,
+                            fontSize: 14,
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxxl),
-                        AppTextField(
-                          controller: _passwordController,
-                          label: 'Mật khẩu mới',
-                          hintText: 'Nhập mật khẩu mới',
-                          icon: Icons.lock_outlined,
-                          obscureText: _obscurePassword,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Vui lòng nhập mật khẩu';
-                            }
-                            if (value.length < 8) {
-                              return 'Mật khẩu phải có ít nhất 8 ký tự';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        AppTextField(
-                          controller: _confirmPasswordController,
-                          label: 'Xác nhận mật khẩu',
-                          hintText: 'Nhập lại mật khẩu mới',
-                          icon: Icons.lock_outlined,
-                          obscureText: _obscureConfirmPassword,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            ),
-                            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Vui lòng xác nhận mật khẩu';
-                            }
-                            if (value != _passwordController.text) {
-                              return 'Mật khẩu không khớp';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        if (errorMessage != null && errorMessage.isNotEmpty) ...[
-                          Container(
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            decoration: BoxDecoration(
-                              color: AppColors.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.error_outline, color: AppColors.error, size: 20),
-                                const SizedBox(width: AppSpacing.sm),
-                                Expanded(
-                                  child: Text(
-                                    errorMessage,
-                                    style: TextStyle(color: AppColors.error, fontSize: 14),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                        ],
-                        AppButton(
-                          onPressed: isLoading ? null : _resetPassword,
-                          isLoading: isLoading,
-                          text: 'ĐẶT LẠI MẬT KHẨU',
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  // Form Card
+                  EntryAnimation(
+                    index: 1,
+                    verticalOffset: 20,
+                    child: ElevatedCard(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (errorMessage != null) ...[
+                              _buildErrorBanner(errorMessage),
+                              const SizedBox(height: AppSpacing.md),
+                            ],
+                            AppTextField(
+                              label: 'New Password',
+                              controller: _passwordController,
+                              hintText: 'Minimum 8 characters',
+                              obscureText: _obscurePassword,
+                              onChanged: _onPasswordChanged,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  size: 20,
+                                  color: AppColors.textTertiary,
+                                ),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                              validator: (val) => (val == null || val.length < 8) ? 'Password must be at least 8 characters' : null,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            // Password Strength Indicator
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: LinearProgressIndicator(
+                                value: _passwordStrength,
+                                backgroundColor: AppColors.grey200,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  _passwordStrength < 0.5 ? AppColors.error : (_passwordStrength < 0.8 ? AppColors.warning : AppColors.accent),
+                                ),
+                                minHeight: 4,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              label: 'Confirm Password',
+                              controller: _confirmPasswordController,
+                              hintText: 'Repeat your password',
+                              obscureText: _obscureConfirmPassword,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  size: 20,
+                                  color: AppColors.textTertiary,
+                                ),
+                                onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                              ),
+                              validator: (val) => (val != _passwordController.text) ? 'Passwords do not match' : null,
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            AppButton(
+                              text: 'Reset Password',
+                              onPressed: _resetPassword,
+                              isLoading: isLoading,
+                              backgroundColor: AppColors.secondary,
+                              borderRadius: AppRadius.md,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppSpacing.xxxl),
+
+                  // Bottom Text
+                  EntryAnimation(
+                    index: 2,
+                    child: TextButton(
+                      onPressed: () => context.go('/login'),
+                      child: const Text(
+                        'Cancel and return to sign in',
+                        style: TextStyle(
+                          fontWeight: AppTypography.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+  Widget _buildErrorBanner(String message) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppColors.errorLight.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+      ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => context.go('/login'),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.surface,
-              foregroundColor: AppColors.textPrimary,
+          const Icon(Icons.error_outline, color: AppColors.error, size: 16),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: AppColors.errorDark, fontSize: 12),
             ),
           ),
         ],
