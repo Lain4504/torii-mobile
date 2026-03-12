@@ -5,6 +5,9 @@ import '../models/order_model.dart';
 class PaymentRepository {
   final Dio _dio;
 
+  // Base path for academy orders in gateway
+  static const String _basePath = '/api/academy/orders';
+
   PaymentRepository({
     required Dio dio,
   }) : _dio = dio;
@@ -13,31 +16,33 @@ class PaymentRepository {
   Future<Order> createOrder(OrderCreateRequest request) async {
     try {
       final response = await _dio.post(
-        '/api/orders',
+        '$_basePath/checkout',
         data: request.toJson(),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data;
-        // Handle response structure: { success: true, data: { order: {...} } }
-        Map<String, dynamic> orderData;
-        if (data is Map<String, dynamic> && data.containsKey('data')) {
-          final dataMap = data['data'] as Map<String, dynamic>?;
-          // Check if data contains 'order' key (backend returns { order: {...} })
-          if (dataMap != null && dataMap.containsKey('order')) {
-            orderData = dataMap['order'] as Map<String, dynamic>;
-          } else {
-            // Fallback: assume data is the order object itself
-            orderData = dataMap as Map<String, dynamic>;
-          }
-        } else {
-          orderData = data as Map<String, dynamic>;
-        }
-        
-        return Order.fromJson(orderData);
-      } else {
+      if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Failed to create order: ${response.statusCode}');
       }
+
+      // successResponse(result) → { success: true, data: <result> }
+      final root = response.data;
+      final dynamic inner = root is Map<String, dynamic> && root['data'] != null
+          ? root['data']
+          : root;
+
+      Map<String, dynamic> orderData;
+      if (inner is Map<String, dynamic>) {
+        // If NATS handler wraps as { order: {...}, ... }
+        if (inner['order'] is Map<String, dynamic>) {
+          orderData = inner['order'] as Map<String, dynamic>;
+        } else {
+          orderData = inner;
+        }
+      } else {
+        throw Exception('Unexpected createOrder response format');
+      }
+
+      return Order.fromJson(orderData);
     } on DioException catch (e) {
       if (e.response?.statusCode == 400) {
         throw Exception('Invalid order data: ${e.response?.data}');
@@ -51,22 +56,33 @@ class PaymentRepository {
   /// Get order by ID
   Future<Order> getOrder(String orderId) async {
     try {
-      final response = await _dio.get('/api/orders/$orderId');
-      
-      if (response.statusCode == 200) {
-        final data = response.data;
-        Map<String, dynamic> orderData;
-        if (data is Map<String, dynamic> && data.containsKey('data')) {
-          final dataMap = data['data'] as Map<String, dynamic>?;
-          orderData = dataMap?['order'] as Map<String, dynamic>? ?? dataMap as Map<String, dynamic>;
-        } else {
-          orderData = data as Map<String, dynamic>;
-        }
-        
-        return Order.fromJson(orderData);
-      } else {
+      // User-facing order detail uses /api/academy/orders/my/:id
+      final response = await _dio.get('$_basePath/my/$orderId');
+
+      if (response.statusCode != 200) {
         throw Exception('Failed to fetch order: ${response.statusCode}');
       }
+
+      final root = response.data;
+      final dynamic inner = root is Map<String, dynamic> && root['data'] != null
+          ? root['data']
+          : root;
+
+      Map<String, dynamic> orderData;
+      if (inner is Map<String, dynamic>) {
+        // Controller wraps as { item: result }
+        if (inner['item'] is Map<String, dynamic>) {
+          orderData = inner['item'] as Map<String, dynamic>;
+        } else if (inner['order'] is Map<String, dynamic>) {
+          orderData = inner['order'] as Map<String, dynamic>;
+        } else {
+          orderData = inner;
+        }
+      } else {
+        throw Exception('Unexpected getOrder response format');
+      }
+
+      return Order.fromJson(orderData);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw Exception('Order not found');
@@ -126,21 +142,40 @@ class PaymentRepository {
         queryParams['status'] = status.name;
       }
 
+      // /api/academy/orders/my → successResponse(result)
       final response = await _dio.get(
-        '/api/orders',
+        '$_basePath/my',
         queryParameters: queryParams,
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final list = data is Map<String, dynamic> && data.containsKey('data')
-            ? data['data'] as List
-            : data as List;
-            
-        return list.map((item) => Order.fromJson(item as Map<String, dynamic>)).toList();
-      } else {
+      if (response.statusCode != 200) {
         throw Exception('Failed to fetch orders');
       }
+
+      final root = response.data;
+      final dynamic inner = root is Map<String, dynamic> && root['data'] != null
+          ? root['data']
+          : root;
+
+      List<dynamic> list;
+      if (inner is List) {
+        list = inner;
+      } else if (inner is Map<String, dynamic>) {
+        if (inner['items'] is List) {
+          list = inner['items'] as List;
+        } else if (inner['data'] is List) {
+          list = inner['data'] as List;
+        } else {
+          throw Exception('Unexpected orders list format');
+        }
+      } else {
+        throw Exception('Unexpected orders list format');
+      }
+
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map((item) => Order.fromJson(item))
+          .toList();
     } catch (e) {
       throw Exception('Failed to fetch orders: $e');
     }

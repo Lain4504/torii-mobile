@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/config/app_config.dart';
 import '../../../providers/session_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
@@ -51,6 +52,19 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => _goHome(context),
+        ),
+        title: const Text(
+          'Tham gia cuộc họp',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -74,34 +88,6 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Header
-                  Container(
-                    height: 50,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
-                      ),
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Theme.of(context).dividerColor.withOpacity(0.1),
-                        ),
-                      ),
-                    ),
-                    child: const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Tham gia cuộc họp',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  
                   // Waiting room / room message (from room metadata when available)
                   Builder(
                     builder: (context) {
@@ -113,7 +99,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                         return const SizedBox.shrink();
                       }
                       return Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                         child: Text(
                           welcomeMsg,
                           style: TextStyle(
@@ -188,7 +174,32 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: SizedBox(
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () => _goHome(context),
+              icon: const Icon(Icons.home_outlined),
+              label: const Text(
+                'Về trang chủ',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
+  }
+
+  void _goHome(BuildContext context) {
+    final router = GoRouter.maybeOf(context);
+    if (router != null) {
+      router.go('/');
+    } else {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   void _handleJoin() async {

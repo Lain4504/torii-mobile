@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 
@@ -103,13 +104,23 @@ class ProfilePage extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  _buildMenuItem('My Courses', Icons.auto_stories_rounded, () => context.push('/my-learning')),
+                  _buildMenuItem('My Courses', Icons.auto_stories_rounded, () => context.push('/my-courses')),
                   _buildMenuItem('Achievements', Icons.military_tech_rounded, () => context.push('/achievements')),
                   _buildMenuItem('Certificates', Icons.workspace_premium_rounded, () => {}),
                   _buildMenuItem('Payment History', Icons.receipt_long_rounded, () => context.push('/payment/history')),
                   _buildMenuItem('Settings', Icons.settings_rounded, () => context.push('/profile/settings')),
                   const SizedBox(height: AppSpacing.lg),
-                  _buildMenuItem('Logout', Icons.logout_rounded, () => {}, isDestructive: true),
+                  _buildMenuItem(
+                    'Logout',
+                    Icons.logout_rounded,
+                    () async {
+                      await ref.read(authStateProvider.notifier).logout();
+                      if (context.mounted) {
+                        context.go('/');
+                      }
+                    },
+                    isDestructive: true,
+                  ),
                 ]),
               ),
             ),

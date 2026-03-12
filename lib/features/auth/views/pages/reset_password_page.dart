@@ -69,7 +69,8 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
   Widget build(BuildContext context) {
     final asyncAuth = ref.watch(authStateProvider);
     final isLoading = asyncAuth.isLoading;
-    final errorMessage = asyncAuth.error?.toString();
+    final authState = asyncAuth.value;
+    final errorMessage = authState?.error;
 
     return Scaffold(
       body: AppBackground(
@@ -192,18 +193,32 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                   // Bottom Text
                   EntryAnimation(
                     index: 2,
-                    child: TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text(
-                        'Cancel and return to sign in',
-                        style: TextStyle(
-                          fontWeight: AppTypography.bold,
-                          color: AppColors.textSecondary,
+                    child: Column(
+                      children: [
+                        TextButton(
+                          onPressed: () => context.go('/login'),
+                          child: const Text(
+                            'Cancel and return to sign in',
+                            style: TextStyle(
+                              fontWeight: AppTypography.bold,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                         ),
-                      ),
+                        TextButton(
+                          onPressed: () => context.go('/'),
+                          child: const Text(
+                            'Về trang chủ',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
               ),
             ),

@@ -36,12 +36,44 @@ class CourseRepository {
         queryParams['search'] = search;
       }
 
+      // New backend endpoint: public course offerings
+      // GET /api/academy/course-offerings/public
       final response = await _dio.get(
-        '/api/courses',
+        '/api/academy/course-offerings/public',
         queryParameters: queryParams,
       );
 
-      return CourseListResponse.fromJson(response.data);
+      if (response.statusCode != 200) {
+        throw Exception('Failed to fetch courses: ${response.statusCode}');
+      }
+
+      final data = response.data;
+
+      // successResponse({ items })
+      // or successPaginatedResponse({ items, total, page, limit, totalPages })
+      Map<String, dynamic> envelope;
+      if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+        envelope = data['data'] as Map<String, dynamic>;
+      } else if (data is Map<String, dynamic>) {
+        envelope = data;
+      } else {
+        envelope = {'items': <dynamic>[]};
+      }
+
+      final rawItems = (envelope['items'] as List? ?? const []).cast<dynamic>();
+      final items = rawItems
+          .whereType<Map<String, dynamic>>()
+          .map(_mapOfferingToCourseJson)
+          .map(Course.fromJson)
+          .toList();
+
+      return CourseListResponse(
+        courses: items,
+        total: envelope['total'] as int? ?? items.length,
+        page: envelope['page'] as int? ?? page,
+        limit: envelope['limit'] as int? ?? limit,
+        totalPages: envelope['totalPages'] as int? ?? 1,
+      );
     } catch (e) {
       throw Exception('Failed to fetch courses: $e');
     }
@@ -50,26 +82,23 @@ class CourseRepository {
   /// Fetch single course by ID
   Future<Course?> findOne(String id) async {
     try {
-      final response = await _dio.get('/api/courses/$id');
+      // New backend: public course offering by id
+      final response =
+          await _dio.get('/api/academy/course-offerings/public/$id');
       if (response.data == null) return null;
       
       final data = response.data;
-      // Handle response structure: { success: true, data: { course: {...} } }
+      // successResponse({ item })
       Map<String, dynamic> courseData;
-      if (data is Map<String, dynamic> && data.containsKey('data')) {
-        final dataMap = data['data'] as Map<String, dynamic>?;
-        // Check if data contains 'course' key (backend returns { course: {...} })
-        if (dataMap != null && dataMap.containsKey('course')) {
-          courseData = dataMap['course'] as Map<String, dynamic>;
-        } else {
-          // Fallback: assume data is the course object itself
-          courseData = dataMap as Map<String, dynamic>;
-        }
+      if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+        final inner = data['data'] as Map<String, dynamic>;
+        courseData =
+            (inner['item'] as Map<String, dynamic>?) ?? inner;
       } else {
         courseData = data as Map<String, dynamic>;
       }
       
-      return Course.fromJson(courseData);
+      return Course.fromJson(_mapOfferingToCourseJson(courseData));
     } catch (e) {
       throw Exception('Failed to fetch course: $e');
     }
@@ -78,6 +107,7 @@ class CourseRepository {
   /// Fetch course by slug
   Future<Course?> findBySlug(String slug) async {
     try {
+      // No explicit slug endpoint in new controller; keep legacy for now
       final response = await _dio.get('/api/courses/slug/$slug');
       if (response.data == null) return null;
       
@@ -106,27 +136,23 @@ class CourseRepository {
   /// Get course by ID (alias for findOne with better error handling)
   Future<Course> getCourseById(String courseId) async {
     try {
-      final response = await _dio.get('/api/courses/$courseId');
+      final response =
+          await _dio.get('/api/academy/course-offerings/public/$courseId');
       
       if (response.statusCode == 200) {
         final data = response.data;
         
-        // Handle response structure: { success: true, data: { course: {...} } }
+        // successResponse({ item })
         Map<String, dynamic> courseData;
-        if (data is Map<String, dynamic> && data.containsKey('data')) {
-          final dataMap = data['data'] as Map<String, dynamic>?;
-          // Check if data contains 'course' key (backend returns { course: {...} })
-          if (dataMap != null && dataMap.containsKey('course')) {
-            courseData = dataMap['course'] as Map<String, dynamic>;
-          } else {
-            // Fallback: assume data is the course object itself
-            courseData = dataMap as Map<String, dynamic>;
-          }
+        if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+          final inner = data['data'] as Map<String, dynamic>;
+          courseData =
+              (inner['item'] as Map<String, dynamic>?) ?? inner;
         } else {
           courseData = data as Map<String, dynamic>;
         }
         
-        return Course.fromJson(courseData);
+        return Course.fromJson(_mapOfferingToCourseJson(courseData));
       } else {
         throw Exception('Failed to load course: ${response.statusCode}');
       }
@@ -143,15 +169,23 @@ class CourseRepository {
   /// Get course curriculum (modules and lessons)
   Future<Curriculum> getCourseCurriculum(String courseId) async {
     try {
-      final response = await _dio.get('/api/courses/$courseId/curriculum');
+      // New backend: curriculum belongs to class, not offering.
+      // For now we assume courseId == classId that mobile receives.
+      final response =
+          await _dio.get('/api/academy/classes/$courseId/curriculum');
       
       if (response.statusCode == 200) {
         final data = response.data;
         
-        // Handle both direct data and wrapped response
-        final curriculumData = data is Map<String, dynamic> && data.containsKey('data')
-            ? data['data'] as Map<String, dynamic>
-            : data as Map<String, dynamic>;
+        // successResponse({ curriculum }) or successResponse(curriculum)
+        Map<String, dynamic> curriculumData;
+        if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+          final inner = data['data'] as Map<String, dynamic>;
+          curriculumData =
+              (inner['curriculum'] as Map<String, dynamic>?) ?? inner;
+        } else {
+          curriculumData = data as Map<String, dynamic>;
+        }
         
         return Curriculum.fromJson(curriculumData);
       } else {
@@ -383,3 +417,78 @@ class CourseListResponse {
     );
   }
 }
+
+/// Map backend course-offering structure to Course JSON
+Map<String, dynamic> _safeMap(Map<String, dynamic>? source) =>
+    source ?? <String, dynamic>{};
+
+Map<String, dynamic> _mapOfferingToCourseJson(
+  Map<String, dynamic> offering,
+) {
+  // Pick primary class (if any)
+  final rawClasses = (offering['classes'] as List?) ?? const [];
+  Map<String, dynamic>? primaryClassRelation;
+  for (final c in rawClasses) {
+    if (c is Map<String, dynamic>) {
+      if (c['isPrimary'] == true) {
+        primaryClassRelation = c;
+        break;
+      }
+      primaryClassRelation ??= c;
+    }
+  }
+
+  final classData =
+      _safeMap(primaryClassRelation?['class'] as Map<String, dynamic>?);
+  final courseProfile = _safeMap(
+      classData['courseProfile'] as Map<String, dynamic>?);
+  final instructor =
+      _safeMap(classData['instructor'] as Map<String, dynamic>?);
+
+  // Prices: backend sends string
+  double _parsePrice(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString()) ?? 0.0;
+  }
+
+  final price = _parsePrice(offering['price']);
+  final salePrice = _parsePrice(offering['salePrice']);
+
+  final level = (courseProfile['level'] ?? '').toString();
+  final thumbnailUrl = courseProfile['thumbnailUrl']?.toString();
+
+  return <String, dynamic>{
+    'id': offering['id']?.toString() ?? '',
+    // keep offering id for routing; classId used for curriculum
+    'classId': classData['id']?.toString(),
+    'title': offering['title']?.toString() ?? classData['name']?.toString() ?? '',
+    'slug': offering['code']?.toString(),
+    'thumbnailUrl': thumbnailUrl,
+    'previewVideoUrl': null,
+    'instructorName':
+        instructor['displayName']?.toString() ?? 'Unknown Instructor',
+    'instructorAvatarUrl': instructor['avatarUrl']?.toString() ??
+        'https://i.pravatar.cc/150?u=${instructor['displayName'] ?? 'sensei'}',
+    'jlptLevel': level.isNotEmpty ? level : null,
+    'type': (offering['mode'] ?? classData['mode'] ?? 'VOD').toString(),
+    'price': price,
+    'discountPrice': salePrice > 0 && salePrice < price ? salePrice : null,
+    'averageRating': 0,
+    'totalReviews': 0,
+    'totalStudents': 0,
+    'totalLessons': 0,
+    'totalQuizzes': 0,
+    'durationWeeks': null,
+    'isEnrolled': false,
+    'isFree': price == 0,
+    'featured': false,
+    'description': offering['description']?.toString(),
+    'shortDescription': null,
+    'tags': const <String>[],
+    'learningOutcomes': const <String>[],
+    'requirements': const <String>[],
+    'expiresAt': null,
+  };
+}
+

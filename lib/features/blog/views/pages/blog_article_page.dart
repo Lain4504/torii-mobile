@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
+import 'package:torii_app/features/blog/models/blog_model.dart';
 
 class BlogArticlePage extends StatelessWidget {
-  const BlogArticlePage({super.key});
+  final Blog? blog;
+
+  const BlogArticlePage({super.key, this.blog});
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +25,16 @@ class BlogArticlePage extends StatelessWidget {
               elevation: 0,
               expandedHeight: 250,
               flexibleSpace: FlexibleSpaceBar(
-                background: Image.network(
-                  'https://picsum.photos/seed/article/800/600',
-                  fit: BoxFit.cover,
-                ),
+                background: blog?.thumbnailUrl != null &&
+                        blog!.thumbnailUrl!.isNotEmpty
+                    ? Image.network(
+                        blog!.thumbnailUrl!,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.network(
+                        'https://picsum.photos/seed/article/800/600',
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
             
@@ -34,26 +44,29 @@ class BlogArticlePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: const Text(
-                        'JLPT TIPS',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: AppTypography.black,
-                          color: AppColors.white,
-                          letterSpacing: 1.5,
+                    if (blog?.category != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: Text(
+                          blog!.category!.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: AppTypography.black,
+                            color: AppColors.white,
+                            letterSpacing: 1.5,
+                          ),
                         ),
                       ),
-                    ),
                     const SizedBox(height: AppSpacing.md),
-                    const Text(
-                      'Mastering Keigo: The Ultimate Guide to Polite Japanese',
-                      style: TextStyle(
+                    Text(
+                      blog?.title ??
+                          'Mastering Keigo: The Ultimate Guide to Polite Japanese',
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: AppTypography.black,
                         letterSpacing: -1.0,
@@ -68,16 +81,19 @@ class BlogArticlePage extends StatelessWidget {
                           backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=sensei'),
                         ),
                         const SizedBox(width: 12),
-                        const Column(
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Kenji Sensei',
-                              style: TextStyle(fontWeight: AppTypography.bold, fontSize: 14),
+                              blog?.authorName ?? 'Kenji Sensei',
+                              style: const TextStyle(
+                                  fontWeight: AppTypography.bold,
+                                  fontSize: 14),
                             ),
                             Text(
-                              'Published Oct 24, 2023 • 8 min read',
-                              style: TextStyle(color: AppColors.textTertiary, fontSize: 11),
+                              _buildPublishedLabel(blog),
+                              style: const TextStyle(
+                                  color: AppColors.textTertiary, fontSize: 11),
                             ),
                           ],
                         ),
@@ -227,5 +243,13 @@ class BlogArticlePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _buildPublishedLabel(Blog? blog) {
+    if (blog?.publishedAt == null) {
+      return 'Published';
+    }
+    final dateFormatter = DateFormat('MMM dd, yyyy');
+    return 'Published ${dateFormatter.format(blog!.publishedAt!)}';
   }
 }

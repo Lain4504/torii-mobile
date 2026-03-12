@@ -61,7 +61,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Widget build(BuildContext context) {
     final asyncAuth = ref.watch(authStateProvider);
     final isLoading = asyncAuth.isLoading;
-    final errorMessage = asyncAuth.error?.toString();
+    final authState = asyncAuth.value;
+    final errorMessage = authState?.error;
 
     return Scaffold(
       body: AppBackground(
@@ -210,7 +211,21 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.md),
+                  EntryAnimation(
+                    index: 4,
+                    child: TextButton(
+                      onPressed: () => context.go('/'),
+                      child: const Text(
+                        'Về trang chủ',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
               ),
             ),

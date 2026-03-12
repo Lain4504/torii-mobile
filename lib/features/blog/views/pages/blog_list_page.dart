@@ -1,21 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
+import 'package:torii_app/features/blog/providers/blog_providers.dart';
+import 'package:torii_app/features/blog/models/blog_model.dart';
 
-class BlogListPage extends StatefulWidget {
+class BlogListPage extends ConsumerStatefulWidget {
   const BlogListPage({super.key});
 
   @override
-  State<BlogListPage> createState() => _BlogListPageState();
+  ConsumerState<BlogListPage> createState() => _BlogListPageState();
 }
 
-class _BlogListPageState extends State<BlogListPage> {
+class _BlogListPageState extends ConsumerState<BlogListPage> {
   String selectedCategory = 'All';
   final categories = ['All', 'JLPT Tips', 'Grammar', 'Kanji', 'Culture'];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(blogListProvider.notifier).loadBlogs(refresh: true);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = ref.watch(blogListProvider);
+    final blogs = state.blogs;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AppBackground(
@@ -39,7 +55,7 @@ class _BlogListPageState extends State<BlogListPage> {
                 ),
               ),
             ),
-            
+
             // Search and Categories
             SliverToBoxAdapter(
               child: Padding(
@@ -47,7 +63,8 @@ class _BlogListPageState extends State<BlogListPage> {
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md),
                       decoration: BoxDecoration(
                         color: AppColors.white,
                         borderRadius: BorderRadius.circular(AppRadius.xs),
@@ -57,7 +74,8 @@ class _BlogListPageState extends State<BlogListPage> {
                         decoration: InputDecoration(
                           hintText: 'Search articles...',
                           border: InputBorder.none,
-                          icon: Icon(Icons.search_rounded, color: AppColors.textTertiary),
+                          icon: Icon(Icons.search_rounded,
+                              color: AppColors.textTertiary),
                         ),
                       ),
                     ),
@@ -72,14 +90,20 @@ class _BlogListPageState extends State<BlogListPage> {
                           final cat = categories[index];
                           final isSelected = selectedCategory == cat;
                           return GestureDetector(
-                            onTap: () => setState(() => selectedCategory = cat),
+                            onTap: () =>
+                                setState(() => selectedCategory = cat),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                               decoration: BoxDecoration(
-                                color: isSelected ? AppColors.primary : AppColors.white,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : AppColors.white,
                                 borderRadius: BorderRadius.circular(2),
                                 border: Border.all(
-                                  color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.borderLight,
                                 ),
                               ),
                               alignment: Alignment.center,
@@ -88,7 +112,9 @@ class _BlogListPageState extends State<BlogListPage> {
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: AppTypography.black,
-                                  color: isSelected ? AppColors.white : AppColors.textTertiary,
+                                  color: isSelected
+                                      ? AppColors.white
+                                      : AppColors.textTertiary,
                                   letterSpacing: 1.0,
                                 ),
                               ),
@@ -103,21 +129,40 @@ class _BlogListPageState extends State<BlogListPage> {
             ),
 
             // Blog List
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return EntryAnimation(
-                      index: index,
-                      child: _buildBlogCard(context),
-                    );
-                  },
-                  childCount: 5,
+            if (state.isLoading && blogs.isEmpty)
+              const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (blogs.isEmpty)
+              const SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    'Chưa có bài viết nào.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final blog = blogs[index];
+                      return EntryAnimation(
+                        index: index,
+                        child: _buildBlogCard(context, blog),
+                      );
+                    },
+                    childCount: blogs.length,
+                  ),
                 ),
               ),
-            ),
-            
+
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
         ),
@@ -125,9 +170,11 @@ class _BlogListPageState extends State<BlogListPage> {
     );
   }
 
-  Widget _buildBlogCard(BuildContext context) {
+  Widget _buildBlogCard(BuildContext context, Blog blog) {
+    final dateFormatter = DateFormat('dd MMM, yyyy');
+
     return GestureDetector(
-      onTap: () => context.push('/blog/detail'),
+      onTap: () => context.push('/blog/detail', extra: blog),
       child: Container(
         margin: const EdgeInsets.only(bottom: AppSpacing.lg),
         decoration: BoxDecoration(
@@ -142,36 +189,45 @@ class _BlogListPageState extends State<BlogListPage> {
           children: [
             AspectRatio(
               aspectRatio: 16 / 9,
-              child: Image.network(
-                'https://picsum.photos/seed/${DateTime.now().millisecond}/800/450',
-                fit: BoxFit.cover,
-              ),
+              child: blog.thumbnailUrl != null &&
+                      blog.thumbnailUrl!.isNotEmpty
+                  ? Image.network(
+                      blog.thumbnailUrl!,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      color: AppColors.grey100,
+                      child: const Icon(Icons.article_outlined,
+                          color: AppColors.primary),
+                    ),
             ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                    child: const Text(
-                      'GRAMMAR',
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: AppTypography.black,
-                        color: AppColors.primary,
-                        letterSpacing: 1.0,
+                  if (blog.category != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Text(
+                        blog.category!.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 8,
+                          fontWeight: AppTypography.black,
+                          color: AppColors.primary,
+                          letterSpacing: 1.0,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Mastering Keigo: The Ultimate Guide to Polite Japanese',
-                    style: TextStyle(
+                  Text(
+                    blog.title,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: AppTypography.black,
                       letterSpacing: -0.5,
@@ -179,33 +235,40 @@ class _BlogListPageState extends State<BlogListPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Understanding Japanese honorifics is crucial for professional communication. Here is everything you need to know...',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                      height: 1.5,
+                  if (blog.excerpt != null)
+                    Text(
+                      blog.excerpt!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
                       const CircleAvatar(
                         radius: 12,
-                        backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=sensei'),
+                        backgroundImage: NetworkImage(
+                            'https://i.pravatar.cc/150?u=sensei'),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Kenji Sensei',
-                        style: TextStyle(fontSize: 12, fontWeight: AppTypography.bold),
+                      Text(
+                        blog.authorName ?? 'Torii Team',
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: AppTypography.bold),
                       ),
                       const Spacer(),
-                      const Text(
-                        'Oct 24, 2023',
-                        style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
-                      ),
+                      if (blog.publishedAt != null)
+                        Text(
+                          dateFormatter.format(blog.publishedAt!),
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textTertiary),
+                        ),
                     ],
                   ),
                 ],

@@ -6,6 +6,7 @@ enum JLPTLevel { n1, n2, n3, n4, n5 }
 
 class Course {
   final String id;
+  final String? classId;
   final String title;
   final String? slug;
   final String? thumbnailUrl;
@@ -34,6 +35,7 @@ class Course {
 
   const Course({
     required this.id,
+    this.classId,
     required this.title,
     this.slug,
     this.thumbnailUrl,
@@ -130,6 +132,7 @@ class Course {
 
     return Course(
       id: json['id']?.toString() ?? '',
+      classId: json['classId']?.toString(),
       title: json['title']?.toString() ?? '',
       slug: json['slug'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String? ?? 
@@ -162,6 +165,7 @@ class Course {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'classId': classId,
       'title': title,
       'slug': slug,
       'thumbnailUrl': thumbnailUrl,

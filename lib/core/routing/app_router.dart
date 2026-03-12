@@ -12,14 +12,12 @@ import 'package:torii_app/features/auth/views/pages/verify_otp_page.dart';
 import 'package:torii_app/features/auth/views/pages/reset_password_page.dart';
 import 'package:torii_app/features/auth/views/pages/two_factor_verify_page.dart';
 import 'package:torii_app/features/auth/views/pages/auth_success_page.dart';
-import 'package:torii_app/features/course/views/pages/course_list_page.dart';
 import 'package:torii_app/features/course/views/pages/course_detail_page.dart';
 import 'package:torii_app/features/course/views/pages/course_lessons_page.dart';
 import 'package:torii_app/features/payment/views/payment_screen.dart';
 import 'package:torii_app/features/payment/views/payos_webview_screen.dart';
 import 'package:torii_app/features/payment/views/order_history_screen.dart';
-import 'package:torii_app/features/dashboard/views/pages/home_page.dart';
-import 'package:torii_app/features/dashboard/views/pages/dashboard_page.dart';
+import 'package:torii_app/features/payment/views/order_detail_screen.dart';
 import 'package:torii_app/features/course/views/pages/my_learning_page.dart';
 import 'package:torii_app/features/course/views/pages/lesson_page.dart';
 import 'package:torii_app/features/course/models/lesson_model.dart';
@@ -27,10 +25,11 @@ import 'package:torii_app/features/notifications/views/pages/notifications_page.
 import 'package:torii_app/features/profile/views/pages/profile_page.dart';
 import 'package:torii_app/features/blog/views/pages/blog_list_page.dart';
 import 'package:torii_app/features/blog/views/pages/blog_article_page.dart';
+import 'package:torii_app/features/blog/models/blog_model.dart';
 import 'package:torii_app/features/gamification/views/pages/achievements_page.dart';
-import 'package:torii_app/features/course/views/pages/wishlist_page.dart';
 import 'package:torii_app/features/meet/presentation/screens/landing/meet_entry_screen.dart';
 import 'package:torii_app/features/meet/presentation/screens/room/meeting_room_screen.dart';
+import 'package:torii_app/features/meet/presentation/screens/landing/meet_login_screen.dart';
 import 'package:torii_app/features/course/views/pages/assignments_page.dart';
 import 'package:torii_app/features/course/views/pages/certificates_page.dart';
 import 'package:torii_app/features/dashboard/views/pages/statistics_page.dart';
@@ -129,16 +128,16 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // Branch 1: Learning / Courses
+          // Branch 1: My Courses / Catalog (new UI)
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/my-learning',
+                path: '/my-courses',
                 builder: (context, state) => const MyLearningPage(),
               ),
               GoRoute(
                 path: '/courses',
-                builder: (context, state) => const CourseCatalogPage(),
+                builder: (context, state) => const CourseDiscoveryPage(),
                 routes: [
                   GoRoute(
                     path: ':id',
@@ -163,17 +162,31 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
           
-          // Branch 2: Live (Member) / Community (Guest)
+          // Branch 2: Live (Member) / Community (Guest) - temporary reuse marketplace UI
           StatefulShellBranch(
             routes: [
-              // Live / community routes are not available in this build.
+              GoRoute(
+                path: '/live-schedule',
+                builder: (context, state) => const MarketplaceHomePage(),
+              ),
+              GoRoute(
+                path: '/community',
+                builder: (context, state) => const MarketplaceHomePage(),
+              ),
             ],
           ),
-
+          
           // Branch 3: Flashcards (Member) / Exams (Guest)
           StatefulShellBranch(
             routes: [
-              // Flashcards / exams routes are not available in this build.
+              GoRoute(
+                path: '/flashcards',
+                builder: (context, state) => const MyLearningPage(),
+              ),
+              GoRoute(
+                path: '/exams',
+                builder: (context, state) => const MyLearningPage(),
+              ),
             ],
           ),
 
@@ -203,6 +216,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/meeting',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const MeetingRoomScreen(),
+      ),
+      GoRoute(
+        path: '/meet/login',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          return MeetLoginScreen(
+            onLoginSuccess: (token) {
+              // After obtaining token, navigate via GoRouter to meet entry screen with token
+              context.go(
+                '/meet',
+                extra: {'token': token},
+              );
+            },
+          );
+        },
       ),
       GoRoute(
         path: '/login',
@@ -310,6 +338,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OrderHistoryScreen(),
       ),
       GoRoute(
+        path: '/payment/order/:id',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final orderId = state.pathParameters['id'] ?? '';
+          return OrderDetailScreen(orderId: orderId);
+        },
+      ),
+      GoRoute(
         path: '/assignments',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const AssignmentsPage(),
@@ -348,11 +384,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AchievementsPage(),
       ),
       GoRoute(
-        path: '/wishlist',
-        parentNavigatorKey: AppRouter.rootNavigatorKey,
-        builder: (context, state) => const WishlistPage(),
-      ),
-      GoRoute(
         path: '/blog',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const BlogListPage(),
@@ -360,7 +391,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'detail',
             parentNavigatorKey: AppRouter.rootNavigatorKey,
-            builder: (context, state) => const BlogArticlePage(),
+            builder: (context, state) {
+              final extra = state.extra;
+              final blog = extra is Blog ? extra : null;
+              return BlogArticlePage(blog: blog);
+            },
           ),
         ],
       ),
@@ -392,11 +427,12 @@ class AppRouter {
   static final shellNavigatorKey = GlobalKey<NavigatorState>();
 
   static const protectedRoutes = [
-    '/my-learning',
+    '/my-courses',
+    '/live-schedule',
+    '/flashcards',
     '/notifications',
     '/downloads',
     '/achievements',
-    '/wishlist',
     '/payment',
     '/payment/history',
     '/profile',
@@ -419,6 +455,8 @@ class AppRouter {
     '/auth/verify-2fa',
     '/auth/success',
     '/marketplace',
+    '/community',
+    '/exams',
     '/achievements',
     '/blog',
     '/blog/detail',
@@ -455,8 +493,10 @@ class RootScreenWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncAuth = ref.watch(authStateProvider);
     if (asyncAuth.value?.isAuthenticated == true) {
-      return const DashboardPage();
+      // After login, send user to My Courses overview
+      return const MyLearningPage();
     }
-    return const HomePage();
+    // Guest default home: marketplace landing
+    return const MarketplaceHomePage();
   }
 }

@@ -345,9 +345,29 @@ class CourseDetailPage extends ConsumerWidget {
           children: [
             Hero(
               tag: 'course-${course.id}',
-              child: course.thumbnailUrl != null
-                  ? Image.network(course.thumbnailUrl!, fit: BoxFit.cover)
-                  : Container(color: AppColors.grey200),
+              child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
+                  ? Image.network(
+                      course.thumbnailUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: AppColors.grey200,
+                          child: const Icon(
+                            Icons.menu_book_rounded,
+                            color: AppColors.primary,
+                            size: 40,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      color: AppColors.grey200,
+                      child: const Icon(
+                        Icons.menu_book_rounded,
+                        color: AppColors.primary,
+                        size: 40,
+                      ),
+                    ),
             ),
             Container(
               decoration: BoxDecoration(

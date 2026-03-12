@@ -2,12 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
+import 'package:torii_app/features/gamification/providers/gamification_providers.dart';
 
 class AchievementsPage extends ConsumerWidget {
   const AchievementsPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(gamificationProvider);
+
+    // Lazy load when first opened
+    if (!state.isLoading && state.profile == null) {
+      ref.read(gamificationProvider.notifier).load();
+    }
+
+    final profile = state.profile;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AppBackground(
@@ -43,14 +53,35 @@ class AchievementsPage extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                     boxShadow: AppElevation.softShadow,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildStatItem('LEVEL', '12', Icons.trending_up_rounded),
-                      _buildStatItem('TOTAL XP', '2,450', Icons.bolt_rounded),
-                      _buildStatItem('STREAK', '7 DAYS', Icons.local_fire_department_rounded),
-                    ],
-                  ),
+                  child: state.isLoading && profile == null
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(AppColors.white),
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _buildStatItem(
+                              'LEVEL',
+                              profile?.level.toString() ?? '-',
+                              Icons.trending_up_rounded,
+                            ),
+                            _buildStatItem(
+                              'TOTAL XP',
+                              profile?.totalXp.toString() ?? '-',
+                              Icons.bolt_rounded,
+                            ),
+                            _buildStatItem(
+                              'STREAK',
+                              profile != null
+                                  ? '${profile.currentStreak} DAYS'
+                                  : '-',
+                              Icons.local_fire_department_rounded,
+                            ),
+                          ],
+                        ),
                 ),
               ),
             ),
@@ -72,20 +103,43 @@ class AchievementsPage extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: AppSpacing.md,
-                      crossAxisSpacing: AppSpacing.md,
-                      childAspectRatio: 0.85,
-                      children: [
-                        _buildBadgeCard('FIRST COURSE', 'Complete your 1st course', Icons.school_rounded, true),
-                        _buildBadgeCard('7 DAY STREAK', 'Study for 7 days straight', Icons.calendar_month_rounded, true),
-                        _buildBadgeCard('N5 GRADUATE', 'Pass JLPT N5 mock exam', Icons.auto_awesome_rounded, false),
-                        _buildBadgeCard('KANJI MASTER', 'Learn 100 Kanji characters', Icons.translate_rounded, false),
-                      ],
-                    ),
+                    if (state.isLoading && state.achievements.isEmpty)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(AppSpacing.lg),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else if (state.achievements.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(top: AppSpacing.md),
+                        child: Text(
+                          'Bạn chưa có huy hiệu nào. Hãy bắt đầu học để mở khóa!',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      )
+                    else
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        mainAxisSpacing: AppSpacing.md,
+                        crossAxisSpacing: AppSpacing.md,
+                        childAspectRatio: 0.85,
+                        children: state.achievements
+                            .map(
+                              (a) => _buildBadgeCard(
+                                a.title,
+                                a.description,
+                                Icons.auto_awesome_rounded,
+                                a.unlocked,
+                              ),
+                            )
+                            .toList(),
+                      ),
                   ],
                 ),
               ),
@@ -108,8 +162,13 @@ class AchievementsPage extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    _buildMilestoneItem('Halfway to Level 13', 0.5),
-                    _buildMilestoneItem('JLPT N4 Progress', 0.2),
+                    if (profile != null)
+                      _buildMilestoneItem(
+                        'Đang trên đường tới Level ${profile.level + 1}',
+                        0.5,
+                      )
+                    else
+                      _buildMilestoneItem('Bắt đầu hành trình học tập', 0.0),
                   ],
                 ),
               ),

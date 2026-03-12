@@ -315,9 +315,8 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, letterSpacing: 3.0, color: AppColors.primary),
               ),
               TextButton(
-                onPressed: () => context.push('/my-learning'),
+                onPressed: () => context.push('/my-courses'),
                 child: const Text('XEM TẤT CẢ', style: TextStyle(fontSize: 10, fontWeight: AppTypography.black, color: AppColors.primary)),
-
               ),
             ],
           ),

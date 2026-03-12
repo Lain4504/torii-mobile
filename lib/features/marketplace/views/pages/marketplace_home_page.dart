@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
+import 'package:torii_app/features/course/providers/course_providers.dart';
+import 'package:torii_app/features/blog/providers/blog_providers.dart';
+import 'package:torii_app/features/course/models/course_model.dart';
+import 'package:torii_app/features/blog/models/blog_model.dart';
 
 class MarketplaceHomePage extends ConsumerStatefulWidget {
   const MarketplaceHomePage({super.key});
@@ -25,7 +29,27 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
   int _selectedCategoryIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final courseState = ref.read(courseListProvider);
+      if (courseState.courses.isEmpty) {
+        ref.read(courseListProvider.notifier).loadCourses(refresh: true);
+      }
+      final blogState = ref.read(blogListProvider);
+      if (blogState.blogs.isEmpty) {
+        ref.read(blogListProvider.notifier).loadBlogs(refresh: true);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final courseState = ref.watch(courseListProvider);
+    final blogState = ref.watch(blogListProvider);
+    final recommendedCourses = courseState.courses.take(4).toList();
+    final latestBlogs = blogState.blogs.take(4).toList();
+
     return Scaffold(
       body: AppBackground(
         pattern: BackgroundPattern.checkerboard,
@@ -221,18 +245,35 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
               ),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.72,
-                    crossAxisSpacing: AppSpacing.md,
-                    mainAxisSpacing: AppSpacing.md,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildCourseCard(index),
-                    childCount: 4,
-                  ),
-                ),
+                sliver: recommendedCourses.isEmpty
+                    ? const SliverToBoxAdapter(
+                        child: Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(AppSpacing.lg),
+                            child: Text(
+                              'Chưa có khóa học nào.',
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.72,
+                          crossAxisSpacing: AppSpacing.md,
+                          mainAxisSpacing: AppSpacing.md,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) =>
+                              _buildCourseCard(context, recommendedCourses[index]),
+                          childCount: recommendedCourses.length,
+                        ),
+                      ),
               ),
 
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
@@ -299,24 +340,33 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                         ],
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildBlogMiniCard(
-                              'https://picsum.photos/seed/blog1/400/250',
-                              'Lịch thi JLPT 2024 mới nhất',
-                              'Admin',
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            _buildBlogMiniCard(
-                              'https://picsum.photos/seed/blog2/400/250',
-                              'Cách nhớ 100 chữ Hán trong 1 ngày',
-                              'Sensei Hiro',
-                            ),
-                          ],
+                      if (blogState.isLoading && latestBlogs.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(AppSpacing.lg),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      else if (latestBlogs.isEmpty)
+                        const Text(
+                          'Chưa có bài viết nào.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        )
+                      else
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              for (final blog in latestBlogs) ...[
+                                _buildBlogMiniCard(context, blog),
+                                const SizedBox(width: AppSpacing.md),
+                              ],
+                            ],
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -424,72 +474,97 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
     );
   }
 
-  Widget _buildCourseCard(int index) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.sm)),
-            child: Image.network(
-              'https://picsum.photos/seed/${index + 100}/300/200',
-              height: 90,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  index == 0 ? 'Mastering N5 Kanji' : 'Tiếng Nhật Giao Tiếp $index',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: AppTypography.bold,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Sensei Hiroshi',
-                  style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 12),
-                    const SizedBox(width: 2),
-                    Text(
-                      '4.9',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: AppTypography.bold,
-                        color: AppColors.grey700,
-                      ),
+  Widget _buildCourseCard(BuildContext context, Course course) {
+    return GestureDetector(
+      onTap: () => context.push('/courses/${course.id}'),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.sm)),
+              child: course.thumbnailUrl != null &&
+                      course.thumbnailUrl!.isNotEmpty
+                  ? Image.network(
+                      course.thumbnailUrl!,
+                      height: 90,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 90,
+                          width: double.infinity,
+                          color: AppColors.grey100,
+                          child: const Icon(
+                            Icons.menu_book_rounded,
+                            color: AppColors.primary,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      height: 90,
+                      width: double.infinity,
+                      color: AppColors.grey100,
+                      child: const Icon(Icons.menu_book_rounded,
+                          color: AppColors.primary),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '\$19.99',
-                  style: TextStyle(
-                    color: AppColors.secondary,
-                    fontWeight: AppTypography.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    course.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: AppTypography.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    course.instructorName,
+                    style: const TextStyle(
+                        fontSize: 10, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 12),
+                      const SizedBox(width: 2),
+                      Text(
+                        '4.9',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: AppTypography.bold,
+                          color: AppColors.grey700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    course.priceLabel,
+                    style: const TextStyle(
+                      color: AppColors.secondary,
+                      fontWeight: AppTypography.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -551,9 +626,9 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
     );
   }
 
-  Widget _buildBlogMiniCard(String imageUrl, String title, String author) {
+  Widget _buildBlogMiniCard(BuildContext context, Blog blog) {
     return GestureDetector(
-      onTap: () => context.push('/blog/detail'),
+      onTap: () => context.push('/blog/detail', extra: blog),
       child: Container(
         width: 220,
         decoration: BoxDecoration(
@@ -565,19 +640,28 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.network(
-              imageUrl,
-              height: 100,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
+            if (blog.thumbnailUrl != null && blog.thumbnailUrl!.isNotEmpty)
+              Image.network(
+                blog.thumbnailUrl!,
+                height: 100,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                height: 100,
+                width: double.infinity,
+                color: AppColors.grey100,
+                child: const Icon(Icons.article_outlined,
+                    color: AppColors.primary),
+              ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.sm),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    blog.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -586,10 +670,12 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    author,
-                    style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
-                  ),
+                  if (blog.authorName != null)
+                    Text(
+                      blog.authorName!,
+                      style: const TextStyle(
+                          fontSize: 10, color: AppColors.textSecondary),
+                    ),
                 ],
               ),
             ),

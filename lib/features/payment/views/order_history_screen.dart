@@ -146,76 +146,81 @@ class _OrderCard extends StatelessWidget {
     final dateFormatter = DateFormat('dd/MM/yyyy HH:mm');
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                dateFormatter.format(order.createdAt),
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textTertiary,
-                ),
-              ),
-              _buildStatusBadge(order.status),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            order.description ?? 'Thanh toán đơn hàng',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: AppTypography.bold,
-              color: AppColors.textPrimary,
+    return InkWell(
+      onTap: () => context.push('/payment/order/${order.id}'),
+      borderRadius: BorderRadius.circular(AppRadius.xl),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            '#${order.id.substring(0, 8).toUpperCase()}',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontFamily: 'Courier',
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  dateFormatter.format(order.createdAt),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                _buildStatusBadge(order.status),
+              ],
             ),
-          ),
-          const Divider(height: 24, thickness: 0.5),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _getPaymentMethodName(order.paymentMethod, order.paymentGateway),
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              order.description ?? 'Thanh toán đơn hàng',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: AppTypography.bold,
+                color: AppColors.textPrimary,
               ),
-              Text(
-                currencyFormatter.format(order.amount),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: AppTypography.black,
-                  color: AppColors.primary,
-                ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              '#${order.id.substring(0, 8).toUpperCase()}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+                fontFamily: 'Courier',
               ),
-            ],
-          ),
-        ],
+            ),
+            const Divider(height: 24, thickness: 0.5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _getPaymentMethodName(
+                      order.paymentMethod, order.paymentGateway),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  currencyFormatter.format(order.amount),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: AppTypography.black,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../data/datasources/meet_api_service.dart';
 
 /// Meet Login Screen
@@ -107,6 +108,19 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF191F28) : const Color(0xFFF8FAFB),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => _goHome(context),
+        ),
+        title: const Text(
+          'Torii Meet',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -271,7 +285,32 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: SizedBox(
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: _isLoading ? null : () => _goHome(context),
+              icon: const Icon(Icons.home_outlined),
+              label: const Text(
+                'Về trang chủ',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
+  }
+
+  void _goHome(BuildContext context) {
+    final router = GoRouter.maybeOf(context);
+    if (router != null) {
+      router.go('/');
+    } else {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   Widget _buildFieldLabel(BuildContext context, String label) {

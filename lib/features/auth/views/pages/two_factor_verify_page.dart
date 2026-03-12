@@ -60,7 +60,8 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
   Widget build(BuildContext context) {
     final asyncAuth = ref.watch(authStateProvider);
     final isLoading = asyncAuth.isLoading;
-    final errorMessage = asyncAuth.error?.toString() ?? asyncAuth.asData?.value.error;
+    final authState = asyncAuth.asData?.value;
+    final errorMessage = authState?.error;
     
     // Prevent flash of content when authenticated
     if (asyncAuth.asData?.value.status == AuthStatus.authenticated) {
@@ -193,18 +194,32 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
                   // Bottom Text
                   EntryAnimation(
                     index: 2,
-                    child: TextButton(
-                      onPressed: () => ref.read(authStateProvider.notifier).logout(),
-                      child: const Text(
-                        'Cancel and sign out',
-                        style: TextStyle(
-                          fontWeight: AppTypography.bold,
-                          color: AppColors.textSecondary,
+                    child: Column(
+                      children: [
+                        TextButton(
+                          onPressed: () => ref.read(authStateProvider.notifier).logout(),
+                          child: const Text(
+                            'Cancel and sign out',
+                            style: TextStyle(
+                              fontWeight: AppTypography.bold,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                         ),
-                      ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                          child: const Text(
+                            'Về trang chủ',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
               ),
             ),

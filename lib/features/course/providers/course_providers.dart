@@ -70,6 +70,7 @@ class CourseDetailNotifier extends FamilyNotifier<CourseDetailState, String> {
       final updatedCourse = isEnrolled != course.isEnrolled
           ? Course(
               id: course.id,
+              classId: course.classId,
               title: course.title,
               slug: course.slug,
               thumbnailUrl: course.thumbnailUrl,
@@ -120,7 +121,9 @@ class CourseDetailNotifier extends FamilyNotifier<CourseDetailState, String> {
     state = state.copyWith(isLoadingCurriculum: true);
 
     try {
-      final curriculum = await _courseRepository.getCourseCurriculum(courseId);
+      final idForCurriculum = state.course?.classId ?? courseId;
+      final curriculum =
+          await _courseRepository.getCourseCurriculum(idForCurriculum);
       state = state.copyWith(
         curriculum: curriculum,
         isLoadingCurriculum: false,
