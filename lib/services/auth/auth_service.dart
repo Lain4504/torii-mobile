@@ -212,17 +212,42 @@ class AuthService {
     }
   }
 
-  Future<ApiResponse<User>> updateProfile(String displayName) async {
+  Future<ApiResponse<User>> updateProfile({
+    String? displayName,
+    Map<String, dynamic>? userMetadata,
+  }) async {
     try {
       final response = await _apiClient.client.patch(
         '/api/auth/me',
-        data: {'displayName': displayName},
+        data: {
+          if (displayName != null) 'displayName': displayName,
+          if (userMetadata != null) 'userMetadata': userMetadata,
+        },
       );
-      return ApiResponse.fromJson(response.data, (json) => User.fromJson(json));
+      return ApiResponse.fromJson(response.data, (json) => User.fromJson(json['user']));
     } on DioException catch (e) {
       return _handleError(e);
     }
   }
+
+  Future<ApiResponse<void>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/change-password',
+        data: {
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+        },
+      );
+      return ApiResponse.fromJson(response.data, (_) {});
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
 
   Future<ApiResponse<void>> logout(String refreshToken) async {
     try {

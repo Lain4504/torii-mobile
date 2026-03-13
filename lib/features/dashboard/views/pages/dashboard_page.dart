@@ -7,6 +7,7 @@ import '../../../auth/providers/auth_providers.dart';
 import '../../../course/providers/my_learning_provider.dart';
 import '../../../course/views/widgets/course_card.dart';
 import 'package:torii_app/core/theme/theme_provider.dart';
+import '../../../notifications/providers/notification_providers.dart';
 
 /// Dashboard Page - Focused Learning Matrix for Authenticated Users
 class DashboardPage extends ConsumerStatefulWidget {
@@ -139,6 +140,44 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         _HeaderAction(
           icon: isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
           onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
+        ),
+        Stack(
+          children: [
+            _HeaderAction(
+              icon: Icons.notifications_none_rounded,
+              onPressed: () => context.push('/notifications'),
+            ),
+            Consumer(
+              builder: (context, ref, child) {
+                final unreadCount = ref.watch(unreadCountProvider);
+                if (unreadCount == 0) return const SizedBox.shrink();
+                return Positioned(
+                  right: 4,
+                  top: 4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      unreadCount > 9 ? '9+' : '$unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         _HeaderAction(
           icon: Icons.search_rounded,

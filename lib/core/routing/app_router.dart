@@ -36,6 +36,8 @@ import 'package:torii_app/features/course/views/pages/certificates_page.dart';
 import 'package:torii_app/features/dashboard/views/pages/statistics_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_chat_page.dart';
+import 'package:torii_app/features/profile/views/pages/edit_profile_page.dart';
+import 'package:torii_app/features/profile/views/pages/change_password_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_chat_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_translate_page.dart';
 import 'package:torii_app/features/marketplace/views/pages/marketplace_home_page.dart';
@@ -227,6 +229,18 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 builder: (context, state) => const ProfilePage(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    parentNavigatorKey: AppRouter.rootNavigatorKey,
+                    builder: (context, state) => const EditProfilePage(),
+                  ),
+                  GoRoute(
+                    path: 'change-password',
+                    parentNavigatorKey: AppRouter.rootNavigatorKey,
+                    builder: (context, state) => const ChangePasswordPage(),
+                  ),
+                ],
               ),
             ],
           ),

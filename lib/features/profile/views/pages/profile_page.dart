@@ -10,6 +10,7 @@ class ProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authStateProvider).value?.user;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AppBackground(
@@ -44,29 +45,58 @@ class ProfilePage extends ConsumerWidget {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
+                        color: AppColors.primarySurface,
                         shape: BoxShape.rectangle,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                         border: Border.all(color: AppColors.primary, width: 3),
-                        image: const DecorationImage(
-                          image: NetworkImage('https://i.pravatar.cc/300'),
-                          fit: BoxFit.cover,
-                        ),
+                        image: user?.avatarUrl != null 
+                          ? DecorationImage(
+                              image: NetworkImage(user!.avatarUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : const DecorationImage(
+                              image: NetworkImage('https://i.pravatar.cc/300'),
+                              fit: BoxFit.cover,
+                            ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    const Text(
-                      'Lain Iwakura',
-                      style: TextStyle(
+                    Text(
+                      user?.displayName ?? 'User Name',
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: AppTypography.black,
                         letterSpacing: -1.0,
                       ),
                     ),
-                    const Text(
-                      'lain.iwakura@wired.jp',
-                      style: TextStyle(
+                    Text(
+                      user?.email ?? 'user@example.com',
+                      style: const TextStyle(
                         color: AppColors.textTertiary,
                         fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      height: 36,
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.push('/profile/edit'),
+                        icon: const Icon(Icons.edit_rounded, size: 16),
+                        label: const Text(
+                          'EDIT PROFILE',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: AppTypography.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -108,6 +138,7 @@ class ProfilePage extends ConsumerWidget {
                   _buildMenuItem('Achievements', Icons.military_tech_rounded, () => context.push('/achievements')),
                   _buildMenuItem('Certificates', Icons.workspace_premium_rounded, () => {}),
                   _buildMenuItem('Payment History', Icons.receipt_long_rounded, () => context.push('/payment/history')),
+                  _buildMenuItem('Change Password', Icons.lock_outline_rounded, () => context.push('/profile/change-password')),
                   _buildMenuItem('Settings', Icons.settings_rounded, () => context.push('/profile/settings')),
                   const SizedBox(height: AppSpacing.lg),
                   _buildMenuItem(

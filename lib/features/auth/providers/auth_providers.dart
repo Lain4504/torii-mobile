@@ -243,6 +243,24 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     // Optionally invalidate feature-specific providers here.
     state = AsyncValue.data(AuthState.unauthenticated());
   }
+
+  Future<bool> updateProfile({String? displayName, Map<String, dynamic>? metadata}) async {
+    final response = await _repository.updateProfile(displayName: displayName, userMetadata: metadata);
+    if (response.success && response.data != null) {
+      await _userService.saveUserProfile(response.data!);
+      state = AsyncValue.data(AuthState.authenticated(response.data!));
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    final response = await _repository.changePassword(
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+    );
+    return response.success;
+  }
 }
 
 
