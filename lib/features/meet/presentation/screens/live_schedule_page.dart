@@ -268,16 +268,18 @@ class _LiveClassCard extends StatelessWidget {
                         // View details logic
                       }
                     },
-                    borderRadius: AppRadius.xs,
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    variant: item.isLive ? ButtonVariant.primary : ButtonVariant.outline,
+                    type: item.isLive
+                        ? AppButtonType.primary
+                        : AppButtonType.outline,
+                    isFullWidth: true,
                   ),
                 ),
                 if (!item.isLive) ...[
                   const SizedBox(width: AppSpacing.md),
                   IconButton(
                     onPressed: () {},
-                    icon: const Icon(Icons.calendar_add_on_outlined),
+                    icon: const Icon(Icons.event_available_outlined),
                     color: AppColors.primary,
                     tooltip: 'Add to Calendar',
                   ),

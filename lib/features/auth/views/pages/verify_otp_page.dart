@@ -177,7 +177,6 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
                                   text: 'VERIFY ACCOUNT',
                                   onPressed: _otpController.text.length == 6 ? _verifyOTP : null,
                                   isLoading: isLoading,
-                                  borderRadius: AppRadius.xs,
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                 ),
                                 

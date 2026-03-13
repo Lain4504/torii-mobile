@@ -192,7 +192,6 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
                                     }
                                   },
                                   isLoading: isLoading,
-                                  borderRadius: AppRadius.xs,
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                 ),
                                 

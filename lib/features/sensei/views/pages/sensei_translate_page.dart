@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide-react/lucide-react.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../providers/sensei_providers.dart';
 
@@ -70,7 +69,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.borderLight),
               ),
               child: Row(
                 children: [
@@ -80,7 +79,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(LucideIcons.arrow_right_left, size: 20),
+                    icon: const Icon(Icons.swap_horiz, size: 20),
                     onPressed: _swapLanguages,
                     color: AppColors.primary,
                   ),
@@ -99,7 +98,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.borderLight),
               ),
               child: Column(
                 children: [
@@ -121,12 +120,12 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(LucideIcons.volume_2, size: 20),
+                          icon: const Icon(Icons.volume_up, size: 20),
                           onPressed: () {},
                         ),
                         if (_textController.text.isNotEmpty)
                           IconButton(
-                            icon: const Icon(LucideIcons.x, size: 20),
+                            icon: const Icon(Icons.close, size: 20),
                             onPressed: () => setState(() => _textController.clear()),
                           ),
                         const Spacer(),
@@ -134,7 +133,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                           onPressed: translatorState.isLoading ? null : _handleTranslate,
                           icon: translatorState.isLoading 
                             ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                            : const Icon(LucideIcons.languages, size: 16),
+                            : const Icon(Icons.translate, size: 16),
                           label: const Text('Dịch'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
@@ -171,7 +170,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                     Row(
                       children: [
                         IconButton(
-                          icon: const Icon(LucideIcons.copy, size: 20),
+                          icon: const Icon(Icons.copy, size: 20),
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: translatorState.translation!.translatedText));
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -180,7 +179,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                           },
                         ),
                         IconButton(
-                          icon: const Icon(LucideIcons.volume_2, size: 20),
+                          icon: const Icon(Icons.volume_up, size: 20),
                           onPressed: () {},
                         ),
                       ],
@@ -272,7 +271,7 @@ class _GrammarResultView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,7 +297,7 @@ class _GrammarResultView extends StatelessWidget {
           _ResultBox(title: 'Câu gốc', text: response.originalText, color: Colors.grey[100]!),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
-            child: Icon(LucideIcons.chevron_down, size: 20, color: Colors.grey),
+            child: Icon(Icons.expand_more, size: 20, color: Colors.grey),
           ),
           _ResultBox(title: 'Đề xuất', text: response.correctedText, color: AppColors.primary.withOpacity(0.05), textColor: AppColors.primary),
           
@@ -317,13 +316,15 @@ class _GrammarResultView extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: response.suggestions.map<Widget>((s) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(s.toString(), style: const TextStyle(fontSize: 12)),
-              )).toList(),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.borderLight),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(s.toString(),
+                        style: const TextStyle(fontSize: 12)),
+                  )).toList(),
             ),
           ],
         ],
@@ -370,7 +371,7 @@ class _ErrorItem extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.borderLight),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -378,14 +379,30 @@ class _ErrorItem extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(error.issue, style: const TextStyle(decoration: TextDecoration.lineThrough, color: Colors.grey, fontWeight: FontWeight.bold)),
-              const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Icon(LucideIcons.arrow_right, size: 14)),
-              Text(error.correction, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              Text(error.issue,
+                  style: const TextStyle(
+                      decoration: TextDecoration.lineThrough,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold)),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Icon(Icons.arrow_right, size: 14),
+              ),
+              Text(error.correction,
+                  style: const TextStyle(
+                      color: AppColors.primary, fontWeight: FontWeight.bold)),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(border: Border.all(color: AppColors.primary), borderRadius: BorderRadius.circular(4)),
-                child: Text(error.type, style: const TextStyle(fontSize: 8, color: AppColors.primary, fontWeight: FontWeight.bold)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.primary),
+                    borderRadius: BorderRadius.circular(4)),
+                child: Text(error.type,
+                    style: const TextStyle(
+                        fontSize: 8,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold)),
               ),
             ],
           ),

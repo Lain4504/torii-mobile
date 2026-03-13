@@ -1,7 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../models/notification_model.dart';
@@ -90,7 +90,10 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(LucideIcons.bellOff, size: 64, color: AppColors.textTertiary.withValues(alpha: 0.2)),
+                          Icon(Icons.notifications_off_outlined,
+                              size: 64,
+                              color:
+                                  AppColors.textTertiary.withValues(alpha: 0.2)),
                           const SizedBox(height: AppSpacing.md),
                           Text(
                             'No notifications yet',

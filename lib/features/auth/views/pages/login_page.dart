@@ -157,10 +157,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   AppTextField(
+                                    label: 'Email',
                                     controller: _emailController,
                                     hintText: 'name@example.com',
+                                    icon: Icons.email_outlined,
                                     keyboardType: TextInputType.emailAddress,
-                                    borderRadius: AppRadius.xs,
                                     validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
                                   ),
                                   const SizedBox(height: AppSpacing.md),
@@ -174,10 +175,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   AppTextField(
+                                    label: 'Password',
                                     controller: _passwordController,
                                     hintText: '••••••••',
+                                    icon: Icons.lock_outline,
                                     obscureText: _obscurePassword,
-                                    borderRadius: AppRadius.xs,
                                     suffixIcon: IconButton(
                                       icon: Icon(
                                         _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -207,7 +209,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                     text: 'LOGIN',
                                     onPressed: _login,
                                     isLoading: isLoading,
-                                    borderRadius: AppRadius.xs,
                                     padding: const EdgeInsets.symmetric(vertical: 16),
                                   ),
                                 ],

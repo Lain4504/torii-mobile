@@ -158,9 +158,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   AppTextField(
+                                    label: 'Name',
                                     controller: _displayNameController,
                                     hintText: 'Your name',
-                                    borderRadius: AppRadius.xs,
+                                    icon: Icons.person_outline,
                                     validator: (val) => (val == null || val.isEmpty) ? 'Name is required' : null,
                                   ),
                                   const SizedBox(height: AppSpacing.md),
@@ -174,10 +175,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   AppTextField(
+                                    label: 'Email',
                                     controller: _emailController,
                                     hintText: 'name@example.com',
+                                    icon: Icons.email_outlined,
                                     keyboardType: TextInputType.emailAddress,
-                                    borderRadius: AppRadius.xs,
                                     validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
                                   ),
                                   const SizedBox(height: AppSpacing.md),
@@ -191,10 +193,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   AppTextField(
+                                    label: 'Password',
                                     controller: _passwordController,
                                     hintText: '••••••••',
+                                    icon: Icons.lock_outline,
                                     obscureText: _obscurePassword,
-                                    borderRadius: AppRadius.xs,
                                     onChanged: _onPasswordChanged,
                                     suffixIcon: IconButton(
                                       icon: Icon(
@@ -223,7 +226,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                     text: 'CREATE ACCOUNT',
                                     onPressed: _register,
                                     isLoading: isLoading,
-                                    borderRadius: AppRadius.xs,
                                     padding: const EdgeInsets.symmetric(vertical: 16),
                                   ),
                                 ],

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide-react/lucide-react.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../models/sensei_model.dart';
+// Temporary: use Material icons instead of lucide-react
+// and keep providers decoupled to avoid missing package issues.
 import '../providers/sensei_providers.dart';
 
 class SenseiChatPage extends ConsumerStatefulWidget {
@@ -54,12 +55,7 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.history, size: 20),
-            onPressed: () {},
-          ),
-        ],
+        actions: const [],
       ),
       body: Column(
         children: [
@@ -143,7 +139,7 @@ class _ChatBubble extends StatelessWidget {
             const CircleAvatar(
               radius: 16,
               backgroundColor: AppColors.secondary,
-              child: Icon(LucideIcons.user, size: 16, color: Colors.white),
+              child: Icon(Icons.person, size: 16, color: Colors.white),
             ),
         ],
       ),
@@ -163,7 +159,7 @@ class _SenseiAvatar extends StatelessWidget {
         border: Border.all(color: AppColors.primary.withOpacity(0.2)),
       ),
       child: const Center(
-        child: Icon(LucideIcons.sparkles, size: 16, color: AppColors.primary),
+        child: Icon(Icons.auto_awesome, size: 16, color: AppColors.primary),
       ),
     );
   }
@@ -181,7 +177,7 @@ class _ChatInput extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: AppColors.borderLight)),
       ),
       child: Row(
         children: [
@@ -212,7 +208,7 @@ class _ChatInput extends StatelessWidget {
                 color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(LucideIcons.send, color: Colors.white, size: 20),
+              child: const Icon(Icons.send, color: Colors.white, size: 20),
             ),
           ),
         ],
@@ -234,11 +230,11 @@ class _EmptyChatView extends StatelessWidget {
             color: AppColors.primary.withOpacity(0.05),
             shape: BoxShape.circle,
           ),
-          child: const Icon(LucideIcons.message_square_quote, size: 48, color: AppColors.primary),
+          child: const Icon(Icons.chat_bubble_outline, size: 48, color: AppColors.primary),
         ),
         const SizedBox(height: 24),
         const Text(
-          'Kon'nichiwa!',
+          "Kon'nichiwa!",
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
@@ -285,7 +281,7 @@ class _Chip extends ConsumerWidget {
     return ActionChip(
       label: Text(label, style: const TextStyle(fontSize: 12)),
       backgroundColor: Colors.white,
-      side: BorderSide(color: AppColors.border),
+      side: const BorderSide(color: AppColors.borderLight),
       onPressed: () {
         ref.read(senseiChatProvider.notifier).sendMessage(label);
       },

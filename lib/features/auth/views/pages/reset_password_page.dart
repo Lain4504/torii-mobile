@@ -166,11 +166,12 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   AppTextField(
+                                    label: 'New password',
                                     controller: _passwordController,
                                     hintText: 'Enter new password',
+                                    icon: Icons.lock_outline,
                                     obscureText: _obscurePassword,
                                     onChanged: _onPasswordChanged,
-                                    borderRadius: AppRadius.xs,
                                     suffixIcon: IconButton(
                                       icon: Icon(
                                         _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -205,10 +206,11 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                                   ),
                                   const SizedBox(height: AppSpacing.xs),
                                   AppTextField(
+                                    label: 'Confirm password',
                                     controller: _confirmPasswordController,
                                     hintText: 'Repeat new password',
+                                    icon: Icons.lock_outline,
                                     obscureText: _obscureConfirmPassword,
-                                    borderRadius: AppRadius.xs,
                                     suffixIcon: IconButton(
                                       icon: Icon(
                                         _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -224,7 +226,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                                     text: 'RESET PASSWORD',
                                     onPressed: _resetPassword,
                                     isLoading: isLoading,
-                                    borderRadius: AppRadius.xs,
                                     padding: const EdgeInsets.symmetric(vertical: 16),
                                   ),
                                 ],

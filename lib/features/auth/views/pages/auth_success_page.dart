@@ -92,7 +92,6 @@ class AuthSuccessPage extends StatelessWidget {
                           child: AppButton(
                             text: buttonText,
                             onPressed: () => context.go(nextRoute),
-                            borderRadius: AppRadius.xs,
                             padding: const EdgeInsets.symmetric(vertical: 18),
                           ),
                         ),
