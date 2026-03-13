@@ -36,9 +36,15 @@ import 'package:torii_app/features/course/views/pages/certificates_page.dart';
 import 'package:torii_app/features/dashboard/views/pages/statistics_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_chat_page.dart';
+import 'package:torii_app/features/sensei/views/pages/sensei_chat_page.dart';
+import 'package:torii_app/features/sensei/views/pages/sensei_translate_page.dart';
 import 'package:torii_app/features/marketplace/views/pages/marketplace_home_page.dart';
 import 'package:torii_app/features/marketplace/views/pages/course_discovery_page.dart';
 import 'package:torii_app/features/meet/presentation/screens/live_schedule_page.dart';
+import 'package:torii_app/features/study/views/pages/study_sets_page.dart';
+import 'package:torii_app/features/study/views/pages/flashcard_mode_page.dart';
+import 'package:torii_app/features/study/views/pages/match_game_page.dart';
+import 'package:torii_app/features/study/views/pages/review_mode_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -183,7 +189,30 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/flashcards',
-                builder: (context, state) => const MyLearningPage(),
+                builder: (context, state) => const StudySetsPage(),
+                routes: [
+                  GoRoute(
+                    path: ':setId/mode/card',
+                    parentNavigatorKey: AppRouter.rootNavigatorKey,
+                    builder: (context, state) => FlashcardModePage(
+                      setId: state.pathParameters['setId']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':setId/mode/match',
+                    parentNavigatorKey: AppRouter.rootNavigatorKey,
+                    builder: (context, state) => MatchGamePage(
+                      setId: state.pathParameters['setId']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':setId/mode/review',
+                    parentNavigatorKey: AppRouter.rootNavigatorKey,
+                    builder: (context, state) => ReviewModePage(
+                      setId: state.pathParameters['setId']!,
+                    ),
+                  ),
+                ],
               ),
               GoRoute(
                 path: '/exams',
@@ -376,6 +405,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           final topic = state.extra as String? ?? 'Chủ đề ngẫu nhiên';
           return SenseiRoleplayChatPage(topic: topic);
         },
+      ),
+      GoRoute(
+        path: '/sensei/chat',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const SenseiChatPage(),
+      ),
+      GoRoute(
+        path: '/sensei/translate',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const SenseiTranslatePage(),
       ),
       GoRoute(
         path: '/notifications',

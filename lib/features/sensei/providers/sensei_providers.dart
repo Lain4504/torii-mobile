@@ -217,3 +217,113 @@ final senseiRoleplayProvider =
         return SenseiRoleplayNotifier(repository, topic);
       },
     );
+
+// --- TRANSLATOR STATE ---
+
+class TranslatorState {
+  final TranslateResponse? translation;
+  final bool isLoading;
+  final String? error;
+
+  TranslatorState({
+    this.translation,
+    this.isLoading = false,
+    this.error,
+  });
+
+  TranslatorState copyWith({
+    TranslateResponse? translation,
+    bool? isLoading,
+    String? error,
+  }) {
+    return TranslatorState(
+      translation: translation ?? this.translation,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+class TranslatorNotifier extends StateNotifier<TranslatorState> {
+  final SenseiRepository _repository;
+
+  TranslatorNotifier(this._repository) : super(TranslatorState());
+
+  Future<void> translate({
+    required String text,
+    required String sourceLang,
+    required String targetLang,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final res = await _repository.translate(
+        text: text,
+        sourceLanguage: sourceLang,
+        targetLanguage: targetLang,
+      );
+      state = state.copyWith(translation: res, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  void clear() {
+    state = TranslatorState();
+  }
+}
+
+final translatorProvider = StateNotifierProvider<TranslatorNotifier, TranslatorState>((ref) {
+  final repository = ref.watch(senseiRepositoryProvider);
+  return TranslatorNotifier(repository);
+});
+
+// --- GRAMMAR CHECK STATE ---
+
+class GrammarCheckState {
+  final GrammarCheckResponse? response;
+  final bool isLoading;
+  final String? error;
+
+  GrammarCheckState({
+    this.response,
+    this.isLoading = false,
+    this.error,
+  });
+
+  GrammarCheckState copyWith({
+    GrammarCheckResponse? response,
+    bool? isLoading,
+    String? error,
+  }) {
+    return GrammarCheckState(
+      response: response ?? this.response,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+class GrammarCheckNotifier extends StateNotifier<GrammarCheckState> {
+  final SenseiRepository _repository;
+
+  GrammarCheckNotifier(this._repository) : super(GrammarCheckState());
+
+  Future<void> checkGrammar(String text) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final res = await _repository.checkGrammar(text: text);
+      state = state.copyWith(response: res, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  void clear() {
+    state = GrammarCheckState();
+  }
+}
+
+final grammarCheckProvider = StateNotifierProvider<GrammarCheckNotifier, GrammarCheckState>((ref) {
+  final repository = ref.watch(senseiRepositoryProvider);
+  return GrammarCheckNotifier(repository);
+});

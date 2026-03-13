@@ -16,6 +16,7 @@ class MyLearningPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AppBackground(
+        pattern: BackgroundPattern.none,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
