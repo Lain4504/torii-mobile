@@ -27,6 +27,7 @@ import 'package:torii_app/features/blog/views/pages/blog_list_page.dart';
 import 'package:torii_app/features/blog/views/pages/blog_article_page.dart';
 import 'package:torii_app/features/blog/models/blog_model.dart';
 import 'package:torii_app/features/gamification/views/pages/achievements_page.dart';
+import 'package:torii_app/features/gamification/views/pages/leaderboard_page.dart';
 import 'package:torii_app/features/meet/presentation/screens/landing/meet_entry_screen.dart';
 import 'package:torii_app/features/meet/presentation/screens/room/meeting_room_screen.dart';
 import 'package:torii_app/features/meet/presentation/screens/landing/meet_login_screen.dart';
@@ -37,6 +38,7 @@ import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_topic_page
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_chat_page.dart';
 import 'package:torii_app/features/marketplace/views/pages/marketplace_home_page.dart';
 import 'package:torii_app/features/marketplace/views/pages/course_discovery_page.dart';
+import 'package:torii_app/features/meet/presentation/screens/live_schedule_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -167,7 +169,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/live-schedule',
-                builder: (context, state) => const MarketplaceHomePage(),
+                builder: (context, state) => const LiveSchedulePage(),
               ),
               GoRoute(
                 path: '/community',
@@ -221,7 +223,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/meet/login',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) {
+          final roomId = state.uri.queryParameters['roomId'];
           return MeetLoginScreen(
+            roomId: roomId,
             onLoginSuccess: (token) {
               // After obtaining token, navigate via GoRouter to meet entry screen with token
               context.go(
@@ -384,6 +388,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AchievementsPage(),
       ),
       GoRoute(
+        path: '/leaderboard',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const LeaderboardPage(),
+      ),
+      GoRoute(
         path: '/blog',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) => const BlogListPage(),
@@ -433,6 +442,7 @@ class AppRouter {
     '/notifications',
     '/downloads',
     '/achievements',
+    '/leaderboard',
     '/payment',
     '/payment/history',
     '/profile',

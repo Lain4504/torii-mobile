@@ -106,7 +106,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.video_call_rounded,
                       label: 'Trực tiếp',
                       isSelected: activeIndex == 2,
-                      onTap: () => onTap('/meet/login'),
+                      onTap: () => onTap('/live-schedule'),
                       isDark: isDark,
                     ),
                     _NavBarItem(

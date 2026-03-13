@@ -73,155 +73,200 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
     final errorMessage = authState?.error;
 
     return Scaffold(
+      backgroundColor: AppColors.grey50,
       body: AppBackground(
         pattern: BackgroundPattern.checkerboard,
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: AppSpacing.xl),
-                  // Header Section
-                  EntryAnimation(
-                    index: 0,
-                    child: Column(
-                      children: [
-                        const ToriiIcon(size: 64),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(
-                          'New Password',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: AppTypography.bold,
-                            color: AppColors.secondary,
-                            letterSpacing: -0.5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          'Create a secure password for ${widget.email}',
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-
-                  // Form Card
-                  EntryAnimation(
-                    index: 1,
-                    verticalOffset: 20,
-                    child: ElevatedCard(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (errorMessage != null) ...[
-                              _buildErrorBanner(errorMessage),
-                              const SizedBox(height: AppSpacing.md),
-                            ],
-                            AppTextField(
-                              label: 'New Password',
-                              controller: _passwordController,
-                              hintText: 'Minimum 8 characters',
-                              icon: Icons.lock_outline_rounded,
-                              obscureText: _obscurePassword,
-                              onChanged: _onPasswordChanged,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                  size: 20,
-                                  color: AppColors.textTertiary,
-                                ),
-                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                              ),
-                              validator: (val) => (val == null || val.length < 8) ? 'Password must be at least 8 characters' : null,
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            // Password Strength Indicator
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: LinearProgressIndicator(
-                                value: _passwordStrength,
-                                backgroundColor: AppColors.grey200,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  _passwordStrength < 0.5 ? AppColors.error : (_passwordStrength < 0.8 ? AppColors.warning : AppColors.accent),
-                                ),
-                                minHeight: 4,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            AppTextField(
-                              label: 'Confirm Password',
-                              controller: _confirmPasswordController,
-                              hintText: 'Repeat your password',
-                              icon: Icons.lock_outline_rounded,
-                              obscureText: _obscureConfirmPassword,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                  size: 20,
-                                  color: AppColors.textTertiary,
-                                ),
-                                onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                              ),
-                              validator: (val) => (val != _passwordController.text) ? 'Passwords do not match' : null,
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            AppButton(
-                              text: 'Reset Password',
-                              onPressed: _resetPassword,
-                              isLoading: isLoading,
-                            ),
-                          ],
-                        ),
+          child: Column(
+            children: [
+              // Top Navigation
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => context.go('/login'),
+                    icon: const Icon(Icons.arrow_back, size: 18),
+                    label: const Text('Back to Sign In'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: AppTypography.semiBold,
                       ),
                     ),
                   ),
+                ),
+              ),
 
-                  const SizedBox(height: AppSpacing.xxxl),
-
-                  // Bottom Text
-                  EntryAnimation(
-                    index: 2,
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        TextButton(
-                          onPressed: () => context.go('/login'),
-                          child: const Text(
-                            'Cancel and return to sign in',
-                            style: TextStyle(
-                              fontWeight: AppTypography.bold,
-                              color: AppColors.textSecondary,
+                        // Header Section
+                        const EntryAnimation(
+                          index: 0,
+                          child: Column(
+                            children: [
+                              ToriiIcon(size: 64),
+                              SizedBox(height: AppSpacing.lg),
+                              Text(
+                                'New Password',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: AppTypography.black,
+                                  color: AppColors.secondary,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              SizedBox(height: AppSpacing.sm),
+                              Text(
+                                'Create a secure password for your account.',
+                                style: TextStyle(
+                                  color: AppColors.textTertiary,
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Form Section
+                        EntryAnimation(
+                          index: 1,
+                          child: Container(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                              border: Border.all(color: AppColors.borderLight),
+                              boxShadow: AppElevation.softShadow,
+                            ),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (errorMessage != null) ...[
+                                    _buildErrorBanner(errorMessage),
+                                    const SizedBox(height: AppSpacing.md),
+                                  ],
+                                  const Text(
+                                    'New Password',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: AppTypography.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  AppTextField(
+                                    controller: _passwordController,
+                                    hintText: 'Enter new password',
+                                    obscureText: _obscurePassword,
+                                    onChanged: _onPasswordChanged,
+                                    borderRadius: AppRadius.xs,
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                        size: 20,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                    ),
+                                    validator: (val) => (val == null || val.length < 8) ? 'Password must be at least 8 characters' : null,
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  // Password Strength Indicator
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(2),
+                                    child: LinearProgressIndicator(
+                                      value: _passwordStrength,
+                                      backgroundColor: AppColors.grey50,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        _passwordStrength < 0.5 ? AppColors.error : (_passwordStrength < 0.8 ? AppColors.warning : AppColors.accent),
+                                      ),
+                                      minHeight: 6,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.lg),
+                                  const Text(
+                                    'Confirm Password',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: AppTypography.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  AppTextField(
+                                    controller: _confirmPasswordController,
+                                    hintText: 'Repeat new password',
+                                    obscureText: _obscureConfirmPassword,
+                                    borderRadius: AppRadius.xs,
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                        size: 20,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                      onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                                    ),
+                                    validator: (val) => (val != _passwordController.text) ? 'Passwords do not match' : null,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xl),
+                                  AppButton(
+                                    text: 'RESET PASSWORD',
+                                    onPressed: _resetPassword,
+                                    isLoading: isLoading,
+                                    borderRadius: AppRadius.xs,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                        TextButton(
-                          onPressed: () => context.go('/'),
-                          child: const Text(
-                            'Về trang chủ',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
+
+                        const SizedBox(height: AppSpacing.lg),
+                        Text(
+                          'Account: ${widget.email}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textTertiary,
+                            fontWeight: AppTypography.medium,
+                          ),
+                        ),
+
+                        const SizedBox(height: AppSpacing.xxxl),
+
+                        // Bottom Text
+                        EntryAnimation(
+                          index: 2,
+                          child: TextButton(
+                            onPressed: () => context.go('/'),
+                            child: const Text(
+                              'Back to Home',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                                fontWeight: AppTypography.bold,
+                              ),
                             ),
                           ),
                         ),
+                        const SizedBox(height: AppSpacing.lg),
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -232,9 +277,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.errorLight.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+        color: AppColors.errorLight,
+        borderRadius: BorderRadius.circular(AppRadius.xs),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -243,7 +288,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.errorDark, fontSize: 12),
+              style: const TextStyle(color: AppColors.errorDark, fontSize: 12, fontWeight: AppTypography.bold),
             ),
           ),
         ],

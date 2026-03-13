@@ -64,202 +64,234 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final errorMessage = _googleError ?? authState?.error;
 
     return Scaffold(
+      backgroundColor: AppColors.grey50,
       body: AppBackground(
         pattern: BackgroundPattern.checkerboard,
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: AppSpacing.xxl),
-                  // Logo Section
-                  const EntryAnimation(
-                    index: 0,
-                    child: Column(
-                      children: [
-                        ToriiIcon(size: 80),
-                        SizedBox(height: AppSpacing.md),
-                        Text(
-                          'Torii Nihongo',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: AppTypography.bold,
-                            color: AppColors.secondary,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        Text(
-                          'Professional Education Platform',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
+          child: Column(
+            children: [
+              // Top Navigation
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => context.go('/'),
+                    icon: const Icon(Icons.arrow_back, size: 18),
+                    label: const Text('Back to Home'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: AppTypography.semiBold,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xxxl),
+                ),
+              ),
 
-                  // Login Card
-                  EntryAnimation(
-                    index: 1,
-                    verticalOffset: 20,
-                    child: ElevatedCard(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (errorMessage != null) ...[
-                              _buildErrorBanner(errorMessage),
-                              const SizedBox(height: AppSpacing.md),
-                            ],
-                            AppTextField(
-                              label: 'Email',
-                              controller: _emailController,
-                              hintText: 'Enter your email',
-                              icon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            AppTextField(
-                              label: 'Password',
-                              controller: _passwordController,
-                              hintText: '••••••••',
-                              icon: Icons.lock_outline_rounded,
-                              obscureText: _obscurePassword,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                  size: 20,
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Header Section
+                        const EntryAnimation(
+                          index: 0,
+                          child: Column(
+                            children: [
+                              ToriiIcon(size: 64),
+                              SizedBox(height: AppSpacing.lg),
+                              Text(
+                                'Welcome Back',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: AppTypography.black,
+                                  color: AppColors.secondary,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              SizedBox(height: AppSpacing.xs),
+                              Text(
+                                'Login to continue your Japanese journey',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
                                   color: AppColors.textTertiary,
                                 ),
-                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                               ),
-                              validator: (val) => (val == null || val.length < 6) ? 'Password too short' : null,
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Form Section
+                        EntryAnimation(
+                          index: 1,
+                          child: Container(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                              border: Border.all(color: AppColors.borderLight),
+                              boxShadow: AppElevation.softShadow,
                             ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () => context.push('/auth/forgot-password'),
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 30),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (errorMessage != null) ...[
+                                    _buildErrorBanner(errorMessage),
+                                    const SizedBox(height: AppSpacing.md),
+                                  ],
+                                  const Text(
+                                    'Email Address',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: AppTypography.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  AppTextField(
+                                    controller: _emailController,
+                                    hintText: 'name@example.com',
+                                    keyboardType: TextInputType.emailAddress,
+                                    borderRadius: AppRadius.xs,
+                                    validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  const Text(
+                                    'Password',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: AppTypography.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  AppTextField(
+                                    controller: _passwordController,
+                                    hintText: '••••••••',
+                                    obscureText: _obscurePassword,
+                                    borderRadius: AppRadius.xs,
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                        size: 20,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                    ),
+                                    validator: (val) => (val == null || val.length < 6) ? 'Password too short' : null,
+                                  ),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: TextButton(
+                                      onPressed: () => context.push('/auth/forgot-password'),
+                                      child: const Text(
+                                        'Forgot password?',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: AppTypography.bold,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  AppButton(
+                                    text: 'LOGIN',
+                                    onPressed: _login,
+                                    isLoading: isLoading,
+                                    borderRadius: AppRadius.xs,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Divider
+                        const EntryAnimation(
+                          index: 2,
+                          child: Row(
+                            children: [
+                              Expanded(child: Divider()),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                                child: Text(
+                                  'or continue with',
+                                  style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                                 ),
+                              ),
+                              Expanded(child: Divider()),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Social Login
+                        EntryAnimation(
+                          index: 3,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _SocialButton(
+                                icon: Icons.g_mobiledata_rounded,
+                                label: 'Google',
+                                onPressed: _loginWithGoogle,
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              _SocialButton(
+                                icon: Icons.apple_rounded,
+                                label: 'Apple',
+                                onPressed: () {},
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: AppSpacing.xxl),
+
+                        // Bottom Text
+                        EntryAnimation(
+                          index: 4,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Don't have an account?",
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                              ),
+                              TextButton(
+                                onPressed: () => context.push('/register'),
                                 child: const Text(
-                                  'Forgot password?',
+                                  'Sign up',
                                   style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: AppTypography.semiBold,
+                                    fontWeight: AppTypography.black,
                                     color: AppColors.primary,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            AppButton(
-                              text: 'Login',
-                              onPressed: _login,
-                              isLoading: isLoading,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // Divider
-                  const EntryAnimation(
-                    index: 2,
-                    child: Row(
-                      children: [
-                        Expanded(child: Divider()),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                          child: Text(
-                            'or continue with',
-                            style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                            ],
                           ),
                         ),
-                        Expanded(child: Divider()),
+                        const SizedBox(height: AppSpacing.lg),
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: AppSpacing.xl),
-
-                  // Social Login
-                  EntryAnimation(
-                    index: 3,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _SocialButton(
-                          icon: Icons.g_mobiledata_rounded, // Should use a proper Google logo
-                          onPressed: _loginWithGoogle,
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        _SocialButton(
-                          icon: Icons.apple_rounded,
-                          onPressed: () {}, // Apple login logic
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.xxxl),
-
-                  // Bottom Text
-                  EntryAnimation(
-                    index: 4,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          "Don't have an account?",
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
-                        TextButton(
-                          onPressed: () => context.push('/register'),
-                          child: const Text(
-                            'Sign up',
-                            style: TextStyle(
-                              fontWeight: AppTypography.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  EntryAnimation(
-                    index: 5,
-                    child: TextButton(
-                      onPressed: () => context.go('/'),
-                      child: const Text(
-                        'Về trang chủ',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -270,9 +302,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.errorLight.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+        color: AppColors.errorLight,
+        borderRadius: BorderRadius.circular(AppRadius.xs),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -281,7 +313,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.errorDark, fontSize: 12),
+              style: const TextStyle(color: AppColors.errorDark, fontSize: 12, fontWeight: AppTypography.bold),
             ),
           ),
         ],
@@ -292,17 +324,34 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
 class _SocialButton extends StatelessWidget {
   final IconData icon;
+  final String label;
   final VoidCallback onPressed;
 
-  const _SocialButton({required this.icon, required this.onPressed});
+  const _SocialButton({required this.icon, required this.label, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return MinimalCard(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.sm),
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(AppRadius.md),
-      child: Icon(icon, size: 28, color: AppColors.secondary),
+    return Expanded(
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, color: AppColors.textPrimary, size: 24),
+        label: Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: AppTypography.bold,
+            fontSize: 13,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          side: const BorderSide(color: AppColors.borderLight),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.xs),
+          ),
+          backgroundColor: AppColors.white,
+        ),
+      ),
     );
   }
 }

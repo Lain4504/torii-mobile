@@ -65,170 +65,221 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     final errorMessage = authState?.error;
 
     return Scaffold(
+      backgroundColor: AppColors.grey50,
       body: AppBackground(
         pattern: BackgroundPattern.checkerboard,
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: AppSpacing.xl),
-                  // Header Section
-                  EntryAnimation(
-                    index: 0,
+          child: Column(
+            children: [
+              // Top Navigation
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => context.go('/'),
+                    icon: const Icon(Icons.arrow_back, size: 18),
+                    label: const Text('Back to Home'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: AppTypography.semiBold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     child: Column(
-                      children: [
-                        const ToriiIcon(size: 64),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(
-                          'Create your Torii Nihongo account',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: AppTypography.bold,
-                            color: AppColors.secondary,
-                            letterSpacing: -0.5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-
-                  // Register Card
-                  EntryAnimation(
-                    index: 1,
-                    verticalOffset: 20,
-                    child: ElevatedCard(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (errorMessage != null) ...[
-                              _buildErrorBanner(errorMessage),
-                              const SizedBox(height: AppSpacing.md),
-                            ],
-                            AppTextField(
-                              label: 'Full Name',
-                              controller: _displayNameController,
-                              hintText: 'Enter your full name',
-                              icon: Icons.person_outline_rounded,
-                              validator: (val) => (val == null || val.isEmpty) ? 'Name is required' : null,
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            AppTextField(
-                              label: 'Email address',
-                              controller: _emailController,
-                              hintText: 'Enter your email',
-                              icon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            AppTextField(
-                              label: 'Password',
-                              controller: _passwordController,
-                              hintText: 'Minimum 8 characters',
-                              icon: Icons.lock_outline_rounded,
-                              obscureText: _obscurePassword,
-                              onChanged: _onPasswordChanged,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                  size: 20,
-                                  color: AppColors.textTertiary,
-                                ),
-                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                              ),
-                              validator: (val) => (val == null || val.length < 8) ? 'Password must be at least 8 characters' : null,
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            // Password Strength Indicator
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: LinearProgressIndicator(
-                                value: _passwordStrength,
-                                backgroundColor: AppColors.grey200,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  _passwordStrength < 0.5 ? AppColors.error : (_passwordStrength < 0.8 ? AppColors.warning : AppColors.accent),
-                                ),
-                                minHeight: 4,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            AppButton(
-                              text: 'Create account',
-                              onPressed: _register,
-                              isLoading: isLoading,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.lg),
-
-                  // Agreement
-                  const EntryAnimation(
-                    index: 2,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                      child: Text(
-                        'By creating an account, you agree to our Terms of service and privacy policy.',
-                        style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: AppSpacing.xxxl),
-
-                  // Bottom Text
-                  EntryAnimation(
-                    index: 3,
-                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          "Already have an account?",
-                          style: TextStyle(color: AppColors.textSecondary),
+                        // Header Section
+                        const EntryAnimation(
+                          index: 0,
+                          child: Column(
+                            children: [
+                              ToriiIcon(size: 64),
+                              SizedBox(height: AppSpacing.lg),
+                              Text(
+                                'Create Account',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: AppTypography.black,
+                                  color: AppColors.secondary,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              SizedBox(height: AppSpacing.xs),
+                              Text(
+                                'Begin your professional Japanese masters journey',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: AppColors.textTertiary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        TextButton(
-                          onPressed: () => context.go('/login'),
-                          child: const Text(
-                            'Sign in',
-                            style: TextStyle(
-                              fontWeight: AppTypography.bold,
-                              color: AppColors.primary,
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Form Section
+                        EntryAnimation(
+                          index: 1,
+                          child: Container(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                              border: Border.all(color: AppColors.borderLight),
+                              boxShadow: AppElevation.softShadow,
+                            ),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (errorMessage != null) ...[
+                                    _buildErrorBanner(errorMessage),
+                                    const SizedBox(height: AppSpacing.md),
+                                  ],
+                                  const Text(
+                                    'Full Name',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: AppTypography.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  AppTextField(
+                                    controller: _displayNameController,
+                                    hintText: 'Your name',
+                                    borderRadius: AppRadius.xs,
+                                    validator: (val) => (val == null || val.isEmpty) ? 'Name is required' : null,
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  const Text(
+                                    'Email Address',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: AppTypography.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  AppTextField(
+                                    controller: _emailController,
+                                    hintText: 'name@example.com',
+                                    keyboardType: TextInputType.emailAddress,
+                                    borderRadius: AppRadius.xs,
+                                    validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  const Text(
+                                    'Password',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: AppTypography.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  AppTextField(
+                                    controller: _passwordController,
+                                    hintText: '••••••••',
+                                    obscureText: _obscurePassword,
+                                    borderRadius: AppRadius.xs,
+                                    onChanged: _onPasswordChanged,
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                        size: 20,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                    ),
+                                    validator: (val) => (val == null || val.length < 8) ? 'Minimum 8 characters' : null,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(AppRadius.xs),
+                                    child: LinearProgressIndicator(
+                                      value: _passwordStrength,
+                                      backgroundColor: AppColors.grey200,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        _passwordStrength < 0.5 ? AppColors.error : (_passwordStrength < 0.8 ? AppColors.warning : AppColors.accent),
+                                      ),
+                                      minHeight: 4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.lg),
+                                  AppButton(
+                                    text: 'CREATE ACCOUNT',
+                                    onPressed: _register,
+                                    isLoading: isLoading,
+                                    borderRadius: AppRadius.xs,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
+
+                        const SizedBox(height: AppSpacing.lg),
+
+                        // Agreement
+                        const EntryAnimation(
+                          index: 2,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                            child: Text(
+                              'By creating an account, you agree to our Terms of service and privacy policy.',
+                              style: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: AppSpacing.xxxl),
+
+                        // Bottom Text
+                        EntryAnimation(
+                          index: 3,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                "Already have an account?",
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                              ),
+                              TextButton(
+                                onPressed: () => context.go('/login'),
+                                child: const Text(
+                                  'Sign in',
+                                  style: TextStyle(
+                                    fontWeight: AppTypography.black,
+                                    color: AppColors.primary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  EntryAnimation(
-                    index: 4,
-                    child: TextButton(
-                      onPressed: () => context.go('/'),
-                      child: const Text(
-                        'Về trang chủ',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -239,9 +290,9 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.errorLight.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+        color: AppColors.errorLight,
+        borderRadius: BorderRadius.circular(AppRadius.xs),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -250,7 +301,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.errorDark, fontSize: 12),
+              style: const TextStyle(color: AppColors.errorDark, fontSize: 12, fontWeight: AppTypography.bold),
             ),
           ),
         ],

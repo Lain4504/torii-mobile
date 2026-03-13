@@ -45,116 +45,143 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     final errorMessage = authState?.error;
 
     return Scaffold(
+      backgroundColor: AppColors.grey50,
       body: AppBackground(
         pattern: BackgroundPattern.checkerboard,
         child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: AppSpacing.xl),
-                  // Header Section
-                  EntryAnimation(
-                    index: 0,
-                    child: Column(
-                      children: [
-                        const ToriiIcon(size: 64),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(
-                          'Forgot Password',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: AppTypography.bold,
-                            color: AppColors.secondary,
-                            letterSpacing: -0.5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        const Text(
-                          "Enter your email and we'll send you a code to reset your password.",
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxl),
-
-                  // Form Card
-                  EntryAnimation(
-                    index: 1,
-                    verticalOffset: 20,
-                    child: ElevatedCard(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (errorMessage != null) ...[
-                              _buildErrorBanner(errorMessage),
-                              const SizedBox(height: AppSpacing.md),
-                            ],
-                            AppTextField(
-                              label: 'Email address',
-                              controller: _emailController,
-                              hintText: 'Enter your email',
-                              icon: Icons.email_outlined,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            AppButton(
-                              text: 'Send Reset Code',
-                              onPressed: _requestOTP,
-                              isLoading: isLoading,
-                            ),
-                          ],
-                        ),
+          child: Column(
+            children: [
+              // Top Navigation
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => context.go('/login'),
+                    icon: const Icon(Icons.arrow_back, size: 18),
+                    label: const Text('Back to Sign In'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: AppTypography.semiBold,
                       ),
                     ),
                   ),
+                ),
+              ),
 
-                  const SizedBox(height: AppSpacing.xxxl),
-
-                  // Bottom Text
-                  EntryAnimation(
-                    index: 2,
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        TextButton(
-                          onPressed: () => context.go('/login'),
-                          child: const Text(
-                            'Back to sign in',
-                            style: TextStyle(
-                              fontWeight: AppTypography.bold,
-                              color: AppColors.textSecondary,
+                        // Header Section
+                        const EntryAnimation(
+                          index: 0,
+                          child: Column(
+                            children: [
+                              ToriiIcon(size: 64),
+                              SizedBox(height: AppSpacing.lg),
+                              Text(
+                                'Reset Password',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: AppTypography.black,
+                                  color: AppColors.secondary,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              SizedBox(height: AppSpacing.sm),
+                              Text(
+                                "Enter your email and we'll send you a code to reset your password.",
+                                style: TextStyle(
+                                  color: AppColors.textTertiary,
+                                  fontSize: 15,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Form Section
+                        EntryAnimation(
+                          index: 1,
+                          child: Container(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                              border: Border.all(color: AppColors.borderLight),
+                              boxShadow: AppElevation.softShadow,
+                            ),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  if (errorMessage != null) ...[
+                                    _buildErrorBanner(errorMessage),
+                                    const SizedBox(height: AppSpacing.md),
+                                  ],
+                                  const Text(
+                                    'Email Address',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: AppTypography.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  AppTextField(
+                                    controller: _emailController,
+                                    hintText: 'name@example.com',
+                                    keyboardType: TextInputType.emailAddress,
+                                    borderRadius: AppRadius.xs,
+                                    validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
+                                  ),
+                                  const SizedBox(height: AppSpacing.lg),
+                                  AppButton(
+                                    text: 'SEND RESET CODE',
+                                    onPressed: _requestOTP,
+                                    isLoading: isLoading,
+                                    borderRadius: AppRadius.xs,
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                        TextButton(
-                          onPressed: () => context.go('/'),
-                          child: const Text(
-                            'Về trang chủ',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
+
+                        const SizedBox(height: AppSpacing.xxxl),
+
+                        // Bottom Text
+                        EntryAnimation(
+                          index: 2,
+                          child: TextButton(
+                            onPressed: () => context.go('/'),
+                            child: const Text(
+                              'Back to Home',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                                fontWeight: AppTypography.bold,
+                              ),
                             ),
                           ),
                         ),
+                        const SizedBox(height: AppSpacing.lg),
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -165,9 +192,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.errorLight.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+        color: AppColors.errorLight,
+        borderRadius: BorderRadius.circular(AppRadius.xs),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -176,7 +203,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.errorDark, fontSize: 12),
+              style: const TextStyle(color: AppColors.errorDark, fontSize: 12, fontWeight: AppTypography.bold),
             ),
           ),
         ],

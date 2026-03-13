@@ -8,8 +8,9 @@ import '../../../data/datasources/meet_api_service.dart';
 /// Form: Room ID, User Type, Name, User ID → isRoomActive → createRoom (if needed) → getJoinToken
 class MeetLoginScreen extends ConsumerStatefulWidget {
   final void Function(String token) onLoginSuccess;
+  final String? roomId;
 
-  const MeetLoginScreen({super.key, required this.onLoginSuccess});
+  const MeetLoginScreen({super.key, required this.onLoginSuccess, this.roomId});
 
   @override
   ConsumerState<MeetLoginScreen> createState() => _MeetLoginScreenState();
@@ -26,6 +27,9 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.roomId != null) {
+      _roomId = widget.roomId!;
+    }
     _userIdController = TextEditingController(
       text: DateTime.now().millisecondsSinceEpoch.toString(),
     );
@@ -304,15 +308,6 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     );
   }
 
-  void _goHome(BuildContext context) {
-    final router = GoRouter.maybeOf(context);
-    if (router != null) {
-      router.go('/');
-    } else {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
-  }
-
   Widget _buildFieldLabel(BuildContext context, String label) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 4),
@@ -390,5 +385,14 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
         ),
       ),
     );
+  }
+
+  void _goHome(BuildContext context) {
+    final router = GoRouter.maybeOf(context);
+    if (router != null) {
+      router.go('/');
+    } else {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 }
