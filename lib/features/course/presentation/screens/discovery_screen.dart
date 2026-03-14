@@ -148,9 +148,13 @@ class CourseDiscoveryScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       '500.000đ',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primaryRed),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: primaryRed,
+                      ),
                     ),
                     ElevatedButton(
                       onPressed: () {},

@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/providers/shared_prefs_provider.dart';
+import 'package:torii_app/features/onboarding/providers/onboarding_provider.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
 
+  Future<void> _completeOnboarding(WidgetRef ref) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final notifier = ref.read(onboardingNotifierProvider);
+    await prefs.setBool(onboardingCompletedKey, true);
+    notifier.value = true;
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final double screenHeight = MediaQuery.of(context).size.height;
     const Color primaryRed = Color(0xFFE53935);
 
@@ -76,8 +87,11 @@ class WelcomeScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Navigate to Register
+                      onPressed: () async {
+                        await _completeOnboarding(ref);
+                        if (context.mounted) {
+                          context.go('/register');
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryRed,
@@ -101,8 +115,11 @@ class WelcomeScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 56,
                     child: OutlinedButton(
-                      onPressed: () {
-                        // Navigate to Login
+                      onPressed: () async {
+                        await _completeOnboarding(ref);
+                        if (context.mounted) {
+                          context.go('/login');
+                        }
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: primaryRed, width: 2),

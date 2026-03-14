@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _rememberMe = false;
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -25,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.go('/'),
         ),
       ),
       body: SafeArea(
@@ -165,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      // Navigate to Forgot Password
+                      context.go('/forgot-password');
                     },
                     child: const Text(
                       'Quên mật khẩu?',
@@ -183,7 +187,40 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          final email = _emailController.text.trim();
+                          final password = _passwordController.text;
+                          if (email.isEmpty || password.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Vui lòng nhập email và mật khẩu'),
+                              ),
+                            );
+                            return;
+                          }
+                          setState(() => _isLoading = true);
+                          final notifier =
+                              ref.read(authNotifierProvider.notifier);
+                          final ok = await notifier.login(email, password);
+                          setState(() => _isLoading = false);
+                          if (ok) {
+                            if (mounted) {
+                              context.go('/');
+                            }
+                          } else {
+                            final state =
+                                ref.read(authNotifierProvider).valueOrNull;
+                            final message =
+                                state?.error ?? 'Đăng nhập thất bại';
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(message)),
+                              );
+                            }
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryRed,
                     foregroundColor: Colors.white,
@@ -228,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text('Chưa có tài khoản? '),
                   GestureDetector(
                     onTap: () {
-                      // Navigate to Register
+                      context.go('/register');
                     },
                     child: const Text(
                       'Đăng ký ngay',

@@ -77,8 +77,18 @@ class BlogListScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: primaryRed.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                      child: const Text('Kinh nghiệm', style: TextStyle(color: primaryRed, fontSize: 11, fontWeight: FontWeight.bold)),
+                      decoration: BoxDecoration(
+                        color: primaryRed.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Kinh nghiệm',
+                        style: TextStyle(
+                          color: primaryRed,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     Text('14/03/2026', style: TextStyle(color: Colors.grey[400], fontSize: 11)),
                   ],

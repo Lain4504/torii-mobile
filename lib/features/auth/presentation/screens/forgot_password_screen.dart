@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
-class ForgotPasswordScreen extends StatelessWidget {
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
+
+  @override
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState
+    extends ConsumerState<ForgotPasswordScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +73,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               const Text('Email', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               TextField(
+                controller: _emailController,
                 decoration: InputDecoration(
                   hintText: 'Nhập email của bạn',
                   prefixIcon: const Icon(Icons.email_outlined),
@@ -83,7 +97,35 @@ class ForgotPasswordScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          final email = _emailController.text.trim();
+                          if (email.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Vui lòng nhập email'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          setState(() => _isLoading = true);
+                          final notifier =
+                              ref.read(authNotifierProvider.notifier);
+                          final ok = await notifier.forgotPassword(email);
+                          setState(() => _isLoading = false);
+
+                          if (ok && mounted) {
+                            context.go(
+                              '/verify-email',
+                              extra: {
+                                'email': email,
+                                'mode': 'reset-password',
+                              },
+                            );
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryRed,
                     foregroundColor: Colors.white,

@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   String? _selectedGoal;
   bool _agreeToTerms = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   final List<String> _goals = [
     'Giao tiếp cơ bản',
@@ -77,13 +87,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               // Form fields
               _buildLabel('Họ và tên'),
-              _buildTextField(hint: 'Nhập họ và tên của bạn', icon: Icons.person_outline),
+              _buildTextField(
+                controller: _nameController,
+                hint: 'Nhập họ và tên của bạn',
+                icon: Icons.person_outline,
+              ),
               
               _buildLabel('Email'),
-              _buildTextField(hint: 'Nhập email của bạn', icon: Icons.email_outlined),
+              _buildTextField(
+                controller: _emailController,
+                hint: 'Nhập email của bạn',
+                icon: Icons.email_outlined,
+              ),
 
               _buildLabel('Mật khẩu'),
               _buildTextField(
+                controller: _passwordController,
                 hint: 'Nhập mật khẩu', 
                 icon: Icons.lock_outline, 
                 isPassword: true,
@@ -93,6 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               _buildLabel('Xác nhận mật khẩu'),
               _buildTextField(
+                controller: _confirmPasswordController,
                 hint: 'Nhập lại mật khẩu', 
                 icon: Icons.lock_reset_outlined, 
                 isPassword: true,
@@ -160,7 +180,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          final name = _nameController.text.trim();
+                          final email = _emailController.text.trim();
+                          final password = _passwordController.text;
+                          final confirm = _confirmPasswordController.text;
+
+                          if (name.isEmpty ||
+                              email.isEmpty ||
+                              password.isEmpty ||
+                              confirm.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('Vui lòng nhập đầy đủ thông tin bắt buộc'),
+                              ),
+                            );
+                            return;
+                          }
+                          if (password != confirm) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('Mật khẩu và xác nhận mật khẩu không khớp'),
+                              ),
+                            );
+                            return;
+                          }
+                          if (!_agreeToTerms) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Bạn cần đồng ý với Điều khoản sử dụng'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          setState(() => _isLoading = true);
+                          final notifier =
+                              ref.read(authNotifierProvider.notifier);
+                          final ok =
+                              await notifier.register(email, password, name);
+                          setState(() => _isLoading = false);
+                          if (ok) {
+                            if (mounted) {
+                              context.go(
+                                '/verify-email',
+                                extra: {
+                                  'email': email,
+                                  'mode': 'registration',
+                                },
+                              );
+                            }
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryRed,
                     foregroundColor: Colors.white,
@@ -224,6 +300,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Widget _buildTextField({
+    required TextEditingController controller,
     required String hint, 
     required IconData icon, 
     bool isPassword = false,
@@ -231,6 +308,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     VoidCallback? onToggle,
   }) {
     return TextField(
+      controller: controller,
       obscureText: obscureText,
       decoration: InputDecoration(
         hintText: hint,

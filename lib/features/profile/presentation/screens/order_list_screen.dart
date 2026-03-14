@@ -101,7 +101,14 @@ class OrderListScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('890.000đ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryRed)),
+              Text(
+                '890.000đ',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: primaryRed,
+                ),
+              ),
               OutlinedButton(
                 onPressed: () {},
                 style: OutlinedButton.styleFrom(

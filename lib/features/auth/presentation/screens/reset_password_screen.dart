@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
-class ResetPasswordScreen extends StatefulWidget {
+class ResetPasswordScreen extends ConsumerStatefulWidget {
   const ResetPasswordScreen({super.key});
 
   @override
-  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+  ConsumerState<ResetPasswordScreen> createState() =>
+      _ResetPasswordScreenState();
 }
 
-class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   bool _isSuccess = false;
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
+
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +68,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const Text('Mật khẩu mới', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         TextField(
+          controller: _newPasswordController,
           obscureText: _obscureNewPassword,
           decoration: InputDecoration(
             hintText: 'Nhập mật khẩu mới',
@@ -86,6 +95,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const Text('Xác nhận mật khẩu mới', style: TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         TextField(
+          controller: _confirmPasswordController,
           obscureText: _obscureConfirmPassword,
           decoration: InputDecoration(
             hintText: 'Nhập lại mật khẩu mới',
@@ -120,10 +130,68 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _isSuccess = true;
-              });
+            onPressed: () async {
+              final newPassword = _newPasswordController.text;
+              final confirmPassword = _confirmPasswordController.text;
+
+              if (newPassword.isEmpty || confirmPassword.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Vui lòng nhập đầy đủ mật khẩu mới'),
+                  ),
+                );
+                return;
+              }
+              if (newPassword != confirmPassword) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Mật khẩu xác nhận không khớp'),
+                  ),
+                );
+                return;
+              }
+              if (newPassword.length < 8) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content:
+                        Text('Mật khẩu phải có ít nhất 8 ký tự'),
+                  ),
+                );
+                return;
+              }
+
+              final authState = ref.read(authNotifierProvider);
+              final tempToken = authState.valueOrNull?.tempToken;
+              if (tempToken == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Thiếu token đặt lại mật khẩu, vui lòng thực hiện lại bước OTP',
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              final notifier =
+                  ref.read(authNotifierProvider.notifier);
+              final ok =
+                  await notifier.resetPassword(tempToken, newPassword);
+
+              if (!mounted) return;
+
+              if (ok) {
+                setState(() {
+                  _isSuccess = true;
+                });
+              } else {
+                final state = ref.read(authNotifierProvider).valueOrNull;
+                final message =
+                    state?.error ?? 'Cập nhật mật khẩu thất bại';
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryRed,
@@ -175,7 +243,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           height: 56,
           child: ElevatedButton(
             onPressed: () {
-              // Navigate to Login
+              context.go('/login');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryRed,

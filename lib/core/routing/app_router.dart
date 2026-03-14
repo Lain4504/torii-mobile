@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,10 +22,17 @@ import '../../features/profile/presentation/screens/order_list_screen.dart';
 import '../../features/profile/presentation/screens/order_detail_screen.dart';
 import '../../features/profile/presentation/screens/leaderboard_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
+import '../../features/onboarding/providers/onboarding_provider.dart';
+import '../widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  final onboardingNotifier = ref.watch(onboardingNotifierProvider);
+  final hasCompletedOnboarding = onboardingNotifier.value;
+
+  final initialLocation = hasCompletedOnboarding ? '/' : '/welcome';
+
   return GoRouter(
-    initialLocation: '/welcome',
+    initialLocation: initialLocation,
     routes: [
       GoRoute(
         path: '/welcome',
@@ -50,67 +56,103 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/verify-email',
-        builder: (context, state) => const EmailVerificationScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final email = extra?['email'] as String?;
+          final mode = extra?['mode'] as String? ?? 'registration';
+          return EmailVerificationScreen(
+            email: email,
+            mode: mode,
+          );
+        },
       ),
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: '/discovery',
-        builder: (context, state) => const CourseDiscoveryScreen(),
-      ),
-      GoRoute(
-        path: '/course-detail',
-        builder: (context, state) => const CourseDetailScreen(),
-      ),
-      GoRoute(
-        path: '/my-courses',
-        builder: (context, state) => const MyCoursesScreen(),
-      ),
-      GoRoute(
-        path: '/curriculum',
-        builder: (context, state) => const CurriculumScreen(),
-      ),
-      GoRoute(
-        path: '/lesson',
-        builder: (context, state) => const LessonScreen(),
-      ),
-      GoRoute(
-        path: '/blog',
-        builder: (context, state) => const BlogListScreen(),
-      ),
-      GoRoute(
-        path: '/blog-detail',
-        builder: (context, state) => const BlogDetailScreen(),
-      ),
-      GoRoute(
-        path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
-      ),
-      GoRoute(
-        path: '/live-schedule',
-        builder: (context, state) => const LiveScheduleScreen(),
-      ),
-      GoRoute(
-        path: '/orders',
-        builder: (context, state) => const OrderListScreen(),
-      ),
-      GoRoute(
-        path: '/order-detail',
-        builder: (context, state) => const OrderDetailScreen(),
-      ),
-      GoRoute(
-        path: '/leaderboard',
-        builder: (context, state) => const LeaderboardScreen(),
-      ),
-      GoRoute(
-        path: '/notifications',
-        builder: (context, state) => const NotificationsScreen(),
+
+      // Shell với AppShell làm layout chung + bottom nav
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell, state: state),
+        branches: [
+          // Branch 0: Home
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          // Branch 1: Discovery / course browsing
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/discovery',
+                builder: (context, state) => const CourseDiscoveryScreen(),
+              ),
+              GoRoute(
+                path: '/course-detail',
+                builder: (context, state) => const CourseDetailScreen(),
+              ),
+              GoRoute(
+                path: '/curriculum',
+                builder: (context, state) => const CurriculumScreen(),
+              ),
+              GoRoute(
+                path: '/lesson',
+                builder: (context, state) => const LessonScreen(),
+              ),
+            ],
+          ),
+          // Branch 2: Blog (guest) / My courses (user)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/blog',
+                builder: (context, state) => const BlogListScreen(),
+              ),
+              GoRoute(
+                path: '/blog-detail',
+                builder: (context, state) => const BlogDetailScreen(),
+              ),
+              GoRoute(
+                path: '/my-courses',
+                builder: (context, state) => const MyCoursesScreen(),
+              ),
+              GoRoute(
+                path: '/orders',
+                builder: (context, state) => const OrderListScreen(),
+              ),
+              GoRoute(
+                path: '/order-detail',
+                builder: (context, state) => const OrderDetailScreen(),
+              ),
+            ],
+          ),
+          // Branch 3: Live schedule & profile-related
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/live-schedule',
+                builder: (context, state) => const LiveScheduleScreen(),
+              ),
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) => const ProfileScreen(),
+              ),
+              GoRoute(
+                path: '/settings',
+                builder: (context, state) => const SettingsScreen(),
+              ),
+              GoRoute(
+                path: '/leaderboard',
+                builder: (context, state) => const LeaderboardScreen(),
+              ),
+              GoRoute(
+                path: '/notifications',
+                builder: (context, state) => const NotificationsScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );

@@ -93,7 +93,7 @@ class LiveScheduleScreen extends StatelessWidget {
   Widget _buildDayItem(String day, String date, bool isSelected, [Color? color]) {
     return Container(
       width: 60,
-      margin: const EdgeInsets.right(12),
+      margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         color: isSelected ? color : Colors.transparent,
         borderRadius: BorderRadius.circular(16),
@@ -200,14 +200,19 @@ class LiveScheduleScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isReminder ? Colors.white : primaryRed,
                   foregroundColor: isReminder ? primaryRed : Colors.white,
-                  side: isReminder ? const BorderSide(color: primaryRed) : null,
+                  side: isReminder ? BorderSide(color: primaryRed) : null,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: Text(
                   isReminder ? 'Đặt nhắc nhở' : 'Tham gia lớp',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],

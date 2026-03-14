@@ -32,8 +32,8 @@ class UserService {
       email: profile.email,
       displayName: profile.displayName,
       avatarUrl: profile.avatar,
-      role: profile.role,
-      status: profile.status,
+      role: profile.role ?? '',
+      status: profile.status ?? '',
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
     );

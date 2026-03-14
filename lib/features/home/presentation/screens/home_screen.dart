@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -55,7 +56,7 @@ class HomeScreen extends StatelessWidget {
               // Section 1: My Courses
               _buildSectionHeader('Khóa học của bạn', () {}),
               SizedBox(
-                height: 200,
+                height: 220,
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   scrollDirection: Axis.horizontal,
@@ -104,7 +105,6 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(primaryRed),
     );
   }
 
@@ -243,7 +243,7 @@ class HomeScreen extends StatelessWidget {
               color: primaryRed.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.videocam_rounded, color: primaryRed),
+            child: Icon(Icons.videocam_rounded, color: primaryRed),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -272,21 +272,6 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBottomNav(Color primaryRed) {
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: primaryRed,
-      unselectedItemColor: Colors.grey,
-      currentIndex: 0,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Khám phá'),
-        BottomNavigationBarItem(icon: Icon(Icons.book_outlined), label: 'Khóa học'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Tôi'),
-      ],
     );
   }
 }

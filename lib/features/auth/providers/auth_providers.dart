@@ -181,10 +181,14 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
   }
 
-  Future<bool> verifyOTP(String email, String code) async {
+  Future<bool> verifyOTP(String email, String code, {required String type}) async {
      state = const AsyncValue.loading();
      try {
-        final response = await _repository.authService.verifyOTP(email, code);
+        final response = await _repository.authService.verifyOTP(
+          email,
+          code,
+          type: type,
+        );
         if (response.success && response.data != null) {
           final tempToken = response.data!['tempToken'] as String?;
           if (tempToken != null) {
@@ -227,9 +231,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     }
   }
 
-  Future<void> resendOTP(String email) async {
+  Future<void> resendOTP(String email, {required String type}) async {
     try {
-      await _repository.authService.resendOTP(email);
+      await _repository.authService.resendOTP(email, type: type);
     } catch (e) {
       debugPrint('Resend OTP error: $e');
     }

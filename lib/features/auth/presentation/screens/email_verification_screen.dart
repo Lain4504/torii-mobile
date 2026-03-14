@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
-class EmailVerificationScreen extends StatefulWidget {
-  const EmailVerificationScreen({super.key});
+class EmailVerificationScreen extends ConsumerStatefulWidget {
+  const EmailVerificationScreen({
+    super.key,
+    this.email,
+    this.mode = 'registration',
+  });
+
+  final String? email;
+  final String mode;
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  ConsumerState<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
-class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
+class _EmailVerificationScreenState
+    extends ConsumerState<EmailVerificationScreen> {
   final List<TextEditingController> _controllers = List.generate(6, (index) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
@@ -120,8 +132,58 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Logic to verify OTP
+                  onPressed: () async {
+                    final email = widget.email;
+                    if (email == null || email.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Thiếu thông tin email để xác minh'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final code = _controllers.map((c) => c.text).join();
+                    if (code.length != 6) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Vui lòng nhập đủ 6 số mã OTP'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final notifier =
+                        ref.read(authNotifierProvider.notifier);
+                    final isResetFlow = widget.mode == 'reset-password';
+                    final ok = await notifier.verifyOTP(
+                      email,
+                      code,
+                      type: isResetFlow ? 'reset-password' : 'registration',
+                    );
+
+                    if (!mounted) return;
+
+                    if (ok) {
+                      if (isResetFlow) {
+                        context.go('/reset-password');
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Xác minh email thành công'),
+                          ),
+                        );
+                        context.go('/login');
+                      }
+                    } else {
+                      final state =
+                          ref.read(authNotifierProvider).valueOrNull;
+                      final message =
+                          state?.error ?? 'Xác minh mã OTP thất bại';
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(message)),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryRed,
@@ -140,7 +202,31 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 children: [
                   const Text('Chưa nhận được mã? ', style: TextStyle(color: Colors.grey)),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      final email = widget.email;
+                      if (email == null || email.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Thiếu thông tin email để gửi lại mã'),
+                          ),
+                        );
+                        return;
+                      }
+                      final notifier =
+                          ref.read(authNotifierProvider.notifier);
+                      await notifier.resendOTP(
+                        email,
+                        type: widget.mode == 'reset-password'
+                            ? 'reset-password'
+                            : 'registration',
+                      );
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Đã gửi lại mã OTP nếu email hợp lệ'),
+                        ),
+                      );
+                    },
                     child: const Text(
                       'Gửi lại mã',
                       style: TextStyle(color: primaryRed, fontWeight: FontWeight.bold),
