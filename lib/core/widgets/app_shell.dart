@@ -122,14 +122,6 @@ class _BottomNavBar extends StatelessWidget {
                       onTap: () => navigationShell.goBranch(3),
                       isDark: isDark,
                     ),
-                    _NavBarItem(
-                      icon: Icons.person_outline_rounded,
-                      activeIcon: Icons.person_rounded,
-                      label: 'Cá nhân',
-                      isSelected: activeIndex == 4,
-                      onTap: () => navigationShell.goBranch(4),
-                      isDark: isDark,
-                    ),
                   ]
                 : [
                     _NavBarItem(
@@ -145,7 +137,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.school_rounded,
                       label: 'Khóa học',
                       isSelected: activeIndex == 1,
-                      onTap: () => onTap('/marketplace'),
+                      onTap: () => onTap('/courses'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -154,22 +146,6 @@ class _BottomNavBar extends StatelessWidget {
                       label: 'Cộng đồng',
                       isSelected: activeIndex == 2,
                       onTap: () => navigationShell.goBranch(2),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.quiz_outlined,
-                      activeIcon: Icons.quiz_rounded,
-                      label: 'Bài thi',
-                      isSelected: activeIndex == 3,
-                      onTap: () => navigationShell.goBranch(3),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.person_outline_rounded,
-                      activeIcon: Icons.person_rounded,
-                      label: 'Tài khoản',
-                      isSelected: activeIndex == 4,
-                      onTap: () => navigationShell.goBranch(4),
                       isDark: isDark,
                     ),
                   ],

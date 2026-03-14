@@ -1,142 +1,102 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 
-/// My Learning Page - Design Clone from Stitch
-/// Strictly follows the "Torii Nihongo My Courses" design.
+/// My Learning Page - Design aligned with Live Schedule (system design).
 class MyLearningPage extends StatelessWidget {
   const MyLearningPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F7),
-      body: Stack(
-        children: [
-          // Checkerboard Background Pattern
-          Positioned.fill(
-            child: CustomPaint(
-              painter: CheckerboardPainter(),
-            ),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: AppColors.white,
+        surfaceTintColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: const Text(
+          'My Courses',
+          style: TextStyle(
+            color: AppColors.secondary,
+            fontWeight: FontWeight.w800,
+            fontSize: 22,
+            fontFamily: 'Lexend',
           ),
-          
-          CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // Header
-              SliverAppBar(
-                pinned: true,
-                floating: true,
-                elevation: 0,
-                backgroundColor: const Color(0xFFF6F7F7).withValues(alpha: 0.8),
-                surfaceTintColor: Colors.transparent,
-                automaticallyImplyLeading: false,
-                centerTitle: false,
-                flexibleSpace: ClipRRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(color: Colors.transparent),
-                  ),
-                ),
-                title: const Text(
-                  'My Courses',
-                  style: TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontWeight: FontWeight.w800,
-                    fontSize: 20,
-                    fontFamily: 'Lexend',
-                  ),
-                ),
-                actions: [
-                  Container(
-                    margin: const EdgeInsets.only(right: 16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.search_rounded, color: Color(0xFF5D81BB), size: 24),
-                      onPressed: () {},
-                    ),
-                  ),
-                ],
-                bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(1),
-                  child: Container(
-                    color: const Color(0xFF5D81BB).withValues(alpha: 0.1),
-                    height: 1,
-                  ),
-                ),
-              ),
+        ),
+        shape: Border(
+          bottom: BorderSide(
+            color: AppColors.primary.withValues(alpha: 0.05),
+            width: 1,
+          ),
+        ),
+      ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
 
-              // Content Sections
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          // Content Sections
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Continue Learning
+                  const Text(
+                    'CONTINUE LEARNING',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                      letterSpacing: 1.2,
+                      fontFamily: 'Lexend',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildHeroCard(context),
+                  const SizedBox(height: 32),
+                  // Enrolled Courses Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Continue Learning
                       const Text(
-                        'CONTINUE LEARNING',
+                        'ALL ENROLLED COURSES',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF5D81BB),
+                          color: AppColors.primary,
                           letterSpacing: 1.2,
                           fontFamily: 'Lexend',
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      _buildHeroCard(context),
-                      
-                      const SizedBox(height: 32),
-                      
-                      // Enrolled Courses Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'ALL ENROLLED COURSES',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF5D81BB),
-                              letterSpacing: 1.2,
-                              fontFamily: 'Lexend',
+                      GestureDetector(
+                        onTap: () {},
+                        child: const Row(
+                          children: [
+                            Text(
+                              'Filter',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textTertiary,
+                                fontFamily: 'Lexend',
+                              ),
                             ),
-                          ),
-                          GestureDetector(
-                            onTap: () {},
-                            child: const Row(
-                              children: [
-                                Text(
-                                  'Filter',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF64748B),
-                                    fontFamily: 'Lexend',
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Icon(Icons.filter_list_rounded, size: 16, color: Color(0xFF64748B)),
-                              ],
-                            ),
-                          ),
-                        ],
+                            SizedBox(width: 4),
+                            Icon(Icons.filter_list_rounded, size: 16, color: AppColors.textTertiary),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      
-                      // Course List
-                      _buildCourseList(context),
-                      
-                      const SizedBox(height: 100),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  _buildCourseList(context),
+                  const SizedBox(height: 100),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -148,9 +108,9 @@ class MyLearningPage extends StatelessWidget {
       onTap: () => context.push('/learning/1'),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFF5D81BB).withValues(alpha: 0.1)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -186,7 +146,7 @@ class MyLearningPage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF0F172A),
+                            color: AppColors.textPrimary,
                             fontFamily: 'Lexend',
                           ),
                         ),
@@ -194,7 +154,7 @@ class MyLearningPage extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF5D81BB).withValues(alpha: 0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
@@ -202,7 +162,7 @@ class MyLearningPage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF5D81BB),
+                            color: AppColors.primary,
                             fontFamily: 'Lexend',
                           ),
                         ),
@@ -214,7 +174,7 @@ class MyLearningPage extends StatelessWidget {
                     'Instructor: Kenji Tanaka',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF64748B),
+                      color: AppColors.textTertiary,
                       fontFamily: 'Lexend',
                     ),
                   ),
@@ -226,8 +186,8 @@ class MyLearningPage extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: 0.35,
                       minHeight: 6,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      valueColor: const AlwaysStoppedAnimation(Color(0xFF5D81BB)),
+                      backgroundColor: AppColors.grey100,
+                      valueColor: const AlwaysStoppedAnimation(AppColors.primary),
                     ),
                   ),
                   
@@ -249,8 +209,8 @@ class MyLearningPage extends StatelessWidget {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF5D81BB),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textOnPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -310,9 +270,9 @@ class MyLearningPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF5D81BB).withValues(alpha: 0.05)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.05)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.02),
@@ -321,98 +281,81 @@ class MyLearningPage extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
-          children: [
-            // Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                course['image'] as String,
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  course['image'] as String,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            // Details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    course['title'] as String,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F172A),
-                      fontFamily: 'Lexend',
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course['title'] as String,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                        fontFamily: 'Lexend',
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    course['instructor'] as String,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF64748B),
-                      fontFamily: 'Lexend',
+                    const SizedBox(height: 2),
+                    Text(
+                      course['instructor'] as String,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textTertiary,
+                        fontFamily: 'Lexend',
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  // Progress
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${(progress * 100).toInt()}% Complete',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: isCompleted ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
-                          fontFamily: 'Lexend',
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${(progress * 100).toInt()}% Complete',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: isCompleted ? AppColors.success : AppColors.textTertiary,
+                            fontFamily: 'Lexend',
+                          ),
+                        ),
+                        if (isCompleted)
+                          const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 14),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 5,
+                        backgroundColor: AppColors.grey100,
+                        valueColor: AlwaysStoppedAnimation(
+                          isCompleted ? AppColors.success : AppColors.primary,
                         ),
                       ),
-                      if (isCompleted)
-                        const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 14),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 5,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      valueColor: AlwaysStoppedAnimation(
-                        isCompleted ? const Color(0xFF10B981) : const Color(0xFF5D81BB),
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-}
-
-class CheckerboardPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = const Color(0xFFF0F1F2);
-    const double squareSize = 25.0;
-
-    for (double i = 0; i < size.width; i += squareSize * 2) {
-      for (double j = 0; j < size.height; j += squareSize * 2) {
-        canvas.drawRect(Rect.fromLTWH(i, j, squareSize, squareSize), paint);
-        canvas.drawRect(Rect.fromLTWH(i + squareSize, j + squareSize, squareSize, squareSize), paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'course_state.dart';
 import 'course_detail_state.dart';
 import '../repositories/course_repository.dart';
-import '../repositories/wishlist_repository.dart';
 import '../models/course_model.dart';
 import '../models/assignment_model.dart';
 import '../models/certificate_model.dart';
@@ -19,11 +18,6 @@ final courseRepositoryProvider = Provider<CourseRepository>((ref) {
   return CourseRepository(dio: apiClient.client);
 });
 
-/// Provider for WishlistRepository
-final wishlistRepositoryProvider = Provider<WishlistRepository>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return WishlistRepository(apiClient);
-});
 
 /// Provider function for course detail state (family provider with courseId)
 final courseDetailProvider = NotifierProvider.family<CourseDetailNotifier, CourseDetailState, String>(
@@ -42,7 +36,6 @@ class CourseDetailNotifier extends FamilyNotifier<CourseDetailState, String> {
   }
 
   CourseRepository get _courseRepository => ref.read(courseRepositoryProvider);
-  WishlistRepository get _wishlistRepository => ref.read(wishlistRepositoryProvider);
 
   /// Load course detail
   Future<void> loadCourseDetail(String courseId) async {
@@ -72,29 +65,18 @@ class CourseDetailNotifier extends FamilyNotifier<CourseDetailState, String> {
               id: course.id,
               classId: course.classId,
               title: course.title,
-              slug: course.slug,
+              code: course.code,
               thumbnailUrl: course.thumbnailUrl,
-              previewVideoUrl: course.previewVideoUrl,
               instructorName: course.instructorName,
               instructorAvatarUrl: course.instructorAvatarUrl,
               level: course.level,
-              type: course.type,
+              mode: course.mode,
               price: course.price,
-              discountPrice: course.discountPrice,
-              rating: course.rating,
-              reviewCount: course.reviewCount,
-              enrolledCount: course.enrolledCount,
-              totalLessons: course.totalLessons,
-              totalQuizzes: course.totalQuizzes,
-              durationWeeks: course.durationWeeks,
+              salePrice: course.salePrice,
               isEnrolled: isEnrolled,
               isFree: course.isFree,
-              featured: course.featured,
               description: course.description,
-              shortDescription: course.shortDescription,
-              tags: course.tags,
-              learningOutcomes: course.learningOutcomes,
-              requirements: course.requirements,
+              expiresAt: course.expiresAt,
             )
           : course;
       
@@ -103,11 +85,7 @@ class CourseDetailNotifier extends FamilyNotifier<CourseDetailState, String> {
         isLoading: false,
       );
 
-      // Load curriculum and check wishlist in parallel
-      await Future.wait([
-        loadCurriculum(courseId),
-        checkWishlistStatus(courseId),
-      ]);
+      await loadCurriculum(courseId);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -133,62 +111,6 @@ class CourseDetailNotifier extends FamilyNotifier<CourseDetailState, String> {
         isLoadingCurriculum: false,
         error: e.toString(),
       );
-    }
-  }
-
-  /// Check wishlist status
-  Future<void> checkWishlistStatus(String courseId) async {
-    final asyncAuth = ref.read(authStateProvider);
-    final currentUser = asyncAuth.asData?.value.user;
-    if (currentUser == null) {
-      // User not authenticated, can't check wishlist
-      return;
-    }
-
-    try {
-      final isInWishlist = await _wishlistRepository.checkWishlist(courseId);
-
-      state = state.copyWith(
-        isWishlisted: isInWishlist,
-        wishlistId: isInWishlist ? 'placeholder' : null, // Keep for backward compatibility
-      );
-    } catch (e) {
-      // Silently fail - wishlist check is not critical
-      // Don't update state on error
-    }
-  }
-
-  /// Toggle wishlist (add or remove)
-  /// Returns true if added, false if removed (for showing toast message)
-  Future<bool?> toggleWishlist() async {
-    final courseId = state.courseId;
-    final asyncAuth = ref.read(authStateProvider);
-    final currentUser = asyncAuth.asData?.value.user;
-    
-    if (currentUser == null) {
-      state = state.copyWith(error: 'Please login to add to wishlist');
-      return null;
-    }
-
-    state = state.copyWith(isTogglingWishlist: true, error: null, clearError: true);
-
-    try {
-      final isInWishlist = await _wishlistRepository.toggleWishlist(courseId);
-      
-      state = state.copyWith(
-        isWishlisted: isInWishlist,
-        wishlistId: isInWishlist ? 'placeholder' : null, // Keep for backward compatibility
-        isTogglingWishlist: false,
-      );
-      
-      // Return true if added, false if removed
-      return isInWishlist;
-    } catch (e) {
-      state = state.copyWith(
-        isTogglingWishlist: false,
-        error: e.toString(),
-      );
-      return null;
     }
   }
 

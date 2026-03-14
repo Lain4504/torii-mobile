@@ -2,394 +2,247 @@ import 'package:dio/dio.dart';
 import '../models/course_model.dart';
 import '../models/curriculum_model.dart';
 import '../models/lesson_model.dart';
-import '../models/lesson_material_model.dart';
 import '../models/assignment_model.dart';
 import '../models/certificate_model.dart';
+import '../models/lesson_material_model.dart';
 
-/// Course Repository - Handles API calls for courses
+/// Course repository – aligned with gateway API:
+/// - GET /api/academy/course-offerings/public (list)
+/// - GET /api/academy/course-offerings/public/:id (detail)
+/// - GET /api/academy/classes/:id/curriculum (curriculum)
+/// - GET /api/academy/enrollments/me (my enrollments)
+/// - GET /api/academy/lessons/:id (lesson by id)
 class CourseRepository {
   final Dio _dio;
 
-  CourseRepository({
-    required Dio dio,
-  })  : _dio = dio;
+  CourseRepository({required Dio dio}) : _dio = dio;
 
-  /// Fetch all courses with pagination and filters
+  /// Unwrap standard gateway response: { success, data: T }
+  static T _data<T>(dynamic responseData, T Function(dynamic) fromData) {
+    if (responseData is Map<String, dynamic> && responseData['data'] != null) {
+      return fromData(responseData['data']);
+    }
+    return fromData(responseData);
+  }
+
+  /// Public course offerings (no auth). Query: status=PUBLISHED, optional q, mode (VOD|LIVE).
+  /// Backend returns all matching items (no pagination).
+  Future<CourseListResponse> getPublicOfferings({
+    String? q,
+    String? mode,
+  }) async {
+    final queryParams = <String, dynamic>{};
+    if (q != null && q.trim().isNotEmpty) queryParams['q'] = q.trim();
+    if (mode != null && (mode == 'VOD' || mode == 'LIVE')) queryParams['mode'] = mode;
+
+    final response = await _dio.get(
+      '/api/academy/course-offerings/public',
+      queryParameters: queryParams,
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to fetch offerings: ${response.statusCode}');
+    }
+
+    final items = _data<List<dynamic>>(
+      response.data,
+      (data) {
+        if (data is Map<String, dynamic> && data['items'] != null) {
+          return (data['items'] as List<dynamic>).cast<Map<String, dynamic>>();
+        }
+        if (data is List) return data.cast<Map<String, dynamic>>();
+        return <Map<String, dynamic>>[];
+      },
+    );
+
+    final courses = items
+        .map((e) => Course.fromOfferingJson(e))
+        .toList();
+
+    return CourseListResponse(
+      courses: courses,
+      total: courses.length,
+      page: 1,
+      limit: courses.length,
+      totalPages: 1,
+    );
+  }
+
+  /// Single public offering by id (no auth).
+  Future<Course> getPublicOfferingById(String id) async {
+    final response = await _dio.get('/api/academy/course-offerings/public/$id');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to fetch offering: ${response.statusCode}');
+    }
+    final item = _data<Map<String, dynamic>>(
+      response.data,
+      (data) {
+        if (data is Map<String, dynamic> && data['item'] != null) {
+          return data['item'] as Map<String, dynamic>;
+        }
+        return data as Map<String, dynamic>;
+      },
+    );
+    return Course.fromOfferingJson(item);
+  }
+
+  /// Curriculum for a class (requires auth for academy.delivery.read).
+  Future<Curriculum> getClassCurriculum(String classId) async {
+    final response = await _dio.get('/api/academy/classes/$classId/curriculum');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to fetch curriculum: ${response.statusCode}');
+    }
+    final curriculumMap = _data<Map<String, dynamic>>(
+      response.data,
+      (data) {
+        if (data is Map<String, dynamic> && data['curriculum'] != null) {
+          return data['curriculum'] as Map<String, dynamic>;
+        }
+        return data as Map<String, dynamic>;
+      },
+    );
+    return Curriculum.fromJson(curriculumMap);
+  }
+
+  /// My enrollments (auth required). Returns list of enrollment objects with courseTitle, thumbnailUrl, etc.
+  Future<List<Map<String, dynamic>>> getMyEnrollments() async {
+    final response = await _dio.get('/api/academy/enrollments/me');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to fetch enrollments: ${response.statusCode}');
+    }
+    final data = response.data;
+    List<dynamic> list = [];
+    if (data is Map<String, dynamic> && data['data'] != null) {
+      final d = data['data'];
+      if (d is Map && d['items'] != null) list = d['items'] as List<dynamic>;
+      else if (d is List) list = d;
+    } else if (data is List) list = data;
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  /// My courses as Course list (from enrollments/me). Auth required.
+  Future<List<Course>> getMyCourses() async {
+    final enrollments = await getMyEnrollments();
+    return enrollments.map((e) => Course.fromEnrollmentJson(e)).toList();
+  }
+
+  // --- Aliases for existing callers ---
+
+  /// Alias for getPublicOfferingById.
+  Future<Course> getCourseById(String courseId) async {
+    return getPublicOfferingById(courseId);
+  }
+
+  /// Alias for getClassCurriculum (courseId here is classId for curriculum).
+  Future<Curriculum> getCourseCurriculum(String courseId) async {
+    return getClassCurriculum(courseId);
+  }
+
+  /// List with optional filters. Backend has no pagination; returns single page.
   Future<CourseListResponse> findAll({
     int page = 1,
     int limit = 20,
     JLPTLevel? level,
-    CourseType? type,
     String? search,
   }) async {
-    try {
-      final queryParams = <String, dynamic>{
-        'page': page,
-        'limit': limit,
-      };
-
-      if (level != null) {
-        queryParams['jlptLevel'] = level.name.toUpperCase();
-      }
-
-      if (search != null && search.isNotEmpty) {
-        queryParams['search'] = search;
-      }
-
-      // New backend endpoint: public course offerings
-      // GET /api/academy/course-offerings/public
-      final response = await _dio.get(
-        '/api/academy/course-offerings/public',
-        queryParameters: queryParams,
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to fetch courses: ${response.statusCode}');
-      }
-
-      final data = response.data;
-
-      // successResponse({ items })
-      // or successPaginatedResponse({ items, total, page, limit, totalPages })
-      Map<String, dynamic> envelope;
-      if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
-        envelope = data['data'] as Map<String, dynamic>;
-      } else if (data is Map<String, dynamic>) {
-        envelope = data;
-      } else {
-        envelope = {'items': <dynamic>[]};
-      }
-
-      final rawItems = (envelope['items'] as List? ?? const []).cast<dynamic>();
-      final items = rawItems
-          .whereType<Map<String, dynamic>>()
-          .map(_mapOfferingToCourseJson)
-          .map(Course.fromJson)
-          .toList();
-
+    final res = await getPublicOfferings(
+      q: search,
+      mode: null,
+    );
+    if (level != null) {
+      final filtered = res.courses.where((c) => c.level == level).toList();
       return CourseListResponse(
-        courses: items,
-        total: envelope['total'] as int? ?? items.length,
-        page: envelope['page'] as int? ?? page,
-        limit: envelope['limit'] as int? ?? limit,
-        totalPages: envelope['totalPages'] as int? ?? 1,
+        courses: filtered,
+        total: filtered.length,
+        page: 1,
+        limit: filtered.length,
+        totalPages: 1,
       );
-    } catch (e) {
-      throw Exception('Failed to fetch courses: $e');
     }
+    return res;
   }
 
-  /// Fetch single course by ID
+  /// Single offering by id (alias).
   Future<Course?> findOne(String id) async {
     try {
-      // New backend: public course offering by id
-      final response =
-          await _dio.get('/api/academy/course-offerings/public/$id');
-      if (response.data == null) return null;
-      
-      final data = response.data;
-      // successResponse({ item })
-      Map<String, dynamic> courseData;
-      if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
-        final inner = data['data'] as Map<String, dynamic>;
-        courseData =
-            (inner['item'] as Map<String, dynamic>?) ?? inner;
-      } else {
-        courseData = data as Map<String, dynamic>;
-      }
-      
-      return Course.fromJson(_mapOfferingToCourseJson(courseData));
-    } catch (e) {
-      throw Exception('Failed to fetch course: $e');
+      return await getPublicOfferingById(id);
+    } catch (_) {
+      return null;
     }
   }
 
-  /// Fetch course by slug
-  Future<Course?> findBySlug(String slug) async {
-    try {
-      // No explicit slug endpoint in new controller; keep legacy for now
-      final response = await _dio.get('/api/courses/slug/$slug');
-      if (response.data == null) return null;
-      
-      final data = response.data;
-      // Handle response structure: { success: true, data: { course: {...} } }
-      Map<String, dynamic> courseData;
-      if (data is Map<String, dynamic> && data.containsKey('data')) {
-        final dataMap = data['data'] as Map<String, dynamic>?;
-        // Check if data contains 'course' key (backend returns { course: {...} })
-        if (dataMap != null && dataMap.containsKey('course')) {
-          courseData = dataMap['course'] as Map<String, dynamic>;
-        } else {
-          // Fallback: assume data is the course object itself
-          courseData = dataMap as Map<String, dynamic>;
+  /// Lesson by id – GET /api/academy/lessons/:id (auth required).
+  Future<Lesson> getLessonById(String lessonId) async {
+    final response = await _dio.get('/api/academy/lessons/$lessonId');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load lesson: ${response.statusCode}');
+    }
+    final item = _data<Map<String, dynamic>>(
+      response.data,
+      (data) {
+        if (data is Map<String, dynamic> && data['item'] != null) {
+          return data['item'] as Map<String, dynamic>;
         }
-      } else {
-        courseData = data as Map<String, dynamic>;
-      }
-      
-      return Course.fromJson(courseData);
-    } catch (e) {
-      throw Exception('Failed to fetch course: $e');
-    }
+        return data as Map<String, dynamic>;
+      },
+    );
+    return Lesson.fromJson(item);
   }
 
-  /// Get course by ID (alias for findOne with better error handling)
-  Future<Course> getCourseById(String courseId) async {
+  /// Assignments – stub; use academy assignment-submissions if needed.
+  Future<List<Assignment>> getAssignments({int page = 1, int limit = 50}) async {
     try {
-      final response =
-          await _dio.get('/api/academy/course-offerings/public/$courseId');
-      
+      final response = await _dio.get(
+        '/api/academy/assignment-submissions',
+        queryParameters: {'page': page, 'limit': limit},
+      );
       if (response.statusCode == 200) {
         final data = response.data;
-        
-        // successResponse({ item })
-        Map<String, dynamic> courseData;
-        if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
-          final inner = data['data'] as Map<String, dynamic>;
-          courseData =
-              (inner['item'] as Map<String, dynamic>?) ?? inner;
-        } else {
-          courseData = data as Map<String, dynamic>;
+        List<dynamic> list = [];
+        if (data is Map && data['data'] != null) {
+          final d = data['data'];
+          if (d is Map && d['items'] != null) list = d['items'] as List;
+          else if (d is List) list = d;
         }
-        
-        return Course.fromJson(_mapOfferingToCourseJson(courseData));
-      } else {
-        throw Exception('Failed to load course: ${response.statusCode}');
+        return list.map((e) => Assignment.fromJson(e as Map<String, dynamic>)).toList();
       }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        throw Exception('Course not found');
-      }
-      throw Exception('Failed to load course: ${e.message}');
-    } catch (e) {
-      throw Exception('Failed to load course: $e');
-    }
+    } catch (_) {}
+    return [];
   }
 
-  /// Get course curriculum (modules and lessons)
-  Future<Curriculum> getCourseCurriculum(String courseId) async {
+  /// Certificates – stub; implement when backend endpoint is available.
+  Future<List<Certificate>> getCertificates({int page = 1, int limit = 50}) async {
+    return [];
+  }
+
+  /// Lesson materials – stub; implement when backend endpoint is available.
+  Future<List<LessonMaterial>> getLessonMaterials(String lessonId) async {
     try {
-      // New backend: curriculum belongs to class, not offering.
-      // For now we assume courseId == classId that mobile receives.
-      final response =
-          await _dio.get('/api/academy/classes/$courseId/curriculum');
-      
+      final response = await _dio.get('/api/academy/lessons/$lessonId/materials');
       if (response.statusCode == 200) {
         final data = response.data;
-        
-        // successResponse({ curriculum }) or successResponse(curriculum)
-        Map<String, dynamic> curriculumData;
-        if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
-          final inner = data['data'] as Map<String, dynamic>;
-          curriculumData =
-              (inner['curriculum'] as Map<String, dynamic>?) ?? inner;
-        } else {
-          curriculumData = data as Map<String, dynamic>;
+        List<dynamic> list = [];
+        if (data is Map && data['data'] != null) {
+          final d = data['data'];
+          if (d is Map && d['materials'] != null) list = d['materials'] as List;
+          else if (d is List) list = d;
         }
-        
-        return Curriculum.fromJson(curriculumData);
-      } else {
-        throw Exception('Failed to load curriculum: ${response.statusCode}');
+        return list.map((e) => LessonMaterial.fromJson(e as Map<String, dynamic>)).toList();
       }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        throw Exception('Curriculum not found');
-      }
-      throw Exception('Failed to load curriculum: ${e.message}');
-    } catch (e) {
-      throw Exception('Failed to load curriculum: $e');
-    }
+    } catch (_) {}
+    return [];
   }
 
-  /// Get courses enrolled by current user
-  Future<List<Course>> getMyCourses() async {
-    try {
-      final response = await _dio.get('/api/learning-progress/my-courses');
-      
-      if (response.statusCode == 200) {
-        final data = response.data;
-        
-        // Handle response structure: { success: true, data: { courses: [...] } }
-        List<dynamic> coursesList;
-        if (data is Map<String, dynamic> && data.containsKey('data')) {
-          final dataMap = data['data'] as Map<String, dynamic>?;
-          if (dataMap != null && dataMap.containsKey('courses')) {
-            coursesList = dataMap['courses'] as List<dynamic>;
-          } else if (dataMap is List) {
-            // Fallback: data['data'] is directly a list
-            coursesList = dataMap as List<dynamic>;
-          } else {
-            coursesList = [];
-          }
-        } else if (data is List) {
-          // Fallback: response is directly a list
-          coursesList = data;
-        } else {
-          coursesList = [];
-        }
-            
-        return coursesList.map((item) {
-          final courseJson = item as Map<String, dynamic>;
-          // Ensure isEnrolled is true for courses from my-courses endpoint
-          courseJson['isEnrolled'] = true;
-          return Course.fromJson(courseJson);
-        }).toList();
-      } else {
-        throw Exception('Failed to load my courses');
-      }
-    } catch (e) {
-      throw Exception('Failed to load my courses: $e');
-    }
-  }
-
-  /// Get learning statistics for user
+  /// Learning stats – from enrollments count.
   Future<Map<String, dynamic>> getLearningStats() async {
     try {
-      final response = await _dio.get('/api/learning-progress/stats');
-      if (response.statusCode == 200) {
-        return response.data as Map<String, dynamic>;
-      }
-      return {};
+      final list = await getMyEnrollments();
+      return {'enrolledCount': list.length};
     } catch (_) {
       return {};
     }
   }
-
-  /// Get lesson details by ID
-  Future<Lesson> getLessonById(String lessonId) async {
-    try {
-      final response = await _dio.get('/api/lessons/$lessonId');
-      
-      if (response.statusCode == 200) {
-        final data = response.data;
-        
-        // Handle response structure: { success: true, data: { lesson: {...} } }
-        Map<String, dynamic> lessonData;
-        if (data is Map<String, dynamic> && data.containsKey('data')) {
-          final dataMap = data['data'] as Map<String, dynamic>?;
-          if (dataMap != null && dataMap.containsKey('lesson')) {
-            lessonData = dataMap['lesson'] as Map<String, dynamic>;
-          } else {
-            // Fallback: assume data is the lesson object itself
-            lessonData = dataMap as Map<String, dynamic>;
-          }
-        } else {
-          lessonData = data as Map<String, dynamic>;
-        }
-        
-        return Lesson.fromJson(lessonData);
-      } else {
-        throw Exception('Failed to load lesson: ${response.statusCode}');
-      }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        throw Exception('Lesson not found');
-      }
-      throw Exception('Failed to load lesson: ${e.message}');
-    } catch (e) {
-      throw Exception('Failed to load lesson: $e');
-    }
-  }
-
-  /// Fetch lesson materials by lesson ID
-  Future<List<LessonMaterial>> getLessonMaterials(String lessonId) async {
-    try {
-      final response = await _dio.get(
-        '/api/lesson-materials/by-lesson/$lessonId',
-      );
-
-      final data = response.data;
-      
-      // Backend returns: { success: true, data: { materials: [...] } }
-      if (data != null && data['success'] == true && data['data'] != null) {
-        final dataValue = data['data'];
-        
-        // Try both 'materials' and direct array
-        List? materialsData;
-        
-        // Case 1: data is a Map with 'materials' key
-        if (dataValue is Map<String, dynamic>) {
-          if (dataValue.containsKey('materials')) {
-            materialsData = dataValue['materials'] as List?;
-          }
-        }
-        // Case 2: data is directly a List
-        else if (dataValue is List) {
-          materialsData = dataValue;
-        }
-        
-        if (materialsData != null && materialsData.isNotEmpty) {
-          final materials = <LessonMaterial>[];
-          
-          for (var i = 0; i < materialsData.length; i++) {
-            try {
-              final item = materialsData[i];
-              
-              if (item == null || item is! Map<String, dynamic>) {
-                continue;
-              }
-              
-              final material = LessonMaterial.fromJson(item);
-              materials.add(material);
-            } catch (_) {
-              // Continue with next item instead of failing completely
-            }
-          }
-          
-          return materials;
-        }
-      }
-      
-      return [];
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        return [];
-      }
-      if (e.response?.statusCode == 401) {
-        throw Exception('Unauthorized: Please login to view materials');
-      }
-      if (e.response?.statusCode == 403) {
-        throw Exception('Access denied: You do not have permission to view these materials');
-      }
-      throw Exception('Failed to fetch lesson materials: ${e.message}');
-    } catch (e) {
-      throw Exception('Failed to fetch lesson materials: $e');
-    }
-  }
-
-  /// Get all assignments for the learner
-  Future<List<Assignment>> getAssignments({int page = 1, int limit = 50}) async {
-    try {
-      final response = await _dio.get('/api/assignments', queryParameters: {'page': page, 'limit': limit});
-      if (response.statusCode == 200 && (response.data['success'] == true || response.data['success'] == null)) {
-        final dynamic data = response.data['data'];
-        final List list = data is List ? data : (data['data'] ?? []);
-        return list.map((item) => Assignment.fromJson(item)).toList();
-      }
-      return [];
-    } catch (e) {
-      throw Exception('Failed to fetch assignments: $e');
-    }
-  }
-
-  /// Get all certificates for the learner
-  Future<List<Certificate>> getCertificates({int page = 1, int limit = 50}) async {
-    try {
-      final response = await _dio.get('/api/certificates', queryParameters: {'page': page, 'limit': limit});
-      if (response.statusCode == 200 && (response.data['success'] == true || response.data['success'] == null)) {
-        final dynamic data = response.data['data'];
-        final List list = data is List ? data : (data['data'] ?? []);
-        return list.map((item) => Certificate.fromJson(item)).toList();
-      }
-      return [];
-    } catch (e) {
-      throw Exception('Failed to fetch certificates: $e');
-    }
-  }
-
 }
 
-/// Response model for paginated course list
 class CourseListResponse {
   final List<Course> courses;
   final int total;
@@ -404,91 +257,4 @@ class CourseListResponse {
     required this.limit,
     required this.totalPages,
   });
-
-  factory CourseListResponse.fromJson(Map<String, dynamic> json) {
-    return CourseListResponse(
-      courses: (json['data'] as List)
-          .map((item) => Course.fromJson(item))
-          .toList(),
-      total: json['total'] ?? 0,
-      page: json['page'] ?? 1,
-      limit: json['limit'] ?? 20,
-      totalPages: json['totalPages'] ?? 0,
-    );
-  }
 }
-
-/// Map backend course-offering structure to Course JSON
-Map<String, dynamic> _safeMap(Map<String, dynamic>? source) =>
-    source ?? <String, dynamic>{};
-
-Map<String, dynamic> _mapOfferingToCourseJson(
-  Map<String, dynamic> offering,
-) {
-  // Pick primary class (if any)
-  final rawClasses = (offering['classes'] as List?) ?? const [];
-  Map<String, dynamic>? primaryClassRelation;
-  for (final c in rawClasses) {
-    if (c is Map<String, dynamic>) {
-      if (c['isPrimary'] == true) {
-        primaryClassRelation = c;
-        break;
-      }
-      primaryClassRelation ??= c;
-    }
-  }
-
-  final classData =
-      _safeMap(primaryClassRelation?['class'] as Map<String, dynamic>?);
-  final courseProfile = _safeMap(
-      classData['courseProfile'] as Map<String, dynamic>?);
-  final instructor =
-      _safeMap(classData['instructor'] as Map<String, dynamic>?);
-
-  // Prices: backend sends string
-  double _parsePrice(dynamic v) {
-    if (v == null) return 0.0;
-    if (v is num) return v.toDouble();
-    return double.tryParse(v.toString()) ?? 0.0;
-  }
-
-  final price = _parsePrice(offering['price']);
-  final salePrice = _parsePrice(offering['salePrice']);
-
-  final level = (courseProfile['level'] ?? '').toString();
-  final thumbnailUrl = courseProfile['thumbnailUrl']?.toString();
-
-  return <String, dynamic>{
-    'id': offering['id']?.toString() ?? '',
-    // keep offering id for routing; classId used for curriculum
-    'classId': classData['id']?.toString(),
-    'title': offering['title']?.toString() ?? classData['name']?.toString() ?? '',
-    'slug': offering['code']?.toString(),
-    'thumbnailUrl': thumbnailUrl,
-    'previewVideoUrl': null,
-    'instructorName':
-        instructor['displayName']?.toString() ?? 'Unknown Instructor',
-    'instructorAvatarUrl': instructor['avatarUrl']?.toString() ??
-        'https://i.pravatar.cc/150?u=${instructor['displayName'] ?? 'sensei'}',
-    'jlptLevel': level.isNotEmpty ? level : null,
-    'type': (offering['mode'] ?? classData['mode'] ?? 'VOD').toString(),
-    'price': price,
-    'discountPrice': salePrice > 0 && salePrice < price ? salePrice : null,
-    'averageRating': 0,
-    'totalReviews': 0,
-    'totalStudents': 0,
-    'totalLessons': 0,
-    'totalQuizzes': 0,
-    'durationWeeks': null,
-    'isEnrolled': false,
-    'isFree': price == 0,
-    'featured': false,
-    'description': offering['description']?.toString(),
-    'shortDescription': null,
-    'tags': const <String>[],
-    'learningOutcomes': const <String>[],
-    'requirements': const <String>[],
-    'expiresAt': null,
-  };
-}
-

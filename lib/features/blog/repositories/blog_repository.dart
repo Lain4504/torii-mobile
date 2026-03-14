@@ -1,81 +1,96 @@
 import 'package:dio/dio.dart';
-import 'package:torii_app/features/blog/models/blog_model.dart';
+import '../models/blog_model.dart';
 
+/// Blog repository – gateway GET /api/blogs (paginated), GET /api/blogs/slug/:slug, GET /api/blogs/:id.
+/// Response: list = { success, data: [], total, page, limit, totalPages }, single = { success, data: { blog } }.
 class BlogRepository {
   final Dio _dio;
-  static const String _basePath = '/api/blogs';
+  static const String _base = '/api/blogs';
 
   BlogRepository(this._dio);
 
-  Future<List<Blog>> getBlogs({
+  /// Unwrap { success, data } and optional nested { blog }.
+  static List<Blog> _parseList(dynamic body) {
+    if (body is! Map<String, dynamic>) return [];
+    final data = body['data'];
+    if (data is List) {
+      return data.map((e) => Blog.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    if (data is Map && data['data'] is List) {
+      return (data['data'] as List).map((e) => Blog.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return [];
+  }
+
+  static Blog _parseOne(dynamic body) {
+    if (body is Map<String, dynamic> && body['data'] != null) {
+      final d = body['data'];
+      if (d is Map<String, dynamic> && d['blog'] != null) {
+        return Blog.fromJson(d['blog'] as Map<String, dynamic>);
+      }
+      if (d is Map<String, dynamic>) {
+        return Blog.fromJson(d);
+      }
+    }
+    throw Exception('Unexpected blog response');
+  }
+
+  /// GET /api/blogs?page=&limit=&search=
+  /// Returns list and pagination. Gateway: successPaginatedResponse → { success, data: [], total, page, limit, totalPages }.
+  Future<BlogListResult> getBlogs({
     int page = 1,
     int limit = 10,
     String? search,
   }) async {
-    try {
-      final query = <String, dynamic>{
-        'page': page,
-        'limit': limit,
-      };
-      if (search != null && search.isNotEmpty) {
-        query['search'] = search;
-      }
-
-      final res = await _dio.get(_basePath, queryParameters: query);
-      if (res.statusCode != 200) {
-        throw Exception('Failed to fetch blogs: ${res.statusCode}');
-      }
-
-      final root = res.data;
-      final dynamic inner =
-          root is Map<String, dynamic> && root['data'] != null
-              ? root['data']
-              : root;
-
-      List list;
-      if (inner is Map<String, dynamic> && inner['data'] is List) {
-        list = inner['data'] as List;
-      } else if (inner is List) {
-        list = inner;
-      } else {
-        list = const [];
-      }
-
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map((e) => Blog.fromJson(e))
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to fetch blogs: $e');
-    }
+    final query = <String, dynamic>{'page': page, 'limit': limit};
+    if (search != null && search.trim().isNotEmpty) query['search'] = search.trim();
+    final res = await _dio.get(_base, queryParameters: query);
+    if (res.statusCode != 200) throw Exception('Failed to fetch blogs: ${res.statusCode}');
+    final body = res.data;
+    final list = body is Map && body['data'] is List
+        ? (body['data'] as List).map((e) => Blog.fromJson(e as Map<String, dynamic>)).toList()
+        : _parseList(body);
+    return BlogListResult(
+      blogs: list,
+      total: (body is Map && body['total'] != null) ? (body['total'] as num).toInt() : list.length,
+      page: (body is Map && body['page'] != null) ? (body['page'] as num).toInt() : page,
+      limit: (body is Map && body['limit'] != null) ? (body['limit'] as num).toInt() : limit,
+      totalPages: (body is Map && body['totalPages'] != null) ? (body['totalPages'] as num).toInt() : 1,
+    );
   }
 
+  /// GET /api/blogs/slug/:slug
   Future<Blog> getBlogBySlug(String slug) async {
-    try {
-      final res = await _dio.get('$_basePath/slug/$slug');
-      if (res.statusCode != 200) {
-        throw Exception('Failed to fetch blog: ${res.statusCode}');
-      }
+    final res = await _dio.get('$_base/slug/$slug');
+    if (res.statusCode != 200) throw Exception('Failed to fetch blog: ${res.statusCode}');
+    return _parseOne(res.data);
+  }
 
-      final root = res.data;
-      final dynamic inner =
-          root is Map<String, dynamic> && root['data'] != null
-              ? root['data']
-              : root;
+  /// GET /api/blogs/:id
+  Future<Blog> getBlogById(String id) async {
+    final res = await _dio.get('$_base/$id');
+    if (res.statusCode != 200) throw Exception('Failed to fetch blog: ${res.statusCode}');
+    return _parseOne(res.data);
+  }
 
-      Map<String, dynamic> json;
-      if (inner is Map<String, dynamic> && inner['blog'] is Map) {
-        json = inner['blog'] as Map<String, dynamic>;
-      } else if (inner is Map<String, dynamic>) {
-        json = inner;
-      } else {
-        throw Exception('Unexpected blog response format');
-      }
-
-      return Blog.fromJson(json);
-    } catch (e) {
-      throw Exception('Failed to fetch blog: $e');
-    }
+  /// PATCH /api/blogs/:id/view – increment view count (public).
+  Future<void> incrementView(String id) async {
+    await _dio.patch('$_base/$id/view');
   }
 }
 
+class BlogListResult {
+  final List<Blog> blogs;
+  final int total;
+  final int page;
+  final int limit;
+  final int totalPages;
+
+  const BlogListResult({
+    required this.blogs,
+    required this.total,
+    required this.page,
+    required this.limit,
+    required this.totalPages,
+  });
+}

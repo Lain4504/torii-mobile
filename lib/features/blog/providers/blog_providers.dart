@@ -53,13 +53,13 @@ class BlogListNotifier extends Notifier<BlogListState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final blogs = await repo.getBlogs(page: page, limit: 10);
+      final result = await repo.getBlogs(page: page, limit: 10);
 
       state = state.copyWith(
-        blogs: refresh ? blogs : [...state.blogs, ...blogs],
+        blogs: refresh ? result.blogs : [...state.blogs, ...result.blogs],
         isLoading: false,
-        page: page + 1,
-        hasMore: blogs.length >= 10,
+        page: result.page + 1,
+        hasMore: result.page < result.totalPages,
       );
     } catch (e) {
       state = state.copyWith(

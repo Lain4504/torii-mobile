@@ -13,7 +13,6 @@ import 'package:torii_app/features/auth/views/pages/reset_password_page.dart';
 import 'package:torii_app/features/auth/views/pages/two_factor_verify_page.dart';
 import 'package:torii_app/features/auth/views/pages/auth_success_page.dart';
 import 'package:torii_app/features/course/views/pages/course_detail_design_page.dart';
-import 'package:torii_app/features/course/views/pages/course_lessons_page.dart';
 import 'package:torii_app/features/course/views/pages/course_learning_curriculum_page.dart';
 import 'package:torii_app/features/payment/views/payment_screen.dart';
 import 'package:torii_app/features/payment/views/payos_webview_screen.dart';
@@ -48,19 +47,19 @@ import 'package:torii_app/features/study/views/pages/flashcard_mode_page.dart';
 import 'package:torii_app/features/study/views/pages/match_game_page.dart';
 import 'package:torii_app/features/study/views/pages/review_mode_page.dart';
 import 'package:torii_app/features/onboarding/views/pages/onboarding_page.dart';
+import 'package:torii_app/features/onboarding/providers/onboarding_provider.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authStateAsync = ref.read(authNotifierProvider);
   final authNotifier = ValueNotifier<AsyncValue<AuthState>>(authStateAsync);
-  
+  final onboardingNotifier = ref.read(onboardingNotifierProvider);
+
   ref.listen<AsyncValue<AuthState>>(authNotifierProvider, (_, next) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
        authNotifier.value = next;
     });
   });
-
-  final onboardingNotifier = ValueNotifier<bool>(true);
 
   return GoRouter(
     navigatorKey: AppRouter.rootNavigatorKey,
@@ -69,13 +68,13 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: Listenable.merge([authNotifier, onboardingNotifier]),
     
     redirect: (context, state) {
-      const onboardingCompletedStatus = false;
+      final onboardingCompletedStatus = onboardingNotifier.value;
       final matchedLocation = state.matchedLocation;
 
-      // 1. Force onboarding if not completed
+      // 1. First launch: show onboarding first; only after that allow home (guest) or other routes
       if (!onboardingCompletedStatus) {
-         if (matchedLocation == '/onboarding' || AppRouter.isPublicRoute(matchedLocation)) return null;
-         return '/onboarding';
+        if (matchedLocation == '/onboarding') return null;
+        return '/onboarding';
       }
 
       // 2. Auth checks
@@ -163,7 +162,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                         parentNavigatorKey: AppRouter.rootNavigatorKey,
                         builder: (context, state) {
                           final courseId = state.pathParameters['id'] ?? '';
-                          return CourseLessonsPage(courseId: courseId);
+                          return CourseLearningCurriculumPage(courseId: courseId);
                         },
                       ),
                     ],
@@ -511,7 +510,6 @@ class AppRouter {
     '/profile/settings',
     '/profile/settings/edit',
     '/profile/settings/security',
-    '/blog',
     '/learning/:courseId/:lessonId',
     '/courses/:id/lessons',
   ];
@@ -548,6 +546,8 @@ class AppRouter {
       '/courses/',
       '/community/',
       '/instructor/',
+      '/blog',
+      '/blog/',
     ];
 
     for (final prefix in publicPrefixes) {

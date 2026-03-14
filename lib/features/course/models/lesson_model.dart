@@ -1,71 +1,53 @@
-/// Lesson model representing individual lesson in a module
+/// Lesson from GET /api/academy/lessons/:id.
+/// Prisma: Lesson (id, moduleId, type VIDEO|READING, title, orderIndex, videoUrl, createdAt, updatedAt).
+
+enum LessonType { video, reading }
+
 class Lesson {
   final String id;
+  final String? moduleId;
+  final LessonType type;
   final String title;
-  final String contentType; // 'video', 'article', etc.
-  final int? videoDuration; // Duration in seconds
-  final String? videoUrl; // Video URL for video lessons
-  final String? articleContent; // HTML content for article lessons
-  final String? description; // Lesson description
-  final int order;
-  final bool isPreview;
-  final bool isUnlocked;
+  final int orderIndex;
+  final String? videoUrl;
+  final String? description;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   const Lesson({
     required this.id,
+    this.moduleId,
+    required this.type,
     required this.title,
-    required this.contentType,
-    this.videoDuration,
+    required this.orderIndex,
     this.videoUrl,
-    this.articleContent,
     this.description,
-    required this.order,
-    this.isPreview = false,
-    this.isUnlocked = true,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory Lesson.fromJson(Map<String, dynamic> json) {
+    final typeStr = (json['type'] ?? json['contentType'] ?? 'VIDEO').toString().toUpperCase();
+    final type = typeStr == 'READING' ? LessonType.reading : LessonType.video;
     return Lesson(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      contentType: json['contentType'] as String? ?? 'video',
-      videoDuration: json['videoDuration'] as int?,
-      videoUrl: json['videoUrl'] as String?,
-      articleContent: json['articleContent'] as String?,
-      description: json['description'] as String?,
-      order: json['order'] as int? ?? json['orderIndex'] as int? ?? 0,
-      isPreview: json['isPreview'] as bool? ?? false,
-      isUnlocked: json['isUnlocked'] as bool? ?? true,
+      id: json['id']?.toString() ?? '',
+      moduleId: json['moduleId']?.toString(),
+      type: type,
+      title: json['title']?.toString() ?? '',
+      orderIndex: (json['orderIndex'] as num?)?.toInt() ?? (json['order'] as num?)?.toInt() ?? 0,
+      videoUrl: json['videoUrl']?.toString(),
+      description: json['description']?.toString(),
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
+      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt'].toString()) : null,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'contentType': contentType,
-      'videoDuration': videoDuration,
-      'videoUrl': videoUrl,
-      'articleContent': articleContent,
-      'description': description,
-      'order': order,
-      'isPreview': isPreview,
-      'isUnlocked': isUnlocked,
-    };
-  }
-
-  /// Format duration in minutes
-  String get durationLabel {
-    if (videoDuration == null) return 'N/A';
-    final minutes = (videoDuration! / 60).ceil();
-    return '$minutes min';
-  }
-
-  /// Check if lesson is video type
-  bool get isVideo => contentType.toLowerCase() == 'video';
-
-  /// Check if lesson is article type
-  bool get isArticle => contentType.toLowerCase() == 'article';
+  String get contentType => type == LessonType.video ? 'video' : 'article';
+  bool get isVideo => type == LessonType.video;
+  bool get isArticle => type == LessonType.reading;
+  int? get videoDuration => null;
+  String get durationLabel => 'N/A';
+  int get order => orderIndex;
+  /// For READING lessons, HTML content; falls back to description. UI uses this for article display.
+  String? get articleContent => description;
 }
-
-

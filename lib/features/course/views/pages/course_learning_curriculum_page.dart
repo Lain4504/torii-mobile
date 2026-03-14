@@ -2,8 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 
+// ========== Mock data (UI only, no API) ==========
+List<_LessonItem> get _mockModule1Lessons => [
+  _LessonItem(title: 'Welcome to the Course', duration: '3 min', type: _LessonType.video, status: _LessonStatus.completed),
+  _LessonItem(title: 'What is Zen Leadership', duration: '6 min', type: _LessonType.video, status: _LessonStatus.inProgress),
+  _LessonItem(title: 'Core Philosophy', duration: '8 min', type: _LessonType.document, status: _LessonStatus.notStarted),
+  _LessonItem(title: 'Module 1 Assessment', duration: '10 min', type: _LessonType.quiz, status: _LessonStatus.locked),
+];
+List<_LessonItem> get _mockModule2Lessons => [
+  _LessonItem(title: 'Introduction to Mindfulness', duration: '5 min', type: _LessonType.video, status: _LessonStatus.notStarted),
+  _LessonItem(title: 'Daily Practice Guide', duration: '12 min', type: _LessonType.document, status: _LessonStatus.locked),
+  _LessonItem(title: 'Mindfulness in Meetings', duration: '8 min', type: _LessonType.video, status: _LessonStatus.locked),
+  _LessonItem(title: 'Case Study: Tech Company', duration: '10 min', type: _LessonType.document, status: _LessonStatus.locked),
+  _LessonItem(title: 'Module 2 Quiz', duration: '10 min', type: _LessonType.quiz, status: _LessonStatus.locked),
+];
+List<_LessonItem> get _mockModule3Lessons => [
+  _LessonItem(title: 'What is Emotional Intelligence', duration: '7 min', type: _LessonType.video, status: _LessonStatus.locked),
+  _LessonItem(title: 'Self-Awareness', duration: '10 min', type: _LessonType.video, status: _LessonStatus.locked),
+  _LessonItem(title: 'Reading: EQ Framework', duration: '15 min', type: _LessonType.document, status: _LessonStatus.locked),
+  _LessonItem(title: 'Managing Emotions', duration: '12 min', type: _LessonType.video, status: _LessonStatus.locked),
+  _LessonItem(title: 'Empathy at Work', duration: '8 min', type: _LessonType.video, status: _LessonStatus.locked),
+  _LessonItem(title: 'Module 3 Assessment', duration: '20 min', type: _LessonType.quiz, status: _LessonStatus.locked),
+];
+
 /// Zen-style Course Learning Curriculum Page (After Enrollment)
-/// Based on the Stitch design.
+/// Mock data only – no API calls. For UI development.
 class CourseLearningCurriculumPage extends StatelessWidget {
   final String courseId;
 
@@ -16,15 +39,10 @@ class CourseLearningCurriculumPage extends StatelessWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // Header/App Bar
           _buildSliverAppBar(context),
-
-          // Course Stats Summary
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
           SliverToBoxAdapter(child: _buildCourseStats()),
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-          // Curriculum List (Accordion Style)
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverList(
@@ -32,49 +50,26 @@ class CourseLearningCurriculumPage extends StatelessWidget {
                 _buildModuleAccordion(
                   context,
                   title: 'Module 1: Introduction to Zen Leadership',
-                  lessonsCount: 5,
+                  lessonsCount: _mockModule1Lessons.length,
                   duration: '25 min',
                   isExpanded: true,
-                  lessons: [
-                    _LessonItem(
-                      title: 'Welcome to the Course',
-                      duration: '3 min',
-                      type: _LessonType.video,
-                      status: _LessonStatus.completed,
-                    ),
-                    _LessonItem(
-                      title: 'What is Zen Leadership',
-                      duration: '6 min',
-                      type: _LessonType.video,
-                      status: _LessonStatus.inProgress,
-                    ),
-                    _LessonItem(
-                      title: 'Core Philosophy',
-                      duration: '8 min',
-                      type: _LessonType.document,
-                      status: _LessonStatus.notStarted,
-                    ),
-                    _LessonItem(
-                      title: 'Module 1 Assessment',
-                      duration: '10 min',
-                      type: _LessonType.quiz,
-                      status: _LessonStatus.locked,
-                    ),
-                  ],
+                  lessons: _mockModule1Lessons,
                 ),
                 _buildModuleAccordion(
                   context,
                   title: 'Module 2: Mindfulness in Management',
-                  lessonsCount: 6,
+                  lessonsCount: _mockModule2Lessons.length,
                   duration: '45 min',
                   isExpanded: false,
+                  lessons: _mockModule2Lessons,
                 ),
                 _buildModuleAccordion(
                   context,
                   title: 'Module 3: Emotional Intelligence',
-                  lessonsCount: 8,
+                  lessonsCount: _mockModule3Lessons.length,
                   duration: '1h 10m',
                   isExpanded: false,
+                  lessons: _mockModule3Lessons,
                 ),
               ]),
             ),

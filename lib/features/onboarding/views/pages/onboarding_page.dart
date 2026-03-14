@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
+import '../../../../core/providers/shared_prefs_provider.dart';
+import '../../providers/onboarding_provider.dart';
 
 class OnboardingPage extends ConsumerStatefulWidget {
   const OnboardingPage({super.key});
@@ -43,9 +45,11 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
     }
   }
 
-  void _completeOnboarding() {
-    // In a real app, we would save the onboarding status to local storage
-    context.go('/login');
+  void _completeOnboarding({String? nextRoute}) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setBool(onboardingCompletedKey, true);
+    ref.read(onboardingNotifierProvider).value = true;
+    context.go(nextRoute ?? '/');
   }
 
   @override
@@ -149,7 +153,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
                       // Bottom Ghost Button
                       if (_currentPage == _contents.length - 1)
                         TextButton(
-                          onPressed: () => context.go('/login'),
+                          onPressed: () => _completeOnboarding(nextRoute: '/login'),
                           child: const Text(
                             'Already have an account? Login',
                             style: TextStyle(

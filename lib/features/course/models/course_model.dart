@@ -1,6 +1,8 @@
-import 'dart:convert';
+/// Course = view model built from CourseOffering (commerce) + primary Class + CourseProfile + instructor.
+/// Source: GET /api/academy/course-offerings/public (items) or public/:id (item), or GET /api/academy/enrollments/me (items).
+/// Prisma: CourseOffering, CourseOfferingClass, Class, CourseProfile, User (instructor). No legacy fields.
 
-enum CourseType { vod, liveClass }
+enum CourseOfferingMode { vod, live }
 
 enum JLPTLevel { n1, n2, n3, n4, n5 }
 
@@ -8,222 +10,158 @@ class Course {
   final String id;
   final String? classId;
   final String title;
-  final String? slug;
+  final String? code;
   final String? thumbnailUrl;
-  final String? previewVideoUrl;
   final String instructorName;
   final String instructorAvatarUrl;
   final JLPTLevel level;
-  final CourseType type;
+  final CourseOfferingMode mode;
   final double price;
-  final double? discountPrice;
-  final double rating;
-  final int reviewCount;
-  final int enrolledCount;
-  final int totalLessons;
-  final int totalQuizzes;
-  final int? durationWeeks;
+  final double? salePrice;
   final bool isEnrolled;
   final bool isFree;
-  final bool featured;
   final String? description;
-  final String? shortDescription;
-  final List<String> tags;
-  final List<String> learningOutcomes;
-  final List<String> requirements;
   final DateTime? expiresAt;
 
   const Course({
     required this.id,
     this.classId,
     required this.title,
-    this.slug,
+    this.code,
     this.thumbnailUrl,
-    this.previewVideoUrl,
     required this.instructorName,
     required this.instructorAvatarUrl,
     required this.level,
-    required this.type,
+    required this.mode,
     required this.price,
-    this.discountPrice,
-    required this.rating,
-    required this.reviewCount,
-    required this.enrolledCount,
-    this.totalLessons = 0,
-    this.totalQuizzes = 0,
-    this.durationWeeks,
+    this.salePrice,
     this.isEnrolled = false,
     this.isFree = false,
-    this.featured = false,
     this.description,
-    this.shortDescription,
-    this.tags = const [],
-    this.learningOutcomes = const [],
-    this.requirements = const [],
     this.expiresAt,
   });
 
-  factory Course.fromJson(Map<String, dynamic> json) {
-    // Parse JLPT Level
-    JLPTLevel parseLevel(String? level) {
-      if (level == null) return JLPTLevel.n5;
-      final normalized = level.toUpperCase();
-      switch (normalized) {
-        case 'N1':
-          return JLPTLevel.n1;
-        case 'N2':
-          return JLPTLevel.n2;
-        case 'N3':
-          return JLPTLevel.n3;
-        case 'N4':
-          return JLPTLevel.n4;
-        case 'N5':
-        default:
-          return JLPTLevel.n5;
+  /// From GET /api/academy/course-offerings/public response item.
+  /// Shape: { id, code, title, description, price, salePrice, currency, mode, classes: [{ isPrimary, class: { id, name, courseProfile: { level, thumbnailUrl }, instructor: { displayName, avatarUrl } } }] }
+  factory Course.fromOfferingJson(Map<String, dynamic> offering) {
+    final classes = offering['classes'] as List<dynamic>? ?? [];
+    Map<String, dynamic>? classData;
+    for (final c in classes) {
+      if (c is! Map<String, dynamic>) continue;
+      final cls = c['class'];
+      if (cls is! Map<String, dynamic>) continue;
+      if (c['isPrimary'] == true) {
+        classData = cls;
+        break;
       }
+      classData ??= cls;
     }
+    classData ??= <String, dynamic>{};
+    final courseProfile = classData['courseProfile'] as Map<String, dynamic>? ?? {};
+    final instructor = classData['instructor'] as Map<String, dynamic>? ?? {};
 
-    // Parse Course Type (backend might not have this, default to vod)
-    CourseType parseType(String? type) {
-      if (type == null) return CourseType.vod;
-      switch (type.toLowerCase()) {
-        case 'liveclass':
-        case 'live_class':
-        case 'live':
-          return CourseType.liveClass;
-        default:
-          return CourseType.vod;
-      }
-    }
-
-    // Parse learning outcomes and requirements from JSON
-    List<String> parseJsonArray(dynamic data) {
-      if (data == null) return [];
-      if (data is List) {
-        return data.map((e) => e.toString()).toList();
-      }
-      if (data is String) {
-        try {
-          final parsed = jsonDecode(data) as List;
-          return parsed.map((e) => e.toString()).toList();
-        } catch (_) {
-          return [data];
-        }
-      }
-      return [];
-    }
-
-    // Handle instructorName from multiple possible fields:
-    // - instructorName (standard)
-    // - instructor (from my-courses endpoint)
-    // - createdBy (backward compatibility)
-    final instructorName = json['instructorName'] as String? ?? 
-                          json['instructor'] as String? ??
-                          json['createdBy'] as String? ?? 
-                          'Unknown Instructor';
-    
-    // Handle both instructorAvatarUrl and generate from instructorName/createdBy
-    final instructorAvatarUrl = json['instructorAvatarUrl'] as String? ?? 
-                               'https://i.pravatar.cc/150?u=$instructorName';
-
-    // Handle description - try description first, then shortDescription
-    final description = json['description'] as String? ?? 
-                       json['shortDescription'] as String? ?? '';
+    final price = _parseDouble(offering['price']) ?? 0.0;
+    final salePrice = _parseDouble(offering['salePrice']);
+    final levelStr = (courseProfile['level'] ?? '').toString().trim().toUpperCase();
+    final level = _levelFromString(levelStr);
+    final modeStr = (offering['mode'] ?? classData['mode'] ?? 'VOD').toString().toUpperCase();
+    final mode = modeStr == 'LIVE' ? CourseOfferingMode.live : CourseOfferingMode.vod;
+    final instructorName = instructor['displayName']?.toString() ?? 'Instructor';
+    final avatarUrl = instructor['avatarUrl']?.toString();
+    final instructorAvatarUrl = avatarUrl != null && avatarUrl.isNotEmpty
+        ? avatarUrl
+        : 'https://i.pravatar.cc/150?u=${Uri.encodeComponent(instructorName)}';
 
     return Course(
-      id: json['id']?.toString() ?? '',
-      classId: json['classId']?.toString(),
-      title: json['title']?.toString() ?? '',
-      slug: json['slug'] as String?,
-      thumbnailUrl: json['thumbnailUrl'] as String? ?? 
-                    'https://via.placeholder.com/400x225',
-      previewVideoUrl: json['previewVideoUrl'] as String?,
+      id: offering['id']?.toString() ?? '',
+      classId: classData['id']?.toString(),
+      title: offering['title']?.toString() ?? classData['name']?.toString() ?? '',
+      code: offering['code']?.toString(),
+      thumbnailUrl: courseProfile['thumbnailUrl']?.toString(),
       instructorName: instructorName,
       instructorAvatarUrl: instructorAvatarUrl,
-      level: parseLevel(json['jlptLevel'] as String?),
-      type: parseType(json['type'] as String?),
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      discountPrice: (json['discountPrice'] as num?)?.toDouble(),
-      rating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
-      reviewCount: json['totalReviews'] as int? ?? 0,
-      enrolledCount: json['totalStudents'] as int? ?? 0,
-      totalLessons: json['totalLessons'] as int? ?? 0,
-      totalQuizzes: json['totalQuizzes'] as int? ?? 0,
-      durationWeeks: json['durationWeeks'] as int?,
-      isEnrolled: json['isEnrolled'] as bool? ?? false,
-      isFree: json['isFree'] as bool? ?? false,
-      featured: json['featured'] as bool? ?? false,
-      description: description.isNotEmpty ? description : null,
-      shortDescription: json['shortDescription'] as String?,
-      tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-      learningOutcomes: parseJsonArray(json['learningOutcomes']),
-      requirements: parseJsonArray(json['requirements']),
-      expiresAt: json['expiresAt'] != null ? DateTime.parse(json['expiresAt'].toString()) : null,
+      level: level,
+      mode: mode,
+      price: price,
+      salePrice: salePrice != null && salePrice > 0 && salePrice < price ? salePrice : null,
+      isEnrolled: false,
+      isFree: price == 0,
+      description: offering['description']?.toString(),
+      expiresAt: null,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'classId': classId,
-      'title': title,
-      'slug': slug,
-      'thumbnailUrl': thumbnailUrl,
-      'previewVideoUrl': previewVideoUrl,
-      'instructorName': instructorName,
-      'instructorAvatarUrl': instructorAvatarUrl,
-      'jlptLevel': level.name.replaceAll('n', 'N'),
-      'type': type == CourseType.vod ? 'vod' : 'liveClass',
-      'price': price,
-      'discountPrice': discountPrice,
-      'averageRating': rating,
-      'totalReviews': reviewCount,
-      'totalStudents': enrolledCount,
-      'totalLessons': totalLessons,
-      'totalQuizzes': totalQuizzes,
-      'durationWeeks': durationWeeks,
-      'isEnrolled': isEnrolled,
-      'isFree': isFree,
-      'featured': featured,
-      'description': description,
-      'shortDescription': shortDescription,
-      'tags': tags,
-      'learningOutcomes': learningOutcomes,
-      'requirements': requirements,
-      'expiresAt': expiresAt?.toIso8601String(),
-    };
+  /// From GET /api/academy/enrollments/me response item (enriched by academy).
+  factory Course.fromEnrollmentJson(Map<String, dynamic> e) {
+    final title = e['courseTitle']?.toString() ?? 'Khóa học';
+    final instructorName = e['instructorName']?.toString() ?? 'Instructor';
+    return Course(
+      id: e['offeringId']?.toString() ?? e['classId']?.toString() ?? '',
+      classId: e['classId']?.toString(),
+      title: title,
+      code: null,
+      thumbnailUrl: e['thumbnailUrl']?.toString(),
+      instructorName: instructorName,
+      instructorAvatarUrl: e['instructorAvatar']?.toString() ?? 'https://i.pravatar.cc/150?u=$instructorName',
+      level: JLPTLevel.n5,
+      mode: CourseOfferingMode.vod,
+      price: 0,
+      salePrice: null,
+      isEnrolled: true,
+      isFree: false,
+      description: null,
+      expiresAt: e['expiresAt'] != null ? DateTime.tryParse(e['expiresAt'].toString()) : null,
+    );
+  }
+
+  static double? _parseDouble(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString());
+  }
+
+  static JLPTLevel _levelFromString(String s) {
+    final n = RegExp(r'N[1-5]').firstMatch(s.trim().toUpperCase())?.group(0) ?? 'N5';
+    switch (n) {
+      case 'N1': return JLPTLevel.n1;
+      case 'N2': return JLPTLevel.n2;
+      case 'N3': return JLPTLevel.n3;
+      case 'N4': return JLPTLevel.n4;
+      default: return JLPTLevel.n5;
+    }
   }
 
   String get priceLabel {
     if (isFree) return 'Free';
-    if (discountPrice != null && discountPrice! < price) {
-      return '${_formatVND(discountPrice!)} VNĐ';
-    }
+    if (salePrice != null && salePrice! < price) return '${_formatVND(salePrice!)} VNĐ';
     return '${_formatVND(price)} VNĐ';
   }
 
   String get originalPriceLabel {
-    if (isFree) return 'Free';
-    if (discountPrice != null && discountPrice! < price) {
-      return '${_formatVND(price)} VNĐ';
-    }
+    if (isFree) return '';
+    if (salePrice != null && salePrice! < price) return '${_formatVND(price)} VNĐ';
     return '';
   }
 
-  // Format number as VND (Vietnamese Dong) - no decimals, dot as thousand separator
-  String _formatVND(double amount) {
-    // Convert to integer (no decimals for VND)
+  static String _formatVND(double amount) {
     final intValue = amount.toInt();
-    // Format with dot as thousand separator
     return intValue.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',
     );
   }
 
-  bool get hasDiscount => discountPrice != null && discountPrice! < price;
-  
-  String get levelLabel => level.name.toUpperCase();
-  
-  String get typeLabel => type == CourseType.vod ? 'Video Course' : 'Live Class';
+  bool get hasDiscount => salePrice != null && salePrice! > 0 && salePrice! < price;
+  String get levelLabel => level.name.toUpperCase().replaceAll('n', 'N');
+  String get typeLabel => mode == CourseOfferingMode.live ? 'Live Class' : 'Video Course';
+
+  // UI compatibility (derived): use where views expect old names
+  String? get slug => code;
+  double? get discountPrice => salePrice;
+  bool get isLive => mode == CourseOfferingMode.live;
+  double get rating => 0;
+  int get reviewCount => 0;
+  int get enrolledCount => 0;
+  int get totalLessons => 0;
+  int get totalQuizzes => 0;
 }

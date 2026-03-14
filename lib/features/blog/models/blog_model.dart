@@ -1,73 +1,82 @@
+/// Blog – matches gateway GET /api/blogs response (BlogResponseDTO).
+/// Backend: id, title, slug, excerpt, content, coverImageUrl, authorId, status, publishedAt, viewCount, tags, createdAt, updatedAt, author?: { id, displayName, email, avatarUrl }.
 class Blog {
   final String id;
-  final String slug;
   final String title;
+  final String slug;
   final String? excerpt;
-  final String? thumbnailUrl;
-  final String? category;
-  final String? authorName;
+  final String content;
+  final String? coverImageUrl;
+  final String? authorId;
+  final String status;
   final DateTime? publishedAt;
+  final int viewCount;
+  final List<String> tags;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final BlogAuthor? author;
 
-  Blog({
+  const Blog({
     required this.id,
-    required this.slug,
     required this.title,
+    required this.slug,
     this.excerpt,
-    this.thumbnailUrl,
-    this.category,
-    this.authorName,
+    required this.content,
+    this.coverImageUrl,
+    this.authorId,
+    this.status = 'draft',
     this.publishedAt,
+    this.viewCount = 0,
+    this.tags = const [],
+    this.createdAt,
+    this.updatedAt,
+    this.author,
   });
 
   factory Blog.fromJson(Map<String, dynamic> json) {
-    final id = (json['id'] ?? json['_id'] ?? '').toString();
-    final slug = (json['slug'] ?? json['seoSlug'] ?? id).toString();
-    final title = (json['title'] ?? json['name'] ?? 'Untitled').toString();
-
-    String? thumb;
-    if (json['thumbnailUrl'] != null) {
-      thumb = json['thumbnailUrl'].toString();
-    } else if (json['coverImage'] != null) {
-      thumb = json['coverImage'].toString();
-    } else if (json['imageUrl'] != null) {
-      thumb = json['imageUrl'].toString();
-    }
-
-    String? author;
-    if (json['authorName'] != null) {
-      author = json['authorName'].toString();
-    } else if (json['author'] is Map<String, dynamic>) {
-      final a = json['author'] as Map<String, dynamic>;
-      author = (a['displayName'] ?? a['name'])?.toString();
-    }
-
-    String? category;
-    if (json['category'] != null) {
-      category = json['category'].toString();
-    } else if (json['tags'] is List && (json['tags'] as List).isNotEmpty) {
-      category = (json['tags'] as List).first.toString();
-    }
-
-    DateTime? publishedAt;
-    final publishedAtRaw = json['publishedAt'] ?? json['createdAt'];
-    if (publishedAtRaw != null) {
-      try {
-        publishedAt = DateTime.parse(publishedAtRaw.toString());
-      } catch (_) {
-        publishedAt = null;
-      }
-    }
-
+    final author = json['author'];
     return Blog(
-      id: id,
-      slug: slug,
-      title: title,
-      excerpt: json['excerpt']?.toString() ?? json['summary']?.toString(),
-      thumbnailUrl: thumb,
-      category: category,
-      authorName: author,
-      publishedAt: publishedAt,
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      slug: json['slug']?.toString() ?? json['id']?.toString() ?? '',
+      excerpt: json['excerpt']?.toString(),
+      content: json['content']?.toString() ?? '',
+      coverImageUrl: json['coverImageUrl']?.toString(),
+      authorId: json['authorId']?.toString(),
+      status: json['status']?.toString() ?? 'draft',
+      publishedAt: json['publishedAt'] != null ? DateTime.tryParse(json['publishedAt'].toString()) : null,
+      viewCount: (json['viewCount'] as num?)?.toInt() ?? 0,
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
+      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt'].toString()) : null,
+      author: author is Map<String, dynamic> ? BlogAuthor.fromJson(author) : null,
+    );
+  }
+
+  String? get authorName => author?.displayName;
+  String? get thumbnailUrl => coverImageUrl;
+  String? get category => tags.isNotEmpty ? tags.first : null;
+}
+
+class BlogAuthor {
+  final String id;
+  final String displayName;
+  final String email;
+  final String? avatarUrl;
+
+  const BlogAuthor({
+    required this.id,
+    required this.displayName,
+    required this.email,
+    this.avatarUrl,
+  });
+
+  factory BlogAuthor.fromJson(Map<String, dynamic> json) {
+    return BlogAuthor(
+      id: json['id']?.toString() ?? '',
+      displayName: json['displayName']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      avatarUrl: json['avatarUrl']?.toString(),
     );
   }
 }
-

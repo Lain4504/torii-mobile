@@ -15,10 +15,8 @@ class CourseDiscoveryPage extends ConsumerStatefulWidget {
 }
 
 class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
-  final List<String> _levels = ['N5', 'N4', 'N3', 'N2', 'N1'];
+  static const List<String> _levels = ['N5', 'N4', 'N3', 'N2', 'N1'];
   final List<String> _selectedLevels = [];
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
 
   @override
   void initState() {
@@ -26,12 +24,6 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(courseListProvider.notifier).loadCourses(refresh: true);
     });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   JLPTLevel? _currentLevelFilter() {
@@ -50,7 +42,7 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
         return JLPTLevel.n5;
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final courseState = ref.watch(courseListProvider);
@@ -62,90 +54,34 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
         child: SafeArea(
           child: Column(
             children: [
-              // ----------------------------------------------------------------------
-              // Header: Search Bar, Filter, Sort
-              // ----------------------------------------------------------------------
+              // Header: back + title
               Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm, vertical: AppSpacing.md),
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.arrow_back_ios, size: 20),
-                        ),
-                        Expanded(
-                          child: Container(
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                              border: Border.all(color: AppColors.borderLight),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.search,
-                                    color: AppColors.textSecondary),
-                                const SizedBox(width: AppSpacing.sm),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _searchController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Tìm kiếm khóa học...',
-                                      border: InputBorder.none,
-                                      hintStyle: const TextStyle(
-                                          color: AppColors.textTertiary,
-                                          fontSize: 14),
-                                    ),
-                                    textInputAction: TextInputAction.search,
-                                    onSubmitted: (value) {
-                                      setState(() {
-                                        _searchQuery = value;
-                                      });
-                                      ref
-                                          .read(
-                                              courseListProvider.notifier)
-                                          .loadCourses(
-                                            refresh: true,
-                                            level: _currentLevelFilter(),
-                                            search: _searchQuery,
-                                          );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back_ios, size: 20),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    Row(
-                      children: [
-                        _buildHeaderButton(
-                          icon: Icons.filter_list,
-                          label: 'Bộ lọc',
-                          onTap: () => _showFilterDrawer(context),
+                    const Expanded(
+                      child: Text(
+                        'Khóa học',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: AppTypography.bold,
                         ),
-                        const SizedBox(width: AppSpacing.sm),
-                        _buildHeaderButton(
-                          icon: Icons.sort,
-                          label: 'Sắp xếp',
-                          onTap: () {},
-                        ),
-                      ],
+                      ),
                     ),
+                    const SizedBox(width: 48),
                   ],
                 ),
               ),
 
-              // ----------------------------------------------------------------------
-              // Level Filter (Horizontal Chips)
-              // ----------------------------------------------------------------------
+              // Level badges: N5, N4, N3, N2, N1
               SizedBox(
-                height: 48,
+                height: 44,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -163,26 +99,30 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
                             _selectedLevels.clear();
                             if (selected) _selectedLevels.add(level);
                           });
-                          ref
-                              .read(courseListProvider.notifier)
-                              .loadCourses(
+                          ref.read(courseListProvider.notifier).loadCourses(
                                 refresh: true,
                                 level: _currentLevelFilter(),
-                                search: _searchQuery,
                               );
                         },
                         selectedColor: AppColors.primary,
                         checkmarkColor: AppColors.white,
                         labelStyle: TextStyle(
-                          color: isSelected ? AppColors.white : AppColors.secondary,
-                          fontWeight: isSelected ? AppTypography.bold : AppTypography.medium,
+                          color: isSelected
+                              ? AppColors.white
+                              : AppColors.secondary,
+                          fontWeight: isSelected
+                              ? AppTypography.bold
+                              : AppTypography.medium,
                           fontSize: 12,
                         ),
                         backgroundColor: AppColors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.xs),
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.xs),
                           side: BorderSide(
-                            color: isSelected ? AppColors.primary : AppColors.borderLight,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.borderLight,
                           ),
                         ),
                       ),
@@ -193,15 +133,43 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
 
               const SizedBox(height: AppSpacing.sm),
 
-              // ----------------------------------------------------------------------
-              // Main Area: Grid of Course Cards
-              // ----------------------------------------------------------------------
+              // Content: loading / error / grid
               Expanded(
                 child: Builder(
                   builder: (context) {
                     if (courseState.isLoading && courses.isEmpty) {
                       return const Center(
                         child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (courseState.error != null &&
+                        courseState.error!.isNotEmpty &&
+                        courses.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                courseState.error!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              TextButton(
+                                onPressed: () => ref
+                                    .read(courseListProvider.notifier)
+                                    .loadCourses(refresh: true),
+                                child: const Text('Thử lại'),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     }
 
@@ -243,40 +211,6 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
     );
   }
 
-  Widget _buildHeaderButton(
-      {required IconData icon,
-      required String label,
-      required VoidCallback onTap}) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          height: 40,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(AppRadius.xs),
-            border: Border.all(color: AppColors.borderLight),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 18, color: AppColors.secondary),
-              const SizedBox(width: AppSpacing.xs),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.secondary,
-                  fontWeight: AppTypography.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildDiscoveryCard(BuildContext context, Course course) {
     return GestureDetector(
       onTap: () => context.push('/courses/${course.id}'),
@@ -290,7 +224,6 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Course Thumbnail
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppRadius.xs)),
@@ -319,9 +252,9 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
             Padding(
               padding: const EdgeInsets.all(AppSpacing.sm),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Course Title
                   Text(
                     course.title,
                     maxLines: 2,
@@ -333,14 +266,12 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  // Instructor
                   Text(
                     course.instructorName,
                     style: const TextStyle(
                         fontSize: 11, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 6),
-                  // Rating & Students
                   Row(
                     children: [
                       const Icon(Icons.star, color: Colors.amber, size: 12),
@@ -360,17 +291,19 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  // Price
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        course.priceLabel,
-                        style: const TextStyle(
-                          color: AppColors.secondary,
-                          fontWeight: AppTypography.bold,
-                          fontSize: 15,
+                      Flexible(
+                        child: Text(
+                          course.priceLabel,
+                          style: const TextStyle(
+                            color: AppColors.secondary,
+                            fontWeight: AppTypography.bold,
+                            fontSize: 15,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const Icon(Icons.add_shopping_cart,
@@ -383,93 +316,6 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
           ],
         ),
       ),
-    );
-  }
-
-  void _showFilterDrawer(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: const BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
-        ),
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Bộ lọc',
-                  style: TextStyle(fontSize: 20, fontWeight: AppTypography.bold),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            const Divider(),
-            const SizedBox(height: AppSpacing.md),
-            _buildFilterSection('Trình độ', ['N5', 'N4', 'N3', 'N2', 'N1']),
-            const SizedBox(height: AppSpacing.lg),
-            _buildFilterSection('Giá', ['Miễn phí', 'Có phí', 'Khuyến mãi']),
-            const SizedBox(height: AppSpacing.lg),
-            _buildFilterSection('Thời lượng', ['< 2 giờ', '2-5 giờ', '5-10 giờ', '> 10 giờ']),
-            const SizedBox(height: AppSpacing.lg),
-            _buildFilterSection('Đánh giá', ['4.5+', '4.0+', '3.5+', 'Tất cả']),
-            const Spacer(),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Xóa tất cả'),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                    ),
-                    child: const Text('Áp dụng'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterSection(String title, List<String> options) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 13),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.sm,
-          children: options.map((opt) => Chip(
-            label: Text(opt, style: const TextStyle(fontSize: 12)),
-            backgroundColor: AppColors.grey50,
-            side: const BorderSide(color: AppColors.borderLight),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xs)),
-          )).toList(),
-        ),
-      ],
     );
   }
 }

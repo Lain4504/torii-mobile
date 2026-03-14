@@ -7,10 +7,50 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/widgets/widgets.dart';
 import 'package:torii_app/features/course/models/lesson_model.dart';
 import 'package:torii_app/features/course/models/lesson_material_model.dart';
-import 'package:torii_app/features/course/providers/lesson_providers.dart';
-import 'package:torii_app/features/course/repositories/course_repository.dart';
-import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/core/providers/shared_prefs_provider.dart';
+
+// ========== Mock data (UI only, no API) ==========
+Lesson _mockLesson(String lessonId) => Lesson(
+  id: lessonId,
+  moduleId: null,
+  type: LessonType.video,
+  title: 'Bài học mẫu – Giới thiệu Zen Leadership',
+  orderIndex: 0,
+  videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+);
+
+List<LessonMaterial> get _mockMaterials => [
+  LessonMaterial(
+    id: 'mat-1',
+    lessonId: 'lesson-1',
+    fileAssetId: 'file-1',
+    type: 'reading',
+    title: 'Tài liệu PDF bài học',
+    orderIndex: 0,
+    createdBy: 'system',
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
+    fileUrl: 'https://example.com/sample.pdf',
+    mimeType: 'application/pdf',
+    fileSize: 1024000,
+    status: 'active',
+  ),
+  LessonMaterial(
+    id: 'mat-2',
+    lessonId: 'lesson-1',
+    fileAssetId: 'file-2',
+    type: 'slides',
+    title: 'Slide bài giảng',
+    orderIndex: 1,
+    createdBy: 'system',
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
+    fileUrl: 'https://example.com/slides.pptx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    fileSize: 2048000,
+    status: 'active',
+  ),
+];
 
 class LessonPage extends ConsumerStatefulWidget {
   final String courseId;
@@ -36,12 +76,6 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
   late TextEditingController _notesController;
   
   List<LessonMaterial> _materials = [];
-  // final List<Comment> _comments = [];
-  bool _isLoadingMaterials = false;
-  // bool _isLoadingComments = false;
-  String? _materialsError;
-  // String? _commentsError;
-  
   // Video controls state
   bool _showVideoControls = true;
   bool _isVideoPlaying = false;
@@ -54,12 +88,11 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
     _tabController = TabController(length: 4, vsync: this);
     _notesController = TextEditingController();
     
-    // Delay loading materials to ensure lesson is loaded first
+    // Mock: use mock materials (no API)
+    _materials = _mockMaterials;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMaterials();
       _loadNotes();
     });
-    // Comments will be loaded when needed (requires postId which may not be available)
   }
 
   Future<void> _loadNotes() async {
@@ -87,37 +120,6 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
     _videoController?.removeListener(_videoListener);
     _videoController?.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadMaterials() async {
-    if (!mounted) return;
-    
-    setState(() {
-      _isLoadingMaterials = true;
-      _materialsError = null;
-    });
-
-    try {
-      final repository = CourseRepository(
-        dio: ref.read(apiClientProvider).client,
-      );
-      final materials = await repository.getLessonMaterials(widget.lessonId);
-      
-      if (mounted) {
-        setState(() {
-          _materials = materials;
-          _isLoadingMaterials = false;
-        });
-      }
-    } catch (e) {
-      
-      if (mounted) {
-        setState(() {
-          _materialsError = e.toString();
-          _isLoadingMaterials = false;
-        });
-      }
-    }
   }
 
   void _initializeVideo(String videoUrl) {
@@ -199,52 +201,8 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    // If lesson object is provided, use it immediately (has videoUrl from curriculum)
-    // Otherwise, load from API
-    final hasInitialLesson = widget.lesson != null && 
-                             (widget.lesson!.videoUrl != null || widget.lesson!.articleContent != null);
-    
-    final state = ref.watch(lessonDetailProvider(widget.lessonId));
-    // Prefer loaded lesson from API (has full details), fallback to initial lesson
-    final lesson = state.lesson ?? widget.lesson;
-
-    // Only show loading if we don't have initial lesson and API is loading
-    if (state.isLoading && !hasInitialLesson && lesson == null) {
-      return const AppLoadingScreen(text: 'Đang tải bài học...');
-    }
-
-    if (state.error != null && lesson == null) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        body: AppBackground(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
-                const SizedBox(height: 16),
-                Text(
-                  state.error!,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                AppButton(
-                  text: 'THỬ LẠI',
-                  onPressed: () {
-                    ref.read(lessonDetailProvider(widget.lessonId).notifier).loadLessonDetail(widget.lessonId);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (lesson == null) {
-      return const AppLoadingScreen(text: 'Không tìm thấy bài học...');
-    }
+    // Mock: use widget.lesson if provided, else mock lesson (no API)
+    final lesson = widget.lesson ?? _mockLesson(widget.lessonId);
 
     // Initialize video if lesson is video type and has videoUrl
     if (lesson.isVideo && lesson.videoUrl != null && lesson.videoUrl!.isNotEmpty) {
@@ -514,7 +472,7 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
           _buildVocabularyList(),
           const SizedBox(height: AppSpacing.lg),
           
-          if (lesson.isArticle && lesson.articleContent != null) ...[
+          if (lesson.isArticle && lesson.articleContent != null && lesson.articleContent!.isNotEmpty) ...[
             Text(
               'CHI TIẾT BÀI HỌC',
               style: TextStyle(
@@ -588,29 +546,6 @@ class _LessonPageState extends ConsumerState<LessonPage> with SingleTickerProvid
   }
 
   Widget _buildResourcesTab() {
-    if (_isLoadingMaterials) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_materialsError != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Lỗi khi tải tài liệu',
-              style: TextStyle(color: AppColors.error),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _loadMaterials,
-              child: const Text('Thử lại'),
-            ),
-          ],
-        ),
-      );
-    }
-
     if (_materials.isEmpty) {
       return Center(
         child: Column(
