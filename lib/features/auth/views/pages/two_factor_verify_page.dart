@@ -63,7 +63,6 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     final authState = asyncAuth.asData?.value;
     final errorMessage = authState?.error;
     
-    // Prevent flash of content when authenticated
     if (asyncAuth.asData?.value.status == AuthStatus.authenticated) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -71,189 +70,208 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
-      body: AppBackground(
-        pattern: BackgroundPattern.checkerboard,
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Top Navigation
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => ref.read(authStateProvider.notifier).logout(),
-                    icon: const Icon(Icons.arrow_back, size: 18),
-                    label: const Text('Back to Sign In'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textSecondary,
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: AppTypography.semiBold,
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: Stack(
+        children: [
+          // Background Pattern
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.03,
+              child: Image.network(
+                "https://www.transparenttextures.com/patterns/pinstripe-light.png",
+                repeat: ImageRepeat.repeat,
+                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+          
+          SafeArea(
+            child: Column(
+              children: [
+                // Top Navigation
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => ref.read(authStateProvider.notifier).logout(),
+                        icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1F3E72)),
                       ),
-                    ),
+                      const Spacer(),
+                      const Text(
+                        'Security Check',
+                        style: TextStyle(
+                          color: Color(0xFF1F3E72),
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'Lexend',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
 
-              Expanded(
-                child: Center(
+                Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header Section
-                        const EntryAnimation(
-                          index: 0,
+                        const SizedBox(height: 24),
+                        // Header
+                        Center(
                           child: Column(
                             children: [
-                              ToriiIcon(size: 64),
-                              SizedBox(height: AppSpacing.lg),
-                              Text(
-                                'Two-Factor Auth',
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.security_rounded,
+                                  size: 40,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              const Text(
+                                '2FA Verification',
                                 style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: AppTypography.black,
-                                  color: AppColors.secondary,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF1F3E72),
+                                  fontFamily: 'Lexend',
                                   letterSpacing: -0.5,
                                 ),
                               ),
-                              SizedBox(height: AppSpacing.sm),
-                              Text(
-                                'Protect your account with an extra layer of security.',
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Enter the security code from your authenticator app.",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 15,
-                                  color: AppColors.textTertiary,
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                  fontFamily: 'Lexend',
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.xl),
+                        
+                        const SizedBox(height: 48),
 
-                        // Verification Card
-                        EntryAnimation(
-                          index: 1,
-                          child: Container(
-                            padding: const EdgeInsets.all(AppSpacing.lg),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                              border: Border.all(color: AppColors.borderLight),
-                              boxShadow: AppElevation.softShadow,
+                        if (errorMessage != null) ...[
+                          _buildErrorBanner(errorMessage),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Input
+                        Text(
+                          _isBackupCode ? 'Backup Code' : 'Security Code',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1F3E72),
+                            fontFamily: 'Lexend',
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        if (!_isBackupCode)
+                          _buildOTPInput(
+                            controller: _otpController,
+                            focusNode: _otpFocusNode,
+                            maxLength: 6,
+                            hintText: '000000',
+                          )
+                        else
+                          _buildOTPInput(
+                            controller: _backupController,
+                            focusNode: _backupFocusNode,
+                            maxLength: 8,
+                            hintText: '00000000',
+                          ),
+                        
+                        const SizedBox(height: 32),
+                        
+                        // Verify Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: isLoading ? null : () {
+                              if (_isBackupCode) {
+                                if (_backupController.text.length == 8) _verify(_backupController.text);
+                              } else {
+                                if (_otpController.text.length == 6) _verify(_otpController.text);
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1F3E72),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                if (errorMessage != null) ...[
-                                  _buildErrorBanner(errorMessage),
-                                  const SizedBox(height: AppSpacing.md),
-                                ],
-                                
-                                Text(
-                                  _isBackupCode 
-                                    ? '8-Digit Backup Code' 
-                                    : '6-Digit Authenticator Code',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: AppTypography.bold,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.sm),
-                                
-                                if (!_isBackupCode)
-                                  _buildOTPInput(
-                                    controller: _otpController,
-                                    focusNode: _otpFocusNode,
-                                    maxLength: 6,
-                                    hintText: '000000',
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
                                   )
-                                else
-                                  _buildOTPInput(
-                                    controller: _backupController,
-                                    focusNode: _backupFocusNode,
-                                    maxLength: 8,
-                                    hintText: '00000000',
-                                  ),
-                                
-                                const SizedBox(height: AppSpacing.xl),
-                                
-                                AppButton(
-                                  text: 'VERIFY SECURITY',
-                                  onPressed: () {
-                                    if (_isBackupCode) {
-                                      if (_backupController.text.length == 8) _verify(_backupController.text);
-                                    } else {
-                                      if (_otpController.text.length == 6) _verify(_otpController.text);
-                                    }
-                                  },
-                                  isLoading: isLoading,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                ),
-                                
-                                const SizedBox(height: AppSpacing.md),
-                                
-                                TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _isBackupCode = !_isBackupCode;
-                                      _otpController.clear();
-                                      _backupController.clear();
-                                    });
-                                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                                      if (mounted) {
-                                        if (_isBackupCode) {
-                                          _backupFocusNode.requestFocus();
-                                        } else {
-                                          _otpFocusNode.requestFocus();
-                                        }
-                                      }
-                                    });
-                                  },
-                                  child: Text(
-                                    _isBackupCode ? 'Use Authenticator App' : 'Use Backup Code',
-                                    style: const TextStyle(
-                                      fontWeight: AppTypography.black,
-                                      color: AppColors.primary,
-                                      fontSize: 13,
+                                : const Text(
+                                    'VERIFY SECURITY',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                      letterSpacing: 1.0,
+                                      fontFamily: 'Lexend',
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
                           ),
                         ),
 
-                        const SizedBox(height: AppSpacing.xxxl),
-
-                        // Bottom Text
-                        EntryAnimation(
-                          index: 2,
+                        const SizedBox(height: 24),
+                        Center(
                           child: TextButton(
-                            onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                            child: const Text(
-                              'Back to Home',
-                              style: TextStyle(
+                            onPressed: () {
+                              setState(() {
+                                _isBackupCode = !_isBackupCode;
+                                _otpController.clear();
+                                _backupController.clear();
+                              });
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted) {
+                                  if (_isBackupCode) {
+                                    _backupFocusNode.requestFocus();
+                                  } else {
+                                    _otpFocusNode.requestFocus();
+                                  }
+                                }
+                              });
+                            },
+                            child: Text(
+                              _isBackupCode ? 'Use Authenticator App' : 'Use Backup Code',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1F3E72),
                                 fontSize: 13,
-                                color: AppColors.textSecondary,
-                                fontWeight: AppTypography.bold,
+                                fontFamily: 'Lexend',
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.lg),
                       ],
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -267,10 +285,10 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
     return Container(
       height: 64,
       decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(AppRadius.xs),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: focusNode.hasFocus ? AppColors.primary : AppColors.borderLight,
+          color: focusNode.hasFocus ? const Color(0xFF1F3E72) : const Color(0xFFE2E8F0),
           width: 1.5,
         ),
       ),
@@ -283,16 +301,17 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: maxLength == 6 ? 32 : 24,
-            fontWeight: AppTypography.black,
+            fontWeight: FontWeight.w800,
             letterSpacing: maxLength == 6 ? 16 : 8,
-            color: AppColors.secondary,
+            color: const Color(0xFF1F3E72),
+            fontFamily: 'Lexend',
           ),
           decoration: InputDecoration(
             border: InputBorder.none,
             counterText: "",
             hintText: hintText,
             hintStyle: const TextStyle(
-              color: AppColors.grey200,
+              color: Color(0xFFE2E8F0),
             ),
           ),
           onChanged: (val) {
@@ -308,20 +327,20 @@ class _TwoFactorVerifyPageState extends ConsumerState<TwoFactorVerifyPage> {
 
   Widget _buildErrorBanner(String message) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(AppRadius.xs),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
+        color: Colors.redAccent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: AppColors.error, size: 16),
-          const SizedBox(width: AppSpacing.sm),
+          const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 20),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.errorDark, fontSize: 12, fontWeight: AppTypography.bold),
+              style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'Lexend'),
             ),
           ),
         ],

@@ -98,10 +98,11 @@ class AppColors {
   // Borders
   static const Color borderLight = Color(0xFFDEDDDD);
   static const Color borderDark = Color(0xFF313A4A);
+  static const Color border = Color(0xFFDEE2E6); // Grey 300 equivalent for standard borders
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF2BC5C5), Color(0xFF4EDCDC)],
+    colors: [primary, primaryLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

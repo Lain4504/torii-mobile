@@ -78,163 +78,189 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
     final errorMessage = authState?.error;
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
-      body: AppBackground(
-        pattern: BackgroundPattern.checkerboard,
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Top Navigation
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => context.go('/login'),
-                    icon: const Icon(Icons.arrow_back, size: 18),
-                    label: const Text('Back to Sign In'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textSecondary,
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: AppTypography.semiBold,
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: Stack(
+        children: [
+          // Background Pattern
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.03,
+              child: Image.network(
+                "https://www.transparenttextures.com/patterns/pinstripe-light.png",
+                repeat: ImageRepeat.repeat,
+                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+          
+          SafeArea(
+            child: Column(
+              children: [
+                // Top Navigation
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.go('/login'),
+                        icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1F3E72)),
                       ),
-                    ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => context.go('/'),
+                        child: const Text(
+                          'Back to Home',
+                          style: TextStyle(
+                            color: Color(0xFF1F3E72),
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Lexend',
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
 
-              Expanded(
-                child: Center(
+                Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header Section
-                        const EntryAnimation(
-                          index: 0,
+                        const SizedBox(height: 24),
+                        // Header
+                        Center(
                           child: Column(
                             children: [
-                              ToriiIcon(size: 64),
-                              SizedBox(height: AppSpacing.lg),
-                              Text(
-                                'Verify Email',
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1F3E72).withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const ToriiIcon(
+                                  size: 40,
+                                  color: Color(0xFF1F3E72),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              const Text(
+                                'Verify Code',
                                 style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: AppTypography.black,
-                                  color: AppColors.secondary,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF1F3E72),
+                                  fontFamily: 'Lexend',
                                   letterSpacing: -0.5,
                                 ),
                               ),
-                              SizedBox(height: AppSpacing.sm),
-                              Text(
-                                'Verification code has been sent to your email address.',
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Enter the 6-digit code we sent to your email.",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 15,
-                                  color: AppColors.textTertiary,
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                  fontFamily: 'Lexend',
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.xl),
+                        
+                        const SizedBox(height: 48),
 
-                        // Form Section
-                        EntryAnimation(
-                          index: 1,
-                          child: Container(
-                            padding: const EdgeInsets.all(AppSpacing.lg),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                              border: Border.all(color: AppColors.borderLight),
-                              boxShadow: AppElevation.softShadow,
+                        if (errorMessage != null) ...[
+                          _buildErrorBanner(errorMessage),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // OTP Input
+                        const Text(
+                          'Verification Code',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1F3E72),
+                            fontFamily: 'Lexend',
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildOTPInput(),
+                        
+                        const SizedBox(height: 32),
+                        
+                        // Verify Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: (_otpController.text.length == 6 && !isLoading) ? _verifyOTP : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1F3E72),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              disabledBackgroundColor: const Color(0xFF1F3E72).withValues(alpha: 0.5),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                if (errorMessage != null) ...[
-                                  _buildErrorBanner(errorMessage),
-                                  const SizedBox(height: AppSpacing.md),
-                                ],
-                                
-                                const Text(
-                                  'Authentication Code',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: AppTypography.bold,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.sm),
-                                _buildOTPInput(),
-                                
-                                const SizedBox(height: AppSpacing.xl),
-                                
-                                AppButton(
-                                  text: 'VERIFY ACCOUNT',
-                                  onPressed: _otpController.text.length == 6 ? _verifyOTP : null,
-                                  isLoading: isLoading,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                ),
-                                
-                                const SizedBox(height: AppSpacing.md),
-                                
-                                TextButton(
-                                  onPressed: isLoading ? null : _resendOTP,
-                                  child: const Text(
-                                    "Didn't receive code? Resend",
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                : const Text(
+                                    'VERIFY ACCOUNT',
                                     style: TextStyle(
-                                      fontWeight: AppTypography.black,
-                                      color: AppColors.primary,
-                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 14,
+                                      letterSpacing: 1.0,
+                                      fontFamily: 'Lexend',
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
                           ),
                         ),
 
-                        const SizedBox(height: AppSpacing.lg),
-
-                        Text(
-                          'Code sent to: ${widget.email}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textTertiary,
-                            fontWeight: AppTypography.medium,
-                          ),
-                        ),
-
-                        const SizedBox(height: AppSpacing.xxxl),
-
-                        // Bottom Text
-                        EntryAnimation(
-                          index: 2,
+                        const SizedBox(height: 24),
+                        Center(
                           child: TextButton(
-                            onPressed: () => context.go('/'),
+                            onPressed: isLoading ? null : _resendOTP,
                             child: const Text(
-                              'Back to Home',
+                              "Didn't receive code? Resend",
                               style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1F3E72),
                                 fontSize: 13,
-                                color: AppColors.textSecondary,
-                                fontWeight: AppTypography.bold,
+                                fontFamily: 'Lexend',
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.lg),
+                        
+                        const SizedBox(height: 24),
+                        Center(
+                          child: Text(
+                            'Code sent to: ${widget.email}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF94A3B8),
+                              fontFamily: 'Lexend',
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -243,10 +269,10 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
     return Container(
       height: 64,
       decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(AppRadius.xs),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _otpFocusNode.hasFocus ? AppColors.primary : AppColors.borderLight,
+          color: _otpFocusNode.hasFocus ? const Color(0xFF1F3E72) : const Color(0xFFE2E8F0),
           width: 1.5,
         ),
       ),
@@ -259,16 +285,17 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 32,
-            fontWeight: AppTypography.black,
+            fontWeight: FontWeight.w800,
             letterSpacing: 16,
-            color: AppColors.secondary,
+            color: Color(0xFF1F3E72),
+            fontFamily: 'Lexend',
           ),
           decoration: const InputDecoration(
             border: InputBorder.none,
             counterText: "",
             hintText: '000000',
             hintStyle: TextStyle(
-              color: AppColors.grey200,
+              color: Color(0xFFE2E8F0),
             ),
           ),
           onChanged: (val) {
@@ -284,20 +311,20 @@ class _VerifyOTPPageState extends ConsumerState<VerifyOTPPage> {
 
   Widget _buildErrorBanner(String message) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(AppRadius.xs),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
+        color: Colors.redAccent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: AppColors.error, size: 16),
-          const SizedBox(width: AppSpacing.sm),
+          const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 20),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.errorDark, fontSize: 12, fontWeight: AppTypography.bold),
+              style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'Lexend'),
             ),
           ),
         ],

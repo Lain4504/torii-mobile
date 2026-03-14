@@ -22,9 +22,11 @@ class AppShell extends ConsumerWidget {
     final asyncAuth = ref.watch(authStateProvider);
     final isAuthenticated = asyncAuth.asData?.value.status == AuthStatus.authenticated;
     
-    // Hide bottom bar during active meeting
+    // Hide bottom bar only when user is inside an active meeting room (not on shell routes)
+    final currentPath = state.uri.path;
+    final isOnMeetRoute = currentPath.startsWith('/meet') || currentPath.startsWith('/meeting');
     final isMeetStartup = ref.watch(sessionProvider.select((s) => s.isStartup));
-    final isMeetingActive = !isMeetStartup;
+    final isMeetingActive = isOnMeetRoute && !isMeetStartup;
 
     final activeIndex = navigationShell.currentIndex;
     final theme = Theme.of(context);
@@ -37,6 +39,7 @@ class AppShell extends ConsumerWidget {
       bottomNavigationBar: isMeetingActive 
         ? null 
         : _BottomNavBar(
+            navigationShell: navigationShell,
             activeIndex: activeIndex,
             onTap: (path) => context.go(path),
             isDark: isDark,
@@ -47,12 +50,14 @@ class AppShell extends ConsumerWidget {
 }
 
 class _BottomNavBar extends StatelessWidget {
+  final StatefulNavigationShell navigationShell;
   final int activeIndex;
   final Function(String) onTap;
   final bool isDark;
   final bool isAuthenticated;
 
   const _BottomNavBar({
+    required this.navigationShell,
     required this.activeIndex,
     required this.onTap,
     required this.isDark,
@@ -80,7 +85,7 @@ class _BottomNavBar extends StatelessWidget {
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 60,
+          height: 64,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: isAuthenticated
@@ -90,7 +95,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.home_rounded,
                       label: 'Trang chủ',
                       isSelected: activeIndex == 0,
-                      onTap: () => onTap('/'),
+                      onTap: () => navigationShell.goBranch(0),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -98,7 +103,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.auto_stories_rounded,
                       label: 'Học tập',
                       isSelected: activeIndex == 1,
-                      onTap: () => onTap('/my-courses'),
+                      onTap: () => navigationShell.goBranch(1),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -106,15 +111,23 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.video_call_rounded,
                       label: 'Trực tiếp',
                       isSelected: activeIndex == 2,
-                      onTap: () => onTap('/live-schedule'),
+                      onTap: () => navigationShell.goBranch(2),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
+                      icon: Icons.style_outlined,
+                      activeIcon: Icons.style_rounded,
+                      label: 'Ôn tập',
+                      isSelected: activeIndex == 3,
+                      onTap: () => navigationShell.goBranch(3),
                       isDark: isDark,
                     ),
                     _NavBarItem(
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
                       label: 'Cá nhân',
-                      isSelected: activeIndex == 3,
-                      onTap: () => onTap('/profile'),
+                      isSelected: activeIndex == 4,
+                      onTap: () => navigationShell.goBranch(4),
                       isDark: isDark,
                     ),
                   ]
@@ -124,7 +137,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.home_rounded,
                       label: 'Trang chủ',
                       isSelected: activeIndex == 0,
-                      onTap: () => onTap('/'),
+                      onTap: () => navigationShell.goBranch(0),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -140,7 +153,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.forum_rounded,
                       label: 'Cộng đồng',
                       isSelected: activeIndex == 2,
-                      onTap: () => onTap('/community'),
+                      onTap: () => navigationShell.goBranch(2),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -148,7 +161,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.quiz_rounded,
                       label: 'Bài thi',
                       isSelected: activeIndex == 3,
-                      onTap: () => onTap('/exams'),
+                      onTap: () => navigationShell.goBranch(3),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -156,7 +169,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.person_rounded,
                       label: 'Tài khoản',
                       isSelected: activeIndex == 4,
-                      onTap: () => onTap('/profile'),
+                      onTap: () => navigationShell.goBranch(4),
                       isDark: isDark,
                     ),
                   ],

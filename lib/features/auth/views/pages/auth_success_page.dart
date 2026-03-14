@@ -20,91 +20,106 @@ class AuthSuccessPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.grey50,
-      body: AppBackground(
-        pattern: BackgroundPattern.checkerboard,
-        child: SafeArea(
-          child: Column(
-            children: [
-              const Spacer(),
-              
-              Expanded(
-                flex: 4,
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        EntryAnimation(
-                          index: 0,
-                          child: Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: AppColors.accent.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                              border: Border.all(
-                                color: AppColors.accent.withValues(alpha: 0.2),
-                                width: 2,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.check_circle_rounded,
-                                size: 56,
-                                color: AppColors.accent,
-                              ),
-                            ),
-                          ),
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: Stack(
+        children: [
+          // Background Pattern
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.03,
+              child: Image.network(
+                "https://www.transparenttextures.com/patterns/pinstripe-light.png",
+                repeat: ImageRepeat.repeat,
+                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+          
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Success Icon
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                          width: 2,
                         ),
-                        const SizedBox(height: AppSpacing.xxl),
-                        EntryAnimation(
-                          index: 1,
-                          child: Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: AppTypography.black,
-                              color: AppColors.secondary,
-                              letterSpacing: -0.5,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.check_circle_rounded,
+                          size: 72,
+                          color: Color(0xFF10B981),
                         ),
-                        const SizedBox(height: AppSpacing.lg),
-                        EntryAnimation(
-                          index: 2,
-                          child: Text(
-                            message,
-                            style: const TextStyle(
-                              color: AppColors.textTertiary,
-                              fontSize: 16,
-                              height: 1.6,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxxl),
-                        EntryAnimation(
-                          index: 3,
-                          verticalOffset: 20,
-                          child: AppButton(
-                            text: buttonText,
-                            onPressed: () => context.go(nextRoute),
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 40),
+                    
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1F3E72),
+                        fontFamily: 'Lexend',
+                        letterSpacing: -0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    Text(
+                      message,
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 15,
+                        fontFamily: 'Lexend',
+                        height: 1.6,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 48),
+                    
+                    // Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () => context.go(nextRoute),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1F3E72),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          buttonText,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            letterSpacing: 1.0,
+                            fontFamily: 'Lexend',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              
-              const Spacer(),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

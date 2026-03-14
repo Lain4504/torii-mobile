@@ -45,144 +45,229 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     final errorMessage = authState?.error;
 
     return Scaffold(
-      backgroundColor: AppColors.grey50,
-      body: AppBackground(
-        pattern: BackgroundPattern.checkerboard,
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Top Navigation
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () => context.go('/login'),
-                    icon: const Icon(Icons.arrow_back, size: 18),
-                    label: const Text('Back to Sign In'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.textSecondary,
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: AppTypography.semiBold,
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: Stack(
+        children: [
+          // Background Pattern
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.03,
+              child: Image.network(
+                "https://www.transparenttextures.com/patterns/pinstripe-light.png",
+                repeat: ImageRepeat.repeat,
+                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+              ),
+            ),
+          ),
+          
+          SafeArea(
+            child: Column(
+              children: [
+                // Top Navigation
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => context.go('/login'),
+                        icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1F3E72)),
                       ),
-                    ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => context.go('/'),
+                        child: const Text(
+                          'Back to Home',
+                          style: TextStyle(
+                            color: Color(0xFF1F3E72),
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'Lexend',
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
 
-              Expanded(
-                child: Center(
+                Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header Section
-                        const EntryAnimation(
-                          index: 0,
+                        const SizedBox(height: 24),
+                        // Header
+                        Center(
                           child: Column(
                             children: [
-                              ToriiIcon(size: 64),
-                              SizedBox(height: AppSpacing.lg),
-                              Text(
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1F3E72).withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const ToriiIcon(
+                                  size: 40,
+                                  color: Color(0xFF1F3E72),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              const Text(
                                 'Reset Password',
                                 style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: AppTypography.black,
-                                  color: AppColors.secondary,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF1F3E72),
+                                  fontFamily: 'Lexend',
                                   letterSpacing: -0.5,
                                 ),
                               ),
-                              SizedBox(height: AppSpacing.sm),
-                              Text(
-                                "Enter your email and we'll send you a code to reset your password.",
-                                style: TextStyle(
-                                  color: AppColors.textTertiary,
-                                  fontSize: 15,
-                                ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Enter your email and we'll send you a recovery code.",
                                 textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                  fontFamily: 'Lexend',
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.xl),
+                        
+                        const SizedBox(height: 48),
 
-                        // Form Section
-                        EntryAnimation(
-                          index: 1,
-                          child: Container(
-                            padding: const EdgeInsets.all(AppSpacing.lg),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                              border: Border.all(color: AppColors.borderLight),
-                              boxShadow: AppElevation.softShadow,
-                            ),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  if (errorMessage != null) ...[
-                                    _buildErrorBanner(errorMessage),
-                                    const SizedBox(height: AppSpacing.md),
-                                  ],
-                                  const Text(
-                                    'Email Address',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: AppTypography.bold,
-                                      color: AppColors.textPrimary,
+                        if (errorMessage != null) ...[
+                          _buildErrorBanner(errorMessage),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Form
+                        Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Email Address',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1F3E72),
+                                  fontFamily: 'Lexend',
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildTextField(
+                                controller: _emailController,
+                                hintText: 'Enter your email',
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
+                              ),
+                              const SizedBox(height: 32),
+                              
+                              // Send Button
+                              SizedBox(
+                                width: double.infinity,
+                                height: 56,
+                                child: ElevatedButton(
+                                  onPressed: isLoading ? null : _requestOTP,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF1F3E72),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  AppTextField(
-                                    label: 'Email',
-                                    controller: _emailController,
-                                    hintText: 'name@example.com',
-                                    icon: Icons.email_outlined,
-                                    keyboardType: TextInputType.emailAddress,
-                                    validator: (val) => (val == null || !val.contains('@')) ? 'Invalid email' : null,
-                                  ),
-                                  const SizedBox(height: AppSpacing.lg),
-                                  AppButton(
-                                    text: 'SEND RESET CODE',
-                                    onPressed: _requestOTP,
-                                    isLoading: isLoading,
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                  ),
-                                ],
+                                  child: isLoading
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2.5,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'SEND RESET CODE',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 14,
+                                            letterSpacing: 1.0,
+                                            fontFamily: 'Lexend',
+                                          ),
+                                        ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-
-                        const SizedBox(height: AppSpacing.xxxl),
-
-                        // Bottom Text
-                        EntryAnimation(
-                          index: 2,
+                        
+                        const SizedBox(height: 48),
+                        Center(
                           child: TextButton(
-                            onPressed: () => context.go('/'),
+                            onPressed: () => context.go('/login'),
                             child: const Text(
-                              'Back to Home',
+                              'Back to Login',
                               style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textSecondary,
-                                fontWeight: AppTypography.bold,
+                                color: Color(0xFF64748B),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Lexend',
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.lg),
                       ],
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      validator: validator,
+      style: const TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF1F3E72),
+        fontFamily: 'Lexend',
+      ),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.w400),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFF1F3E72), width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.redAccent),
         ),
       ),
     );
@@ -190,20 +275,20 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   Widget _buildErrorBanner(String message) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.errorLight,
-        borderRadius: BorderRadius.circular(AppRadius.xs),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.1)),
+        color: Colors.redAccent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: AppColors.error, size: 16),
-          const SizedBox(width: AppSpacing.sm),
+          const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 20),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.errorDark, fontSize: 12, fontWeight: AppTypography.bold),
+              style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600, fontFamily: 'Lexend'),
             ),
           ),
         ],

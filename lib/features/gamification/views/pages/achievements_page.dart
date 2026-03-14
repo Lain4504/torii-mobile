@@ -50,7 +50,7 @@ class AchievementsPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(AppSpacing.xl),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    borderRadius: BorderRadius.circular(AppRadius.xs),
                     boxShadow: AppElevation.softShadow,
                   ),
                   child: state.isLoading && profile == null
@@ -212,7 +212,7 @@ class AchievementsPage extends ConsumerWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
         border: Border.all(
           color: isUnlocked ? AppColors.primary.withValues(alpha: 0.2) : AppColors.borderLight,
           width: 2,

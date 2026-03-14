@@ -12,8 +12,9 @@ import 'package:torii_app/features/auth/views/pages/verify_otp_page.dart';
 import 'package:torii_app/features/auth/views/pages/reset_password_page.dart';
 import 'package:torii_app/features/auth/views/pages/two_factor_verify_page.dart';
 import 'package:torii_app/features/auth/views/pages/auth_success_page.dart';
-import 'package:torii_app/features/course/views/pages/course_detail_page.dart';
+import 'package:torii_app/features/course/views/pages/course_detail_design_page.dart';
 import 'package:torii_app/features/course/views/pages/course_lessons_page.dart';
+import 'package:torii_app/features/course/views/pages/course_learning_curriculum_page.dart';
 import 'package:torii_app/features/payment/views/payment_screen.dart';
 import 'package:torii_app/features/payment/views/payos_webview_screen.dart';
 import 'package:torii_app/features/payment/views/order_history_screen.dart';
@@ -37,7 +38,6 @@ import 'package:torii_app/features/dashboard/views/pages/statistics_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_roleplay_chat_page.dart';
 import 'package:torii_app/features/profile/views/pages/edit_profile_page.dart';
-import 'package:torii_app/features/profile/views/pages/change_password_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_chat_page.dart';
 import 'package:torii_app/features/sensei/views/pages/sensei_translate_page.dart';
 import 'package:torii_app/features/marketplace/views/pages/marketplace_home_page.dart';
@@ -47,6 +47,7 @@ import 'package:torii_app/features/study/views/pages/study_sets_page.dart';
 import 'package:torii_app/features/study/views/pages/flashcard_mode_page.dart';
 import 'package:torii_app/features/study/views/pages/match_game_page.dart';
 import 'package:torii_app/features/study/views/pages/review_mode_page.dart';
+import 'package:torii_app/features/onboarding/views/pages/onboarding_page.dart';
 import 'package:torii_app/core/widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -68,12 +69,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: Listenable.merge([authNotifier, onboardingNotifier]),
     
     redirect: (context, state) {
-      const onboardingCompletedStatus = true;
+      const onboardingCompletedStatus = false;
       final matchedLocation = state.matchedLocation;
 
       // 1. Force onboarding if not completed
       if (!onboardingCompletedStatus) {
-         if (matchedLocation == '/onboarding') return null;
+         if (matchedLocation == '/onboarding' || AppRouter.isPublicRoute(matchedLocation)) return null;
          return '/onboarding';
       }
 
@@ -140,6 +141,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
           // Branch 1: My Courses / Catalog (new UI)
           StatefulShellBranch(
+            initialLocation: '/my-courses',
             routes: [
               GoRoute(
                 path: '/my-courses',
@@ -153,8 +155,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: ':id',
                     parentNavigatorKey: AppRouter.rootNavigatorKey,
                     builder: (context, state) {
-                      final courseId = state.pathParameters['id'] ?? '';
-                      return CourseDetailPage(courseId: courseId);
+                      return const CourseDetailDesignPage();
                     },
                     routes: [
                       GoRoute(
@@ -234,11 +235,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'edit',
                     parentNavigatorKey: AppRouter.rootNavigatorKey,
                     builder: (context, state) => const EditProfilePage(),
-                  ),
-                  GoRoute(
-                    path: 'change-password',
-                    parentNavigatorKey: AppRouter.rootNavigatorKey,
-                    builder: (context, state) => const ChangePasswordPage(),
                   ),
                 ],
               ),
@@ -462,6 +458,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
+        path: '/learning/:id',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) {
+          final courseId = state.pathParameters['id'] ?? '';
+          return CourseLearningCurriculumPage(courseId: courseId);
+        },
+      ),
+      GoRoute(
         path: '/learning/:courseId/:lessonId',
         parentNavigatorKey: AppRouter.rootNavigatorKey,
         builder: (context, state) {
@@ -474,6 +478,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             lesson: lesson,
           );
         },
+      ),
+      GoRoute(
+        path: '/onboarding',
+        parentNavigatorKey: AppRouter.rootNavigatorKey,
+        builder: (context, state) => const OnboardingPage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
@@ -554,12 +563,7 @@ class RootScreenWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncAuth = ref.watch(authStateProvider);
-    if (asyncAuth.value?.isAuthenticated == true) {
-      // After login, send user to My Courses overview
-      return const MyLearningPage();
-    }
-    // Guest default home: marketplace landing
+    // Both guest and authenticated users default to marketplace
     return const MarketplaceHomePage();
   }
 }

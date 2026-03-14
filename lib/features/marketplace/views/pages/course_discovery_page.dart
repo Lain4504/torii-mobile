@@ -58,7 +58,7 @@ class _CourseDiscoveryPageState extends ConsumerState<CourseDiscoveryPage> {
 
     return Scaffold(
       body: AppBackground(
-        pattern: BackgroundPattern.checkerboard,
+        pattern: BackgroundPattern.none,
         child: SafeArea(
           child: Column(
             children: [

@@ -8,6 +8,10 @@ import 'package:torii_app/features/course/providers/course_providers.dart';
 import 'package:torii_app/features/blog/providers/blog_providers.dart';
 import 'package:torii_app/features/course/models/course_model.dart';
 import 'package:torii_app/features/blog/models/blog_model.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
+import 'package:torii_app/core/theme/theme_provider.dart';
+
 
 class MarketplaceHomePage extends ConsumerStatefulWidget {
   const MarketplaceHomePage({super.key});
@@ -26,7 +30,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
     'Nghe hiểu',
   ];
 
-  int _selectedCategoryIndex = 0;
+
 
   @override
   void initState() {
@@ -52,52 +56,95 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
 
     return Scaffold(
       body: AppBackground(
-        pattern: BackgroundPattern.checkerboard,
+        pattern: BackgroundPattern.none,
+
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
-              // Top navigation: logo, search bar, avatar
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const ToriiIcon(size: 32),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => context.push('/marketplace/discovery'),
-                          child: Container(
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                              border: Border.all(color: AppColors.borderLight),
-                              boxShadow: AppElevation.softShadow,
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.search, color: AppColors.textSecondary, size: 18),
-                                SizedBox(width: AppSpacing.sm),
-                                Expanded(
-                                  child: Text(
-                                    'Tìm khóa học...',
-                                    style: TextStyle(
-                                      color: AppColors.textTertiary,
-                                      fontSize: 13,
-                                    ),
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final authState = ref.watch(authStateProvider);
+                          final user = authState.asData?.value.user;
+                          final isAuthenticated = authState.asData?.value.status == AuthStatus.authenticated;
+
+                          if (isAuthenticated && user != null) {
+                            return GestureDetector(
+                              onTap: () => context.push('/profile'),
+                              child: CircleAvatar(
+                                radius: 20,
+                                backgroundImage: NetworkImage(user.avatarUrl ?? 'https://i.pravatar.cc/150?u=${user.id}'),
+                                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                              ),
+                            );
+                          }
+
+                          return Row(
+                            children: [
+                              TextButton(
+                                onPressed: () => context.push('/login'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.primary,
+                                  textStyle: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Lexend',
+                                    fontSize: 12,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text('Đăng nhập'),
+                              ),
+                              const SizedBox(width: 4),
+                              ElevatedButton(
+                                onPressed: () => context.push('/register'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Lexend',
+                                    fontSize: 12,
                                   ),
                                 ),
-                              ],
+                                child: const Text('Đăng ký'),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => context.push('/notifications'),
+                            icon: const Icon(
+                              Icons.notifications_none_rounded,
+                              color: AppColors.secondary,
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      const CircleAvatar(
-                        radius: 18,
-                        backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=torii_user'),
+                          IconButton(
+                            onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
+                            icon: Icon(
+                              ref.watch(themeModeProvider) == ThemeMode.dark
+                                  ? Icons.light_mode_outlined
+                                  : Icons.dark_mode_outlined,
+                              color: AppColors.secondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -116,7 +163,8 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                         gradient: const LinearGradient(
                           colors: [AppColors.secondary, AppColors.primary],
                         ),
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
+
                         boxShadow: AppElevation.mediumShadow,
                       ),
                       child: Stack(
@@ -150,7 +198,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                                 ),
                                 const SizedBox(height: AppSpacing.md),
                                 GestureDetector(
-                                  onTap: () => context.push('/marketplace/discovery'),
+                                  onTap: () => context.push('/courses'),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: AppSpacing.md,
@@ -158,7 +206,8 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: AppColors.accent,
-                                      borderRadius: BorderRadius.circular(AppRadius.xs),
+                                      borderRadius: BorderRadius.circular(AppRadius.md),
+
                                     ),
                                     child: const Text(
                                       'Khám phá ngay',
@@ -230,7 +279,7 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                         children: [
                           _buildSectionHeader('Khóa học đề xuất'),
                           TextButton(
-                            onPressed: () => context.push('/marketplace/discovery'),
+                            onPressed: () => context.push('/courses'),
                             child: const Text(
                               'Xem tất cả',
                               style: TextStyle(fontSize: 12),
@@ -291,24 +340,26 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                         spacing: AppSpacing.sm,
                         runSpacing: AppSpacing.xs,
                         children: List.generate(_categories.length, (index) {
-                          final isSelected = _selectedCategoryIndex == index;
                           return ChoiceChip(
                             label: Text(_categories[index]),
-                            selected: isSelected,
+                            selected: false,
+
                             onSelected: (selected) {
-                              setState(() => _selectedCategoryIndex = index);
+                              context.push('/courses');
                             },
+
                             backgroundColor: AppColors.white,
                             selectedColor: AppColors.primary,
-                            labelStyle: TextStyle(
-                              color: isSelected ? AppColors.white : AppColors.secondary,
-                              fontWeight: isSelected ? AppTypography.bold : AppTypography.medium,
+                            labelStyle: const TextStyle(
+                              color: AppColors.secondary,
+                              fontWeight: AppTypography.medium,
                               fontSize: 12,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.xs),
-                              side: BorderSide(
-                                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                              borderRadius: BorderRadius.circular(AppRadius.lg),
+
+                              side: const BorderSide(
+                                color: AppColors.borderLight,
                               ),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
@@ -372,33 +423,6 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
                 ),
               ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
-
-              // Upcoming seminars
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionHeader('Live Seminar sắp tới'),
-                      const SizedBox(height: AppSpacing.md),
-                      _buildSeminarCard(
-                        'Chiến thuật thi JLPT N3',
-                        'Ngày mai, 19:00',
-                        'Sensei Tanaka',
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _buildSeminarCard(
-                        'Bí kíp học 2000 Hán tự',
-                        'Thứ 7, 14:00',
-                        'Sensei Linh',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
               const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxxl)),
             ],
           ),
@@ -425,7 +449,8 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+
         border: Border.all(color: AppColors.borderLight),
       ),
       child: Column(
@@ -480,7 +505,8 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+
           border: Border.all(color: AppColors.borderLight),
         ),
         child: Column(
@@ -488,7 +514,8 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.sm)),
+                  top: Radius.circular(AppRadius.lg)),
+
               child: course.thumbnailUrl != null &&
                       course.thumbnailUrl!.isNotEmpty
                   ? Image.network(
@@ -569,63 +596,6 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
     );
   }
 
-  Widget _buildSeminarCard(String title, String time, String teacher) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: AppColors.accentLight,
-              borderRadius: BorderRadius.circular(AppRadius.xs),
-            ),
-            child: const Icon(Icons.video_camera_front, color: AppColors.accent, size: 24),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: AppTypography.bold, fontSize: 14),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  teacher,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(AppRadius.xs),
-              border: Border.all(color: AppColors.secondary.withValues(alpha: 0.1)),
-            ),
-            child: Text(
-              time,
-              style: const TextStyle(
-                color: AppColors.secondary,
-                fontWeight: AppTypography.bold,
-                fontSize: 10,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBlogMiniCard(BuildContext context, Blog blog) {
     return GestureDetector(
       onTap: () => context.push('/blog/detail', extra: blog),
@@ -633,7 +603,8 @@ class _MarketplaceHomePageState extends ConsumerState<MarketplaceHomePage> {
         width: 220,
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+
           border: Border.all(color: AppColors.borderLight),
         ),
         clipBehavior: Clip.antiAlias,
