@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         appBar: AppBar(
-          title: const Text('Thông báo', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          backgroundColor: Colors.white,
+          title: const Text('Thông báo', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+          backgroundColor: AppColors.surface,
           elevation: 0,
           actions: [
             TextButton(
               onPressed: () {},
-              child: const Text('Đánh dấu đã đọc', style: TextStyle(color: primaryRed, fontSize: 13)),
+              child: const Text('Đánh dấu đã đọc', style: TextStyle(color: AppColors.primary, fontSize: 13)),
             ),
           ],
           bottom: const TabBar(
             isScrollable: true,
-            labelColor: primaryRed,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: primaryRed,
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.textTertiary,
+            indicatorColor: AppColors.primary,
             tabs: [
               Tab(text: 'Tất cả'),
               Tab(text: 'Khóa học'),
@@ -40,14 +39,14 @@ class NotificationsScreen extends StatelessWidget {
           separatorBuilder: (_, __) => const Divider(height: 1, indent: 80),
           itemBuilder: (context, index) {
             bool isUnread = index < 2;
-            return _buildNotificationItem(index, isUnread, primaryRed);
+            return _buildNotificationItem(index, isUnread);
           },
         ),
       ),
     );
   }
 
-  Widget _buildNotificationItem(int index, bool isUnread, Color primaryRed) {
+  Widget _buildNotificationItem(int index, bool isUnread) {
     IconData icon;
     Color iconColor;
     String title;
@@ -55,24 +54,24 @@ class NotificationsScreen extends StatelessWidget {
 
     if (index % 3 == 0) {
       icon = Icons.book_rounded;
-      iconColor = Colors.blue;
+      iconColor = AppColors.primary;
       title = 'Bài học mới đã được mở';
       desc = 'Bài Hiragana nâng cao đã được mở trong khóa học N5 của bạn.';
     } else if (index % 3 == 1) {
       icon = Icons.videocam_rounded;
-      iconColor = primaryRed;
+      iconColor = AppColors.primary;
       title = 'Lớp học live sắp bắt đầu';
       desc = 'Lớp Kaiwa N3 với Sensei Tanaka sẽ bắt đầu sau 15 phút nữa.';
     } else {
       icon = Icons.workspace_premium_rounded;
-      iconColor = Colors.amber;
+      iconColor = AppColors.accent;
       title = 'Chúc mừng! Bạn đã lên hạng';
       desc = 'Bạn hiện đang đứng thứ #4 trên bảng xếp hạng tuần này.';
     }
 
     return Container(
       padding: const EdgeInsets.all(16),
-      color: isUnread ? primaryRed.withOpacity(0.03) : Colors.transparent,
+      color: isUnread ? AppColors.primary.withOpacity(0.03) : Colors.transparent,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -90,7 +89,7 @@ class NotificationsScreen extends StatelessWidget {
                   child: Container(
                     width: 12,
                     height: 12,
-                    decoration: BoxDecoration(color: primaryRed, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                    decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: AppColors.surface, width: 2)),
                   ),
                 ),
             ],
@@ -102,9 +101,9 @@ class NotificationsScreen extends StatelessWidget {
               children: [
                 Text(title, style: TextStyle(fontWeight: isUnread ? FontWeight.bold : FontWeight.w600, fontSize: 15)),
                 const SizedBox(height: 4),
-                Text(desc, style: TextStyle(color: Colors.grey[600], fontSize: 13, height: 1.4)),
+                Text(desc, style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.4)),
                 const SizedBox(height: 8),
-                Text('2 giờ trước', style: TextStyle(color: Colors.grey[400], fontSize: 11)),
+                Text('2 giờ trước', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
               ],
             ),
           ),

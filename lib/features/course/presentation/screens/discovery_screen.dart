@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class CourseDiscoveryScreen extends StatelessWidget {
   const CourseDiscoveryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('Khám phá khóa học', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        title: const Text('Khám phá khóa học', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.surface,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
+            icon: const Icon(Icons.search, color: AppColors.textPrimary),
             onPressed: () {},
           ),
         ],
@@ -42,7 +41,7 @@ class CourseDiscoveryScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               itemCount: 5,
               itemBuilder: (context, index) {
-                return _buildCourseCard(context, primaryRed, index);
+                return _buildCourseCard(context, index);
               },
             ),
           ),
@@ -55,29 +54,29 @@ class CourseDiscoveryScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppColors.grey200,
         borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppColors.grey200),
       ),
       child: Row(
         children: [
           Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
           const SizedBox(width: 4),
-          Icon(icon, size: 18, color: Colors.grey[600]),
+          Icon(icon, size: 18, color: AppColors.grey700),
         ],
       ),
     );
   }
 
-  Widget _buildCourseCard(BuildContext context, Color primaryRed, int index) {
+  Widget _buildCourseCard(BuildContext context, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: AppColors.textPrimary.withOpacity(0.04),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -103,10 +102,10 @@ class CourseDiscoveryScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: primaryRed,
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text('N5', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                  child: const Text('N5', style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
               ),
               Positioned(
@@ -115,10 +114,10 @@ class CourseDiscoveryScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
+                    color: AppColors.textPrimary.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text('Live', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                  child: const Text('Live', style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
               ),
             ],
@@ -135,11 +134,11 @@ class CourseDiscoveryScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.play_circle_outline, size: 16, color: Colors.grey[600]),
+                    Icon(Icons.play_circle_outline, size: 16, color: AppColors.grey700),
                     const SizedBox(width: 4),
-                    Text('24 bài học', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                    Text('24 bài học', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
                     const SizedBox(width: 16),
-                    const Icon(Icons.star, size: 16, color: Colors.amber),
+                    const Icon(Icons.star, size: 16, color: AppColors.accent),
                     const SizedBox(width: 4),
                     const Text('4.8 (120)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   ],
@@ -153,14 +152,14 @@ class CourseDiscoveryScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: primaryRed,
+                        color: AppColors.primary,
                       ),
                     ),
                     ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryRed,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textOnPrimary,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,

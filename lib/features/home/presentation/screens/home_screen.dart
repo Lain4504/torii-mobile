@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -39,7 +38,7 @@ class HomeScreen extends StatelessWidget {
                           'Hôm nay bạn muốn học gì?',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: AppColors.grey700,
                           ),
                         ),
                       ],
@@ -63,7 +62,7 @@ class HomeScreen extends StatelessWidget {
                   itemCount: 3,
                   separatorBuilder: (_, __) => const SizedBox(width: 16),
                   itemBuilder: (context, index) {
-                    return _buildCourseCard(primaryRed);
+                    return _buildCourseCard();
                   },
                 ),
               ),
@@ -77,11 +76,11 @@ class HomeScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildLevelIcon('N5', Colors.blue, Icons.auto_awesome),
-                    _buildLevelIcon('N4', Colors.green, Icons.psychology),
-                    _buildLevelIcon('N3', Colors.orange, Icons.translate),
-                    _buildLevelIcon('N2', Colors.purple, Icons.school),
-                    _buildLevelIcon('N1', Colors.red, Icons.workspace_premium),
+                    _buildLevelIcon('N5', AppColors.primary, Icons.auto_awesome),
+                    _buildLevelIcon('N4', AppColors.success, Icons.psychology),
+                    _buildLevelIcon('N3', AppColors.accent, Icons.translate),
+                    _buildLevelIcon('N2', AppColors.detail, Icons.school),
+                    _buildLevelIcon('N1', AppColors.error, Icons.workspace_premium),
                   ],
                 ),
               ),
@@ -94,9 +93,9 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   children: [
-                    _buildLiveCard(primaryRed),
+                    _buildLiveCard(),
                     const SizedBox(height: 16),
-                    _buildLiveCard(primaryRed),
+                    _buildLiveCard(),
                   ],
                 ),
               ),
@@ -124,22 +123,22 @@ class HomeScreen extends StatelessWidget {
           if (onMore != null)
             TextButton(
               onPressed: onMore,
-              child: const Text('Xem thêm', style: TextStyle(color: Color(0xFFE53935))),
+              child: const Text('Xem thêm', style: TextStyle(color: AppColors.primary)),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildCourseCard(Color primaryRed) {
+  Widget _buildCourseCard() {
     return Container(
       width: 280,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.textPrimary.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -174,8 +173,8 @@ class HomeScreen extends StatelessWidget {
                     Expanded(
                       child: LinearProgressIndicator(
                         value: 0.6,
-                        backgroundColor: Colors.grey[200],
-                        valueColor: AlwaysStoppedAnimation<Color>(primaryRed),
+                        backgroundColor: AppColors.grey200,
+                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                         minHeight: 6,
                         borderRadius: BorderRadius.circular(3),
                       ),
@@ -194,7 +193,7 @@ class HomeScreen extends StatelessWidget {
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text('Tiếp tục học', style: TextStyle(color: Color(0xFFE53935), fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: const Text('Tiếp tục học', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ),
               ],
@@ -227,23 +226,23 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLiveCard(Color primaryRed) {
+  Widget _buildLiveCard() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppColors.grey200),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: primaryRed.withOpacity(0.1),
+              color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.videocam_rounded, color: primaryRed),
+            child: const Icon(Icons.videocam_rounded, color: AppColors.primary),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -255,15 +254,15 @@ class HomeScreen extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 4),
-                Text('Sensei: Tanaka • 19:00 Hôm nay', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                Text('Sensei: Tanaka • 19:00 Hôm nay', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
               ],
             ),
           ),
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: primaryRed,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textOnPrimary,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,

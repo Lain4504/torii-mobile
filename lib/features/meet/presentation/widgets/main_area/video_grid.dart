@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/session_provider.dart';
 import '../../../providers/livekit_providers.dart';
 import 'video_tile.dart';
@@ -60,11 +61,11 @@ class VideoGrid extends ConsumerWidget {
         Expanded(
           flex: 3,
           child: Container(
-            color: Colors.black,
+            color: AppColors.textPrimary,
             child: Center(
               child: Text(
                 'Screen Share by ${screenSharing.sharedBy}',
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.textOnPrimary),
               ),
             ),
           ),
@@ -100,7 +101,7 @@ class VideoGrid extends ConsumerWidget {
       return const Center(
         child: Text(
           'Waiting for participants...',
-          style: TextStyle(color: Colors.white54),
+          style: TextStyle(color: AppColors.textOnPrimary.withOpacity(0.7)),
         ),
       );
     }

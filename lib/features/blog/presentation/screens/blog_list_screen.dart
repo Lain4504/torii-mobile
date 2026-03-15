@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class BlogListScreen extends StatelessWidget {
   const BlogListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('Blog học tiếng Nhật', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        title: const Text('Blog học tiếng Nhật', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.surface,
         elevation: 0,
       ),
       body: Column(
@@ -24,7 +23,7 @@ class BlogListScreen extends StatelessWidget {
                 hintText: 'Tìm bài viết...',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: Colors.grey[100],
+                fillColor: AppColors.grey200,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
               ),
             ),
@@ -36,7 +35,7 @@ class BlogListScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               itemCount: 4,
               itemBuilder: (context, index) {
-                return _buildBlogCard(primaryRed, index);
+                return _buildBlogCard(index);
               },
             ),
           ),
@@ -45,14 +44,14 @@ class BlogListScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBlogCard(Color primaryRed, int index) {
+  Widget _buildBlogCard(int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5)),
+          BoxShadow(color: AppColors.textPrimary.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5)),
         ],
       ),
       child: Column(
@@ -78,19 +77,19 @@ class BlogListScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: primaryRed.withOpacity(0.1),
+                        color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         'Kinh nghiệm',
                         style: TextStyle(
-                          color: primaryRed,
+                          color: AppColors.primary,
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    Text('14/03/2026', style: TextStyle(color: Colors.grey[400], fontSize: 11)),
+                    Text('14/03/2026', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -101,7 +100,7 @@ class BlogListScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'Bạn đang bối rối không biết bắt đầu từ đâu? Bài viết này sẽ giúp bạn có một cái nhìn tổng quan nhất...',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13, height: 1.5),
+                  style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.5),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

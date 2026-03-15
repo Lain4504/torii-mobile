@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/shared_prefs_provider.dart';
 import 'package:torii_app/features/onboarding/providers/onboarding_provider.dart';
 
@@ -17,10 +18,9 @@ class WelcomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final double screenHeight = MediaQuery.of(context).size.height;
-    const Color primaryRed = Color(0xFFE53935);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -32,14 +32,14 @@ class WelcomeScreen extends ConsumerWidget {
               child: Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: primaryRed.withOpacity(0.1),
+                    color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Center(
                     child: Icon(
                       Icons.temple_hindu, // Symbolizing Torii Gate / Culture
                       size: 100,
-                      color: primaryRed,
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
@@ -59,7 +59,7 @@ class WelcomeScreen extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: AppColors.textPrimary,
                         letterSpacing: -0.5,
                       ),
                     ),
@@ -69,7 +69,7 @@ class WelcomeScreen extends ConsumerWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.grey[600],
+                        color: AppColors.grey700,
                         height: 1.5,
                       ),
                     ),
@@ -94,8 +94,8 @@ class WelcomeScreen extends ConsumerWidget {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryRed,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textOnPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -122,8 +122,8 @@ class WelcomeScreen extends ConsumerWidget {
                         }
                       },
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: primaryRed, width: 2),
-                        foregroundColor: primaryRed,
+                        side: const BorderSide(color: AppColors.primary, width: 2),
+                        foregroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -143,7 +143,7 @@ class WelcomeScreen extends ConsumerWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey,
+                      color: AppColors.textTertiary,
                       fontStyle: FontStyle.italic,
                     ),
                   ),

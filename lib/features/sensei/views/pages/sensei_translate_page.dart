@@ -55,7 +55,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
       appBar: AppBar(
         title: const Text('AI Dịch thuật & Ngữ pháp', 
           style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
@@ -67,7 +67,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.borderLight),
               ),
@@ -96,7 +96,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
             // Input Card
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.borderLight),
               ),
@@ -137,7 +137,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                           label: const Text('Dịch'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
+                            foregroundColor: AppColors.textOnPrimary,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
                         ),
@@ -215,10 +215,10 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                         onPressed: grammarState.isLoading ? null : _handleGrammarCheck,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.success,
-                          foregroundColor: Colors.white,
+                          foregroundColor: AppColors.textOnPrimary,
                         ),
                         child: grammarState.isLoading 
-                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: AppColors.textOnPrimary, strokeWidth: 2))
                           : const Text('Phân tích'),
                       ),
                     ],
@@ -269,7 +269,7 @@ class _GrammarResultView extends StatelessWidget {
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textOnPrimary,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.borderLight),
       ),
@@ -286,7 +286,7 @@ class _GrammarResultView extends StatelessWidget {
                 ),
                 child: Text(
                   response.isCorrect ? 'CHÍNH XÁC' : 'CẦN LƯU Ý',
-                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.textOnPrimary, fontSize: 10, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(width: 8),
@@ -294,10 +294,10 @@ class _GrammarResultView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _ResultBox(title: 'Câu gốc', text: response.originalText, color: Colors.grey[100]!),
+          _ResultBox(title: 'Câu gốc', text: response.originalText, color: AppColors.grey200),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
-            child: Icon(Icons.expand_more, size: 20, color: Colors.grey),
+            child: Icon(Icons.expand_more, size: 20, color: AppColors.textTertiary),
           ),
           _ResultBox(title: 'Đề xuất', text: response.correctedText, color: AppColors.primary.withOpacity(0.05), textColor: AppColors.primary),
           
@@ -350,7 +350,7 @@ class _ResultBox extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+          Text(title.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.grey700)),
           const SizedBox(height: 4),
           Text(text, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
         ],
@@ -370,7 +370,7 @@ class _ErrorItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         border: Border.all(color: AppColors.borderLight),
         borderRadius: BorderRadius.circular(8),
       ),
@@ -382,7 +382,7 @@ class _ErrorItem extends StatelessWidget {
               Text(error.issue,
                   style: const TextStyle(
                       decoration: TextDecoration.lineThrough,
-                      color: Colors.grey,
+                      color: AppColors.textTertiary,
                       fontWeight: FontWeight.bold)),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4),

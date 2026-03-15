@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../chat/chat_bottom_sheet.dart';
 import '../participants/participants_bottom_sheet.dart';
 import '../settings/settings_bottom_sheet.dart';
@@ -27,10 +28,10 @@ class MoreOptionsButton extends ConsumerWidget {
         width: isMobile ? 56 : 64,
         height: isMobile ? 56 : 64,
         decoration: BoxDecoration(
-          color: const Color(0xFF2C2C2C), // Dark button background
+          color: AppColors.surfaceDark,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.textPrimaryDark.withOpacity(0.3),
             width: 2,
           ),
         ),
@@ -39,7 +40,7 @@ class MoreOptionsButton extends ConsumerWidget {
           children: [
             Icon(
               Icons.more_vert,
-              color: Colors.white70,
+              color: AppColors.textPrimaryDark,
               size: isMobile ? 24 : 28,
             ),
             if (!isMobile) ...[
@@ -48,7 +49,7 @@ class MoreOptionsButton extends ConsumerWidget {
                 'More',
                 style: TextStyle(
                   fontSize: 10,
-                  color: Colors.white70,
+                  color: AppColors.textPrimaryDark,
                 ),
               ),
             ],
@@ -193,7 +194,7 @@ class MoreOptionsButton extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: Colors.white70),
+      leading: Icon(icon, color: AppColors.textPrimaryDark),
       title: Text(title),
       onTap: onTap,
     );

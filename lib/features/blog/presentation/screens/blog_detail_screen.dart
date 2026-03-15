@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class BlogDetailScreen extends StatelessWidget {
   const BlogDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -20,12 +19,12 @@ class BlogDetailScreen extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
-            backgroundColor: primaryRed,
+            backgroundColor: AppColors.primary,
             leading: Padding(
               padding: const EdgeInsets.all(8.0),
               child: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black, size: 20), onPressed: () => Navigator.pop(context)),
+                backgroundColor: AppColors.surface,
+                child: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 20), onPressed: () => Navigator.pop(context)),
               ),
             ),
           ),
@@ -46,7 +45,7 @@ class BlogDetailScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       const Text('Admin Torii', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                       const SizedBox(width: 16),
-                      Text('14/03/2026', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                      Text('14/03/2026', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
                     ],
                   ),
                   const Divider(height: 48),
@@ -55,7 +54,7 @@ class BlogDetailScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     'Trước khi bắt đầu, bạn cần xác định rõ mục tiêu của mình là gì. Học để thi JLPT, để giao tiếp hay để du học Nhật Bản? Mỗi mục tiêu sẽ có một lộ trình học tập khác nhau.',
-                    style: TextStyle(fontSize: 16, height: 1.7, color: Colors.grey[800]),
+                    style: TextStyle(fontSize: 16, height: 1.7, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 24),
                   Image.network('https://picsum.photos/seed/blog_img1/600/300'),
@@ -65,7 +64,7 @@ class BlogDetailScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     'Bộ giáo trình Minna no Nihongo vẫn là lựa chọn hàng đầu cho cấp độ N5-N4. Tuy nhiên, bạn nên kết hợp thêm các ứng dụng học tập như Torii Nihongo để luyện tập từ vựng và Kanji hàng ngày.',
-                    style: TextStyle(fontSize: 16, height: 1.7, color: Colors.grey[800]),
+                    style: TextStyle(fontSize: 16, height: 1.7, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 48),
 
@@ -86,13 +85,13 @@ class BlogDetailScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey[200]!), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(border: Border.all(color: AppColors.grey200), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
           ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network('https://picsum.photos/100/100', width: 60, height: 60, fit: BoxFit.cover)),
           const SizedBox(width: 12),
           Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 2, overflow: TextOverflow.ellipsis)),
-          const Icon(Icons.chevron_right, color: Colors.grey),
+          const Icon(Icons.chevron_right, color: AppColors.textTertiary),
         ],
       ),
     );

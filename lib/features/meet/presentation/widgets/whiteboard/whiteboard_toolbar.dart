@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/whiteboard_provider.dart';
 
 /// Whiteboard Toolbar Widget
@@ -17,11 +18,11 @@ class WhiteboardToolbar extends ConsumerWidget {
       width: 48,
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: AppColors.textPrimary.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -69,11 +70,11 @@ class WhiteboardToolbar extends ConsumerWidget {
             icon: Icons.cleaning_services,
             tool: 'eraser',
             isActive: activeTool == 'eraser',
-            color: Colors.red,
+            color: AppColors.error,
           ),
           const SizedBox(height: 8),
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            icon: const Icon(Icons.delete_outline, color: AppColors.error),
             onPressed: () {
               // TODO: Clear whiteboard
             },
@@ -96,7 +97,7 @@ class WhiteboardToolbar extends ConsumerWidget {
       icon: Icon(icon),
       color: isActive 
         ? Theme.of(context).colorScheme.primary 
-        : (color ?? Colors.black54),
+        : (color ?? AppColors.grey700),
       style: IconButton.styleFrom(
         backgroundColor: isActive 
           ? Theme.of(context).colorScheme.primary.withOpacity(0.1) 

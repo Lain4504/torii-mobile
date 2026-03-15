@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/config/app_config.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/session_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
@@ -79,7 +80,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: AppColors.textPrimary.withOpacity(0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -239,7 +240,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(res.msg.isNotEmpty ? res.msg : 'Xác thực token thất bại'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           setState(() => _loadingMessage = null);
@@ -252,7 +253,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Thiếu thông tin phòng từ server'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
           setState(() => _loadingMessage = null);
@@ -297,7 +298,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Vui lòng mở link từ email hoặc LMS để tham gia phòng.'),
-                backgroundColor: Colors.orange,
+                backgroundColor: AppColors.accent,
               ),
             );
           }
@@ -322,7 +323,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('$title: $message'),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
               ),
             );
             setState(() {
@@ -353,7 +354,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Lỗi kết nối: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
         setState(() {

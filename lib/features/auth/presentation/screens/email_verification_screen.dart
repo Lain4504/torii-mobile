@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class EmailVerificationScreen extends ConsumerStatefulWidget {
@@ -45,15 +46,13 @@ class _EmailVerificationScreenState
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -68,13 +67,13 @@ class _EmailVerificationScreenState
                 height: 180,
                 width: 180,
                 decoration: BoxDecoration(
-                  color: primaryRed.withOpacity(0.05),
+                  color: AppColors.primary.withOpacity(0.05),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.mark_email_unread_rounded,
                   size: 90,
-                  color: primaryRed,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(height: 40),
@@ -91,7 +90,7 @@ class _EmailVerificationScreenState
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: AppColors.textTertiary,
                 ),
               ),
               const SizedBox(height: 40),
@@ -115,11 +114,11 @@ class _EmailVerificationScreenState
                         counterText: "",
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppColors.grey300),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: primaryRed, width: 2),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
                         ),
                       ),
                     ),
@@ -186,8 +185,8 @@ class _EmailVerificationScreenState
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryRed,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.textOnPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -200,7 +199,7 @@ class _EmailVerificationScreenState
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Chưa nhận được mã? ', style: TextStyle(color: Colors.grey)),
+                  const Text('Chưa nhận được mã? ', style: TextStyle(color: AppColors.textTertiary)),
                   TextButton(
                     onPressed: () async {
                       final email = widget.email;
@@ -229,7 +228,7 @@ class _EmailVerificationScreenState
                     },
                     child: const Text(
                       'Gửi lại mã',
-                      style: TextStyle(color: primaryRed, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -238,7 +237,7 @@ class _EmailVerificationScreenState
               const Text(
                 'Kiểm tra hộp thư spam nếu bạn chưa nhận được email.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
               ),
               const SizedBox(height: 40),
             ],

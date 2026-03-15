@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class OrderDetailScreen extends StatelessWidget {
   const OrderDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('Chi tiết đơn hàng', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        title: const Text('Chi tiết đơn hàng', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.surface,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -24,19 +23,19 @@ class OrderDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.green[50],
+                color: AppColors.success.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.check_circle, color: Colors.green, size: 32),
+                  const Icon(Icons.check_circle, color: AppColors.success, size: 32),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Đã thanh toán thành công', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green)),
+                      const Text('Đã thanh toán thành công', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.success)),
                       const SizedBox(height: 4),
-                      Text('Cảm ơn bạn đã tin tưởng Torii Nihongo!', style: TextStyle(color: Colors.green[700], fontSize: 13)),
+                      Text('Cảm ơn bạn đã tin tưởng Torii Nihongo!', style: TextStyle(color: AppColors.success, fontSize: 13)),
                     ],
                   ),
                 ],
@@ -58,7 +57,7 @@ class OrderDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[100]!),
+                border: Border.all(color: AppColors.grey200),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -74,9 +73,9 @@ class OrderDetailScreen extends StatelessWidget {
                       children: [
                         const Text('Tiếng Nhật N5 từ cơ bản', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 4),
-                        Text('Sensei Tanaka', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                        Text('Sensei Tanaka', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
                         const SizedBox(height: 8),
-                        const Text('890.000đ', style: TextStyle(fontWeight: FontWeight.bold, color: primaryRed)),
+                        const Text('890.000đ', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                       ],
                     ),
                   ),
@@ -104,7 +103,7 @@ class OrderDetailScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Tải hóa đơn', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+                    child: const Text('Tải hóa đơn', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -112,8 +111,8 @@ class OrderDetailScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryRed,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.textOnPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
@@ -136,7 +135,7 @@ class OrderDetailScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[600])),
+          Text(label, style: TextStyle(color: AppColors.grey700)),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
@@ -155,7 +154,7 @@ class OrderDetailScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: isTotal ? 20 : 14,
               fontWeight: FontWeight.bold,
-              color: isDiscount ? Colors.green : (isTotal ? Color(0xFFE53935) : Colors.black),
+              color: isDiscount ? AppColors.success : (isTotal ? AppColors.primary : AppColors.textPrimary),
             ),
           ),
         ],

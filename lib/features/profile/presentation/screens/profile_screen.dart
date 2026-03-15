@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('Trang cá nhân', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        title: const Text('Trang cá nhân', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        backgroundColor: AppColors.surface,
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.settings_outlined, color: Colors.black), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary), onPressed: () {}),
         ],
       ),
       body: SingleChildScrollView(
@@ -28,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text('Tiên Vũ', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            Text('tienvu@example.com', style: TextStyle(color: Colors.grey[600])),
+            Text('tienvu@example.com', style: TextStyle(color: AppColors.grey700)),
             const SizedBox(height: 24),
             
             // Edit Button
@@ -39,8 +38,8 @@ class ProfileScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryRed,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.textOnPrimary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
@@ -60,11 +59,11 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      _buildStatCard('Khóa học', '12', Icons.book_rounded, Colors.blue),
+                      _buildStatCard('Khóa học', '12', Icons.book_rounded, AppColors.primary),
                       const SizedBox(width: 16),
-                      _buildStatCard('Bài học', '145', Icons.check_circle_rounded, Colors.green),
+                      _buildStatCard('Bài học', '145', Icons.check_circle_rounded, AppColors.success),
                       const SizedBox(width: 16),
-                      _buildStatCard('Streak', '15', Icons.local_fire_department_rounded, Colors.orange),
+                      _buildStatCard('Streak', '15', Icons.local_fire_department_rounded, AppColors.accent),
                     ],
                   ),
                 ],
@@ -82,7 +81,7 @@ class ProfileScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Thành tựu', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      TextButton(onPressed: () {}, child: const Text('Xem tất cả', style: TextStyle(color: primaryRed))),
+                      TextButton(onPressed: () {}, child: const Text('Xem tất cả', style: TextStyle(color: AppColors.primary))),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -110,11 +109,11 @@ class ProfileScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[100]!),
+          border: Border.all(color: AppColors.grey200),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+            BoxShadow(color: AppColors.textPrimary.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
@@ -123,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+            Text(label, style: TextStyle(color: AppColors.grey700, fontSize: 12)),
           ],
         ),
       ),
@@ -135,8 +134,8 @@ class ProfileScreen extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.amber[50], shape: BoxShape.circle),
-          child: Icon(icon, color: Colors.amber[700], size: 24),
+          decoration: BoxDecoration(color: AppColors.accentSurface, shape: BoxShape.circle),
+          child: Icon(icon, color: AppColors.accent, size: 24),
         ),
         const SizedBox(height: 8),
         Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),

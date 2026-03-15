@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/session_provider.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
@@ -253,12 +254,12 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: AppColors.error.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
+                        style: const TextStyle(color: AppColors.error),
                       ),
                     ),
                   if (_successMessage != null)
@@ -266,12 +267,12 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: AppColors.success.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         _successMessage!,
-                        style: const TextStyle(color: Colors.green),
+                        style: const TextStyle(color: AppColors.success),
                       ),
                     ),
 
@@ -412,7 +413,7 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
                 label: Text(_isLoading ? 'Creating...' : 'Start Breakout Rooms'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.textOnPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -485,7 +486,7 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
                         icon: const Icon(Icons.stop),
                         label: const Text('End All Rooms'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
+                          foregroundColor: AppColors.error,
                         ),
                       ),
                     ),
@@ -501,11 +502,11 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
                     trailing: room.started
                         ? const Chip(
                             label: Text('Started'),
-                            backgroundColor: Colors.green,
+                            backgroundColor: AppColors.success,
                           )
                         : const Chip(
                             label: Text('Not Started'),
-                            backgroundColor: Colors.grey,
+                            backgroundColor: AppColors.grey300,
                           ),
                   ),
                 );

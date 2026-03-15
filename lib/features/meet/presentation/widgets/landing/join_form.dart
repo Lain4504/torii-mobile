@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 /// Join Form Widget
 /// Shows join button and loading states
@@ -59,15 +60,15 @@ class JoinForm extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.1),
+                color: AppColors.accent.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.amber.withOpacity(0.2)),
+                border: Border.all(color: AppColors.accent.withOpacity(0.2)),
               ),
               child: const Text(
                 'Vui lòng đợi người tổ chức cho phép bạn tham gia.',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.amber,
+                  color: AppColors.accent,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
@@ -147,7 +148,7 @@ class JoinForm extends StatelessWidget {
               onPressed: onJoin,
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.textOnPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),

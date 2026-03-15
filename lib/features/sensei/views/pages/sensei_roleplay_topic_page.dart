@@ -38,10 +38,10 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
         title: Text('AI Roleplay', style: TextStyle(fontWeight: AppTypography.bold)),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         foregroundColor: AppColors.textPrimary,
       ),
@@ -55,13 +55,13 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: AppColors.accent.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.spatial_audio_off_rounded,
                 size: 50,
-                color: Colors.orange,
+                color: AppColors.accent,
               ),
             ),
             const SizedBox(height: 32),
@@ -89,7 +89,7 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               decoration: InputDecoration(
                 hintText: 'Nhập chủ đề (VD: Mua vé tàu)...',
                 filled: true,
-                fillColor: Colors.grey[100],
+                fillColor: AppColors.grey200,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -105,8 +105,8 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               child: ElevatedButton(
                 onPressed: () => _startRoleplay(_topicController.text),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange[700],
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.accentDark,
+                  foregroundColor: AppColors.textOnAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -142,9 +142,9 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: AppColors.grey200,
                       borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: Colors.grey[200]!),
+                      border: Border.all(color: AppColors.grey200),
                     ),
                     child: Text(
                       topic,

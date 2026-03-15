@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/config/app_config.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.dart';
 import '../../../data/datasources/meet_api_service.dart';
 import '../../../providers/room_settings_provider.dart';
@@ -150,7 +151,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.textPrimary.withOpacity(0.05),
             offset: const Offset(0, -2),
             blurRadius: 10,
           ),
@@ -194,7 +195,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
               backgroundColor: _canSend 
                 ? Theme.of(context).colorScheme.primary 
                 : Theme.of(context).disabledColor.withOpacity(0.1),
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.textOnPrimary,
             ),
           ),
         ],

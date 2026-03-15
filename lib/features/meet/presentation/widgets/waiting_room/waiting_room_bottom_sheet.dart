@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/session_provider.dart';
 import '../../../providers/bottom_icons_provider.dart';
@@ -231,7 +232,7 @@ class _WaitingParticipantItemState extends ConsumerState<_WaitingParticipantItem
               children: [
                 IconButton(
                   icon: const Icon(Icons.check_circle),
-                  color: Colors.green,
+                  color: AppColors.success,
                   onPressed: () => _approve(context),
                 ),
                 IconButton(

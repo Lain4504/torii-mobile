@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
@@ -22,28 +23,26 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: _isSuccess ? _buildSuccessState(primaryRed) : _buildFormState(primaryRed),
+          child: _isSuccess ? _buildSuccessState() : _buildFormState(),
         ),
       ),
     );
   }
 
-  Widget _buildFormState(Color primaryRed) {
+  Widget _buildFormState() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -60,7 +59,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           'Tạo mật khẩu mới để tiếp tục học tiếng Nhật.',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.grey[600],
+            color: AppColors.grey700,
           ),
         ),
         const SizedBox(height: 32),
@@ -79,17 +78,17 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: primaryRed),
-            ),
+            borderSide: const BorderSide(color: AppColors.grey300),
           ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.grey300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.primary),
+          ),
+        ),
         ),
         const SizedBox(height: 20),
         const Text('Xác nhận mật khẩu mới', style: TextStyle(fontWeight: FontWeight.w600)),
@@ -106,15 +105,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderSide: const BorderSide(color: AppColors.grey300),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderSide: const BorderSide(color: AppColors.grey300),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: primaryRed),
+              borderSide: const BorderSide(color: AppColors.primary),
             ),
           ),
         ),
@@ -194,8 +193,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: primaryRed,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textOnPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -213,19 +212,19 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
+          const Icon(Icons.check_circle_outline, color: AppColors.success, size: 18),
           const SizedBox(width: 8),
-          Text(text, style: TextStyle(color: Colors.grey[700], fontSize: 14)),
+          Text(text, style: TextStyle(color: AppColors.grey700, fontSize: 14)),
         ],
       ),
     );
   }
 
-  Widget _buildSuccessState(Color primaryRed) {
+  Widget _buildSuccessState() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.check_circle_rounded, color: Colors.green, size: 100),
+        const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 100),
         const SizedBox(height: 24),
         const Text(
           'Thành công!',
@@ -235,7 +234,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         const Text(
           'Mật khẩu đã được cập nhật thành công.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+          style: TextStyle(fontSize: 16, color: AppColors.textTertiary),
         ),
         const SizedBox(height: 48),
         SizedBox(
@@ -246,8 +245,8 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               context.go('/login');
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: primaryRed,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textOnPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),

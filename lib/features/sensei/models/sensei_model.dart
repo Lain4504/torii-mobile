@@ -223,21 +223,21 @@ final senseiMenuItems = [
     title: 'AI Roleplay',
     description: 'Luyện hội thoại theo tình huống',
     icon: Icons.people_alt_outlined,
-    color: Colors.orange,
+    color: AppColors.accent,
     route: '/sensei/roleplay-topics', // Changed to topics list
   ),
   const SenseiMenuItem(
     title: 'AI Drill',
     description: 'Tạo bài tập ngữ pháp, từ vựng',
     icon: Icons.fitness_center_rounded,
-    color: Colors.blue,
+    color: AppColors.textSecondary,
     route: '/sensei/drill',
   ),
   const SenseiMenuItem(
     title: 'AI Dịch thuật',
     description: 'Dịch và giải thích ngữ cảnh',
     icon: Icons.translate_rounded,
-    color: Colors.green,
+    color: AppColors.success,
     route: '/sensei/translate',
   ),
 ];

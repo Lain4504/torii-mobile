@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -33,15 +34,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -57,13 +56,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   height: 100,
                   width: 100,
                   decoration: BoxDecoration(
-                    color: primaryRed.withOpacity(0.05),
+                    color: AppColors.primary.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(
                     Icons.auto_stories_rounded, // Symbolizing learning
                     size: 50,
-                    color: primaryRed,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -80,7 +79,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 'Bắt đầu hành trình chinh phục tiếng Nhật',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: AppColors.grey700,
                 ),
               ),
               const SizedBox(height: 24),
@@ -125,7 +124,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(color: AppColors.grey300),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -159,7 +158,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           _agreeToTerms = val ?? false;
                         });
                       },
-                      activeColor: primaryRed,
+                      activeColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -238,8 +237,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryRed,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.textOnPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -251,12 +250,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(child: Divider(color: Colors.grey[300])),
+                  Expanded(child: const Divider(color: AppColors.grey300)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text('hoặc', style: TextStyle(color: Colors.grey[500])),
+                    child: Text('hoặc', style: TextStyle(color: AppColors.textTertiary)),
                   ),
-                  Expanded(child: Divider(color: Colors.grey[300])),
+                  Expanded(child: const Divider(color: AppColors.grey300)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -277,7 +276,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     child: const Text(
                       'Đăng nhập',
                       style: TextStyle(
-                        color: primaryRed,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -321,15 +320,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: const BorderSide(color: AppColors.grey300),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: const BorderSide(color: AppColors.grey300),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE53935)),
+          borderSide: const BorderSide(color: AppColors.primary),
         ),
       ),
     );
@@ -341,13 +340,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       height: 56,
       child: OutlinedButton.icon(
         onPressed: () {},
-        icon: Icon(icon, color: Colors.black, size: 28),
+        icon: Icon(icon, color: AppColors.textPrimary, size: 28),
         label: Text(
           label,
-          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
         ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey[300]!),
+          side: const BorderSide(color: AppColors.grey300),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class MyCoursesScreen extends StatelessWidget {
   const MyCoursesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         appBar: AppBar(
-          title: const Text('Khóa học của tôi', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          backgroundColor: Colors.white,
+          title: const Text('Khóa học của tôi', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+          backgroundColor: AppColors.surface,
           elevation: 0,
           bottom: TabBar(
-            labelColor: primaryRed,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: primaryRed,
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.textTertiary,
+            indicatorColor: AppColors.primary,
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold),
             tabs: const [
@@ -29,15 +28,15 @@ class MyCoursesScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            _buildCourseList(primaryRed, isCompleted: false),
-            _buildCourseList(primaryRed, isCompleted: true),
+            _buildCourseList(isCompleted: false),
+            _buildCourseList(isCompleted: true),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCourseList(Color primaryRed, {required bool isCompleted}) {
+  Widget _buildCourseList({required bool isCompleted}) {
     return ListView.builder(
       padding: const EdgeInsets.all(24),
       itemCount: isCompleted ? 1 : 3,
@@ -45,11 +44,11 @@ class MyCoursesScreen extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.only(bottom: 24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: AppColors.textPrimary.withOpacity(0.04),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -82,8 +81,8 @@ class MyCoursesScreen extends StatelessWidget {
                         Expanded(
                           child: LinearProgressIndicator(
                             value: isCompleted ? 1.0 : 0.45,
-                            backgroundColor: Colors.grey[200],
-                            valueColor: AlwaysStoppedAnimation<Color>(isCompleted ? Colors.green : primaryRed),
+                            backgroundColor: AppColors.grey200,
+                            valueColor: AlwaysStoppedAnimation<Color>(isCompleted ? AppColors.success : AppColors.primary),
                             minHeight: 8,
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -91,7 +90,7 @@ class MyCoursesScreen extends StatelessWidget {
                         const SizedBox(width: 12),
                         Text(
                           isCompleted ? '100%' : '45%',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isCompleted ? Colors.green : Colors.black),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isCompleted ? AppColors.success : AppColors.textPrimary),
                         ),
                       ],
                     ),
@@ -102,8 +101,8 @@ class MyCoursesScreen extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isCompleted ? Colors.grey[100] : primaryRed,
-                          foregroundColor: isCompleted ? Colors.black87 : Colors.white,
+                          backgroundColor: isCompleted ? AppColors.grey200 : AppColors.primary,
+                          foregroundColor: isCompleted ? AppColors.textPrimary : AppColors.textOnPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),

@@ -71,13 +71,13 @@ class _BottomNavBar extends StatelessWidget {
         color: isDark ? AppColors.surfaceDark : AppColors.surface,
         border: Border(
           top: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+            color: isDark ? AppColors.textPrimaryDark.withOpacity(0.05) : AppColors.textPrimary.withOpacity(0.05),
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.textPrimary.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),

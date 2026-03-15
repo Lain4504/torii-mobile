@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 /// Simple voice wave animation used in Sensei roleplay chat page.
 ///
@@ -7,7 +8,7 @@ class VoiceWaveAnimation extends StatefulWidget {
   const VoiceWaveAnimation({
     super.key,
     this.isListening = false,
-    this.color = Colors.green,
+    this.color = AppColors.success,
   });
 
   final bool isListening;

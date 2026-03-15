@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/bottom_icons_provider.dart';
 import 'control_button.dart';
 
@@ -19,7 +20,7 @@ class ScreenShareButton extends ConsumerWidget {
       icon: isScreenSharing ? Icons.stop_screen_share : Icons.screen_share,
       label: isScreenSharing ? 'Stop Share' : 'Share',
       isActive: isScreenSharing,
-      activeColor: Colors.green,
+      activeColor: AppColors.success,
       onTap: () {
         ref.read(bottomIconsProvider.notifier).toggleScreenShare();
         // TODO: Integrate with LiveKit to actually start/stop screen share

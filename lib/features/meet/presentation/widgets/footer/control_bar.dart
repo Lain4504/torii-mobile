@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'mic_button.dart';
 import 'camera_button.dart';
 import 'screen_share_button.dart';
@@ -27,16 +28,16 @@ class ControlBar extends ConsumerWidget {
         ),
         decoration: BoxDecoration(
           color: isDark 
-              ? const Color(0xFF1E1E1E).withOpacity(0.9) 
-              : Colors.white.withOpacity(0.9),
+              ? AppColors.surfaceDark.withOpacity(0.9) 
+              : AppColors.surface.withOpacity(0.9),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.08),
+            color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: AppColors.textPrimary.withOpacity(0.15),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),

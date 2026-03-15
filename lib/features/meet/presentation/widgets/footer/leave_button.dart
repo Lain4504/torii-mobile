@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/session_provider.dart';
 
 /// Leave Button Widget
@@ -17,10 +18,10 @@ class LeaveButton extends ConsumerWidget {
         width: MediaQuery.of(context).size.width < 768 ? 56 : 64,
         height: MediaQuery.of(context).size.width < 768 ? 56 : 64,
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.2),
+          color: AppColors.error.withOpacity(0.2),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.red,
+            color: AppColors.error,
             width: 2,
           ),
         ),
@@ -29,7 +30,7 @@ class LeaveButton extends ConsumerWidget {
           children: [
             const Icon(
               Icons.call_end,
-              color: Colors.red,
+              color: AppColors.error,
               size: 28,
             ),
             if (MediaQuery.of(context).size.width >= 768) ...[
@@ -38,7 +39,7 @@ class LeaveButton extends ConsumerWidget {
                 'Leave',
                 style: TextStyle(
                   fontSize: 10,
-                  color: Colors.red,
+                  color: AppColors.error,
                 ),
               ),
             ],
@@ -64,7 +65,7 @@ class LeaveButton extends ConsumerWidget {
               Navigator.of(dialogContext).pop();
               _leaveMeeting(context, ref);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Leave'),
           ),
         ],

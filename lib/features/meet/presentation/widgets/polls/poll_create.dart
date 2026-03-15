@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls_pb;
 import '../../../providers/session_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
@@ -187,7 +188,7 @@ class _PollCreateState extends ConsumerState<PollCreate> {
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () => _removeOption(index),
-                    color: Colors.red,
+                    color: AppColors.error,
                   ),
               ],
             ),
@@ -210,7 +211,7 @@ class _PollCreateState extends ConsumerState<PollCreate> {
             onPressed: _isLoading ? null : _createPoll,
             style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.textOnPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -220,7 +221,7 @@ class _PollCreateState extends ConsumerState<PollCreate> {
                 ? const SizedBox(
                     width: 20, 
                     height: 20, 
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                    child: CircularProgressIndicator(color: AppColors.textOnPrimary, strokeWidth: 2)
                     ) 
                 : const Text('Launch Poll'),
             ),

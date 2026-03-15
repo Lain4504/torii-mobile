@@ -9,11 +9,11 @@ class SenseiDashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('AI Sensei', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
@@ -53,7 +53,7 @@ class SenseiDashboardPage extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.primary, Color(0xFF6366F1)], // Indigo gradient
+          colors: [AppColors.primary, AppColors.primaryLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -72,16 +72,16 @@ class SenseiDashboardPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: AppColors.textOnPrimary.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.auto_awesome, color: Colors.white, size: 24),
+            child: const Icon(Icons.auto_awesome, color: AppColors.textOnPrimary, size: 24),
           ),
           const SizedBox(height: 16),
           const Text(
             'Học tập cùng Sensei AI',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
@@ -90,7 +90,7 @@ class SenseiDashboardPage extends StatelessWidget {
           Text(
             'Người bạn đồng hành thông minh giúp bạn chinh phục tiếng Nhật mỗi ngày.',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: AppColors.textOnPrimary.withOpacity(0.9),
               fontSize: 14,
             ),
           ),
@@ -109,7 +109,7 @@ class _MenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -20,15 +21,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => context.go('/'),
         ),
       ),
@@ -46,13 +45,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       height: 120,
                       width: 120,
                       decoration: BoxDecoration(
-                        color: primaryRed.withOpacity(0.05),
+                        color: AppColors.primary.withOpacity(0.05),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.import_contacts_rounded, // Symbolizing books
                         size: 60,
-                        color: primaryRed,
+                        color: AppColors.primary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -61,7 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: primaryRed,
+                        color: AppColors.primary,
                       ),
                     ),
                   ],
@@ -80,7 +79,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 'Tiếp tục hành trình học tiếng Nhật của bạn',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: AppColors.grey700,
                 ),
               ),
               const SizedBox(height: 32),
@@ -95,15 +94,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   prefixIcon: const Icon(Icons.email_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: const BorderSide(color: AppColors.grey300),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: const BorderSide(color: AppColors.grey300),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: primaryRed),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                 ),
               ),
@@ -119,7 +118,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                      color: Colors.grey,
+                      color: AppColors.textTertiary,
                     ),
                     onPressed: () {
                       setState(() {
@@ -129,15 +128,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: const BorderSide(color: AppColors.grey300),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: const BorderSide(color: AppColors.grey300),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: primaryRed),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                 ),
               ),
@@ -157,7 +156,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               _rememberMe = val ?? false;
                             });
                           },
-                          activeColor: primaryRed,
+                          activeColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -174,7 +173,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: const Text(
                       'Quên mật khẩu?',
                       style: TextStyle(
-                        color: primaryRed,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -222,8 +221,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryRed,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.textOnPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -235,12 +234,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
               Row(
                 children: [
-                  Expanded(child: Divider(color: Colors.grey[300])),
+                  Expanded(child: const Divider(color: AppColors.grey300)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text('Hoặc', style: TextStyle(color: Colors.grey[500])),
+                    child: Text('Hoặc', style: TextStyle(color: AppColors.textTertiary)),
                   ),
-                  Expanded(child: Divider(color: Colors.grey[300])),
+                  Expanded(child: const Divider(color: AppColors.grey300)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -270,7 +269,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: const Text(
                       'Đăng ký ngay',
                       style: TextStyle(
-                        color: primaryRed,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -295,13 +294,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       height: 56,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: Icon(icon, color: Colors.black, size: 28),
+        icon: Icon(icon, color: AppColors.textPrimary, size: 28),
         label: Text(
           label,
-          style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
         ),
         style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey[300]!),
+          side: const BorderSide(color: AppColors.grey300),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

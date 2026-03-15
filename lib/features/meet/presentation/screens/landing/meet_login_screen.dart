@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../data/datasources/meet_api_service.dart';
 
 /// Meet Login Screen
@@ -77,7 +78,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Không nhận được token từ server'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
         }
@@ -87,7 +88,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Lỗi: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -111,7 +112,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF191F28) : const Color(0xFFF8FAFB),
+      backgroundColor: isDark ? AppColors.surfaceDark : AppColors.background,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -169,14 +170,14 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                 Container(
                   constraints: const BoxConstraints(maxWidth: 450),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0E141C) : Colors.white,
+                    color: isDark ? AppColors.surfaceDark : AppColors.surface,
                     borderRadius: BorderRadius.circular(32),
                     border: Border.all(
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+                      color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.05),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
+                        color: AppColors.textPrimary.withOpacity(0.08),
                         blurRadius: 32,
                         offset: const Offset(0, 16),
                       ),
@@ -243,7 +244,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                               onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: theme.colorScheme.primary,
-                                foregroundColor: Colors.white,
+                                foregroundColor: AppColors.textOnPrimary,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -255,7 +256,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                                       height: 24,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 3,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.textOnPrimary),
                                       ),
                                     )
                                   : const Text(
@@ -333,9 +334,9 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.02),
+        color: isDark ? AppColors.textPrimaryDark.withOpacity(0.05) : AppColors.textPrimary.withOpacity(0.02),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08)),
+        border: Border.all(color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -369,15 +370,15 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
         prefixIcon: Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
         hintText: hint,
         filled: true,
-        fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.02),
+        fillColor: isDark ? AppColors.textPrimaryDark.withOpacity(0.05) : AppColors.textPrimary.withOpacity(0.02),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08)),
+          borderSide: BorderSide(color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08)),
+          borderSide: BorderSide(color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

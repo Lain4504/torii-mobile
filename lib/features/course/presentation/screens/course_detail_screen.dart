@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class CourseDetailScreen extends StatelessWidget {
   const CourseDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       body: Stack(
         children: [
           CustomScrollView(
@@ -16,7 +15,7 @@ class CourseDetailScreen extends StatelessWidget {
               SliverAppBar(
                 expandedHeight: 250,
                 pinned: true,
-                backgroundColor: primaryRed,
+                backgroundColor: AppColors.primary,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Image.network(
                     'https://picsum.photos/seed/course_detail/800/600',
@@ -24,9 +23,9 @@ class CourseDetailScreen extends StatelessWidget {
                   ),
                 ),
                 leading: CircleAvatar(
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.surface,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
@@ -50,7 +49,7 @@ class CourseDetailScreen extends StatelessWidget {
                           _buildInfoItem(Icons.access_time, '20 giờ'),
                           const Text(
                             '899.000đ',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryRed),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
                           ),
                         ],
                       ),
@@ -70,7 +69,7 @@ class CourseDetailScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text('Yuki-sensei', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                Text('Chuyên gia JLPT với 10 năm kinh nghiệm tại Tokyo.', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                                Text('Chuyên gia JLPT với 10 năm kinh nghiệm tại Tokyo.', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
                               ],
                             ),
                           ),
@@ -82,7 +81,7 @@ class CourseDetailScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         'Khóa học này tập trung vào 300 chữ Kanji N4 quan trọng nhất. Bạn sẽ được học thông qua phương thức liên tưởng hình ảnh, giúp nhớ lâu và hiểu sâu ý nghĩa từ vựng.',
-                        style: TextStyle(height: 1.6, color: Colors.grey[800]),
+                        style: TextStyle(height: 1.6, color: AppColors.textPrimary),
                       ),
                       const SizedBox(height: 32),
 
@@ -111,9 +110,9 @@ class CourseDetailScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5)),
+                  BoxShadow(color: AppColors.textPrimary.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5)),
                 ],
               ),
               child: SizedBox(
@@ -122,8 +121,8 @@ class CourseDetailScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryRed,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.textOnPrimary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
                   ),
@@ -140,9 +139,9 @@ class CourseDetailScreen extends StatelessWidget {
   Widget _buildInfoItem(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
+        Icon(icon, size: 16, color: AppColors.grey700),
         const SizedBox(width: 4),
-        Text(text, style: TextStyle(color: Colors.grey[600], fontSize: 13, fontWeight: FontWeight.w600)),
+        Text(text, style: TextStyle(color: AppColors.grey700, fontSize: 13, fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -152,9 +151,9 @@ class CourseDetailScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppColors.grey200),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -164,7 +163,7 @@ class CourseDetailScreen extends StatelessWidget {
             children: [
               Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text(subtitle, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+              Text(subtitle, style: TextStyle(color: AppColors.grey700, fontSize: 12)),
             ],
           ),
           const Icon(Icons.add, size: 20),
@@ -183,15 +182,15 @@ class CourseDetailScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             const Spacer(),
-            const Icon(Icons.star, color: Colors.amber, size: 14),
-            const Icon(Icons.star, color: Colors.amber, size: 14),
-            const Icon(Icons.star, color: Colors.amber, size: 14),
-            const Icon(Icons.star, color: Colors.amber, size: 14),
-            const Icon(Icons.star, color: Colors.amber, size: 14),
+            const Icon(Icons.star, color: AppColors.accent, size: 14),
+            const Icon(Icons.star, color: AppColors.accent, size: 14),
+            const Icon(Icons.star, color: AppColors.accent, size: 14),
+            const Icon(Icons.star, color: AppColors.accent, size: 14),
+            const Icon(Icons.star, color: AppColors.accent, size: 14),
           ],
         ),
         const SizedBox(height: 8),
-        Text(comment, style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+        Text(comment, style: TextStyle(color: AppColors.grey700, fontSize: 13)),
         const SizedBox(height: 16),
       ],
     );

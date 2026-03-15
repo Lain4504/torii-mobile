@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class ControlButton extends StatelessWidget {
   final IconData icon;
@@ -35,7 +36,7 @@ class ControlButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: isActive
                   ? primaryColor
-                  : (isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05)),
+                  : (isDark ? AppColors.textPrimaryDark.withOpacity(0.08) : AppColors.textPrimary.withOpacity(0.05)),
               borderRadius: BorderRadius.circular(16),
               boxShadow: isActive
                   ? [
@@ -50,8 +51,8 @@ class ControlButton extends StatelessWidget {
             child: Icon(
               icon,
               color: isActive 
-                  ? Colors.white 
-                  : (isDark ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.6)),
+                  ? AppColors.textOnPrimary 
+                  : (isDark ? AppColors.textPrimaryDark.withOpacity(0.7) : AppColors.textPrimary.withOpacity(0.6)),
               size: isMobile ? 24 : 28,
             ),
           ),
@@ -63,7 +64,7 @@ class ControlButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white70 : Colors.black54,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.grey700,
               letterSpacing: 0.2,
             ),
           ),

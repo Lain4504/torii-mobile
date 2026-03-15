@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -18,15 +19,13 @@ class _ForgotPasswordScreenState
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryRed = Color(0xFFE53935);
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -42,13 +41,13 @@ class _ForgotPasswordScreenState
                   height: 150,
                   width: 150,
                   decoration: BoxDecoration(
-                    color: primaryRed.withOpacity(0.05),
+                    color: AppColors.primary.withOpacity(0.05),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.lock_reset_rounded,
                     size: 80,
-                    color: primaryRed,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -65,7 +64,7 @@ class _ForgotPasswordScreenState
                 'Nhập email để nhận link đặt lại mật khẩu.',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: AppColors.grey700,
                 ),
               ),
               const SizedBox(height: 32),
@@ -79,15 +78,15 @@ class _ForgotPasswordScreenState
                   prefixIcon: const Icon(Icons.email_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: const BorderSide(color: AppColors.grey300),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: const BorderSide(color: AppColors.grey300),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: primaryRed),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                 ),
               ),
@@ -127,8 +126,8 @@ class _ForgotPasswordScreenState
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryRed,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.textOnPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -144,17 +143,17 @@ class _ForgotPasswordScreenState
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: AppColors.primarySurface,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
-                    const SizedBox(width: 12),
-                    const Expanded(
+                    Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                    SizedBox(width: 12),
+                    Expanded(
                       child: Text(
                         'Chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu đến email của bạn.',
-                        style: TextStyle(fontSize: 14, color: Colors.blue),
+                        style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
                       ),
                     ),
                   ],
@@ -168,7 +167,7 @@ class _ForgotPasswordScreenState
                   child: const Text(
                     'Quay lại đăng nhập',
                     style: TextStyle(
-                      color: primaryRed,
+                      color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

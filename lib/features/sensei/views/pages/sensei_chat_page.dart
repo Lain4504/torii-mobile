@@ -43,16 +43,16 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
     final messages = ref.watch(senseiChatProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Zen background
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Column(
           children: [
             const Text('Sensei Chat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            Text('Hỏi đáp thông minh', style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.normal)),
+            Text('Hỏi đáp thông minh', style: TextStyle(fontSize: 12, color: AppColors.grey700, fontWeight: FontWeight.normal)),
           ],
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         actions: const [],
@@ -105,14 +105,14 @@ class _ChatBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isAssistant ? Colors.white : AppColors.primary,
+                color: isAssistant ? AppColors.textOnPrimary : AppColors.primary,
                 borderRadius: BorderRadius.circular(16).copyWith(
                   topLeft: isAssistant ? const Radius.circular(4) : null,
                   bottomRight: !isAssistant ? const Radius.circular(4) : null,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: AppColors.textPrimary.withOpacity(0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -127,7 +127,7 @@ class _ChatBubble extends StatelessWidget {
                   : Text(
                       message.content,
                       style: TextStyle(
-                        color: isAssistant ? AppColors.textPrimary : Colors.white,
+                        color: isAssistant ? AppColors.textPrimary : AppColors.textOnPrimary,
                         fontSize: 15,
                         height: 1.4,
                       ),
@@ -139,7 +139,7 @@ class _ChatBubble extends StatelessWidget {
             const CircleAvatar(
               radius: 16,
               backgroundColor: AppColors.secondary,
-              child: Icon(Icons.person, size: 16, color: Colors.white),
+              child: Icon(Icons.person, size: 16, color: AppColors.textOnPrimary),
             ),
         ],
       ),
@@ -176,7 +176,7 @@ class _ChatInput extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.borderLight)),
       ),
       child: Row(
@@ -185,7 +185,7 @@ class _ChatInput extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: AppColors.grey200,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: TextField(
@@ -208,7 +208,7 @@ class _ChatInput extends StatelessWidget {
                 color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.send, color: Colors.white, size: 20),
+              child: const Icon(Icons.send, color: AppColors.textOnPrimary, size: 20),
             ),
           ),
         ],
@@ -280,7 +280,7 @@ class _Chip extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ActionChip(
       label: Text(label, style: const TextStyle(fontSize: 12)),
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       side: const BorderSide(color: AppColors.borderLight),
       onPressed: () {
         ref.read(senseiChatProvider.notifier).sendMessage(label);
