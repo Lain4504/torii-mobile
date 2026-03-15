@@ -98,7 +98,7 @@ class VideoGrid extends ConsumerWidget {
 
   Widget _buildGridLayout(BuildContext context, List<Participant> participants) {
     if (participants.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'Waiting for participants...',
           style: TextStyle(color: AppColors.textOnPrimary.withOpacity(0.7)),

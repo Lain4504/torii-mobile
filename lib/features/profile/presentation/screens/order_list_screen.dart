@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/providers/api_providers.dart';
+import 'package:torii_app/data/models/academy_models.dart';
 
-class OrderListScreen extends StatelessWidget {
+class OrderListScreen extends ConsumerWidget {
   const OrderListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ordersAsync = ref.watch(myOrdersProvider);
+
     return DefaultTabController(
       length: 4,
       child: Scaffold(
@@ -28,29 +34,40 @@ class OrderListScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildOrderList(),
-            _buildOrderList(filter: 'Paid'),
-            _buildOrderList(filter: 'Processing'),
-            _buildOrderList(filter: 'Cancelled'),
-          ],
+        body: ordersAsync.when(
+          data: (paginated) {
+            final all = paginated.data;
+            final paid = all.where((o) => o.status.toUpperCase() == 'PAID').toList();
+            final processing = all.where((o) => o.status.toUpperCase() == 'PROCESSING').toList();
+            final cancelled = all.where((o) => o.status.toUpperCase() == 'CANCELLED').toList();
+            return TabBarView(
+              children: [
+                _buildOrderList(context, all),
+                _buildOrderList(context, paid),
+                _buildOrderList(context, processing),
+                _buildOrderList(context, cancelled),
+              ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
         ),
       ),
     );
   }
 
-  Widget _buildOrderList({String? filter}) {
+  Widget _buildOrderList(BuildContext context, List<OrderModel> list) {
+    if (list.isEmpty) return const Center(child: Text('Không có đơn hàng'));
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: 3,
-      itemBuilder: (context, index) {
-        return _buildOrderCard(context);
-      },
+      itemCount: list.length,
+      itemBuilder: (context, index) => _buildOrderCard(context, list[index]),
     );
   }
 
-  Widget _buildOrderCard(BuildContext context) {
+  Widget _buildOrderCard(BuildContext context, OrderModel order) {
+    final isPaid = order.status.toUpperCase() == 'PAID';
+    final amountStr = '${order.amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
@@ -58,9 +75,7 @@ class OrderListScreen extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.grey200),
-        boxShadow: [
-          BoxShadow(color: AppColors.textPrimary.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
+        boxShadow: [BoxShadow(color: AppColors.textPrimary.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,11 +83,14 @@ class OrderListScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('#TORII-10231', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              Text('#${order.code ?? order.id.substring(0, 8).toUpperCase()}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: AppColors.success.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: const Text('Đã thanh toán', style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.bold)),
+                decoration: BoxDecoration(
+                  color: (isPaid ? AppColors.success : AppColors.grey200).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(order.statusLabel, style: TextStyle(color: isPaid ? AppColors.success : AppColors.textTertiary, fontSize: 11, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -81,16 +99,22 @@ class OrderListScreen extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network('https://picsum.photos/100/100', width: 60, height: 60, fit: BoxFit.cover),
+                child: Image.network(
+                  order.courseThumbnail ?? 'https://picsum.photos/100/100',
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(width: 60, height: 60, color: AppColors.grey200, child: const Icon(Icons.shopping_bag)),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Tiếng Nhật N5 từ cơ bản', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text(order.courseName ?? 'Đơn hàng', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
-                    Text('Ngày mua: 12/03/2026', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
+                    Text('Ngày mua: ${order.formattedDate}', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
                   ],
                 ),
               ),
@@ -100,20 +124,10 @@ class OrderListScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '890.000đ',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
+              Text(amountStr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary)),
               OutlinedButton(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
+                onPressed: () => context.push('/order-detail/${order.id}'),
+                style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                 child: const Text('Xem chi tiết', style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
               ),
             ],

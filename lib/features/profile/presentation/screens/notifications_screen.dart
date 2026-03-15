@@ -1,113 +1,119 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/providers/api_providers.dart';
+import 'package:torii_app/data/models/notification_model.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
+    final notificationsAsync = ref.watch(notificationsListProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.surface,
+      appBar: AppBar(
+        title: const Text('Thông báo', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         backgroundColor: AppColors.surface,
-        appBar: AppBar(
-          title: const Text('Thông báo', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-          backgroundColor: AppColors.surface,
-          elevation: 0,
-          actions: [
-            TextButton(
-              onPressed: () {},
-              child: const Text('Đánh dấu đã đọc', style: TextStyle(color: AppColors.primary, fontSize: 13)),
-            ),
-          ],
-          bottom: const TabBar(
-            isScrollable: true,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textTertiary,
-            indicatorColor: AppColors.primary,
-            tabs: [
-              Tab(text: 'Tất cả'),
-              Tab(text: 'Khóa học'),
-              Tab(text: 'Hệ thống'),
-              Tab(text: 'Lớp Live'),
-            ],
+        elevation: 0,
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final repo = ref.read(notificationRepositoryProvider);
+              await repo.markAllAsRead();
+              ref.invalidate(notificationsListProvider);
+              ref.invalidate(notificationsUnreadCountProvider);
+            },
+            child: const Text('Đánh dấu đã đọc', style: TextStyle(color: AppColors.primary, fontSize: 13)),
           ),
-        ),
-        body: ListView.separated(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          itemCount: 8,
-          separatorBuilder: (_, __) => const Divider(height: 1, indent: 80),
-          itemBuilder: (context, index) {
-            bool isUnread = index < 2;
-            return _buildNotificationItem(index, isUnread);
-          },
-        ),
+        ],
+      ),
+      body: notificationsAsync.when(
+        data: (paginated) {
+          final list = paginated.data;
+          if (list.isEmpty) return const Center(child: Text('Chưa có thông báo'));
+          return ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            itemCount: list.length,
+            separatorBuilder: (_, __) => const Divider(height: 1, indent: 80),
+            itemBuilder: (context, index) {
+              final n = list[index];
+              return _buildNotificationItem(n);
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
       ),
     );
   }
 
-  Widget _buildNotificationItem(int index, bool isUnread) {
-    IconData icon;
-    Color iconColor;
-    String title;
-    String desc;
-
-    if (index % 3 == 0) {
+  Widget _buildNotificationItem(NotificationModel n) {
+    IconData icon = Icons.notifications_rounded;
+    Color iconColor = AppColors.primary;
+    if (n.notificationType.toUpperCase().contains('COURSE') || n.title.toLowerCase().contains('bài học')) {
       icon = Icons.book_rounded;
-      iconColor = AppColors.primary;
-      title = 'Bài học mới đã được mở';
-      desc = 'Bài Hiragana nâng cao đã được mở trong khóa học N5 của bạn.';
-    } else if (index % 3 == 1) {
+    } else if (n.notificationType.toUpperCase().contains('LIVE') || n.title.toLowerCase().contains('live')) {
       icon = Icons.videocam_rounded;
-      iconColor = AppColors.primary;
-      title = 'Lớp học live sắp bắt đầu';
-      desc = 'Lớp Kaiwa N3 với Sensei Tanaka sẽ bắt đầu sau 15 phút nữa.';
-    } else {
+    } else if (n.title.toLowerCase().contains('hạng') || n.title.toLowerCase().contains('xp')) {
       icon = Icons.workspace_premium_rounded;
       iconColor = AppColors.accent;
-      title = 'Chúc mừng! Bạn đã lên hạng';
-      desc = 'Bạn hiện đang đứng thứ #4 trên bảng xếp hạng tuần này.';
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: isUnread ? AppColors.primary.withOpacity(0.03) : Colors.transparent,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: iconColor.withOpacity(0.1), shape: BoxShape.circle),
-                child: Icon(icon, color: iconColor, size: 24),
-              ),
-              if (isUnread)
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: AppColors.surface, width: 2)),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return InkWell(
+      onTap: () async {
+        if (n.isRead) return;
+        final repo = ref.read(notificationRepositoryProvider);
+        await repo.markAsRead(n.id);
+        ref.invalidate(notificationsListProvider);
+        ref.invalidate(notificationsUnreadCountProvider);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        color: n.isRead ? Colors.transparent : AppColors.primary.withOpacity(0.03),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Text(title, style: TextStyle(fontWeight: isUnread ? FontWeight.bold : FontWeight.w600, fontSize: 15)),
-                const SizedBox(height: 4),
-                Text(desc, style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.4)),
-                const SizedBox(height: 8),
-                Text('2 giờ trước', style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: iconColor.withOpacity(0.1), shape: BoxShape.circle),
+                  child: Icon(icon, color: iconColor, size: 24),
+                ),
+                if (!n.isRead)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: AppColors.surface, width: 2)),
+                    ),
+                  ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(n.title, style: TextStyle(fontWeight: n.isRead ? FontWeight.w600 : FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 4),
+                  Text(n.message, style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.4), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 8),
+                  Text(n.timeAgo, style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

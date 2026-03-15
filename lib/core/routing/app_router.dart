@@ -89,8 +89,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const CourseDiscoveryScreen(),
               ),
               GoRoute(
-                path: '/course-detail',
-                builder: (context, state) => const CourseDetailScreen(),
+                path: '/course-detail/:id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return CourseDetailScreen(courseId: id);
+                },
               ),
               GoRoute(
                 path: '/curriculum',
@@ -110,8 +113,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const BlogListScreen(),
               ),
               GoRoute(
-                path: '/blog-detail',
-                builder: (context, state) => const BlogDetailScreen(),
+                path: '/blog-detail/:slug',
+                builder: (context, state) {
+                  final slug = state.pathParameters['slug'] ?? '';
+                  return BlogDetailScreen(slug: slug);
+                },
               ),
               GoRoute(
                 path: '/my-courses',
@@ -122,8 +128,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const OrderListScreen(),
               ),
               GoRoute(
-                path: '/order-detail',
-                builder: (context, state) => const OrderDetailScreen(),
+                path: '/order-detail/:id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return OrderDetailScreen(orderId: id);
+                },
               ),
             ],
           ),

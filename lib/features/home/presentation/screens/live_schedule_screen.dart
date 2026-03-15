@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/providers/api_providers.dart';
+import 'package:torii_app/data/models/live_schedule_model.dart';
 
-class LiveScheduleScreen extends StatelessWidget {
+class LiveScheduleScreen extends ConsumerWidget {
   const LiveScheduleScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final liveSchedulesAsync = ref.watch(liveSchedulesProvider);
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
@@ -13,69 +18,43 @@ class LiveScheduleScreen extends StatelessWidget {
         backgroundColor: AppColors.surface,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_month_outlined, color: AppColors.textPrimary),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.calendar_month_outlined, color: AppColors.textPrimary), onPressed: () {}),
         ],
       ),
       body: Column(
         children: [
-          // Week Selector
-          Container(
+          SizedBox(
             height: 90,
-            padding: const EdgeInsets.symmetric(vertical: 12),
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
-                _buildDayItem('T2', '12', false),
-                _buildDayItem('T3', '13', false),
-                _buildDayItem('T4', '14', true, AppColors.primary),
-                _buildDayItem('T5', '15', false),
-                _buildDayItem('T6', '16', false),
-                _buildDayItem('T7', '17', false),
-                _buildDayItem('CN', '18', false),
-              ],
+              children: List.generate(7, (i) {
+                final d = DateTime.now().add(Duration(days: i));
+                final isSelected = i == 0;
+                return _buildDayItem(
+                  ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'][d.weekday - 1],
+                  d.day.toString(),
+                  isSelected,
+                  isSelected ? AppColors.primary : null,
+                );
+              }),
             ),
           ),
-          
           const Divider(height: 1),
-
-          // Timeline
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(24),
-              children: [
-                _buildTimeSlot('08:00', null),
-                _buildTimeSlot('09:00', _buildLiveCard(
-                  AppColors.primary,
-                  title: 'Tiếng Nhật N5 – Kaiwa cơ bản',
-                  sensei: 'Tanaka',
-                  time: '09:00 – 10:00',
-                  course: 'N5 Basic Communication',
-                  status: 'JOIN',
-                )),
-                _buildTimeSlot('10:00', null),
-                _buildTimeSlot('11:00', _buildLiveCard(
-                  AppColors.primary,
-                  title: 'Kanji N4 nâng cao',
-                  sensei: 'Sato',
-                  time: '11:00 – 12:00',
-                  course: 'Intermediate Kanji',
-                  status: 'LIVE',
-                )),
-                _buildTimeSlot('12:00', null),
-                _buildTimeSlot('13:00', null),
-                _buildTimeSlot('14:00', _buildLiveCard(
-                  AppColors.primary,
-                  title: 'JLPT N3 Grammar',
-                  sensei: 'Yamada',
-                  time: '14:00 – 15:30',
-                  course: 'N3 Grammar Mastery',
-                  status: 'REMIND',
-                )),
-              ],
+            child: liveSchedulesAsync.when(
+              data: (list) {
+                if (list.isEmpty) return const Center(child: Text('Chưa có lịch live trong khoảng thời gian này'));
+                return ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: list.map((s) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _buildLiveCard(s),
+                  )).toList(),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
             ),
           ),
         ],
@@ -94,7 +73,7 @@ class LiveScheduleScreen extends StatelessWidget {
       width: 60,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
-        color: isSelected ? color : Colors.transparent,
+        color: isSelected ? (color ?? AppColors.primary) : Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         border: isSelected ? null : Border.all(color: AppColors.grey200),
       ),
@@ -109,36 +88,8 @@ class LiveScheduleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeSlot(String time, Widget? card) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 50,
-          child: Text(time, style: TextStyle(color: AppColors.textTertiary, fontWeight: FontWeight.bold, fontSize: 12)),
-        ),
-        Expanded(
-          child: Column(
-            children: [
-              if (card != null) card else const SizedBox(height: 60),
-              const Divider(height: 32),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLiveCard(Color primaryRed, {
-    required String title,
-    required String sensei,
-    required String time,
-    required String course,
-    required String status,
-  }) {
-    bool isLive = status == 'LIVE' || status == 'JOIN';
-    bool isReminder = status == 'REMIND';
-
+  Widget _buildLiveCard(LiveScheduleModel s) {
+    final isLive = (s.status ?? '').toUpperCase() == 'LIVE' || (s.status ?? '').toUpperCase() == 'ONGOING';
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -152,34 +103,28 @@ class LiveScheduleScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if (status == 'LIVE')
+              if (isLive)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
                   child: const Text('Đang LIVE', style: TextStyle(color: AppColors.textOnPrimary, fontSize: 10, fontWeight: FontWeight.bold)),
-                )
-              else if (status == 'JOIN')
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(8)),
-                  child: const Text('Chuẩn bị bắt đầu', style: TextStyle(color: AppColors.textOnAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                 ),
               const Spacer(),
               const Icon(Icons.more_horiz, color: AppColors.textTertiary),
             ],
           ),
           const SizedBox(height: 12),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(s.title ?? s.courseTitle ?? 'Live', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 8),
           Row(
             children: [
               const Icon(Icons.person_outline, size: 14, color: AppColors.textTertiary),
               const SizedBox(width: 4),
-              Text('Sensei: $sensei', style: const TextStyle(color: AppColors.textTertiary, fontSize: 13)),
+              Text(s.senseiLabel.isNotEmpty ? s.senseiLabel : 'Live class', style: const TextStyle(color: AppColors.textTertiary, fontSize: 13)),
               const SizedBox(width: 12),
               const Icon(Icons.access_time, size: 14, color: AppColors.textTertiary),
               const SizedBox(width: 4),
-              Text(time, style: const TextStyle(color: AppColors.textTertiary, fontSize: 13)),
+              Text(s.timeRange.isNotEmpty ? s.timeRange : 'Sắp diễn ra', style: const TextStyle(color: AppColors.textTertiary, fontSize: 13)),
             ],
           ),
           const SizedBox(height: 16),
@@ -187,7 +132,7 @@ class LiveScheduleScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  course,
+                  s.courseTitle ?? s.title ?? '',
                   style: TextStyle(color: AppColors.primary.withOpacity(0.7), fontSize: 12, fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -197,22 +142,14 @@ class LiveScheduleScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isReminder ? AppColors.surface : AppColors.primary,
-                  foregroundColor: isReminder ? AppColors.primary : AppColors.textOnPrimary,
-                  side: isReminder ? const BorderSide(color: AppColors.primary) : null,
+                  backgroundColor: isLive ? AppColors.primary : AppColors.surface,
+                  foregroundColor: isLive ? AppColors.textOnPrimary : AppColors.primary,
+                  side: isLive ? null : const BorderSide(color: AppColors.primary),
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: Text(
-                  isReminder ? 'Đặt nhắc nhở' : 'Tham gia lớp',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: Text(isLive ? 'Tham gia lớp' : 'Đặt nhắc nhở', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ],
           ),

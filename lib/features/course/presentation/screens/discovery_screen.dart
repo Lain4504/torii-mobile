@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/providers/api_providers.dart';
+import 'package:torii_app/data/models/academy_models.dart';
 
-class CourseDiscoveryScreen extends StatelessWidget {
+class CourseDiscoveryScreen extends ConsumerWidget {
   const CourseDiscoveryScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final coursesAsync = ref.watch(publicCourseOfferingsProvider);
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
@@ -13,15 +19,11 @@ class CourseDiscoveryScreen extends StatelessWidget {
         backgroundColor: AppColors.surface,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: AppColors.textPrimary),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.search, color: AppColors.textPrimary), onPressed: () {}),
         ],
       ),
       body: Column(
         children: [
-          // Filter Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
             child: Row(
@@ -32,17 +34,18 @@ class CourseDiscoveryScreen extends StatelessWidget {
               ],
             ),
           ),
-          
           const SizedBox(height: 8),
-
-          // Course List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                return _buildCourseCard(context, index);
-              },
+            child: coursesAsync.when(
+              data: (list) => list.isEmpty
+                  ? const Center(child: Text('Chưa có khóa học nào'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      itemCount: list.length,
+                      itemBuilder: (context, index) => _buildCourseCard(context, list[index]),
+                    ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
             ),
           ),
         ],
@@ -68,18 +71,15 @@ class CourseDiscoveryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCourseCard(BuildContext context, int index) {
+  Widget _buildCourseCard(BuildContext context, CourseOfferingModel course) {
+    final priceStr = '${course.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
+          BoxShadow(color: AppColors.textPrimary.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Column(
@@ -90,10 +90,11 @@ class CourseDiscoveryScreen extends StatelessWidget {
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 child: Image.network(
-                  'https://picsum.photos/seed/course$index/600/300',
+                  course.thumbnailUrl ?? 'https://picsum.photos/seed/course${course.id}/600/300',
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(height: 160, color: AppColors.grey200, child: const Icon(Icons.school, size: 48)),
                 ),
               ),
               Positioned(
@@ -101,23 +102,8 @@ class CourseDiscoveryScreen extends StatelessWidget {
                 left: 12,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text('N5', style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.textPrimary.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text('Live', style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
+                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(12)),
+                  child: Text(course.mode, style: const TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
               ),
             ],
@@ -127,36 +113,22 @@ class CourseDiscoveryScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Tiếng Nhật Giao Tiếp Cấp Tốc cho người mới bắt đầu',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                Text(course.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     Icon(Icons.play_circle_outline, size: 16, color: AppColors.grey700),
                     const SizedBox(width: 4),
-                    Text('24 bài học', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
-                    const SizedBox(width: 16),
-                    const Icon(Icons.star, size: 16, color: AppColors.accent),
-                    const SizedBox(width: 4),
-                    const Text('4.8 (120)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text('Khóa học ${course.mode}', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
                   ],
                 ),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '500.000đ',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
+                    Text(priceStr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => context.push('/course-detail/${course.id}'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.textOnPrimary,
