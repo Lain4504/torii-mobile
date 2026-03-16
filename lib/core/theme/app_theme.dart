@@ -81,33 +81,34 @@ class AppTheme {
       filled: true,
       fillColor: AppColors.white,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
+        horizontal: AppSpacing.md,
+        vertical: 10,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.input),
-        borderSide: BorderSide(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+        borderSide:
+            BorderSide(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.2),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.input),
-        borderSide: BorderSide(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.5),
+        borderSide:
+            BorderSide(color: AppColors.grey200.withValues(alpha: 0.8), width: 1.2),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.input),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.6),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.input),
-        borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.error, width: 1.2),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.input),
-        borderSide: const BorderSide(color: AppColors.error, width: 2),
+        borderSide: const BorderSide(color: AppColors.error, width: 1.6),
       ),
-
       hintStyle: const TextStyle(
         color: AppColors.textTertiary,
-        fontSize: AppTypography.fontSizeMd,
+        fontSize: AppTypography.fontSizeSm,
         fontWeight: AppTypography.regular,
       ),
     ),
@@ -123,15 +124,15 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.button),
         ),
         textStyle: const TextStyle(
-          fontSize: AppTypography.fontSizeMd,
-          fontWeight: AppTypography.black, // Bolder text for block style
+          fontSize: AppTypography.fontSizeSm,
+          fontWeight: AppTypography.bold,
           letterSpacing: AppTypography.letterSpacingNormal,
         ),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl,
-          vertical: AppSpacing.md,
+          horizontal: AppSpacing.lg,
+          vertical: 10,
         ),
-        minimumSize: const Size(0, 56),
+        minimumSize: const Size(0, 48),
       ),
     ),
 
@@ -145,12 +146,13 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.button),
         ),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl,
-          vertical: AppSpacing.md,
+          horizontal: AppSpacing.lg,
+          vertical: 9,
         ),
-        minimumSize: const Size(0, 56),
+        minimumSize: const Size(0, 46),
         textStyle: const TextStyle(
-          fontWeight: AppTypography.bold,
+          fontSize: AppTypography.fontSizeSm,
+          fontWeight: AppTypography.semiBold,
         ),
       ),
     ),

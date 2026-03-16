@@ -6,62 +6,63 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary - Blue (#5E82BB)
-  static const Color primary = Color(0xFF5E82BB);
-  static const Color primaryLight = Color(0xFF8BA5CF);
-  static const Color primaryDark = Color(0xFF1F3E72); 
-  static const Color primarySurface = Color(0xFFE8EEF7);
+  // Primary - Web brand "nhaikanji blue" (approx OKLCH 0.64 0.14 255)
+  // Kept a small scale of tints/shades around the same blue.
+  static const Color primary = Color(0xFF345DFF);        // --primary
+  static const Color primaryLight = Color(0xFF6F8BFF);   // ~ --chart-2/3
+  static const Color primaryDark = Color(0xFF223DB3);
+  static const Color primarySurface = Color(0xFFE3E7FF); // soft blue surface
   
-  // Secondary - Deep Blue (#1F3E72)
-  static const Color secondary = Color(0xFF1F3E72);
+  // Secondary - Soft lavender / neutral from web palette
+  static const Color secondary = Color(0xFFECE7FF);      // ~ --secondary
   
-  // Success - Green (#87C744)
-  static const Color success = Color(0xFF87C744);
+  // Success - keep separate from brand, slightly tuned
+  static const Color success = Color(0xFF3BB25E);
   
-  // Accent - Teal (#02A190)
-  static const Color accent = Color(0xFF02A190);
-  static const Color accentLight = Color(0xFFE6F6F4);
-  static const Color accentDark = Color(0xFF018073);
-  static const Color accentSurface = Color(0xFFF1F8F7);
+  // Accent / Muted neutrals (mapped from --accent / --muted)
+  static const Color accent = Color(0xFFF2F2F6);         // light neutral
+  static const Color accentLight = Color(0xFFFAFAFC);
+  static const Color accentDark = Color(0xFF202127);
+  static const Color accentSurface = Color(0xFFF5F5F9);
   
-  // Semantic Colors
-  static const Color error = Color(0xFFE8565F);
-  static const Color errorLight = Color(0xFFFEECEE);
-  static const Color errorDark = Color(0xFFB8463B);
+  // Semantic Colors (mapped from --destructive)
+  static const Color error = Color(0xFFDE5240);
+  static const Color errorLight = Color(0xFFFEE7E4);
+  static const Color errorDark = Color(0xFFB5392D);
   
-  // Detail - Purple
-  static const Color detail = Color(0xFF7D58A1);
+  // Detail - Purple accent close to palette's cool tones
+  static const Color detail = Color(0xFF6D56B8);
 
   // Neutral
   static const Color white = Color(0xFFFFFFFF);
   
   // Grey Scale (Commonly used in AppTheme)
-  static const Color grey200 = Color(0xFFE9ECEF);
-  static const Color grey300 = Color(0xFFDEE2E6);
-  static const Color grey700 = Color(0xFF495057);
+  static const Color grey200 = Color(0xFFE7E7EC); // ~ --border / --input
+  static const Color grey300 = Color(0xFFD5D5DD);
+  static const Color grey700 = Color(0xFF4A4A55); // ~ --muted-foreground
 
   // Backgrounds & Surface
-  static const Color background = Color(0xFFF8F9FA); 
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceVariant = Color(0xFFE8EEF7);
+  static const Color background = Color(0xFFFFFFFF);     // --background
+  static const Color surface = Color(0xFFFFFFFF);        // cards/popovers
+  static const Color surfaceVariant = Color(0xFFF5F5FA);
 
   // Text
-  static const Color textPrimary = Color(0xFF1F3E72);
-  static const Color textSecondary = Color(0xFF5E82BB);
-  static const Color textTertiary = Color(0xFFADB5BD);
-  static const Color textOnPrimary = Color(0xFFFFFFFF);
-  static const Color textOnAccent = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF17171B);      // --foreground
+  static const Color textSecondary = Color(0xFF40404A);    // sidebar-foreground
+  static const Color textTertiary = Color(0xFF8B8B96);     // muted-foreground
+  static const Color textOnPrimary = Color(0xFFFEFEFF);    // --primary-foreground
+  static const Color textOnAccent = Color(0xFF17171B);
 
   // Dark Mode Backgrounds & Text
-  static const Color backgroundDark = Color(0xFF15151D);
-  static const Color surfaceDark = Color(0xFF0E141C);
-  static const Color surfaceVariantDark = Color(0xFF252E3D);
-  static const Color textPrimaryDark = Color(0xFFA0A8B4);
-  static const Color textSecondaryDark = Color(0xFF596374);
+  static const Color backgroundDark = Color(0xFF15151A);     // --background (dark)
+  static const Color surfaceDark = Color(0xFF202027);        // --card / --popover (dark)
+  static const Color surfaceVariantDark = Color(0xFF2A2A33); 
+  static const Color textPrimaryDark = Color(0xFFF5F5F7);    // --foreground (dark)
+  static const Color textSecondaryDark = Color(0xFFD2D2DA);  // muted-foreground (dark)
 
   // Borders
-  static const Color border = Color(0xFFDEE2E6);
-  static const Color borderLight = Color(0xFFDEDDDD);
+  static const Color border = Color(0xFFE2E2EA);           // --border
+  static const Color borderLight = Color(0xFFF0F0F6);
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(

@@ -46,92 +46,102 @@ class _EmailVerificationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            final isResetFlow = widget.mode == 'reset-password';
+            if (isResetFlow) {
+              context.go('/forgot-password');
+            } else {
+              context.go('/login');
+            }
+          },
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              // Illustration
-              Container(
-                height: 180,
-                width: 180,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.05),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.mark_email_unread_rounded,
-                  size: 90,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: 40),
-              const Text(
-                'Xác minh email',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Chúng tôi đã gửi mã xác minh đến email của bạn.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.textTertiary,
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              // OTP Inputs
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(6, (index) {
-                  return SizedBox(
-                    width: 45,
-                    height: 55,
-                    child: TextField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      onChanged: (value) => _onOtpChanged(value, index),
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      maxLength: 1,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      decoration: InputDecoration(
-                        counterText: "",
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.grey300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Column(
+                children: [
+                  Center(
+                    child: Text(
+                      'Torii Nihongo',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                        letterSpacing: 0.4,
                       ),
                     ),
-                  );
-                }),
-              ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Xác minh email',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Chúng tôi đã gửi mã xác minh đến email của bạn.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
 
-              const SizedBox(height: 48),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () async {
+                  // OTP Inputs
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(6, (index) {
+                      return SizedBox(
+                        width: 45,
+                        height: 55,
+                        child: TextField(
+                          controller: _controllers[index],
+                          focusNode: _focusNodes[index],
+                          onChanged: (value) => _onOtpChanged(value, index),
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          maxLength: 1,
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                          decoration: InputDecoration(
+                            counterText: "",
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide:
+                                  const BorderSide(color: AppColors.grey300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(
+                                  color: AppColors.primary, width: 2),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+
+                  const SizedBox(height: 40),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () async {
                     final email = widget.email;
                     if (email == null || email.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -184,63 +194,77 @@ class _EmailVerificationScreenState
                       );
                     }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.textOnPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text('Xác minh', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Chưa nhận được mã? ', style: TextStyle(color: AppColors.textTertiary)),
-                  TextButton(
-                    onPressed: () async {
-                      final email = widget.email;
-                      if (email == null || email.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Thiếu thông tin email để gửi lại mã'),
-                          ),
-                        );
-                        return;
-                      }
-                      final notifier =
-                          ref.read(authNotifierProvider.notifier);
-                      await notifier.resendOTP(
-                        email,
-                        type: widget.mode == 'reset-password'
-                            ? 'reset-password'
-                            : 'registration',
-                      );
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Đã gửi lại mã OTP nếu email hợp lệ'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textOnPrimary,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                      );
-                    },
-                    child: const Text(
-                      'Gửi lại mã',
-                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                      ),
+                      child: const Text('Xác minh',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700)),
                     ),
                   ),
+                  const SizedBox(height: 20),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Chưa nhận được mã? ',
+                          style: TextStyle(color: AppColors.textTertiary)),
+                      TextButton(
+                        onPressed: () async {
+                          final email = widget.email;
+                          if (email == null || email.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('Thiếu thông tin email để gửi lại mã'),
+                              ),
+                            );
+                            return;
+                          }
+                          final notifier =
+                              ref.read(authNotifierProvider.notifier);
+                          await notifier.resendOTP(
+                            email,
+                            type: widget.mode == 'reset-password'
+                                ? 'reset-password'
+                                : 'registration',
+                          );
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('Đã gửi lại mã OTP nếu email hợp lệ'),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'Gửi lại mã',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Kiểm tra hộp thư spam nếu bạn chưa nhận được email.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Kiểm tra hộp thư spam nếu bạn chưa nhận được email.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
-              ),
-              const SizedBox(height: 40),
-            ],
+            ),
           ),
         ),
       ),
