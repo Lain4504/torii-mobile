@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/active_speakers_provider.dart';
 
@@ -32,12 +33,12 @@ class VideoTile extends ConsumerWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
-        color: const Color(0xFF191F28),
+        color: AppColors.surfaceVariantDark,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isSpeaking
               ? Theme.of(context).colorScheme.primary.withOpacity(0.8)
-              : Colors.white.withOpacity(0.05),
+              : AppColors.textPrimaryDark.withOpacity(0.2),
           width: isSpeaking ? 3 : 1,
         ),
         boxShadow: isSpeaking
@@ -107,7 +108,7 @@ class VideoTile extends ConsumerWidget {
     }
 
     return Container(
-      color: const Color(0xFF0E141C),
+      color: AppColors.surfaceDark,
       child: Center(
         child: Container(
           width: isSmall ? 48 : 96,
@@ -156,10 +157,10 @@ class VideoTile extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.4),
+              color: AppColors.textPrimary.withOpacity(0.4),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: AppColors.textOnPrimary.withOpacity(0.1),
                 width: 0.5,
               ),
             ),
@@ -167,13 +168,13 @@ class VideoTile extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (isRaisedHand) ...[
-                  const Icon(Icons.back_hand_rounded, size: 14, color: Colors.amber),
+                  const Icon(Icons.back_hand_rounded, size: 14, color: AppColors.accent),
                   const SizedBox(width: 6),
                 ],
                 Icon(
                   isMicOn ? Icons.mic_rounded : Icons.mic_off_rounded,
                   size: 14,
-                  color: isMicOn ? Theme.of(context).colorScheme.primary : Colors.redAccent,
+                  color: isMicOn ? Theme.of(context).colorScheme.primary : AppColors.error,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -182,7 +183,7 @@ class VideoTile extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                       letterSpacing: 0.2,
                     ),
                     maxLines: 1,
@@ -205,19 +206,19 @@ class VideoTile extends ConsumerWidget {
     
     switch (quality) {
       case ConnectionQuality.excellent:
-        color = const Color(0xFF2BC5C5);
+        color = AppColors.accent;
         bars = 3;
         break;
       case ConnectionQuality.good:
-        color = Colors.amber;
+        color = AppColors.accent;
         bars = 2;
         break;
       case ConnectionQuality.poor:
-        color = Colors.redAccent;
+        color = AppColors.error;
         bars = 1;
         break;
       default:
-        color = Colors.white24;
+        color = AppColors.textOnPrimary.withOpacity(0.24);
         bars = 0;
     }
 
@@ -229,7 +230,7 @@ class VideoTile extends ConsumerWidget {
           height: 4.0 + index * 2.5,
           margin: const EdgeInsets.only(left: 1.5),
           decoration: BoxDecoration(
-            color: index < bars ? color : Colors.white10,
+            color: index < bars ? color : AppColors.textOnPrimary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(1),
           ),
         );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/breakout_room_provider.dart';
 import '../../../providers/session_provider.dart';
 import '../../../providers/whiteboard_provider.dart';
@@ -28,7 +29,7 @@ class MeetingRoomScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0E141C) : const Color(0xFFF0F4F8),
+      backgroundColor: isDark ? AppColors.surfaceDark : AppColors.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -182,7 +183,7 @@ class _WhiteboardOverlay extends ConsumerWidget {
 
     return Positioned.fill(
       child: Container(
-        color: Colors.black.withOpacity(0.5),
+        color: AppColors.textPrimary.withOpacity(0.5),
         child: const WhiteboardWidget(),
       ),
     );

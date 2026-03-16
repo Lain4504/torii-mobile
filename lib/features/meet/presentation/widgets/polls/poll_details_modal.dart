@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/meet/data/models/poll.dart';
 import '../../../providers/session_provider.dart';
 import '../../../providers/participant_provider.dart';
@@ -176,7 +177,7 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: AppColors.error.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Text(
@@ -184,7 +185,7 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.red,
+                            color: AppColors.error,
                           ),
                         ),
                       ),
@@ -321,8 +322,8 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
                     ElevatedButton(
                       onPressed: _closePoll,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.error,
+                        foregroundColor: AppColors.textOnPrimary,
                       ),
                       child: const Text('End Poll'),
                     ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/session_provider.dart';
 import '../../../providers/room_settings_provider.dart';
@@ -51,7 +52,7 @@ class ParticipantItem extends ConsumerWidget {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
             ),
           ),
         ),
@@ -316,8 +317,8 @@ class ParticipantItem extends ConsumerWidget {
         PopupMenuItem(
           value: 'remove',
           child: ListTile(
-            leading: const Icon(Icons.person_remove, color: Colors.red),
-            title: const Text('Remove', style: TextStyle(color: Colors.red)),
+            leading: const Icon(Icons.person_remove, color: AppColors.error),
+            title: const Text('Remove', style: TextStyle(color: AppColors.error)),
             contentPadding: EdgeInsets.zero,
           ),
         ),

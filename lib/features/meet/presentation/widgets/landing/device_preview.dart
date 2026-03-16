@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 /// Device Preview Widget
 /// Shows camera preview and mic/camera controls
@@ -104,15 +105,15 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
           aspectRatio: 16 / 9,
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF0E141C),
+              color: AppColors.surfaceDark,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: (isDark ? Colors.white : Colors.black).withOpacity(0.08),
+                color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: AppColors.textPrimary.withOpacity(0.2),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -128,25 +129,25 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
                           fit: VideoViewFit.cover,
                         )
                       : Container(
-                          color: const Color(0xFF191F28),
+                          color: AppColors.surfaceVariantDark,
                           child: Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 CircleAvatar(
                                   radius: 40,
-                                  backgroundColor: Colors.white.withOpacity(0.05),
-                                  child: const Icon(
+                                  backgroundColor: AppColors.textPrimaryDark.withOpacity(0.2),
+                                  child: Icon(
                                     Icons.videocam_off_rounded,
                                     size: 40,
-                                    color: Colors.white24,
+                                    color: AppColors.textPrimaryDark.withOpacity(0.5),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
                                 const Text(
                                   'Camera đang tắt',
                                   style: TextStyle(
-                                    color: Colors.white38,
+                                    color: AppColors.textSecondaryDark,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -163,17 +164,17 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
+                        color: AppColors.textPrimary.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(
-                        children: const [
-                          Icon(Icons.video_settings, size: 14, color: Colors.white),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.video_settings, size: 14, color: AppColors.textOnPrimary),
                           SizedBox(width: 6),
                           Text(
                             'Xem trước',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -199,7 +200,7 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
               isActive: _isMicEnabled,
               isLocked: widget.lockMicrophone,
               onTap: _isMicEnabled ? _disableMicrophone : _enableMicrophone,
-              activeColor: const Color(0xFF2BC5C5),
+              activeColor: AppColors.accent,
               label: 'Microphone',
             ),
             const SizedBox(width: 24),
@@ -208,7 +209,7 @@ class _DevicePreviewState extends ConsumerState<DevicePreview> {
               isActive: _isCameraEnabled,
               isLocked: widget.lockWebcam,
               onTap: _isCameraEnabled ? _disableCamera : _enableCamera,
-              activeColor: const Color(0xFF2BC5C5),
+              activeColor: AppColors.accent,
               label: 'Camera',
             ),
           ],
@@ -244,16 +245,16 @@ class _DeviceControlButton extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.08),
+              color: AppColors.error.withOpacity(0.08),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.red.withOpacity(0.2), width: 1.5),
+              border: Border.all(color: AppColors.error.withOpacity(0.2), width: 1.5),
             ),
-            child: const Icon(Icons.block_rounded, color: Colors.red, size: 28),
+            child: const Icon(Icons.block_rounded, color: AppColors.error, size: 28),
           ),
           const SizedBox(height: 8),
           const Text(
             'Locked',
-            style: TextStyle(fontSize: 11, color: Colors.red, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 11, color: AppColors.error, fontWeight: FontWeight.bold),
           ),
         ],
       );
@@ -269,7 +270,7 @@ class _DeviceControlButton extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: isActive ? activeColor : Colors.black.withOpacity(0.05),
+              color: isActive ? activeColor : AppColors.textPrimary.withOpacity(0.05),
               shape: BoxShape.circle,
               boxShadow: isActive
                   ? [
@@ -283,7 +284,7 @@ class _DeviceControlButton extends StatelessWidget {
             ),
             child: Icon(
               icon,
-              color: isActive ? Colors.white : Colors.black54,
+              color: isActive ? AppColors.textOnPrimary : AppColors.grey700,
               size: 28,
             ),
           ),
@@ -293,7 +294,7 @@ class _DeviceControlButton extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11,
-            color: Colors.black54,
+            color: AppColors.grey700,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
         ),

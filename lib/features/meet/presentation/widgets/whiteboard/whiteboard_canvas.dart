@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 /// Whiteboard Canvas Widget
 /// Handles drawing operations
@@ -40,7 +41,7 @@ class _WhiteboardPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // grid background
     final paint = Paint()
-      ..color = Colors.grey.withOpacity(0.2)
+      ..color = AppColors.grey300.withOpacity(0.2)
       ..strokeWidth = 1;
 
     const gridSize = 40.0;

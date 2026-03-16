@@ -21,6 +21,7 @@ class AuthService {
           'email': email,
           'password': password,
           'displayName': displayName,
+          'platform': 'mobile',
         },
         options: Options(headers: {'x-platform': 'mobile'}),
       );
@@ -99,11 +100,19 @@ class AuthService {
     }
   }
 
-  Future<ApiResponse<Map<String, dynamic>>> verifyOTP(String email, String code) async {
+  Future<ApiResponse<Map<String, dynamic>>> verifyOTP(
+    String email,
+    String code, {
+    required String type,
+  }) async {
     try {
       final response = await _apiClient.client.post(
         '/api/auth/verify-otp',
-        data: {'email': email, 'code': code},
+        data: {
+          'email': email,
+          'otp': code,
+          'type': type,
+        },
       );
       return ApiResponse.fromJson(response.data, (json) => json as Map<String, dynamic>);
     } on DioException catch (e) {
@@ -111,11 +120,17 @@ class AuthService {
     }
   }
 
-  Future<ApiResponse<void>> resendOTP(String email, {String reason = 'forgot_password'}) async {
+  Future<ApiResponse<void>> resendOTP(
+    String email, {
+    required String type,
+  }) async {
     try {
       final response = await _apiClient.client.post(
         '/api/auth/resend-otp',
-        data: {'email': email, 'reason': reason},
+        data: {
+          'email': email,
+          'type': type,
+        },
       );
       return ApiResponse.fromJson(response.data, (_) {});
     } on DioException catch (e) {
@@ -128,7 +143,7 @@ class AuthService {
     try {
       final response = await _apiClient.client.post(
         '/api/auth/refresh',
-        data: {'refreshToken': refreshToken},
+        data: {'refresh_token': refreshToken},
         options: Options(headers: {'x-platform': 'mobile'}),
       );
       return ApiResponse.fromJson(response.data, (json) => json as Map<String, dynamic>);
@@ -206,23 +221,51 @@ class AuthService {
   Future<ApiResponse<User>> getMe() async {
     try {
       final response = await _apiClient.client.get('/api/auth/me');
-      return ApiResponse.fromJson(response.data, (json) => User.fromJson(json));
+      return ApiResponse.fromJson(
+        response.data,
+        (json) => User.fromJson(json['user'] as Map<String, dynamic>),
+      );
     } on DioException catch (e) {
       return _handleError(e);
     }
   }
 
-  Future<ApiResponse<User>> updateProfile(String displayName) async {
+  Future<ApiResponse<User>> updateProfile({
+    String? displayName,
+    Map<String, dynamic>? userMetadata,
+  }) async {
     try {
       final response = await _apiClient.client.patch(
         '/api/auth/me',
-        data: {'displayName': displayName},
+        data: {
+          if (displayName != null) 'displayName': displayName,
+          if (userMetadata != null) 'userMetadata': userMetadata,
+        },
       );
-      return ApiResponse.fromJson(response.data, (json) => User.fromJson(json));
+      return ApiResponse.fromJson(response.data, (json) => User.fromJson(json['user']));
     } on DioException catch (e) {
       return _handleError(e);
     }
   }
+
+  Future<ApiResponse<void>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/change-password',
+        data: {
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+        },
+      );
+      return ApiResponse.fromJson(response.data, (_) {});
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
 
   Future<ApiResponse<void>> logout(String refreshToken) async {
     try {

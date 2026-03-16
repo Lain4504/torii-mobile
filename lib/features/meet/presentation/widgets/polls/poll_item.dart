@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/meet/data/models/poll.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls_pb;
 import '../../../providers/session_provider.dart';
@@ -339,16 +340,16 @@ class _PollItemState extends ConsumerState<PollItem> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.1),
+                                  color: AppColors.error.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                  border: Border.all(color: AppColors.error.withOpacity(0.3)),
                                 ),
                                 child: const Text(
                                   'CLOSED',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.red,
+                                    color: AppColors.error,
                                   ),
                                 ),
                               ),
@@ -391,9 +392,9 @@ class _PollItemState extends ConsumerState<PollItem> {
                             value: 'close-poll',
                             child: Row(
                               children: [
-                                Icon(Icons.close, size: 18, color: Colors.red),
+                                Icon(Icons.close, size: 18, color: AppColors.error),
                                 SizedBox(width: 8),
-                                Text('End Poll', style: TextStyle(color: Colors.red)),
+                                Text('End Poll', style: TextStyle(color: AppColors.error)),
                               ],
                             ),
                           ),

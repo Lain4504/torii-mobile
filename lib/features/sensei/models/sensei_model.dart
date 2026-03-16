@@ -19,25 +19,80 @@ class ChatMessage {
   });
 }
 
-class GrammarCorrection {
-    final String originalText;
-    final String correctedText;
-    final String explanation;
+class GrammarError {
+  final String issue;
+  final String correction;
+  final String type;
+  final String explanation;
 
-    const GrammarCorrection({
-        required this.originalText,
-        required this.correctedText,
-        required this.explanation,
-    });
+  const GrammarError({
+    required this.issue,
+    required this.correction,
+    required this.type,
+    required this.explanation,
+  });
 
-    factory GrammarCorrection.fromJson(Map<String, dynamic> json) {
-        final data = json['data'] ?? json;
-        return GrammarCorrection(
-            originalText: data['original'],
-            correctedText: data['corrected'],
-            explanation: data['explanation'],
-        );
-    }
+  factory GrammarError.fromJson(Map<String, dynamic> json) {
+    return GrammarError(
+      issue: json['issue'] ?? '',
+      correction: json['correction'] ?? '',
+      type: json['type'] ?? '',
+      explanation: json['explanation'] ?? '',
+    );
+  }
+}
+
+class GrammarCheckResponse {
+  final String originalText;
+  final String correctedText;
+  final bool isCorrect;
+  final List<GrammarError> errors;
+  final List<String> suggestions;
+
+  const GrammarCheckResponse({
+    required this.originalText,
+    required this.correctedText,
+    required this.isCorrect,
+    required this.errors,
+    required this.suggestions,
+  });
+
+  factory GrammarCheckResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? json;
+    return GrammarCheckResponse(
+      originalText: data['originalText'] ?? '',
+      correctedText: data['correctedText'] ?? '',
+      isCorrect: data['isCorrect'] ?? false,
+      errors: (data['errors'] as List? ?? [])
+          .map((e) => GrammarError.fromJson(e))
+          .toList(),
+      suggestions: List<String>.from(data['suggestions'] ?? []),
+    );
+  }
+}
+
+class TranslateResponse {
+  final String originalText;
+  final String translatedText;
+  final String sourceLanguage;
+  final String targetLanguage;
+
+  const TranslateResponse({
+    required this.originalText,
+    required this.translatedText,
+    required this.sourceLanguage,
+    required this.targetLanguage,
+  });
+
+  factory TranslateResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? json;
+    return TranslateResponse(
+      originalText: data['originalText'] ?? '',
+      translatedText: data['translatedText'] ?? '',
+      sourceLanguage: data['sourceLanguage'] ?? '',
+      targetLanguage: data['targetLanguage'] ?? '',
+    );
+  }
 }
 
 // --- ROLEPLAY MODELS (Merged from Agent) ---
@@ -168,21 +223,21 @@ final senseiMenuItems = [
     title: 'AI Roleplay',
     description: 'Luyện hội thoại theo tình huống',
     icon: Icons.people_alt_outlined,
-    color: Colors.orange,
+    color: AppColors.accent,
     route: '/sensei/roleplay-topics', // Changed to topics list
   ),
   const SenseiMenuItem(
     title: 'AI Drill',
     description: 'Tạo bài tập ngữ pháp, từ vựng',
     icon: Icons.fitness_center_rounded,
-    color: Colors.blue,
+    color: AppColors.textSecondary,
     route: '/sensei/drill',
   ),
   const SenseiMenuItem(
     title: 'AI Dịch thuật',
     description: 'Dịch và giải thích ngữ cảnh',
     icon: Icons.translate_rounded,
-    color: Colors.green,
+    color: AppColors.success,
     route: '/sensei/translate',
   ),
 ];

@@ -127,7 +127,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
             Text(widget.topic, style: TextStyle(fontSize: 18, fontWeight: AppTypography.bold)),
             Text(
               state.isFinished ? 'Đã kết thúc' : 'Sensei đang hội thoại...',
-              style: TextStyle(fontSize: 12, color: state.isFinished ? Colors.green : Colors.orange),
+              style: TextStyle(fontSize: 12, color: state.isFinished ? AppColors.success : AppColors.accent),
             ),
           ],
         ),
@@ -139,7 +139,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
           if (!state.isFinished && state.messages.where((m) => m.role == ChatMessageRole.user).length >= 5)
             TextButton(
               onPressed: () => notifier.finish(),
-              child: Text('KẾT THÚC', style: TextStyle(color: Colors.green, fontWeight: AppTypography.bold)),
+              child: Text('KẾT THÚC', style: TextStyle(color: AppColors.success, fontWeight: AppTypography.bold)),
             ),
         ],
       ),
@@ -176,16 +176,16 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: msg.isFeedback 
-                  ? Colors.green[50] 
-                  : (isAI ? Colors.grey[100] : AppColors.primary),
+                  ? AppColors.success.withOpacity(0.1) 
+                  : (isAI ? AppColors.grey200 : AppColors.primary),
               borderRadius: BorderRadius.circular(20).copyWith(
                 bottomLeft: isAI ? const Radius.circular(0) : const Radius.circular(20),
                 bottomRight: isAI ? const Radius.circular(20) : const Radius.circular(0),
               ),
-              border: msg.isFeedback ? Border.all(color: Colors.green[200]!) : null,
+              border: msg.isFeedback ? Border.all(color: AppColors.success.withOpacity(0.4)) : null,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: AppColors.textPrimary.withOpacity(0.05),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
@@ -197,7 +197,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                 Text(
                   msg.content,
                   style: TextStyle(
-                    color: isAI ? AppColors.textPrimary : Colors.white,
+                    color: isAI ? AppColors.textPrimary : AppColors.textOnPrimary,
                     fontSize: 16,
                   ),
                 ),
@@ -242,14 +242,14 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: AppColors.grey200,
               borderRadius: BorderRadius.circular(20),
             ),
             child: const SizedBox(
               width: 40,
               child: LinearProgressIndicator(
                 backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.grey300),
               ),
             ),
           ),
@@ -271,7 +271,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            child: Text('QUAY LẠI', style: TextStyle(fontWeight: AppTypography.bold, color: Colors.white)),
+            child: Text('QUAY LẠI', style: TextStyle(fontWeight: AppTypography.bold, color: AppColors.textOnPrimary)),
           ),
         ),
       );
@@ -280,10 +280,10 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.textPrimary.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -294,13 +294,13 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
           children: [
             IconButton(
               icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-              color: _isListening ? Colors.red : AppColors.textSecondary,
+              color: _isListening ? AppColors.error : AppColors.textSecondary,
               onPressed: _listen,
             ),
             if (_isListening)
               const Padding(
                 padding: EdgeInsets.only(right: 8.0),
-                child: VoiceWaveAnimation(isListening: true, color: Colors.red),
+                child: VoiceWaveAnimation(isListening: true, color: AppColors.error),
               ),
             Expanded(
               child: TextField(
@@ -312,7 +312,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.grey[100],
+                  fillColor: AppColors.grey200,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
                 onSubmitted: (val) {

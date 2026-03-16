@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/app/app.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/onboarding/providers/onboarding_provider.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:torii_app/core/providers/shared_prefs_provider.dart';
@@ -17,7 +18,9 @@ Future<void> main() async {
 
   // Pre-fetch critical data for instant app launch
   final sharedPrefs = await SharedPreferences.getInstance();
-  
+  final onboardingCompleted = sharedPrefs.getBool(onboardingCompletedKey) ?? false;
+  final onboardingNotifier = ValueNotifier<bool>(onboardingCompleted);
+
   // Independent Services for Pre-fetching
   final database = AppDatabase();
   final userService = UserService(database);
@@ -30,6 +33,7 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPrefs),
+        onboardingNotifierProvider.overrideWithValue(onboardingNotifier),
         databaseProvider.overrideWithValue(database),
         tokenServiceProvider.overrideWithValue(tokenService),
         userServiceProvider.overrideWithValue(userService),

@@ -1,95 +1,52 @@
-
-enum NotificationType {
-  system,
-  course,
-  liveClass,
-  payment,
-  achievement,
-  reminder,
-  commentReply,
-  orderSuccess,
-  orderStatusUpdate;
-
-  String toJson() => name.replaceAllMapped(RegExp(r'[A-Z]'), (match) => '_${match.group(0)!.toLowerCase()}');
-
-  static NotificationType fromString(String value) {
-    switch (value) {
-      case 'system':
-        return NotificationType.system;
-      case 'course':
-        return NotificationType.course;
-      case 'live_class':
-        return NotificationType.liveClass;
-      case 'payment':
-        return NotificationType.payment;
-      case 'achievement':
-        return NotificationType.achievement;
-      case 'reminder':
-        return NotificationType.reminder;
-      case 'comment_reply':
-        return NotificationType.commentReply;
-      case 'order_success':
-        return NotificationType.orderSuccess;
-      case 'order_status_update':
-        return NotificationType.orderStatusUpdate;
-      default:
-        return NotificationType.system;
-    }
-  }
-}
-
+/// Notification from GET /api/notifications
 class NotificationModel {
   final String id;
   final String userId;
   final String title;
   final String message;
-  final NotificationType type;
+  final String notificationType;
   final Map<String, dynamic>? metadata;
   final bool isRead;
   final DateTime? readAt;
   final List<String> sentVia;
   final DateTime createdAt;
 
-  NotificationModel({
+  const NotificationModel({
     required this.id,
     required this.userId,
     required this.title,
     required this.message,
-    required this.type,
+    required this.notificationType,
     this.metadata,
     required this.isRead,
     this.readAt,
-    required this.sentVia,
+    this.sentVia = const [],
     required this.createdAt,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: json['id'] ?? '',
-      userId: json['userId'] ?? '',
-      title: json['title'] ?? '',
-      message: json['message'] ?? '',
-      type: NotificationType.fromString(json['notificationType'] ?? 'system'),
-      metadata: json['metadata'] ?? json['data'],
-      isRead: json['isRead'] ?? false,
-      readAt: json['readAt'] != null ? DateTime.parse(json['readAt']) : null,
-      sentVia: List<String>.from(json['sentVia'] ?? []),
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
+      id: json['id'] as String,
+      userId: json['userId'] as String,
+      title: json['title'] as String,
+      message: json['message'] as String,
+      notificationType: json['notificationType'] as String? ?? 'SYSTEM',
+      metadata: json['metadata'] as Map<String, dynamic>?,
+      isRead: json['isRead'] as bool? ?? false,
+      readAt: json['readAt'] != null
+          ? DateTime.tryParse(json['readAt'].toString())
+          : null,
+      sentVia: (json['sentVia'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      createdAt: DateTime.parse(json['createdAt'].toString()),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'userId': userId,
-      'title': title,
-      'message': message,
-      'notificationType': type.toJson(),
-      'metadata': metadata,
-      'isRead': isRead,
-      'readAt': readAt?.toIso8601String(),
-      'sentVia': sentVia,
-      'createdAt': createdAt.toIso8601String(),
-    };
+  String get timeAgo {
+    final now = DateTime.now();
+    final diff = now.difference(createdAt);
+    if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
+    if (diff.inHours < 24) return '${diff.inHours} giờ trước';
+    if (diff.inDays < 7) return '${diff.inDays} ngày trước';
+    return '${createdAt.day}/${createdAt.month}/${createdAt.year}';
   }
 }

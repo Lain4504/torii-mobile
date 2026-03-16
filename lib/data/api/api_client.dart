@@ -130,7 +130,7 @@ class ApiClient {
               ));
 
               final response = await tokenDio.post('/api/auth/refresh', data: {
-                'refreshToken': refreshToken,
+                'refresh_token': refreshToken,
               });
 
               if (response.statusCode == 200) {

@@ -26,16 +26,16 @@ class SenseiRepository {
     }
   }
 
-  Future<GrammarCorrection> checkGrammar({required String text}) async {
+  Future<GrammarCheckResponse> checkGrammar({required String text}) async {
     try {
       final response = await _dio.post('/api/agents/sensei/grammar-check', data: {'text': text});
-      return GrammarCorrection.fromJson(response.data);
+      return GrammarCheckResponse.fromJson(response.data);
     } catch (e) {
       throw Exception('Grammar check failed: $e');
     }
   }
 
-  Future<String> translate({
+  Future<TranslateResponse> translate({
     required String text,
     String sourceLanguage = 'auto',
     String targetLanguage = 'vi',
@@ -46,7 +46,7 @@ class SenseiRepository {
         'sourceLanguage': sourceLanguage,
         'targetLanguage': targetLanguage,
       });
-      return response.data['data']['text'] as String;
+      return TranslateResponse.fromJson(response.data);
     } catch (e) {
       throw Exception('Translation failed: $e');
     }

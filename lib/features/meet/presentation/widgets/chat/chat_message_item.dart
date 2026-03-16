@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:torii_app/features/meet/data/models/chat_message.dart';
 import 'package:intl/intl.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/features/meet/data/models/chat_message.dart';
 
 /// Chat Message Item Widget
 /// Displays a single chat message bubble
@@ -52,7 +53,7 @@ class ChatMessageItem extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textOnPrimary,
                 ),
               ),
             )
@@ -96,7 +97,7 @@ class ChatMessageItem extends StatelessWidget {
                       message.message,
                       style: TextStyle(
                         color: isMe 
-                          ? Colors.white 
+                          ? AppColors.textOnPrimary 
                           : Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 14,
                       ),
@@ -107,7 +108,7 @@ class ChatMessageItem extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         color: isMe 
-                          ? Colors.white.withOpacity(0.7)
+                          ? AppColors.textOnPrimary.withOpacity(0.7)
                           : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
                       ),
                     ),

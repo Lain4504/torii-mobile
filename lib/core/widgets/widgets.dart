@@ -1,58 +1,80 @@
-/// Torii Mobile - Core UI Widgets
-/// 
-/// Minimalist, zen-inspired UI components for a Japanese learning platform.
-/// Import this single file instead of individual component files.
-/// 
-/// Usage:
-/// ```dart
-/// import 'package:torii_app/core/widgets/widgets.dart';
-/// ```
-library;
+import 'package:flutter/material.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
-// Cards
-export 'cards/glass_card.dart';
-export 'cards/elevated_card.dart';
-export 'cards/gradient_card.dart';
-export 'cards/minimal_card.dart' hide ElevatedCard;
+/// Simple voice wave animation used in Sensei roleplay chat page.
+///
+/// Lưu ý: chỉ phục vụ UI hiệu ứng, không ảnh hưởng logic auth hay meet.
+class VoiceWaveAnimation extends StatefulWidget {
+  const VoiceWaveAnimation({
+    super.key,
+    this.isListening = false,
+    this.color = AppColors.success,
+  });
 
-// Badges
-export 'badges/app_badge.dart';
+  final bool isListening;
+  final Color color;
 
-// Stats
-export 'stats/stat_card.dart';
+  @override
+  State<VoiceWaveAnimation> createState() => _VoiceWaveAnimationState();
+}
 
-// Progress
-export 'progress/progress_bar.dart';
+class _VoiceWaveAnimationState extends State<VoiceWaveAnimation>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
 
-// Loading
-export 'loading/shimmer_loading.dart';
-export 'loading/app_loading.dart';
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat(reverse: true);
 
-// States
-export 'states/empty_state.dart';
+    _animation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
 
-// Dividers
-export 'dividers/section_divider.dart';
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
-// Animations
-export 'animations/entry_animation.dart';
-export 'animations/voice_wave_animation.dart';
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isListening) {
+      return const SizedBox.shrink();
+    }
 
-// Shell
-export 'app_shell.dart';
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final scale = _animation.value;
+        return Transform.scale(
+          scale: scale,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: widget.color.withValues(alpha: 0.3),
+            ),
+            child: Center(
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: widget.color,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
 
-// Buttons
-export 'buttons/app_button.dart';
-
-// Inputs
-export 'inputs/app_text_field.dart';
-
-// Background
-export 'app_background.dart';
-
-
-// Payments
-export 'payments/payment_qr_card.dart';
-
-// Course
-export 'course/course_progress_ring.dart';

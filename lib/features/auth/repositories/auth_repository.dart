@@ -83,4 +83,24 @@ class AuthRepository {
     }
     return false;
   }
+
+  Future<ApiResponse<User>> updateProfile({
+    String? displayName,
+    Map<String, dynamic>? userMetadata,
+  }) async {
+    return await authService.updateProfile(
+      displayName: displayName,
+      userMetadata: userMetadata,
+    );
+  }
+
+  Future<ApiResponse<void>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    return await authService.changePassword(
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+    );
+  }
 }

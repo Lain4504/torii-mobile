@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/whiteboard_provider.dart';
 import 'whiteboard_canvas.dart';
 import 'whiteboard_toolbar.dart';
@@ -22,7 +23,7 @@ class WhiteboardWidget extends ConsumerWidget {
     }
 
     return Container(
-      color: Colors.white,
+      color: AppColors.surface,
       child: Stack(
         children: [
           // Canvas
@@ -59,8 +60,8 @@ class WhiteboardWidget extends ConsumerWidget {
               },
               icon: const Icon(Icons.close),
               style: IconButton.styleFrom(
-                backgroundColor: Colors.black12,
-                foregroundColor: Colors.black87,
+                backgroundColor: AppColors.textPrimary.withOpacity(0.12),
+                foregroundColor: AppColors.textPrimary,
               ),
             ),
           ),
@@ -80,14 +81,14 @@ class WhiteboardWidget extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black87,
+        color: AppColors.textPrimary.withOpacity(0.87),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left, color: Colors.white),
+            icon: const Icon(Icons.chevron_left, color: AppColors.textOnPrimary),
             onPressed: currentPage > 1 
               ? () {
                   // TODO: Previous page
@@ -102,13 +103,13 @@ class WhiteboardWidget extends ConsumerWidget {
           Text(
             '$currentPage / $totalPages',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(width: 16),
           IconButton(
-            icon: const Icon(Icons.chevron_right, color: Colors.white),
+            icon: const Icon(Icons.chevron_right, color: AppColors.textOnPrimary),
             onPressed: currentPage < totalPages 
               ? () {
                   // TODO: Next page
