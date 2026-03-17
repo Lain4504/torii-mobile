@@ -82,7 +82,7 @@ class AppTheme {
       fillColor: AppColors.white,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
-        vertical: 10,
+        vertical: 8,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.input),
@@ -130,9 +130,9 @@ class AppTheme {
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
-          vertical: 10,
+          vertical: 8,
         ),
-        minimumSize: const Size(0, 48),
+        minimumSize: const Size(0, 44),
       ),
     ),
 
@@ -147,9 +147,9 @@ class AppTheme {
         ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
-          vertical: 9,
+          vertical: 8,
         ),
-        minimumSize: const Size(0, 46),
+        minimumSize: const Size(0, 44),
         textStyle: const TextStyle(
           fontSize: AppTypography.fontSizeSm,
           fontWeight: AppTypography.semiBold,
@@ -306,9 +306,13 @@ class AppTheme {
         foregroundColor: AppColors.backgroundDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderRadius: BorderRadius.circular(AppRadius.button),
         ),
-        minimumSize: const Size(0, 56),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: 8,
+        ),
+        minimumSize: const Size(0, 44),
       ),
     ),
  

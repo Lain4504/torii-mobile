@@ -13,9 +13,11 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
-    final displayName = authState.valueOrNull?.user?.displayName ?? 'Bạn';
-    final enrollmentsAsync = ref.watch(myEnrollmentsProvider);
-    final liveSchedulesAsync = ref.watch(liveSchedulesProvider);
+    final isLoggedIn = authState.valueOrNull?.isAuthenticated == true;
+    final user = authState.valueOrNull?.user;
+    final displayName = user?.displayName ?? 'Bạn';
+    final enrollmentsAsync = isLoggedIn ? ref.watch(myEnrollmentsProvider) : null;
+    final liveSchedulesAsync = isLoggedIn ? ref.watch(liveSchedulesProvider) : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -28,8 +30,29 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(24.0),
                 child: Row(
                   children: [
-                    const CircleAvatar(radius: 28, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=tienvu')),
-                    const SizedBox(width: 16),
+                    if (isLoggedIn) ...[
+                      InkWell(
+                        onTap: () => context.push('/profile'),
+                        borderRadius: BorderRadius.circular(999),
+                        child: CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppColors.grey200,
+                          backgroundImage: (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty)
+                              ? NetworkImage(user.avatarUrl!)
+                              : null,
+                          child: (user?.avatarUrl == null || user!.avatarUrl!.isEmpty)
+                              ? Text(
+                                  (displayName.isNotEmpty ? displayName.characters.first : 'T').toUpperCase(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                    ],
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,36 +61,62 @@ class HomeScreen extends ConsumerWidget {
                               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),
-                          Text('Hôm nay bạn muốn học gì?', style: TextStyle(fontSize: 14, color: AppColors.grey700)),
+                          if (isLoggedIn)
+                            Text(
+                              'Hôm nay bạn muốn học gì?',
+                              style: TextStyle(fontSize: 14, color: AppColors.grey700),
+                            ),
                         ],
                       ),
                     ),
                     const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none_rounded, size: 28),
-                      onPressed: () => context.push('/notifications'),
-                    ),
+                    if (isLoggedIn)
+                      IconButton(
+                        icon: const Icon(Icons.notifications_none_rounded, size: 28),
+                        onPressed: () => context.push('/notifications'),
+                      )
+                    else
+                      SizedBox(
+                        height: 36,
+                        child: OutlinedButton(
+                          onPressed: () => context.push('/login'),
+                          child: const Text(
+                            'Đăng nhập ngay',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
-              _buildSectionHeader(context, 'Khóa học của bạn', () => context.push('/my-courses')),
+              _buildSectionHeader(
+                context,
+                'Khóa học của bạn',
+                isLoggedIn ? () => context.push('/my-courses') : null,
+              ),
               SizedBox(
                 height: 220,
-                child: enrollmentsAsync.when(
-                  data: (paginated) {
-                    final list = paginated.data.take(5).toList();
-                    if (list.isEmpty) return _emptyCourseHint(context);
-                    return ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      scrollDirection: Axis.horizontal,
-                      itemCount: list.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 16),
-                      itemBuilder: (context, index) => _buildCourseCard(list[index]),
-                    );
-                  },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (_, __) => _emptyCourseHint(context),
-                ),
+                child: isLoggedIn
+                    ? enrollmentsAsync!.when(
+                        data: (paginated) {
+                          final list = paginated.data.take(5).toList();
+                          if (list.isEmpty) return _emptyCourseHint(context);
+                          return ListView.separated(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: list.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 16),
+                            itemBuilder: (context, index) => _buildCourseCard(list[index]),
+                          );
+                        },
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (_, __) => _emptyCourseHint(context),
+                      )
+                    : _loginRequiredHint(
+                        context,
+                        title: 'Đăng nhập để xem khóa học của bạn',
+                        subtitle: 'Bạn sẽ thấy tiến độ, bài học đang học và gợi ý phù hợp.',
+                      ),
               ),
               const SizedBox(height: 32),
               _buildSectionHeader(context, 'Chọn cấp độ', null),
@@ -85,22 +134,48 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              _buildSectionHeader(context, 'Lịch học live sắp tới', () => context.push('/live-schedule')),
+              _buildSectionHeader(
+                context,
+                'Lịch học live sắp tới',
+                isLoggedIn ? () => context.push('/live-schedule') : null,
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: liveSchedulesAsync.when(
-                  data: (list) {
-                    if (list.isEmpty) return const Padding(padding: EdgeInsets.all(16), child: Text('Chưa có lịch live'));
-                    return Column(
-                      children: list.take(2).map((s) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildLiveCard(s),
-                      )).toList(),
-                    );
-                  },
-                  loading: () => const SizedBox(height: 80, child: Center(child: CircularProgressIndicator())),
-                  error: (_, __) => const Padding(padding: EdgeInsets.all(16), child: Text('Không tải được lịch live')),
-                ),
+                child: isLoggedIn
+                    ? liveSchedulesAsync!.when(
+                        data: (list) {
+                          if (list.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text('Chưa có lịch live'),
+                            );
+                          }
+                          return Column(
+                            children: list
+                                .take(2)
+                                .map(
+                                  (s) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: _buildLiveCard(s),
+                                  ),
+                                )
+                                .toList(),
+                          );
+                        },
+                        loading: () => const SizedBox(
+                          height: 80,
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (_, __) => const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('Không tải được lịch live'),
+                        ),
+                      )
+                    : _loginRequiredInline(
+                        context,
+                        text: 'Đăng nhập để xem lịch học live và nhắc lịch.',
+                        onLogin: () => context.push('/login'),
+                      ),
               ),
               const SizedBox(height: 100),
             ],
@@ -115,6 +190,90 @@ class HomeScreen extends ConsumerWidget {
       child: TextButton(
         onPressed: () => context.push('/discovery'),
         child: const Text('Khám phá khóa học', style: TextStyle(color: AppColors.primary)),
+      ),
+    );
+  }
+
+  Widget _loginRequiredHint(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.grey200),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => context.push('/login'),
+                child: const Text('Đăng nhập ngay'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _loginRequiredInline(
+    BuildContext context, {
+    required String text,
+    required VoidCallback onLogin,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lock_outline, color: AppColors.textTertiary, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.4),
+            ),
+          ),
+          const SizedBox(width: 10),
+          TextButton(
+            onPressed: onLogin,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Đăng nhập',
+              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }

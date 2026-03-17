@@ -95,7 +95,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.home_rounded,
                       label: 'Home',
                       isSelected: activeIndex == 0,
-                      onTap: () => navigationShell.goBranch(0),
+                      onTap: () => onTap('/'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -103,7 +103,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.explore_rounded,
                       label: 'Discovery',
                       isSelected: activeIndex == 1,
-                      onTap: () => navigationShell.goBranch(1),
+                      onTap: () => onTap('/discovery'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -111,7 +111,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.menu_book_rounded,
                       label: 'My courses',
                       isSelected: activeIndex == 2,
-                      onTap: () => navigationShell.goBranch(2),
+                      onTap: () => onTap('/my-courses'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -119,7 +119,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.schedule_rounded,
                       label: 'Live',
                       isSelected: activeIndex == 3,
-                      onTap: () => navigationShell.goBranch(3),
+                      onTap: () => onTap('/live-schedule'),
                       isDark: isDark,
                     ),
                   ]
@@ -129,7 +129,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.home_rounded,
                       label: 'Home',
                       isSelected: activeIndex == 0,
-                      onTap: () => navigationShell.goBranch(0),
+                      onTap: () => onTap('/'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -137,7 +137,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.explore_rounded,
                       label: 'Discovery',
                       isSelected: activeIndex == 1,
-                      onTap: () => navigationShell.goBranch(1),
+                      onTap: () => onTap('/discovery'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
@@ -145,7 +145,7 @@ class _BottomNavBar extends StatelessWidget {
                       activeIcon: Icons.article_rounded,
                       label: 'Blog',
                       isSelected: activeIndex == 2,
-                      onTap: () => navigationShell.goBranch(2),
+                      onTap: () => onTap('/blog'),
                       isDark: isDark,
                     ),
                   ],

@@ -35,8 +35,15 @@ class AcademyRepository {
     final response = await _dio.get<Map<String, dynamic>>('/api/academy/course-offerings/public/$id');
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return null;
-    final item = api.data!['item'];
-    return item != null ? CourseOfferingModel.fromJson(item as Map<String, dynamic>) : null;
+    final raw = api.data!;
+    final item = raw['item'] ?? raw['data'] ?? raw;
+    if (item is Map<String, dynamic>) {
+      return CourseOfferingModel.fromJson(item);
+    }
+    if (item is Map) {
+      return CourseOfferingModel.fromJson(item.cast<String, dynamic>());
+    }
+    return null;
   }
 
   // ---------- Enrollments (me) ----------
@@ -58,14 +65,34 @@ class AcademyRepository {
     if (body['success'] != true) {
       throw Exception(body['message'] ?? 'Failed to fetch enrollments');
     }
-    final items = body['items'] as List<dynamic>? ?? body['data'] as List<dynamic>? ?? [];
-    final total = (body['total'] as num?)?.toInt() ?? items.length;
-    final totalPages = (body['totalPages'] as num?)?.toInt() ?? 1;
+
+    // API shape: { success, data: { items, total, page, limit, totalPages } }
+    final inner = body['data'];
+    final List<dynamic> items;
+    int total;
+    int totalPages;
+
+    if (inner is Map<String, dynamic>) {
+      items = inner['items'] as List<dynamic>? ?? [];
+      total = (inner['total'] as num?)?.toInt() ?? items.length;
+      totalPages = (inner['totalPages'] as num?)?.toInt() ?? 1;
+    } else {
+      items = body['items'] as List<dynamic>? ?? [];
+      total = (body['total'] as num?)?.toInt() ?? items.length;
+      totalPages = (body['totalPages'] as num?)?.toInt() ?? 1;
+    }
+
     return PaginatedResponse<EnrollmentModel>(
       data: items.map((e) => EnrollmentModel.fromJson(e as Map<String, dynamic>)).toList(),
       total: total,
-      page: (body['page'] as num?)?.toInt() ?? 1,
-      limit: (body['limit'] as num?)?.toInt() ?? limit,
+      page: (inner is Map<String, dynamic>
+              ? (inner['page'] as num?)?.toInt()
+              : (body['page'] as num?)?.toInt()) ??
+          1,
+      limit: (inner is Map<String, dynamic>
+              ? (inner['limit'] as num?)?.toInt()
+              : (body['limit'] as num?)?.toInt()) ??
+          limit,
       totalPages: totalPages,
     );
   }

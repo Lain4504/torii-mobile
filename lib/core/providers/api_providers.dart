@@ -9,6 +9,8 @@ import '../../data/models/academy_models.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/models/gamification_models.dart';
 import '../../data/models/live_schedule_model.dart';
+import '../../data/models/course_offering_detail_model.dart';
+import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 import '../../features/auth/providers/auth_providers.dart';
 
@@ -74,6 +76,31 @@ final orderDetailProvider = FutureProvider.family<OrderModel?, String>((ref, id)
 final courseOfferingDetailProvider = FutureProvider.family<CourseOfferingModel?, String>((ref, id) async {
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getPublicCourseOfferingById(id);
+});
+
+final courseOfferingDetailRichProvider = FutureProvider.family<CourseOfferingDetailModel?, String>((ref, id) async {
+  final repo = ref.watch(academyRepositoryProvider);
+  final response = await repo.getPublicCourseOfferingById(id);
+  if (response == null) return null;
+
+  // Fetch raw detail again to extract syllabus/modules (since CourseOfferingModel is flat)
+  // We reuse Dio from repo and rely on repository method for the raw map shape.
+  // AcademyRepository already does the GET; but we need the raw JSON to parse syllabus.
+  final dio = ref.watch(dioForApiProvider);
+  final res = await dio.get<Map<String, dynamic>>('/api/academy/course-offerings/public/$id');
+  final api = ApiResponse<Map<String, dynamic>>.fromJson(res.data ?? {});
+  if (!api.success || api.data == null) {
+    return CourseOfferingDetailModel(offering: response, modules: const []);
+  }
+  final raw = api.data!;
+  final item = raw['item'] ?? raw['data'] ?? raw;
+  if (item is Map<String, dynamic>) {
+    return CourseOfferingDetailModel.fromJson(item);
+  }
+  if (item is Map) {
+    return CourseOfferingDetailModel.fromJson(item.cast<String, dynamic>());
+  }
+  return CourseOfferingDetailModel(offering: response, modules: const []);
 });
 
 // ---------- Notifications ----------

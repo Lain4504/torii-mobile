@@ -32,8 +32,8 @@ class CourseOfferingModel {
       code: json['code'] as String? ?? '',
       title: json['title'] as String,
       description: json['description'] as String?,
-      price: (json['price'] as num).toDouble(),
-      salePrice: (json['salePrice'] as num?)?.toDouble(),
+      price: _parseNum(json['price']).toDouble(),
+      salePrice: _parseNumOrNull(json['salePrice'])?.toDouble(),
       currency: json['currency'] as String? ?? 'VND',
       mode: json['mode'] as String? ?? 'VOD',
       status: json['status'] as String?,
@@ -43,6 +43,18 @@ class CourseOfferingModel {
   }
 
   double get displayPrice => salePrice ?? price;
+}
+
+num _parseNum(dynamic value) {
+  final parsed = _parseNumOrNull(value);
+  return parsed ?? 0;
+}
+
+num? _parseNumOrNull(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value;
+  if (value is String) return num.tryParse(value);
+  return null;
 }
 
 /// My enrollment from GET /api/academy/enrollments/me
