@@ -105,6 +105,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   Widget build(BuildContext context) {
     final state = ref.watch(senseiRoleplayProvider(widget.topic));
     final notifier = ref.read(senseiRoleplayProvider(widget.topic).notifier);
+    final theme = Theme.of(context);
 
     // Auto-scroll on new messages
     ref.listen(senseiRoleplayProvider(widget.topic), (previous, next) {
@@ -124,10 +125,15 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.topic, style: TextStyle(fontSize: 18, fontWeight: AppTypography.bold)),
+            Text(
+              widget.topic,
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
             Text(
               state.isFinished ? 'Đã kết thúc' : 'Sensei đang hội thoại...',
-              style: TextStyle(fontSize: 12, color: state.isFinished ? AppColors.success : AppColors.accent),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: state.isFinished ? AppColors.success : AppColors.accent,
+              ),
             ),
           ],
         ),
@@ -135,11 +141,24 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
           IconButton(
             icon: Icon(_autoPlay ? Icons.volume_up : Icons.volume_off),
             onPressed: () => setState(() => _autoPlay = !_autoPlay),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 40, height: 40),
           ),
           if (!state.isFinished && state.messages.where((m) => m.role == ChatMessageRole.user).length >= 5)
             TextButton(
               onPressed: () => notifier.finish(),
-              child: Text('KẾT THÚC', style: TextStyle(color: AppColors.success, fontWeight: AppTypography.bold)),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                minimumSize: const Size(0, 36),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'KẾT THÚC',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: AppColors.success,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
         ],
       ),
@@ -148,7 +167,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
               itemCount: state.messages.length + (state.isLoading ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == state.messages.length) {
@@ -168,12 +187,12 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   Widget _buildMessageBubble(RoleplayMessage msg) {
     final isAI = msg.role == ChatMessageRole.assistant;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Column(
         crossAxisAlignment: isAI ? CrossAxisAlignment.start : CrossAxisAlignment.end,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: msg.isFeedback 
                   ? AppColors.success.withOpacity(0.1) 
@@ -198,18 +217,18 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                   msg.content,
                   style: TextStyle(
                     color: isAI ? AppColors.textPrimary : AppColors.textOnPrimary,
-                    fontSize: 16,
+                    fontSize: 14.5,
                   ),
                 ),
                 if (isAI && !msg.isFeedback) ...[
                   if (msg.romaji != null)
                     Padding(
-                      padding: const EdgeInsets.only(top: 8),
+                      padding: const EdgeInsets.only(top: 6),
                       child: Text(
                         msg.romaji!,
                         style: TextStyle(
                           color: AppColors.textSecondary,
-                          fontSize: 12,
+                          fontSize: 11.5,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -221,7 +240,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                         msg.english!,
                         style: TextStyle(
                           color: AppColors.textTertiary,
-                          fontSize: 12,
+                          fontSize: 11.5,
                         ),
                       ),
                     ),
@@ -261,24 +280,25 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   Widget _buildInputBar(RoleplayState state, dynamic notifier) {
     if (state.isFinished) {
       return Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
         child: SizedBox(
           width: double.infinity,
-          height: 56,
+          height: 48,
           child: ElevatedButton(
             onPressed: () => context.pop(),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
             ),
-            child: Text('QUAY LẠI', style: TextStyle(fontWeight: AppTypography.bold, color: AppColors.textOnPrimary)),
+            child: const Text('QUAY LẠI', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.textOnPrimary)),
           ),
         ),
       );
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
         boxShadow: [
@@ -296,6 +316,8 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
               icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
               color: _isListening ? AppColors.error : AppColors.textSecondary,
               onPressed: _listen,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 40, height: 40),
             ),
             if (_isListening)
               const Padding(
@@ -308,12 +330,21 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                 decoration: InputDecoration(
                   hintText: 'Nhập câu trả lời...',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                   filled: true,
-                  fillColor: AppColors.grey200,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  fillColor: AppColors.surface,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
                 onSubmitted: (val) {
                   notifier.sendMessage(val);
@@ -322,13 +353,23 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
               ),
             ),
             const SizedBox(width: 8),
-            IconButton(
-              icon: const Icon(Icons.send),
-              color: AppColors.primary,
-              onPressed: () {
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: ElevatedButton(
+                onPressed: () {
                 notifier.sendMessage(_messageController.text);
                 _messageController.clear();
-              },
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  elevation: 0,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.textOnPrimary,
+                  shape: const CircleBorder(),
+                ),
+                child: const Icon(Icons.send, size: 18),
+              ),
             ),
           ],
         ),

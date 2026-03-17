@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_design_system.dart';
 
 /// Torii Mobile App Theme
@@ -18,7 +19,7 @@ class AppTheme {
   static final light = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    fontFamily: AppTypography.fontFamily,
+    fontFamily: GoogleFonts.openSans().fontFamily,
     
     // Color Scheme
     colorScheme: const ColorScheme.light(
@@ -246,7 +247,7 @@ class AppTheme {
   static final dark = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    fontFamily: AppTypography.fontFamily,
+    fontFamily: GoogleFonts.openSans().fontFamily,
     
     // Color Scheme
     colorScheme: const ColorScheme.dark(

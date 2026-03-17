@@ -287,9 +287,32 @@ class MeetApiService {
 
   Future<bool> isRoomActive(String roomId) async {
     try {
-      final data = await _sendAuthRequest('room/isRoomActive', {'room_id': roomId});
-      final isActive = data['is_active'];
-      return isActive == true || isActive == 1 || isActive == 'true';
+      // Backend payload key seems inconsistent across endpoints (room_id vs roomId).
+      // Send both to be backward/forward compatible.
+      final data = await _sendAuthRequest('room/isRoomActive', {
+        'room_id': roomId,
+        'roomId': roomId,
+      });
+
+      // Accept a few known response shapes.
+      final isActive = data['is_active'] ?? data['isActive'];
+      if (isActive != null) {
+        return isActive == true || isActive == 1 || isActive == 'true';
+      }
+
+      // Some gateways return {status: true/false, ...} without is_active.
+      final status = data['status'];
+      if (status == true || status == 1 || status == 'true') {
+        // If status is true but field missing, assume active (room exists).
+        return true;
+      }
+      if (status == false || status == 0 || status == 'false') {
+        return false;
+      }
+
+      // Fallback: if server only returns msg or unknown shape, treat as "not active"
+      // so UI can proceed to createRoom.
+      return false;
     } on MeetApiException {
       rethrow;
     } catch (e) {

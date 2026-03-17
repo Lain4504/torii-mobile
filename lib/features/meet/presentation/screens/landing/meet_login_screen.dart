@@ -55,7 +55,14 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
       final api = ref.read(meetApiServiceProvider);
 
       // 1. Check if room is active
-      bool isRoomActive = await api.isRoomActive(_roomId);
+      bool isRoomActive;
+      try {
+        isRoomActive = await api.isRoomActive(_roomId);
+      } catch (e) {
+        // Server-side /auth/room/isRoomActive can be flaky; don't block joining.
+        // Degrade gracefully by attempting createRoom then getJoinToken.
+        isRoomActive = false;
+      }
 
       // 2. If not active, create room
       if (!isRoomActive) {
@@ -112,79 +119,79 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.surfaceDark : AppColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.surface,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => _goHome(context),
         ),
-        title: const Text(
+        title: Text(
           'Torii Meet',
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
         ),
         centerTitle: true,
       ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Logo or Branding
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.video_chat_rounded,
-                    size: 40,
-                    color: theme.colorScheme.primary,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.video_chat_rounded, color: AppColors.primary, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Vào phòng họp',
+                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Nhập thông tin để nhận mã tham gia.',
+                            style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Torii Meet',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -1,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Tham gia các cuộc họp chuyên nghiệp',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: theme.colorScheme.onSurface.withOpacity(0.5),
-                  ),
-                ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 14),
 
                 // Login Card
                 Container(
                   constraints: const BoxConstraints(maxWidth: 450),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.surfaceDark : AppColors.surface,
-                    borderRadius: BorderRadius.circular(32),
-                    border: Border.all(
-                      color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.05),
-                    ),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.grey300),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.textPrimary.withOpacity(0.08),
-                        blurRadius: 32,
-                        offset: const Offset(0, 16),
+                        color: AppColors.textPrimary.withOpacity(0.04),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(14),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -203,7 +210,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                             ),
                             onChanged: (v) => setState(() => _roomId = v ?? _roomId),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 14),
 
                           _buildFieldLabel(context, 'Vai trò'),
                           _buildDropdown(
@@ -215,7 +222,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                             ],
                             onChanged: (v) => setState(() => _userType = v ?? _userType),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 14),
 
                           _buildFieldLabel(context, 'Tên hiển thị'),
                           _buildTextField(
@@ -225,7 +232,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                             icon: Icons.person_outline_rounded,
                             validator: (v) => (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên' : null,
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 14),
 
                           _buildFieldLabel(context, 'User ID (Dành cho Dev)'),
                           _buildTextField(
@@ -235,11 +242,11 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                             icon: Icons.fingerprint_rounded,
                             validator: (v) => (v == null || v.trim().isEmpty) ? 'Bắt buộc' : null,
                           ),
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 16),
 
                           // Dynamic Login Button
                           SizedBox(
-                            height: 64,
+                            height: 48,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
@@ -262,20 +269,20 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                                   : const Text(
                                       'Vào phòng họp',
                                       style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: 15,
                                         fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.5,
+                                        letterSpacing: 0.2,
                                       ),
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 10),
                           TextButton(
                             onPressed: _isLoading ? null : _resetForm,
                             child: Text(
                               'Đặt lại chi tiết',
                               style: TextStyle(
-                                color: theme.colorScheme.onSurface.withOpacity(0.4),
+                                color: AppColors.textTertiary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -301,6 +308,10 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
               label: const Text(
                 'Về trang chủ',
                 style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.grey300),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
             ),
           ),

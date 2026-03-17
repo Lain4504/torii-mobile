@@ -12,8 +12,10 @@ import '../../../providers/session_provider.dart';
 class MeetEntryScreen extends ConsumerStatefulWidget {
   /// Initial token from route extra (e.g. deep link ?access_token=)
   final String? initialToken;
+  /// Optional roomId to prefill the login form.
+  final String? roomId;
 
-  const MeetEntryScreen({super.key, this.initialToken});
+  const MeetEntryScreen({super.key, this.initialToken, this.roomId});
 
   @override
   ConsumerState<MeetEntryScreen> createState() => _MeetEntryScreenState();
@@ -40,6 +42,9 @@ class _MeetEntryScreenState extends ConsumerState<MeetEntryScreen> {
     if (_effectiveToken != null && _effectiveToken!.isNotEmpty) {
       return JoinMeetingScreen(initialToken: _effectiveToken!);
     }
-    return MeetLoginScreen(onLoginSuccess: _onLoginSuccess);
+    return MeetLoginScreen(
+      roomId: widget.roomId,
+      onLoginSuccess: _onLoginSuccess,
+    );
   }
 }

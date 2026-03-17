@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 
 import '../models/academy_models.dart';
+import '../models/checkout_models.dart';
 import '../models/live_schedule_model.dart';
+import '../models/live_offering_detail_model.dart';
 import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 
@@ -42,6 +44,22 @@ class AcademyRepository {
     }
     if (item is Map) {
       return CourseOfferingModel.fromJson(item.cast<String, dynamic>());
+    }
+    return null;
+  }
+
+  /// GET /api/academy/course-offerings/public/:id (raw detail including classes)
+  Future<LiveOfferingDetailModel?> getPublicLiveOfferingDetailById(String id) async {
+    final response = await _dio.get<Map<String, dynamic>>('/api/academy/course-offerings/public/$id');
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return null;
+    final raw = api.data!;
+    final item = raw['item'] ?? raw['data'] ?? raw;
+    if (item is Map<String, dynamic>) {
+      return LiveOfferingDetailModel.fromJson(item);
+    }
+    if (item is Map) {
+      return LiveOfferingDetailModel.fromJson(item.cast<String, dynamic>());
     }
     return null;
   }
@@ -157,6 +175,63 @@ class AcademyRepository {
     final raw = api.data;
     if (raw is Map<String, dynamic>) return OrderModel.fromJson(raw);
     return null;
+  }
+
+  /// POST /api/academy/orders/preview
+  Future<OrderPreviewModel> previewOrder({
+    required String offeringId,
+    String? classId,
+    String? couponCode,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/academy/orders/preview',
+      data: <String, dynamic>{
+        'offeringIds': [offeringId],
+        if (classId != null && classId.isNotEmpty) 'classIdByOffering': {offeringId: classId},
+        if (couponCode != null && couponCode.trim().isNotEmpty) 'couponCode': couponCode.trim(),
+      },
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) {
+      throw Exception(api.message ?? 'Failed to preview order');
+    }
+    final raw = api.data!;
+    if (raw is Map<String, dynamic>) return OrderPreviewModel.fromJson(raw);
+    return OrderPreviewModel(subTotal: 0, discountTotal: 0, grandTotal: 0);
+  }
+
+  /// POST /api/academy/orders/checkout
+  Future<OrderCheckoutResultModel> checkoutOrder({
+    required String offeringId,
+    String? classId,
+    String paymentMethod = 'PAYOS',
+    String? couponCode,
+    Map<String, dynamic>? metadata,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/academy/orders/checkout',
+      data: <String, dynamic>{
+        'offeringIds': [offeringId],
+        if (classId != null && classId.isNotEmpty) 'classIdByOffering': {offeringId: classId},
+        'paymentMethod': paymentMethod,
+        if (couponCode != null && couponCode.trim().isNotEmpty) 'couponCode': couponCode.trim(),
+        if (metadata != null) 'metadata': metadata,
+      },
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) {
+      throw Exception(api.message ?? 'Failed to create order');
+    }
+    return OrderCheckoutResultModel.fromJson(api.data!);
+  }
+
+  /// GET /api/academy/orders/by-code/:orderCode (fulfillment summary for current user)
+  Future<OrderFulfillmentSummaryModel?> getOrderFulfillmentByCode(String orderCode) async {
+    final response = await _dio.get<Map<String, dynamic>>('/api/academy/orders/by-code/$orderCode');
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return null;
+    final raw = api.data!;
+    return OrderFulfillmentSummaryModel.fromJson(raw);
   }
 
   // ---------- Live schedules ----------

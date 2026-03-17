@@ -52,40 +52,29 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: AppColors.surface,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => _goHome(context),
         ),
-        title: const Text(
+        title: Text(
           'Tham gia cuộc họp',
-          style: TextStyle(fontWeight: FontWeight.w700),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
         ),
         centerTitle: true,
       ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1024),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.textPrimary.withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -100,21 +89,30 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                         return const SizedBox.shrink();
                       }
                       return Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                        child: Text(
-                          welcomeMsg,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.primary.withOpacity(0.12)),
                           ),
-                          textAlign: TextAlign.center,
+                          child: Text(
+                            welcomeMsg,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textSecondary,
+                                  height: 1.35,
+                                ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       );
                     },
                   ),
                   // Content
                   Padding(
-                    padding: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(0),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final isMobile = constraints.maxWidth < 768;
@@ -129,7 +127,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                                   onMicToggled: (val) => _isMicEnabled = val,
                                   onCameraToggled: (val) => _isCameraEnabled = val,
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 14),
                               ],
                               JoinForm(
                                 loadingMessage: _loadingMessage,
@@ -154,7 +152,7 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                                   onCameraToggled: (val) => _isCameraEnabled = val,
                                 ),
                               ),
-                            const SizedBox(width: 32),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: JoinForm(
                                 loadingMessage: _loadingMessage,
@@ -170,22 +168,6 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                     ),
                   ),
                 ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: SizedBox(
-            height: 48,
-            child: OutlinedButton.icon(
-              onPressed: () => _goHome(context),
-              icon: const Icon(Icons.home_outlined),
-              label: const Text(
-                'Về trang chủ',
-                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ),

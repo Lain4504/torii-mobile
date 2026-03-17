@@ -25,18 +25,24 @@ class AppShell extends ConsumerWidget {
     // Hide bottom bar only when user is inside an active meeting room (not on shell routes)
     final currentPath = state.uri.path;
     final isOnMeetRoute = currentPath.startsWith('/meet') || currentPath.startsWith('/meeting');
-    final isMeetStartup = ref.watch(sessionProvider.select((s) => s.isStartup));
-    final isMeetingActive = isOnMeetRoute && !isMeetStartup;
+
+    // Sensei: keep bottom bar only on dashboard (/sensei). Hide on sub-pages.
+    final isSenseiRoute = currentPath.startsWith('/sensei');
+    final isSenseiDashboard = currentPath == '/sensei';
+    final hideBottomNavForSensei = isSenseiRoute && !isSenseiDashboard;
 
     final activeIndex = navigationShell.currentIndex;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // Hide bottom bar for all Meet routes and Sensei sub-pages
+    final shouldHideBottomNav = isOnMeetRoute || hideBottomNavForSensei;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: isMeetingActive 
+      bottomNavigationBar: shouldHideBottomNav
         ? null 
         : _BottomNavBar(
             navigationShell: navigationShell,
@@ -107,10 +113,18 @@ class _BottomNavBar extends StatelessWidget {
                       isDark: isDark,
                     ),
                     _NavBarItem(
+                      icon: Icons.auto_awesome_outlined,
+                      activeIcon: Icons.auto_awesome_rounded,
+                      label: 'AI Sensei',
+                      isSelected: activeIndex == 2,
+                      onTap: () => onTap('/sensei'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
                       icon: Icons.menu_book_outlined,
                       activeIcon: Icons.menu_book_rounded,
                       label: 'My courses',
-                      isSelected: activeIndex == 2,
+                      isSelected: activeIndex == 3,
                       onTap: () => onTap('/my-courses'),
                       isDark: isDark,
                     ),
@@ -118,7 +132,7 @@ class _BottomNavBar extends StatelessWidget {
                       icon: Icons.schedule_outlined,
                       activeIcon: Icons.schedule_rounded,
                       label: 'Live',
-                      isSelected: activeIndex == 3,
+                      isSelected: activeIndex == 4,
                       onTap: () => onTap('/live-schedule'),
                       isDark: isDark,
                     ),
@@ -141,10 +155,18 @@ class _BottomNavBar extends StatelessWidget {
                       isDark: isDark,
                     ),
                     _NavBarItem(
+                      icon: Icons.auto_awesome_outlined,
+                      activeIcon: Icons.auto_awesome_rounded,
+                      label: 'AI Sensei',
+                      isSelected: activeIndex == 2,
+                      onTap: () => onTap('/sensei'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
                       icon: Icons.article_outlined,
                       activeIcon: Icons.article_rounded,
                       label: 'Blog',
-                      isSelected: activeIndex == 2,
+                      isSelected: activeIndex == 3,
                       onTap: () => onTap('/blog'),
                       isDark: isDark,
                     ),

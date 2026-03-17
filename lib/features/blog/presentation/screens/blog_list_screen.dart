@@ -13,8 +13,6 @@ class BlogListScreen extends ConsumerStatefulWidget {
 }
 
 class _BlogListScreenState extends ConsumerState<BlogListScreen> {
-  String _searchQuery = '';
-
   @override
   Widget build(BuildContext context) {
     final blogListAsync = ref.watch(blogListProvider);
@@ -28,19 +26,6 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Tìm bài viết...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: AppColors.grey200,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-              ),
-              onChanged: (v) => setState(() => _searchQuery = v),
-            ),
-          ),
           Expanded(
             child: blogListAsync.when(
               data: (paginated) => _buildList(paginated.data),
@@ -54,19 +39,14 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
   }
 
   Widget _buildList(List<BlogModel> list) {
-    final filtered = _searchQuery.isEmpty
-        ? list
-        : list.where((b) =>
-            b.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            (b.excerpt ?? '').toLowerCase().contains(_searchQuery.toLowerCase())).toList();
-    if (filtered.isEmpty) {
-      return Center(child: Text(_searchQuery.isEmpty ? 'Chưa có bài viết nào' : 'Không tìm thấy bài viết'));
+    if (list.isEmpty) {
+      return const Center(child: Text('Chưa có bài viết nào'));
     }
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: filtered.length,
+      itemCount: list.length,
       itemBuilder: (context, index) {
-        final blog = filtered[index];
+        final blog = list[index];
         return _buildBlogCard(blog);
       },
     );

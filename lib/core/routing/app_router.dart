@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +11,10 @@ import '../../features/auth/presentation/screens/email_verification_screen.dart'
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/course/presentation/screens/discovery_screen.dart';
 import '../../features/course/presentation/screens/course_detail_screen.dart';
+import '../../features/course/presentation/screens/course_live_detail_screen.dart';
+import '../../features/course/presentation/screens/checkout_screen.dart';
+import '../../features/course/presentation/screens/payment_webview_screen.dart';
+import '../../features/course/presentation/screens/payment_result_screen.dart';
 import '../../features/course/presentation/screens/my_courses_screen.dart';
 import '../../features/course/presentation/screens/curriculum_screen.dart';
 import '../../features/course/presentation/screens/lesson_screen.dart';
@@ -22,8 +27,19 @@ import '../../features/profile/presentation/screens/order_list_screen.dart';
 import '../../features/profile/presentation/screens/order_detail_screen.dart';
 import '../../features/profile/presentation/screens/leaderboard_screen.dart';
 import '../../features/profile/presentation/screens/notifications_screen.dart';
+import '../../features/profile/presentation/screens/achievements_screen.dart';
+import '../../features/profile/presentation/screens/rewards_store_screen.dart';
+import '../../features/profile/presentation/screens/coupons_screen.dart';
+import '../../features/profile/presentation/screens/two_factor_settings_screen.dart';
+import '../../features/sensei/views/pages/sensei_dashboard_page.dart';
+import '../../features/sensei/views/pages/sensei_chat_page.dart';
+import '../../features/sensei/views/pages/sensei_translate_page.dart';
+import '../../features/sensei/views/pages/sensei_roleplay_topic_page.dart';
+import '../../features/sensei/views/pages/sensei_roleplay_chat_page.dart';
+import '../../features/sensei/views/pages/sensei_drill_page.dart';
 import '../../features/onboarding/providers/onboarding_provider.dart';
 import '../widgets/app_shell.dart';
+import '../../features/meet/presentation/screens/landing/meet_entry_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final onboardingNotifier = ref.watch(onboardingNotifierProvider);
@@ -67,6 +83,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      GoRoute(
+        path: '/meet',
+        builder: (context, state) {
+          final roomId = state.uri.queryParameters['roomId'];
+          final token = state.uri.queryParameters['access_token'];
+          return MeetEntryScreen(roomId: roomId, initialToken: token);
+        },
+      ),
+
       // Shell với AppShell làm layout chung + bottom nav
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -96,6 +121,37 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                path: '/course-live/:id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return CourseLiveDetailScreen(courseId: id);
+                },
+              ),
+              GoRoute(
+                path: '/checkout/:id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  final classId = state.uri.queryParameters['classId'];
+                  return CheckoutScreen(offeringId: id, classId: classId);
+                },
+              ),
+              GoRoute(
+                path: '/payment',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>? ?? const {};
+                  final paymentUrl = (extra['paymentUrl'] as String?) ?? '';
+                  final orderCode = (extra['orderCode'] as String?) ?? '';
+                  return PaymentWebViewScreen(paymentUrl: paymentUrl, orderCode: orderCode);
+                },
+              ),
+              GoRoute(
+                path: '/payment-result/:orderCode',
+                builder: (context, state) {
+                  final code = state.pathParameters['orderCode'] ?? '';
+                  return PaymentResultScreen(orderCode: code);
+                },
+              ),
+              GoRoute(
                 path: '/curriculum',
                 builder: (context, state) => const CurriculumScreen(),
               ),
@@ -105,7 +161,40 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 2: Blog (guest) / My courses (user)
+          // Branch 2: AI Sensei (available for both guest & user)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/sensei',
+                builder: (context, state) => const SenseiDashboardPage(),
+              ),
+              GoRoute(
+                path: '/sensei/chat',
+                builder: (context, state) => const SenseiChatPage(),
+              ),
+              GoRoute(
+                path: '/sensei/translate',
+                builder: (context, state) => const SenseiTranslatePage(),
+              ),
+              GoRoute(
+                path: '/sensei/roleplay-topics',
+                builder: (context, state) => const SenseiRoleplayTopicPage(),
+              ),
+              GoRoute(
+                path: '/sensei/roleplay-chat',
+                builder: (context, state) {
+                  final topic = (state.extra is String) ? state.extra as String : '';
+                  return SenseiRoleplayChatPage(topic: topic.isNotEmpty ? topic : 'Roleplay');
+                },
+              ),
+              // Placeholder route to avoid navigation errors from menu items
+              GoRoute(
+                path: '/sensei/drill',
+                builder: (context, state) => const SenseiDrillPage(),
+              ),
+            ],
+          ),
+          // Branch 3: Blog (guest) / My courses (user)
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -136,7 +225,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 3: Live schedule & profile-related
+          // Branch 4: Live schedule & profile-related
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -150,6 +239,22 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
+              ),
+              GoRoute(
+                path: '/achievements',
+                builder: (context, state) => const AchievementsScreen(),
+              ),
+              GoRoute(
+                path: '/rewards-store',
+                builder: (context, state) => const RewardsStoreScreen(),
+              ),
+              GoRoute(
+                path: '/my-coupons',
+                builder: (context, state) => const CouponsScreen(),
+              ),
+              GoRoute(
+                path: '/security-2fa',
+                builder: (context, state) => const TwoFactorSettingsScreen(),
               ),
               GoRoute(
                 path: '/leaderboard',

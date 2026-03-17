@@ -6,63 +6,106 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary - Web brand "nhaikanji blue" (approx OKLCH 0.64 0.14 255)
-  // Kept a small scale of tints/shades around the same blue.
-  static const Color primary = Color(0xFF345DFF);        // --primary
-  static const Color primaryLight = Color(0xFF6F8BFF);   // ~ --chart-2/3
-  static const Color primaryDark = Color(0xFF223DB3);
-  static const Color primarySurface = Color(0xFFE3E7FF); // soft blue surface
+  // Brand primary: nhaikanji blue (from CSS OKLCH palette)
+  static const Color primary = Color(0xFF4C8EDF); // --primary / --ring / --chart-1
+  static const Color primaryLight = Color(0xFF69A1E8); // --chart-2
+  static const Color primaryLighter = Color(0xFF85B4F0); // --chart-3
+  static const Color primaryDark = Color(0xFF2B7AD6); // --chart-4
+  static const Color primaryDarker = Color(0xFF005FC6); // --chart-5
+
+  // Legacy surface aliases used across the app theme/screens.
+  // Keep them stable to avoid breaking older UI code.
+  static const Color primarySurface = Color(0xFFEAF2FF);
+  static const Color accentSurface = Color(0xFFF5F5F5);
+  static const Color accentLight = Color(0xFF9CC1F3);
   
-  // Secondary - Soft lavender / neutral from web palette
-  static const Color secondary = Color(0xFFECE7FF);      // ~ --secondary
+  // Neutrals (Light)
+  static const Color background = Color(0xFFFFFFFF); // --background
+  static const Color foreground = Color(0xFF0A0A0A); // --foreground
+  static const Color card = Color(0xFFFFFFFF); // --card
+  static const Color cardForeground = Color(0xFF0A0A0A); // --card-foreground
+  static const Color popover = Color(0xFFFFFFFF); // --popover
+  static const Color popoverForeground = Color(0xFF0A0A0A); // --popover-foreground
+
+  static const Color primaryForeground = Color(0xFFFAFAFA); // --primary-foreground
+
+  static const Color secondary = Color(0xFFF4F4F5); // --secondary
+  static const Color secondaryForeground = Color(0xFF18181B); // --secondary-foreground
+
+  static const Color muted = Color(0xFFF5F5F5); // --muted
+  static const Color mutedForeground = Color(0xFF737373); // --muted-foreground
+
+  static const Color accent = Color(0xFFF5F5F5); // --accent
+  static const Color accentForeground = Color(0xFF171717); // --accent-foreground
+
+  static const Color destructive = Color(0xFFDF2225); // --destructive
+
+  static const Color border = Color(0xFFE5E5E5); // --border
+  static const Color input = Color(0xFFE5E5E5); // --input
+
+  static const Color sidebar = Color(0xFFFAFAFA); // --sidebar
+  static const Color sidebarForeground = Color(0xFF0A0A0A); // --sidebar-foreground
+  static const Color sidebarPrimary = Color(0xFF4C8EDF); // --sidebar-primary
+  static const Color sidebarPrimaryForeground = Color(0xFFFAFAFA); // --sidebar-primary-foreground
+  static const Color sidebarAccent = Color(0xFFF5F5F5); // --sidebar-accent
+  static const Color sidebarAccentForeground = Color(0xFF171717); // --sidebar-accent-foreground
+  static const Color sidebarBorder = Color(0xFFE5E5E5); // --sidebar-border
+  static const Color sidebarRing = Color(0xFF8EA0B8); // --sidebar-ring
   
-  // Success - keep separate from brand, slightly tuned
+  // Semantic
   static const Color success = Color(0xFF3BB25E);
-  
-  // Accent / Muted neutrals (mapped from --accent / --muted)
-  static const Color accent = Color(0xFFF2F2F6);         // light neutral
-  static const Color accentLight = Color(0xFFFAFAFC);
-  static const Color accentDark = Color(0xFF202127);
-  static const Color accentSurface = Color(0xFFF5F5F9);
-  
-  // Semantic Colors (mapped from --destructive)
-  static const Color error = Color(0xFFDE5240);
-  static const Color errorLight = Color(0xFFFEE7E4);
-  static const Color errorDark = Color(0xFFB5392D);
+
+  static const Color error = destructive;
+  static const Color errorLight = Color(0xFFFFE4E6);
+  static const Color errorDark = Color(0xFFFF6467); // dark --destructive
   
   // Detail - Purple accent close to palette's cool tones
   static const Color detail = Color(0xFF6D56B8);
 
-  // Neutral
+  // Convenience aliases (backward compatible with existing code)
   static const Color white = Color(0xFFFFFFFF);
   
   // Grey Scale (Commonly used in AppTheme)
-  static const Color grey200 = Color(0xFFE7E7EC); // ~ --border / --input
+  static const Color grey200 = border; // ~ --border / --input
   static const Color grey300 = Color(0xFFD5D5DD);
-  static const Color grey700 = Color(0xFF4A4A55); // ~ --muted-foreground
+  static const Color grey700 = mutedForeground; // ~ --muted-foreground
 
-  // Backgrounds & Surface
-  static const Color background = Color(0xFFFFFFFF);     // --background
-  static const Color surface = Color(0xFFFFFFFF);        // cards/popovers
-  static const Color surfaceVariant = Color(0xFFF5F5FA);
+  // Surfaces
+  static const Color surface = card;
+  static const Color surfaceVariant = muted;
 
   // Text
-  static const Color textPrimary = Color(0xFF17171B);      // --foreground
-  static const Color textSecondary = Color(0xFF40404A);    // sidebar-foreground
-  static const Color textTertiary = Color(0xFF8B8B96);     // muted-foreground
-  static const Color textOnPrimary = Color(0xFFFEFEFF);    // --primary-foreground
-  static const Color textOnAccent = Color(0xFF17171B);
+  static const Color textPrimary = foreground;
+  static const Color textSecondary = secondaryForeground;
+  static const Color textTertiary = mutedForeground;
+  static const Color textOnPrimary = primaryForeground;
+  static const Color textOnAccent = accentForeground;
 
-  // Dark Mode Backgrounds & Text
-  static const Color backgroundDark = Color(0xFF15151A);     // --background (dark)
-  static const Color surfaceDark = Color(0xFF202027);        // --card / --popover (dark)
-  static const Color surfaceVariantDark = Color(0xFF2A2A33); 
-  static const Color textPrimaryDark = Color(0xFFF5F5F7);    // --foreground (dark)
-  static const Color textSecondaryDark = Color(0xFFD2D2DA);  // muted-foreground (dark)
+  // Neutrals (Dark) from CSS .dark palette
+  static const Color backgroundDark = Color(0xFF0A0A0A); // --background (dark)
+  static const Color foregroundDark = Color(0xFFFAFAFA); // --foreground (dark)
+  static const Color surfaceDark = Color(0xFF171717); // --card / --popover (dark)
+  static const Color surfaceVariantDark = Color(0xFF262626); // --muted (dark)
 
-  // Borders
-  static const Color border = Color(0xFFE2E2EA);           // --border
-  static const Color borderLight = Color(0xFFF0F0F6);
+  static const Color secondaryDark = Color(0xFF27272A); // --secondary (dark)
+  static const Color mutedDark = Color(0xFF262626); // --muted (dark)
+  static const Color mutedForegroundDark = Color(0xFFA1A1A1); // --muted-foreground (dark)
+  static const Color accentDark = Color(0xFF404040); // --accent (dark)
+
+  // CSS: --border: oklch(1 0 0 / 10%); --input: oklch(1 0 0 / 15%)
+  static const Color borderDark = Color(0x1AFFFFFF); // 10% white
+  static const Color inputDark = Color(0x26FFFFFF); // 15% white
+
+  static const Color sidebarDark = Color(0xFF171717); // --sidebar (dark)
+  static const Color sidebarForegroundDark = Color(0xFFFAFAFA); // --sidebar-foreground (dark)
+  static const Color sidebarAccentDark = Color(0xFF262626); // --sidebar-accent (dark)
+  static const Color sidebarBorderDark = Color(0x1AFFFFFF); // --sidebar-border (dark)
+
+  static const Color textPrimaryDark = foregroundDark;
+  static const Color textSecondaryDark = mutedForegroundDark;
+
+  // Border helpers
+  static const Color borderLight = border;
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
@@ -91,15 +134,16 @@ class AppSpacing {
 class AppRadius {
   AppRadius._();
   
-  static const double md = 8.0;
+  // CSS: --radius: 0.625rem (assuming 16px/rem => 10px)
+  static const double md = 10.0;
   static const double lg = 12.0;
   static const double xl = 16.0;
   static const double full = 9999.0;
   
   // Semantic
-  static const double card = 16.0;
-  static const double button = 12.0;
-  static const double input = 12.0;
+  static const double card = md;
+  static const double button = md;
+  static const double input = md;
 }
 
 // ============================================================================

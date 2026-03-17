@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
@@ -33,12 +34,12 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final liveSchedulesAsync = ref.watch(liveSchedulesProvider);
 
-    // Template Colors
-    const primaryColor = Color(0xFF5E82BB);
-    final bgColor = isDark ? const Color(0xFF15181D) : const Color(0xFFF6F7F7);
-    final surfaceColor = isDark ? const Color(0xFF0F172A) : Colors.white;
+    // Design system colors (match web OKLCH palette)
+    final primaryColor = AppColors.primary;
+    final bgColor = isDark ? AppColors.backgroundDark : AppColors.muted;
+    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
     final gridLineColor = primaryColor.withOpacity(0.1);
-    final headerBgColor = isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+    final headerBgColor = isDark ? AppColors.surfaceDark : AppColors.sidebar;
 
     final weekEnd = _currentWeekStart.add(const Duration(days: 6));
     final dateRangeText = "${DateFormat('MMM d').format(_currentWeekStart)} - ${DateFormat('MMM d').format(weekEnd)}";
@@ -321,7 +322,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A), // Always dark like template
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceDark,
         border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
       ),
       child: Column(
@@ -373,7 +374,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () => context.push('/meet?roomId=room01'),
               icon: const Icon(Icons.play_circle_fill, color: Colors.white),
               label: const Text(
                 'JOIN CLASS',

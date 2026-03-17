@@ -37,71 +37,83 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('AI Roleplay', style: TextStyle(fontWeight: AppTypography.bold)),
+        title: Text(
+          'AI Roleplay',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
         backgroundColor: AppColors.surface,
         elevation: 0,
         foregroundColor: AppColors.textPrimary,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
             Container(
-              width: 100,
-              height: 100,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
                 color: AppColors.accent.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.spatial_audio_off_rounded,
-                size: 50,
+                size: 28,
                 color: AppColors.accent,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
             Text(
               'Roleplay với Sensei',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 20,
                 fontWeight: AppTypography.bold,
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
             Text(
               'Chọn một chủ đề hoặc nhập chủ đề của riêng bạn.\nSensei sẽ cùng bạn luyện tập hội thoại.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary,
-                height: 1.5,
+                fontSize: 13,
+                color: AppColors.textTertiary,
+                height: 1.35,
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 18),
             TextField(
               controller: _topicController,
               decoration: InputDecoration(
                 hintText: 'Nhập chủ đề (VD: Mua vé tàu)...',
                 filled: true,
-                fillColor: AppColors.grey200,
+                fillColor: AppColors.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
+                  borderSide: const BorderSide(color: AppColors.grey300),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: AppColors.grey300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: AppColors.primary),
+                ),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               ),
               onSubmitted: (value) => _startRoleplay(value),
             ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 48,
               child: ElevatedButton(
                 onPressed: () => _startRoleplay(_topicController.text),
                 style: ElevatedButton.styleFrom(
@@ -110,46 +122,46 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  elevation: 2,
+                  elevation: 0,
                 ),
                 child: Text(
                   'Bắt đầu hội thoại',
-                  style: TextStyle(fontSize: 18, fontWeight: AppTypography.bold),
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
             const Divider(height: 1),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
             Text(
               'GỢI Ý CHỦ ĐỀ',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: AppTypography.bold,
                 color: AppColors.textTertiary,
                 letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             Wrap(
-              spacing: 12,
-              runSpacing: 12,
+              spacing: 10,
+              runSpacing: 10,
               alignment: WrapAlignment.center,
               children: _suggestedTopics.map((topic) {
                 return InkWell(
                   onTap: () => _startRoleplay(topic),
                   borderRadius: BorderRadius.circular(30),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.grey200,
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: AppColors.grey200),
+                      border: Border.all(color: AppColors.grey300),
                     ),
                     child: Text(
                       topic,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12.5,
                         fontWeight: AppTypography.medium,
                         color: AppColors.textSecondary,
                       ),

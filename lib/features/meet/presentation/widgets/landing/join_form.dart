@@ -32,44 +32,44 @@ class JoinForm extends StatelessWidget {
   Widget _buildLoadingState(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: 64,
-            height: 64,
+            width: 44,
+            height: 44,
             child: CircularProgressIndicator(
-              strokeWidth: 6,
+              strokeWidth: 4,
               valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
               backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 14),
           Text(
             loadingMessage!,
             style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.2,
             ),
             textAlign: TextAlign.center,
           ),
           if (waitForApproval) ...[
             const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.grey300),
               ),
               child: const Text(
                 'Vui lòng đợi người tổ chức cho phép bạn tham gia.',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 12.5,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -88,26 +88,22 @@ class JoinForm extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
+        Text(
           'Sẵn sàng tham gia?',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -1,
-          ),
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         Text(
           _getJoinPrompt(),
           style: TextStyle(
-            fontSize: 15,
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
-            height: 1.5,
+            fontSize: 13,
+            color: AppColors.textTertiary,
+            height: 1.35,
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 48),
+        const SizedBox(height: 18),
         
         if (bothLocked)
           ElevatedButton.icon(
@@ -118,7 +114,7 @@ class JoinForm extends StatelessWidget {
               backgroundColor: theme.colorScheme.surface,
               foregroundColor: theme.colorScheme.primary,
               shadowColor: Colors.transparent,
-              padding: const EdgeInsets.symmetric(vertical: 20),
+              padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
@@ -127,51 +123,36 @@ class JoinForm extends StatelessWidget {
                 ),
               ),
               textStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontSize: 14.5,
+                fontWeight: FontWeight.w800,
               ),
             ),
           )
         else
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.colorScheme.primary.withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
+          SizedBox(
+            height: 48,
             child: ElevatedButton(
               onPressed: onJoin,
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: AppColors.textOnPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),
               child: const Text(
                 'Tham gia ngay',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                ),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: 0.2),
               ),
             ),
           ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 12),
         Text(
           'Bằng cách tham gia, bạn đồng ý với Điều khoản dịch vụ của chúng tôi.',
           style: TextStyle(
-            fontSize: 12,
-            color: theme.colorScheme.onSurface.withOpacity(0.4),
+            fontSize: 11.5,
+            color: AppColors.textTertiary,
           ),
           textAlign: TextAlign.center,
         ),

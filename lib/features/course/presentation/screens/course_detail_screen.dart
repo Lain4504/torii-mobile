@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
@@ -12,15 +13,16 @@ class CourseDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(courseOfferingDetailRichProvider(courseId));
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.background,
       body: detailAsync.when(
         data: (detail) {
           if (detail == null) {
             return const Center(child: Text('Không tìm thấy khóa học'));
           }
-          return _buildContent(context, detail);
+          return _buildContent(context, theme, detail);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
@@ -28,9 +30,18 @@ class CourseDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, CourseOfferingDetailModel detail, [WidgetRef? ref]) {
+  Widget _buildContent(
+    BuildContext context,
+    ThemeData theme,
+    CourseOfferingDetailModel detail, [
+    WidgetRef? ref,
+  ]) {
     final course = detail.offering;
     final priceStr = '${course.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
+    const bottomNavBarHeight = 64.0; // matches AppShell bottom bar
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final bottomSafePadding = bottomNavBarHeight + bottomInset + 12;
+
     return Stack(
       children: [
         CustomScrollView(
@@ -62,18 +73,32 @@ class CourseDetailScreen extends ConsumerWidget {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(course.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        course.title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: AppTypography.extraBold,
+                          letterSpacing: 0.1,
+                        ),
+                      ),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _buildInfoItem(Icons.signal_cellular_alt, course.mode),
                         _buildInfoItem(Icons.list_alt, 'Khóa học'),
-                        Text(priceStr, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                        Text(
+                          priceStr,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: AppTypography.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ],
                     ),
                     if (detail.instructorName != null && detail.instructorName!.isNotEmpty) ...[
@@ -89,12 +114,30 @@ class CourseDetailScreen extends ConsumerWidget {
                         ],
                       ),
                     ],
-                    const Divider(height: 48),
-                    const Text('Mô tả khóa học', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Divider(height: 32),
+                    Text(
+                      'Mô tả khóa học',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: AppTypography.bold,
+                        letterSpacing: 0.1,
+                      ),
+                    ),
                     const SizedBox(height: 12),
-                    Text(course.description ?? 'Không có mô tả.', style: TextStyle(height: 1.6, color: AppColors.textPrimary)),
-                    const SizedBox(height: 28),
-                    const Text('Syllabus', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(
+                      course.description ?? 'Không có mô tả.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        height: 1.6,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Syllabus',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: AppTypography.bold,
+                        letterSpacing: 0.1,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     if (detail.modules.isEmpty)
                       Text(
@@ -107,8 +150,9 @@ class CourseDetailScreen extends ConsumerWidget {
                             .map((m) => _buildModuleTile(m))
                             .toList(),
                       ),
-                    const SizedBox(height: 100),
-                  ],
+                    SizedBox(height: bottomSafePadding + 88),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -117,7 +161,7 @@ class CourseDetailScreen extends ConsumerWidget {
         Align(
           alignment: Alignment.bottomCenter,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: EdgeInsets.fromLTRB(24, 16, 24, bottomSafePadding),
             decoration: BoxDecoration(
               color: AppColors.surface,
               boxShadow: [BoxShadow(color: AppColors.textPrimary.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
@@ -125,21 +169,41 @@ class CourseDetailScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('Mua khóa học', style: TextStyle(fontWeight: FontWeight.bold)),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => context.push('/checkout/${course.id}'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textOnPrimary,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text(
+                        'Mua khóa học',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'Bạn đã mua khóa học này? Đăng nhập để học ngay trong mục "Khóa học của tôi".',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.grey700,
-                    height: 1.4,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Text(
+                    'Bạn đã mua khóa học này? Đăng nhập để học ngay trong mục "Khóa học của tôi".',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.grey700,
+                      height: 1.4,
+                    ),
                   ),
                 ),
               ],
@@ -155,7 +219,14 @@ class CourseDetailScreen extends ConsumerWidget {
       children: [
         Icon(icon, size: 16, color: AppColors.grey700),
         const SizedBox(width: 4),
-        Text(text, style: TextStyle(color: AppColors.grey700, fontSize: 13, fontWeight: FontWeight.w600)),
+        Text(
+          text,
+          style: TextStyle(
+            color: AppColors.grey700,
+            fontSize: 12,
+            fontWeight: AppTypography.semiBold,
+          ),
+        ),
       ],
     );
   }
@@ -166,15 +237,18 @@ class CourseDetailScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: AppColors.borderLight),
       ),
       child: ExpansionTile(
         initiallyExpanded: module.orderIndex == 1 || module.orderIndex == 0,
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         title: Text(
           module.title.isNotEmpty ? module.title : 'Module ${module.orderIndex}',
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+          style: const TextStyle(
+            fontWeight: AppTypography.extraBold,
+            fontSize: 14,
+          ),
         ),
         subtitle: Text(
           '${module.lessons.length} bài học',

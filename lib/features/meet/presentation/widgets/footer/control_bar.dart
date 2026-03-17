@@ -19,30 +19,27 @@ class ControlBar extends ConsumerWidget {
     final isMobile = MediaQuery.of(context).size.width < 768;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, isMobile ? 12 : 24),
-      child: Container(
-        height: isMobile ? 80 : 96,
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 12 : 24,
-        ),
-        decoration: BoxDecoration(
-          color: isDark 
-              ? AppColors.surfaceDark.withOpacity(0.9) 
-              : AppColors.surface.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
+    return Container(
+      height: isMobile ? 80 : 96,
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 12 : 24,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        border: Border(
+          top: BorderSide(
             color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08),
             width: 1,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.textPrimary.withOpacity(0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textPrimary.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -72,7 +69,6 @@ class ControlBar extends ConsumerWidget {
             const LeaveButton(),
           ],
         ),
-      ),
-    );
+      );
   }
 }

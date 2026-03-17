@@ -10,6 +10,8 @@ import '../../data/models/notification_model.dart';
 import '../../data/models/gamification_models.dart';
 import '../../data/models/live_schedule_model.dart';
 import '../../data/models/course_offering_detail_model.dart';
+import '../../data/models/live_offering_detail_model.dart';
+import '../../data/models/checkout_models.dart';
 import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 import '../../features/auth/providers/auth_providers.dart';
@@ -101,6 +103,16 @@ final courseOfferingDetailRichProvider = FutureProvider.family<CourseOfferingDet
     return CourseOfferingDetailModel.fromJson(item.cast<String, dynamic>());
   }
   return CourseOfferingDetailModel(offering: response, modules: const []);
+});
+
+final liveOfferingDetailProvider = FutureProvider.family<LiveOfferingDetailModel?, String>((ref, id) async {
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getPublicLiveOfferingDetailById(id);
+});
+
+final orderFulfillmentByCodeProvider = FutureProvider.family<OrderFulfillmentSummaryModel?, String>((ref, orderCode) async {
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getOrderFulfillmentByCode(orderCode);
 });
 
 // ---------- Notifications ----------

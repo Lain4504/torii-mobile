@@ -49,26 +49,29 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
   Widget build(BuildContext context) {
     final translatorState = ref.watch(translatorProvider);
     final grammarState = ref.watch(grammarCheckProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('AI Dịch thuật & Ngữ pháp', 
-          style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          'AI Dịch thuật',
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
         child: Column(
           children: [
             // Language Selector
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.textOnPrimary,
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppColors.borderLight),
               ),
               child: Row(
@@ -82,6 +85,8 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                     icon: const Icon(Icons.swap_horiz, size: 20),
                     onPressed: _swapLanguages,
                     color: AppColors.primary,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(width: 36, height: 36),
                   ),
                   const Spacer(),
                   _LanguageDrop(
@@ -96,18 +101,18 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
             // Input Card
             Container(
               decoration: BoxDecoration(
-                color: AppColors.textOnPrimary,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.borderLight),
               ),
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     child: TextField(
                       controller: _textController,
-                      maxLines: 5,
-                      style: const TextStyle(fontSize: 18),
+                      maxLines: 4,
+                      style: const TextStyle(fontSize: 16),
                       decoration: const InputDecoration(
                         hintText: 'Nhập văn bản cần dịch...',
                         border: InputBorder.none,
@@ -116,17 +121,21 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                   ),
                   const Divider(height: 1),
                   Padding(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     child: Row(
                       children: [
                         IconButton(
                           icon: const Icon(Icons.volume_up, size: 20),
                           onPressed: () {},
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints.tightFor(width: 36, height: 36),
                         ),
                         if (_textController.text.isNotEmpty)
                           IconButton(
                             icon: const Icon(Icons.close, size: 20),
                             onPressed: () => setState(() => _textController.clear()),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints.tightFor(width: 36, height: 36),
                           ),
                         const Spacer(),
                         ElevatedButton.icon(
@@ -139,6 +148,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                             backgroundColor: AppColors.primary,
                             foregroundColor: AppColors.textOnPrimary,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           ),
                         ),
                       ],
@@ -153,7 +163,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
             if (translatorState.translation != null)
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(16),
@@ -164,9 +174,9 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                   children: [
                     Text(
                       translatorState.translation!.translatedText,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
                         IconButton(
@@ -177,10 +187,14 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                               const SnackBar(content: Text('Đã sao chép!')),
                             );
                           },
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints.tightFor(width: 36, height: 36),
                         ),
                         IconButton(
                           icon: const Icon(Icons.volume_up, size: 20),
                           onPressed: () {},
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints.tightFor(width: 36, height: 36),
                         ),
                       ],
                     ),
@@ -191,9 +205,9 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
             // Grammar Check Prompt
             if (translatorState.translation != null && grammarState.response == null)
               Padding(
-                padding: const EdgeInsets.only(top: 16),
+                padding: const EdgeInsets.only(top: 12),
                 child: Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.success.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(16),
@@ -201,13 +215,19 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                   ),
                   child: Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Phân tích ngữ pháp', style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text('Kiểm tra lỗi và gợi ý cách dùng từ tự nhiên hơn.', 
-                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                            Text(
+                              'Phân tích ngữ pháp',
+                              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Kiểm tra lỗi và gợi ý cách dùng từ tự nhiên hơn.',
+                              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                            ),
                           ],
                         ),
                       ),
@@ -216,10 +236,13 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.success,
                           foregroundColor: AppColors.textOnPrimary,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         child: grammarState.isLoading 
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: AppColors.textOnPrimary, strokeWidth: 2))
-                          : const Text('Phân tích'),
+                          : const Text('Phân tích', style: TextStyle(fontWeight: FontWeight.w700)),
                       ),
                     ],
                   ),
@@ -265,13 +288,14 @@ class _GrammarResultView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.textOnPrimary,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: AppColors.grey300),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,10 +314,10 @@ class _GrammarResultView extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text('Phân tích ngữ pháp', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('Phân tích ngữ pháp', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _ResultBox(title: 'Câu gốc', text: response.originalText, color: AppColors.grey200),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8),
@@ -302,15 +326,15 @@ class _GrammarResultView extends StatelessWidget {
           _ResultBox(title: 'Đề xuất', text: response.correctedText, color: AppColors.primary.withOpacity(0.05), textColor: AppColors.primary),
           
           if (response.errors.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text('Lỗi & Chỉnh sửa', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            const SizedBox(height: 12),
+            Text('Lỗi & Chỉnh sửa', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             ...response.errors.map((e) => _ErrorItem(error: e)).toList(),
           ],
 
           if (response.suggestions.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text('Cách diễn đạt khác', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            const SizedBox(height: 12),
+            Text('Cách diễn đạt khác', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -319,11 +343,11 @@ class _GrammarResultView extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.borderLight),
+                      border: Border.all(color: AppColors.grey300),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(s.toString(),
-                        style: const TextStyle(fontSize: 12)),
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 11.5)),
                   )).toList(),
             ),
           ],

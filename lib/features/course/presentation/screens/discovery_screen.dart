@@ -128,7 +128,14 @@ class CourseDiscoveryScreen extends ConsumerWidget {
                   children: [
                     Text(priceStr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
                     ElevatedButton(
-                      onPressed: () => context.push('/course-detail/${course.id}'),
+                      onPressed: () {
+                        final mode = course.mode.toUpperCase();
+                        if (mode == 'LIVE') {
+                          context.push('/course-live/${course.id}');
+                        } else {
+                          context.push('/course-detail/${course.id}');
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.textOnPrimary,

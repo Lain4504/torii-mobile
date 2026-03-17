@@ -42,10 +42,13 @@ class GamificationRepository {
   /// GET /api/gamification/rewards
   Future<List<Map<String, dynamic>>> getAvailableRewards() async {
     final response = await _dio.get<Map<String, dynamic>>('/api/gamification/rewards');
-    final api = ApiResponse<dynamic>.fromJson(response.data ?? {});
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return [];
-    final list = api.data is List ? api.data as List<dynamic> : <dynamic>[];
-    return list.map((e) => e as Map<String, dynamic>).toList();
+    final raw = api.data!;
+    final list = raw['rewards'] as List<dynamic>? ?? raw['items'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{})
+        .toList();
   }
 
   /// POST /api/gamification/redeem - body: { rewardId: string }
@@ -79,6 +82,18 @@ class GamificationRepository {
     );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     return api.data ?? {};
+  }
+
+  /// GET /api/gamification/my-coupons
+  Future<List<Map<String, dynamic>>> getMyCoupons() async {
+    final response = await _dio.get<Map<String, dynamic>>('/api/gamification/my-coupons');
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return [];
+    final raw = api.data!;
+    final list = raw['coupons'] as List<dynamic>? ?? raw['items'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{})
+        .toList();
   }
 
   /// Leaderboard: if backend exposes a dedicated leaderboard endpoint use it.

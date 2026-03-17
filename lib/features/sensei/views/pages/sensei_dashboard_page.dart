@@ -8,38 +8,44 @@ class SenseiDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('AI Sensei', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          'AI Sensei',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSpecialCard(),
-            const SizedBox(height: 24),
-            const Text(
-              'Tính năng hỗ trợ học tập',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+            const SizedBox(height: 18),
+            Text(
+              'Tính năng',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+                letterSpacing: 0.2,
               ),
             ),
-            const SizedBox(height: 16),
-            GridView.count(
+            const SizedBox(height: 10),
+            ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 1,
-              childAspectRatio: 3.5,
-              mainAxisSpacing: 12,
-              children: senseiMenuItems.map((item) => _MenuCard(item: item)).toList(),
+              itemCount: senseiMenuItems.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              itemBuilder: (context, index) => _MenuCard(item: senseiMenuItems[index]),
             ),
           ],
         ),
@@ -50,19 +56,19 @@ class SenseiDashboardPage extends StatelessWidget {
   Widget _buildSpecialCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.primaryLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            blurRadius: 14,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -70,28 +76,29 @@ class SenseiDashboardPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: AppColors.textOnPrimary.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.auto_awesome, color: AppColors.textOnPrimary, size: 24),
+            child: const Icon(Icons.auto_awesome, color: AppColors.textOnPrimary, size: 18),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           const Text(
             'Học tập cùng Sensei AI',
             style: TextStyle(
               color: AppColors.textOnPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             'Người bạn đồng hành thông minh giúp bạn chinh phục tiếng Nhật mỗi ngày.',
             style: TextStyle(
               color: AppColors.textOnPrimary.withOpacity(0.9),
-              fontSize: 14,
+              fontSize: 12.5,
+              height: 1.35,
             ),
           ),
         ],
@@ -107,29 +114,37 @@ class _MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.grey200.withOpacity(0.8)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textPrimary.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: () => context.push(item.route),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: item.color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(item.icon, color: item.color, size: 24),
+                child: Icon(item.icon, color: item.color, size: 20),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -137,17 +152,17 @@ class _MenuCard extends StatelessWidget {
                   children: [
                     Text(
                       item.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.1,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       item.description,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.textTertiary,
+                        height: 1.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -155,7 +170,7 @@ class _MenuCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.border, size: 20),
+              Icon(Icons.chevron_right, color: AppColors.textTertiary.withOpacity(0.7), size: 18),
             ],
           ),
         ),

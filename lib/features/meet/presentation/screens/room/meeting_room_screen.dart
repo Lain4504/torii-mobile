@@ -43,17 +43,9 @@ class MeetingRoomScreen extends ConsumerWidget {
                   child: _MainAreaContent(),
                 ),
                 
-                // Bottom spacing for floating ControlBar
-                SizedBox(height: 100),
+                // Footer controls integrated into layout
+                ControlBar(),
               ],
-            ),
-            
-            // Floating Control bar
-            const Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: ControlBar(),
             ),
             
             // Whiteboard overlay
