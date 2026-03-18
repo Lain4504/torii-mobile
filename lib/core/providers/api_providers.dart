@@ -12,6 +12,7 @@ import '../../data/models/live_schedule_model.dart';
 import '../../data/models/course_offering_detail_model.dart';
 import '../../data/models/live_offering_detail_model.dart';
 import '../../data/models/checkout_models.dart';
+import '../../data/models/study_set_models.dart';
 import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 import '../../features/auth/providers/auth_providers.dart';
@@ -146,4 +147,20 @@ final gamificationAchievementsProvider = FutureProvider<List<AchievementModel>>(
 final liveSchedulesProvider = FutureProvider<List<LiveScheduleModel>>((ref) async {
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getLiveSchedules();
+});
+
+// ---------- Study sets ----------
+final studySetsProvider = FutureProvider<List<StudySetModel>>((ref) async {
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getStudySets();
+});
+
+final studySetDetailProvider = FutureProvider.family<Map<String, dynamic>?, String>((ref, id) async {
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getStudySetById(id);
+});
+
+final studyCardsProvider = FutureProvider.family<List<SetCardModel>, String>((ref, setId) async {
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getStudyCards(setId);
 });

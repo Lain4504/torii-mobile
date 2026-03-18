@@ -19,6 +19,7 @@ class HomeScreen extends ConsumerWidget {
     final displayName = user?.displayName ?? 'Bạn';
     final enrollmentsAsync = isLoggedIn ? ref.watch(myEnrollmentsProvider) : null;
     final liveSchedulesAsync = isLoggedIn ? ref.watch(liveSchedulesProvider) : null;
+    final unreadCountAsync = isLoggedIn ? ref.watch(notificationsUnreadCountProvider) : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -74,8 +75,46 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     if (isLoggedIn)
                       IconButton(
-                        icon: const Icon(Icons.notifications_none_rounded, size: 26),
                         onPressed: () => context.push('/notifications'),
+                        icon: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Icon(Icons.notifications_none_rounded, size: 26),
+                            if (unreadCountAsync != null)
+                              unreadCountAsync.when(
+                                data: (count) {
+                                  if (count <= 0) return const SizedBox.shrink();
+
+                                  final label = count > 99 ? '99+' : '$count';
+                                  return Positioned(
+                                    top: -4,
+                                    right: -6,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.error,
+                                        borderRadius: BorderRadius.circular(999),
+                                        border: Border.all(color: AppColors.background, width: 2),
+                                      ),
+                                      constraints: const BoxConstraints(minWidth: 18),
+                                      child: Text(
+                                        label,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          height: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                loading: () => const SizedBox.shrink(),
+                                error: (error, _) => const SizedBox.shrink(),
+                              ),
+                          ],
+                        ),
                       )
                     else
                       SizedBox(
@@ -131,11 +170,11 @@ class HomeScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildLevelIcon('N5', AppColors.primary, Icons.auto_awesome),
-                    _buildLevelIcon('N4', AppColors.success, Icons.psychology),
-                    _buildLevelIcon('N3', AppColors.accent, Icons.translate),
-                    _buildLevelIcon('N2', AppColors.detail, Icons.school),
-                    _buildLevelIcon('N1', AppColors.error, Icons.workspace_premium),
+                    _buildLevelIcon(context, 'N5', AppColors.primary, Icons.auto_awesome),
+                    _buildLevelIcon(context, 'N4', AppColors.success, Icons.psychology),
+                    _buildLevelIcon(context, 'N3', AppColors.accent, Icons.translate),
+                    _buildLevelIcon(context, 'N2', AppColors.detail, Icons.school),
+                    _buildLevelIcon(context, 'N1', AppColors.error, Icons.workspace_premium),
                   ],
                 ),
               ),
@@ -156,16 +195,18 @@ class HomeScreen extends ConsumerWidget {
                               child: Text('Chưa có lịch live', style: TextStyle(color: AppColors.textTertiary)),
                             );
                           }
-                          return Column(
-                            children: list
-                                .take(2)
-                                .map(
-                                  (s) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 16),
-                                    child: _buildLiveCard(s),
-                                  ),
-                                )
-                                .toList(),
+                          final items = list.take(6).toList();
+                          return SizedBox(
+                            height: 128,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: items.length,
+                              separatorBuilder: (_, __) => const SizedBox(width: 12),
+                              itemBuilder: (context, index) => SizedBox(
+                                width: 300,
+                                child: _buildLiveCard(context, items[index]),
+                              ),
+                            ),
                           );
                         },
                         loading: () => const SizedBox(
@@ -409,26 +450,66 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLevelIcon(String level, Color color, IconData icon) {
-    return Column(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-            border: Border.all(color: color.withValues(alpha: 0.2), width: 2),
-          ),
-          child: Icon(icon, color: color, size: 22),
+  Widget _buildLevelIcon(BuildContext context, String level, Color color, IconData icon) {
+    return InkWell(
+      onTap: () => context.go('/discovery?level=$level'),
+      borderRadius: BorderRadius.circular(999),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+        child: Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.2), width: 2),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(height: 8),
+            Text(level, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(level, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
-      ],
+      ),
     );
   }
 
-  Widget _buildLiveCard(LiveScheduleModel s) {
+  String _weekdayLabel(DateTime dt) {
+    switch (dt.weekday) {
+      case DateTime.monday:
+        return 'Thứ 2';
+      case DateTime.tuesday:
+        return 'Thứ 3';
+      case DateTime.wednesday:
+        return 'Thứ 4';
+      case DateTime.thursday:
+        return 'Thứ 5';
+      case DateTime.friday:
+        return 'Thứ 6';
+      case DateTime.saturday:
+        return 'Thứ 7';
+      case DateTime.sunday:
+        return 'CN';
+    }
+    return '';
+  }
+
+  String _formatDayMonth(DateTime dt) {
+    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildLiveCard(BuildContext context, LiveScheduleModel s) {
+    final theme = Theme.of(context);
+    final start = s.startAt;
+    final end = s.endAt;
+    final hasTime = start != null && end != null;
+    final title = (s.title ?? '').trim().isNotEmpty ? s.title!.trim() : (s.courseTitle ?? 'Buổi học live');
+    final instructor = (s.instructorName ?? '').trim();
+    final dateLabel = start != null ? '${_weekdayLabel(start)} • ${_formatDayMonth(start)}' : 'Sắp diễn ra';
+    final timeLabel = hasTime ? s.timeRange : 'Chưa có giờ';
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -446,44 +527,133 @@ class HomeScreen extends ConsumerWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 58,
+            height: 90,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.10),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.primary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.primary.withOpacity(0.20)),
             ),
-            child: const Icon(Icons.videocam_rounded, color: AppColors.primary),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 18),
+                const SizedBox(height: 8),
+                Text(
+                  start != null ? _formatDayMonth(start) : '--/--',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  start != null ? _weekdayLabel(start) : '',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  s.title ?? s.courseTitle ?? 'Live',
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
-                  maxLines: 1,
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14.5,
+                  ),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${s.senseiLabel} • ${s.timeRange.isNotEmpty ? s.timeRange : "Sắp diễn ra"}',
-                  style: TextStyle(color: AppColors.textTertiary, fontSize: 12.5),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.grey200,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.schedule_rounded, size: 14, color: AppColors.textSecondary),
+                          const SizedBox(width: 6),
+                          Text(
+                            timeLabel,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        dateLabel,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textTertiary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
+                if (instructor.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.person_outline_rounded, size: 16, color: AppColors.textTertiary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          instructor,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textOnPrimary,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
+          const SizedBox(width: 10),
+          SizedBox(
+            height: 38,
+            child: ElevatedButton(
+              onPressed: () => context.push('/live-schedule'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.textOnPrimary,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Chi tiết',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+              ),
             ),
-            child: const Text('Vào học', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

@@ -13,13 +13,13 @@ class SenseiRepository {
     required List<Map<String, String>> history,
   }) async {
     try {
-      final response = await _dio.post('/api/agents/sensei/chat', data: {
+      final response = await _dio.post('/api/agents/chat', data: {
         'message': message,
         'history': history,
       });
       return ChatMessage(
         role: ChatMessageRole.assistant,
-        content: response.data['data']['text'] as String,
+        content: (response.data?['data']?['message'] ?? '').toString(),
       );
     } catch (e) {
       throw Exception('AI Sensei chat failed: $e');
@@ -28,7 +28,7 @@ class SenseiRepository {
 
   Future<GrammarCheckResponse> checkGrammar({required String text}) async {
     try {
-      final response = await _dio.post('/api/agents/sensei/grammar-check', data: {'text': text});
+      final response = await _dio.post('/api/agents/grammar-check', data: {'text': text});
       return GrammarCheckResponse.fromJson(response.data);
     } catch (e) {
       throw Exception('Grammar check failed: $e');
@@ -41,7 +41,7 @@ class SenseiRepository {
     String targetLanguage = 'vi',
   }) async {
      try {
-      final response = await _dio.post('/api/agents/sensei/translate', data: {
+      final response = await _dio.post('/api/agents/translate', data: {
         'text': text,
         'sourceLanguage': sourceLanguage,
         'targetLanguage': targetLanguage,

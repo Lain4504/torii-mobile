@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -24,6 +27,8 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   // Audio & Speech
   late stt.SpeechToText _speech;
   bool _isListening = false;
+  String _lastFinalTranscript = '';
+  bool _holdToTalkActive = false;
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterTts _flutterTts = FlutterTts();
   bool _autoPlay = true;
@@ -47,6 +52,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _speech.stop();
     _audioPlayer.dispose();
     _flutterTts.stop();
     super.dispose();
@@ -64,23 +70,91 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
 
   void _listen() async {
     if (!_isListening) {
+      final roleplayState = ref.read(senseiRoleplayProvider(widget.topic));
+      if (roleplayState.isLoading || roleplayState.isFinished) return;
+
+      final mic = await Permission.microphone.request();
+      if (!mic.isGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Vui lòng cấp quyền micro để luyện nói.')),
+          );
+        }
+        return;
+      }
+
       bool available = await _speech.initialize(
-        onStatus: null,
-        onError: null,
+        onStatus: (status) {
+          if (status == 'notListening' && mounted) {
+            setState(() => _isListening = false);
+          }
+        },
+        onError: (err) {
+          if (mounted) {
+            setState(() => _isListening = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Nhận diện giọng nói lỗi: ${err.errorMsg}')),
+            );
+          }
+        },
       );
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(
           localeId: 'ja-JP',
-          onResult: (val) => setState(() {
-            _messageController.text = val.recognizedWords;
-          }),
+          partialResults: true,
+          listenFor: const Duration(seconds: 30),
+          pauseFor: const Duration(seconds: 2),
+          onResult: (val) async {
+            if (!mounted) return;
+            setState(() {
+              _messageController.text = val.recognizedWords;
+            });
+
+            // Turn-based: only send once when final transcript is ready
+            if (val.finalResult) {
+              final transcript = val.recognizedWords.trim();
+              setState(() => _isListening = false);
+              await _speech.stop();
+
+              // Guard against duplicate final callbacks
+              if (transcript.isEmpty || transcript == _lastFinalTranscript) return;
+              _lastFinalTranscript = transcript;
+
+              final notifier = ref.read(senseiRoleplayProvider(widget.topic).notifier);
+              notifier.sendMessage(transcript);
+              _messageController.clear();
+            }
+          },
         );
       }
     } else {
       setState(() => _isListening = false);
       _speech.stop();
     }
+  }
+
+  Future<void> _stopListeningAndMaybeSend({required bool forceSend}) async {
+    if (!_isListening) return;
+    setState(() => _isListening = false);
+    await _speech.stop();
+
+    final transcript = _messageController.text.trim();
+    if (!forceSend) return;
+
+    if (transcript.isEmpty || transcript == _lastFinalTranscript) return;
+    _lastFinalTranscript = transcript;
+    final notifier = ref.read(senseiRoleplayProvider(widget.topic).notifier);
+    notifier.sendMessage(transcript);
+    _messageController.clear();
+  }
+
+  Uint8List? _tryDecodeDataAudioUrl(String url) {
+    if (!url.startsWith('data:audio')) return null;
+    final idx = url.indexOf('base64,');
+    if (idx < 0) return null;
+    final b64 = url.substring(idx + 'base64,'.length);
+    return base64Decode(b64);
   }
 
   Future<void> _playResponse(RoleplayMessage message) async {
@@ -90,7 +164,14 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
       final repo = ref.read(senseiRepositoryProvider);
       final tts = await repo.getTTS(message.content);
       if (tts.url.isNotEmpty) {
-        await _audioPlayer.play(UrlSource(tts.url));
+        final bytes = _tryDecodeDataAudioUrl(tts.url);
+        if (bytes != null) {
+          await _audioPlayer.stop();
+          await _audioPlayer.play(BytesSource(bytes));
+        } else {
+          await _audioPlayer.stop();
+          await _audioPlayer.play(UrlSource(tts.url));
+        }
       } else {
         // Fallback to local TTS
         await _flutterTts.speak(message.content);
@@ -312,12 +393,39 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-              color: _isListening ? AppColors.error : AppColors.textSecondary,
-              onPressed: _listen,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+            GestureDetector(
+              onLongPressStart: state.isLoading
+                  ? null
+                  : (_) async {
+                      _holdToTalkActive = true;
+                      if (!_isListening) {
+                        _listen();
+                      }
+                    },
+              onLongPressEnd: state.isLoading
+                  ? null
+                  : (_) async {
+                      // Hold-to-talk: thả tay là gửi luôn (turn-based)
+                      await _stopListeningAndMaybeSend(forceSend: true);
+                      _holdToTalkActive = false;
+                    },
+              child: IconButton(
+                icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                color: _isListening ? AppColors.error : AppColors.textSecondary,
+                onPressed: state.isLoading
+                    ? null
+                    : () async {
+                        // Tap: toggle listen. Nếu đang nghe và tap để dừng -> gửi luôn nếu có text.
+                        if (_isListening) {
+                          await _stopListeningAndMaybeSend(forceSend: true);
+                        } else {
+                          _listen();
+                        }
+                      },
+                tooltip: 'Nhấn giữ để nói',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+              ),
             ),
             if (_isListening)
               const Padding(
@@ -328,7 +436,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
               child: TextField(
                 controller: _messageController,
                 decoration: InputDecoration(
-                  hintText: 'Nhập câu trả lời...',
+                  hintText: _holdToTalkActive ? 'Đang nghe… thả tay để gửi' : 'Nhập câu trả lời...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: const BorderSide(color: AppColors.grey300),
@@ -347,7 +455,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
                 onSubmitted: (val) {
-                  notifier.sendMessage(val);
+                  notifier.sendMessage(val.trim());
                   _messageController.clear();
                 },
               ),
@@ -358,7 +466,9 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
               height: 40,
               child: ElevatedButton(
                 onPressed: () {
-                notifier.sendMessage(_messageController.text);
+                final text = _messageController.text.trim();
+                if (text.isEmpty) return;
+                notifier.sendMessage(text);
                 _messageController.clear();
                 },
                 style: ElevatedButton.styleFrom(

@@ -11,6 +11,7 @@ class CourseDiscoveryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final coursesAsync = ref.watch(publicCourseOfferingsProvider);
+    final selectedLevel = GoRouterState.of(context).uri.queryParameters['level'];
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -28,7 +29,7 @@ class CourseDiscoveryScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
             child: Row(
               children: [
-                _buildFilterChip('Cấp độ', Icons.keyboard_arrow_down),
+                _buildFilterChip(selectedLevel != null ? 'Cấp độ: $selectedLevel' : 'Cấp độ', Icons.keyboard_arrow_down),
                 const SizedBox(width: 12),
                 _buildFilterChip('Loại bài học', Icons.keyboard_arrow_down),
               ],
@@ -37,13 +38,16 @@ class CourseDiscoveryScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Expanded(
             child: coursesAsync.when(
-              data: (list) => list.isEmpty
+              data: (list) {
+                final filtered = _filterByLevel(list, selectedLevel);
+                return filtered.isEmpty
                   ? const Center(child: Text('Chưa có khóa học nào'))
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      itemCount: list.length,
-                      itemBuilder: (context, index) => _buildCourseCard(context, list[index]),
-                    ),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) => _buildCourseCard(context, filtered[index]),
+                    );
+              },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
             ),
@@ -51,6 +55,18 @@ class CourseDiscoveryScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  List<CourseOfferingModel> _filterByLevel(List<CourseOfferingModel> list, String? level) {
+    if (level == null || level.isEmpty) return list;
+    final n = level.toUpperCase().trim();
+    final re = RegExp(r'(^|[^A-Z0-9])' + RegExp.escape(n) + r'([^A-Z0-9]|$)', caseSensitive: false);
+
+    bool match(String? s) => s != null && re.hasMatch(s.toUpperCase());
+
+    return list.where((c) {
+      return match(c.code) || match(c.title) || match(c.slug) || match(c.description);
+    }).toList();
   }
 
   Widget _buildFilterChip(String label, IconData icon) {

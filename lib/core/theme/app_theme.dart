@@ -19,7 +19,7 @@ class AppTheme {
   static final light = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    fontFamily: GoogleFonts.openSans().fontFamily,
+    fontFamily: GoogleFonts.montserrat().fontFamily,
     
     // Color Scheme
     colorScheme: const ColorScheme.light(
@@ -247,7 +247,7 @@ class AppTheme {
   static final dark = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    fontFamily: GoogleFonts.openSans().fontFamily,
+    fontFamily: GoogleFonts.montserrat().fontFamily,
     
     // Color Scheme
     colorScheme: const ColorScheme.dark(

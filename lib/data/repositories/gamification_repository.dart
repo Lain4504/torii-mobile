@@ -36,7 +36,7 @@ class GamificationRepository {
       },
     );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    return api.data as Map<String, dynamic>? ?? {};
+    return api.data ?? {};
   }
 
   /// GET /api/gamification/rewards
@@ -84,13 +84,12 @@ class GamificationRepository {
     return api.data ?? {};
   }
 
-  /// GET /api/gamification/my-coupons
+  /// GET /api/academy/coupons/my-coupons
   Future<List<Map<String, dynamic>>> getMyCoupons() async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/gamification/my-coupons');
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    final response = await _dio.get<Map<String, dynamic>>('/api/academy/coupons/my-coupons');
+    final api = ApiResponse<List<dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return [];
-    final raw = api.data!;
-    final list = raw['coupons'] as List<dynamic>? ?? raw['items'] as List<dynamic>? ?? [];
+    final list = api.data!;
     return list
         .map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{})
         .toList();

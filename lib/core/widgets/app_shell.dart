@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/meet/providers/session_provider.dart';
-
 import '../constants/app_design_system.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/auth/models/auth_state.dart';
@@ -25,6 +23,8 @@ class AppShell extends ConsumerWidget {
     // Hide bottom bar only when user is inside an active meeting room (not on shell routes)
     final currentPath = state.uri.path;
     final isOnMeetRoute = currentPath.startsWith('/meet') || currentPath.startsWith('/meeting');
+    // Lesson: full-screen learning experience, hide bottom nav
+    final isOnLessonRoute = currentPath.startsWith('/lesson');
 
     // Sensei: keep bottom bar only on dashboard (/sensei). Hide on sub-pages.
     final isSenseiRoute = currentPath.startsWith('/sensei');
@@ -35,8 +35,8 @@ class AppShell extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Hide bottom bar for all Meet routes and Sensei sub-pages
-    final shouldHideBottomNav = isOnMeetRoute || hideBottomNavForSensei;
+    // Hide bottom bar for Meet routes, Sensei sub-pages and full-screen lesson
+    final shouldHideBottomNav = isOnMeetRoute || hideBottomNavForSensei || isOnLessonRoute;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -134,6 +134,14 @@ class _BottomNavBar extends StatelessWidget {
                       label: 'Live',
                       isSelected: activeIndex == 4,
                       onTap: () => onTap('/live-schedule'),
+                      isDark: isDark,
+                    ),
+                    _NavBarItem(
+                      icon: Icons.school_outlined,
+                      activeIcon: Icons.school_rounded,
+                      label: 'Luyện tập',
+                      isSelected: activeIndex == 5,
+                      onTap: () => onTap('/practice'),
                       isDark: isDark,
                     ),
                   ]

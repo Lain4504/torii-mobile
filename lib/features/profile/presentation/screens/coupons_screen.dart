@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
-import 'package:torii_app/data/repositories/gamification_repository.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 
 class CouponsScreen extends ConsumerWidget {

@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../models/sensei_model.dart';
-// Temporary: use Material icons instead of lucide-react
-// and keep providers decoupled to avoid missing package issues.
-import '../providers/sensei_providers.dart';
+import '../../providers/sensei_providers.dart';
 
 class SenseiChatPage extends ConsumerStatefulWidget {
   const SenseiChatPage({super.key});

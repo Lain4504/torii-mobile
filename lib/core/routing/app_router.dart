@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/presentation/screens/welcome_screen.dart';
+import '../../features/auth/providers/auth_providers.dart';
+import '../../features/auth/models/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -21,7 +22,9 @@ import '../../features/course/presentation/screens/lesson_screen.dart';
 import '../../features/blog/presentation/screens/blog_list_screen.dart';
 import '../../features/blog/presentation/screens/blog_detail_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
+import '../../features/profile/presentation/screens/change_password_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/home/presentation/screens/live_schedule_screen.dart';
 import '../../features/profile/presentation/screens/order_list_screen.dart';
 import '../../features/profile/presentation/screens/order_detail_screen.dart';
@@ -37,6 +40,11 @@ import '../../features/sensei/views/pages/sensei_translate_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_chat_page.dart';
 import '../../features/sensei/views/pages/sensei_drill_page.dart';
+import '../../features/practice/presentation/screens/practice_home_screen.dart';
+import '../../features/practice/presentation/screens/study_sets_dashboard_screen.dart';
+import '../../features/practice/presentation/screens/study_set_practice_screen.dart';
+import '../../features/practice/presentation/screens/study_set_test_screen.dart';
+import '../../features/practice/presentation/screens/study_set_match_screen.dart';
 import '../../features/onboarding/providers/onboarding_provider.dart';
 import '../widgets/app_shell.dart';
 import '../../features/meet/presentation/screens/landing/meet_entry_screen.dart';
@@ -44,11 +52,24 @@ import '../../features/meet/presentation/screens/landing/meet_entry_screen.dart'
 final routerProvider = Provider<GoRouter>((ref) {
   final onboardingNotifier = ref.watch(onboardingNotifierProvider);
   final hasCompletedOnboarding = onboardingNotifier.value;
+  final authAsync = ref.watch(authStateProvider);
+  final isAuthenticated = authAsync.asData?.value.status == AuthStatus.authenticated;
 
   final initialLocation = hasCompletedOnboarding ? '/' : '/welcome';
 
   return GoRouter(
     initialLocation: initialLocation,
+    redirect: (context, state) {
+      final path = state.uri.path;
+
+      // Gate practice / study-sets flow for authenticated users only
+      final requiresAuth = path.startsWith('/practice') || path.startsWith('/study-sets');
+      if (requiresAuth && !isAuthenticated) {
+        return '/login';
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/welcome',
@@ -65,6 +86,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/change-password',
+        builder: (context, state) => const ChangePasswordScreen(),
       ),
       GoRoute(
         path: '/reset-password',
@@ -157,7 +182,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: '/lesson',
-                builder: (context, state) => const LessonScreen(),
+                builder: (context, state) {
+                  final extra = state.extra;
+                  return LessonScreen(
+                    lesson: (extra is Map<String, dynamic>) ? extra : null,
+                  );
+                },
               ),
             ],
           ),
@@ -236,6 +266,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/profile',
                 builder: (context, state) => const ProfileScreen(),
               ),
+              // Edit profile
+              // Điều hướng từ settings và nút "Chỉnh sửa" trên trang hồ sơ
+              GoRoute(
+                path: '/profile/edit',
+                builder: (context, state) => const EditProfileScreen(),
+              ),
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
@@ -263,6 +299,48 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/notifications',
                 builder: (context, state) => const NotificationsScreen(),
+              ),
+            ],
+          ),
+          // Branch 5: Practice (authenticated-only entry via bottom nav)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/practice',
+                builder: (context, state) => const PracticeHomeScreen(),
+              ),
+              GoRoute(
+                path: '/study-sets',
+                builder: (context, state) => const StudySetsDashboardScreen(),
+              ),
+              GoRoute(
+                path: '/study-sets/:id/study',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return StudySetPracticeScreen(setId: id);
+                },
+              ),
+              // Web-learner parity routes
+              GoRoute(
+                path: '/study-sets/:id/review',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return StudySetPracticeScreen(setId: id);
+                },
+              ),
+              GoRoute(
+                path: '/study-sets/:id/test',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return StudySetTestScreen(setId: id);
+                },
+              ),
+              GoRoute(
+                path: '/study-sets/:id/match',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return StudySetMatchScreen(setId: id);
+                },
               ),
             ],
           ),

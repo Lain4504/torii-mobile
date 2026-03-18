@@ -205,6 +205,18 @@ class AuthService {
     }
   }
 
+  Future<ApiResponse<void>> disableTOTP(String code) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/2fa/totp/disable',
+        data: {'code': code},
+      );
+      return ApiResponse.fromJson(response.data, (_) {});
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
   Future<ApiResponse<void>> disable2FA(String password) async {
     try {
       final response = await _apiClient.client.post(

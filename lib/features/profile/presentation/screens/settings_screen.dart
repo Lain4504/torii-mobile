@@ -40,12 +40,12 @@ class SettingsScreen extends StatelessWidget {
               _SettingsTile(
                 icon: Icons.person_outline,
                 title: 'Hồ sơ cá nhân',
-                onTap: () => context.push('/profile'),
+                onTap: () => context.push('/profile/edit'),
               ),
               _SettingsTile(
                 icon: Icons.lock_outline,
                 title: 'Đổi mật khẩu',
-                onTap: () => context.push('/forgot-password'),
+                onTap: () => context.push('/change-password'),
               ),
               _SettingsTile(
                 icon: Icons.military_tech_outlined,

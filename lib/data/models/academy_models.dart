@@ -28,9 +28,9 @@ class CourseOfferingModel {
 
   factory CourseOfferingModel.fromJson(Map<String, dynamic> json) {
     return CourseOfferingModel(
-      id: json['id'] as String,
+      id: (json['id'] ?? '').toString(),
       code: json['code'] as String? ?? '',
-      title: json['title'] as String,
+      title: (json['title'] ?? '').toString(),
       description: json['description'] as String?,
       price: _parseNum(json['price']).toDouble(),
       salePrice: _parseNumOrNull(json['salePrice'])?.toDouble(),
@@ -96,17 +96,22 @@ class EnrollmentModel {
   });
 
   factory EnrollmentModel.fromJson(Map<String, dynamic> json) {
+    final enrolledAtRaw = json['enrolledAt'] ?? json['createdAt'];
+    final createdAtRaw = json['createdAt'] ?? enrolledAtRaw;
+    final updatedAtRaw = json['updatedAt'] ?? enrolledAtRaw;
+    final fallbackDate = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
     return EnrollmentModel(
-      id: json['id'] as String,
-      classId: json['classId'] as String,
-      userId: json['userId'] as String,
+      id: (json['id'] ?? '').toString(),
+      classId: (json['classId'] ?? '').toString(),
+      userId: (json['userId'] ?? '').toString(),
       expiresAt: json['expiresAt'] != null
           ? DateTime.tryParse(json['expiresAt'].toString())
           : null,
       status: json['status'] as String? ?? 'ACTIVE',
       offeringId: json['offeringId'] as String?,
-      createdAt: DateTime.parse(json['createdAt'].toString()),
-      updatedAt: DateTime.parse(json['updatedAt'].toString()),
+      createdAt: DateTime.tryParse(createdAtRaw?.toString() ?? '') ?? fallbackDate,
+      updatedAt: DateTime.tryParse(updatedAtRaw?.toString() ?? '') ?? fallbackDate,
       courseTitle: json['courseTitle'] as String?,
       courseCode: json['courseCode'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
@@ -148,17 +153,21 @@ class OrderModel {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    final createdAtRaw = json['createdAt'] ?? json['created_at'];
+    final updatedAtRaw = json['updatedAt'] ?? json['updated_at'];
+    final fallbackDate = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
     return OrderModel(
-      id: json['id'] as String,
+      id: (json['id'] ?? '').toString(),
       code: json['code'] as String?,
-      userId: json['userId'] as String,
-      amount: (json['amount'] as num?)?.toDouble() ?? (json['grandTotal'] as num?)?.toDouble() ?? 0,
+      userId: (json['userId'] ?? '').toString(),
+      amount: _parseNum(json['amount'] ?? json['grandTotal']).toDouble(),
       currency: json['currency'] as String? ?? 'VND',
       status: json['status'] as String? ?? 'PENDING',
       courseName: json['courseName'] as String?,
       courseThumbnail: json['courseThumbnail'] as String?,
-      createdAt: DateTime.parse(json['createdAt'].toString()),
-      updatedAt: DateTime.parse(json['updatedAt'].toString()),
+      createdAt: DateTime.tryParse(createdAtRaw?.toString() ?? '') ?? fallbackDate,
+      updatedAt: DateTime.tryParse(updatedAtRaw?.toString() ?? '') ?? fallbackDate,
       metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
