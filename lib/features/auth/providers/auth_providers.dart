@@ -27,7 +27,14 @@ final userServiceProvider = Provider<UserService>((ref) {
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   final tokenService = ref.watch(tokenServiceProvider);
-  return ApiClient(tokenService: tokenService);
+  return ApiClient(
+    tokenService: tokenService,
+    onUnauthorizedLogout: () async {
+      // Keep behavior consistent with web: refresh failed -> force logout.
+      // This also clears cached profile and updates authStateProvider.
+      await ref.read(authNotifierProvider.notifier).logout();
+    },
+  );
 });
 
 final authServiceProvider = Provider<AuthService>((ref) {

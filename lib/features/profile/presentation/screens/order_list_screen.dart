@@ -11,13 +11,20 @@ class OrderListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(myOrdersProvider);
+    final theme = Theme.of(context);
 
     return DefaultTabController(
       length: 4,
       child: Scaffold(
         backgroundColor: AppColors.surface,
         appBar: AppBar(
-          title: const Text('Đơn hàng của tôi', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+          title: Text(
+            'Đơn hàng của tôi',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           backgroundColor: AppColors.surface,
           elevation: 0,
           leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),

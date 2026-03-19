@@ -13,6 +13,7 @@ class ApiClient {
   ApiClient({
     Dio? dio,
     TokenService? tokenService,
+    Future<void> Function()? onUnauthorizedLogout,
   })  : _dio = dio ??
             Dio(BaseOptions(
               baseUrl: AppConfig.apiBaseUrl,
@@ -22,12 +23,14 @@ class ApiClient {
               connectTimeout: const Duration(seconds: 30),
               receiveTimeout: const Duration(seconds: 30),
             )),
-        _tokenService = tokenService {
+        _tokenService = tokenService,
+        _onUnauthorizedLogout = onUnauthorizedLogout {
     _setupInterceptors();
   }
 
   final Dio _dio;
   final TokenService? _tokenService;
+  final Future<void> Function()? _onUnauthorizedLogout;
 
   Dio get client => _dio;
 
@@ -176,6 +179,11 @@ class ApiClient {
 
   Future<void> _performLogout(ErrorInterceptorHandler handler, DioException error) async {
     await _tokenService?.clearTokens();
+    try {
+      await _onUnauthorizedLogout?.call();
+    } catch (_) {
+      // ignore
+    }
     
     // Reject all queued requests
     for (var request in _failedRequestQueue) {

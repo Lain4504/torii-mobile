@@ -17,18 +17,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _rememberMe = false;
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _pendingNavigateHome = false;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  Future<bool> _waitUntilAuthenticated({Duration timeout = const Duration(seconds: 2)}) async {
-    final deadline = DateTime.now().add(timeout);
-    while (DateTime.now().isBefore(deadline)) {
-      final auth = ref.read(authNotifierProvider).valueOrNull;
-      if (auth?.status == AuthStatus.authenticated) return true;
-      await Future<void>.delayed(const Duration(milliseconds: 40));
-    }
-    return ref.read(authNotifierProvider).valueOrNull?.status == AuthStatus.authenticated;
+  @override
+  void initState() {
+    super.initState();
+
+    // Navigate ONLY after auth state is truly authenticated.
+    // This prevents HomeScreen flashing "guest" UI for a moment.
+    ref.listenManual(authStateProvider, (previous, next) {
+      if (!_pendingNavigateHome) return;
+      final authed = next.valueOrNull?.status == AuthStatus.authenticated;
+      if (authed && mounted) {
+        _pendingNavigateHome = false;
+        context.go('/');
+      }
+    });
   }
 
   @override
@@ -242,14 +249,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               final ok =
                                   await notifier.login(email, password);
                               if (!mounted) return;
-                              setState(() => _isLoading = false);
                               if (ok) {
-                                // Wait until auth state is fully persisted & propagated
-                                // so HomeScreen won't flash "not logged in" UI.
-                                await _waitUntilAuthenticated();
-                                if (!mounted) return;
-                                context.go('/');
+                                // Keep loading until authStateProvider becomes authenticated,
+                                // then the listener in initState will navigate.
+                                setState(() {
+                                  _pendingNavigateHome = true;
+                                  _isLoading = true;
+                                });
                               } else {
+                                setState(() => _isLoading = false);
                                 final state = ref
                                     .read(authNotifierProvider)
                                     .valueOrNull;

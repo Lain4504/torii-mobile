@@ -22,10 +22,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authState = ref.watch(authStateProvider);
-    final isLoggedIn = authState.valueOrNull?.isAuthenticated == true;
-    final user = authState.valueOrNull?.user;
-    final displayName = user?.displayName ?? 'Bạn';
+    final authAsync = ref.watch(authStateProvider);
+    final authValue = authAsync.valueOrNull;
+    final isLoggedIn = authValue?.isAuthenticated == true;
+    final isAuthLoading = authAsync.isLoading;
+    final user = authValue?.user;
+    final displayName = isAuthLoading ? 'Đang tải...' : (user?.displayName ?? 'Bạn');
     final enrollmentsAsync = isLoggedIn ? ref.watch(myEnrollmentsProvider) : null;
     final liveSchedulesAsync = isLoggedIn ? ref.watch(liveSchedulesProvider) : null;
     final unreadCountAsync = isLoggedIn ? ref.watch(notificationsUnreadCountProvider) : null;
@@ -92,7 +94,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                 child: Row(
                   children: [
-                    if (isLoggedIn) ...[
+                    if (isLoggedIn && !isAuthLoading) ...[
                       InkWell(
                         onTap: () => context.push('/profile'),
                         borderRadius: BorderRadius.circular(999),
@@ -125,7 +127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (isLoggedIn)
+                          if (isLoggedIn && !isAuthLoading)
                             Row(
                               children: [
                                 InkWell(
@@ -183,7 +185,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ],
                       ),
                     ),
-                    if (isLoggedIn)
+                    if (isLoggedIn && !isAuthLoading)
                       IconButton(
                         onPressed: () => context.push('/notifications'),
                         icon: Stack(
@@ -226,7 +228,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ],
                         ),
                       )
-                    else
+                    else if (!isAuthLoading)
                       SizedBox(
                         height: 32,
                         child: OutlinedButton(
@@ -240,6 +242,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             style: TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ),
+                      )
+                    else
+                      const SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: Center(
+                          child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                        ),
                       ),
                   ],
                 ),
@@ -248,8 +258,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: _HomeBanner(
                   isLoggedIn: isLoggedIn,
-                  onPrimaryAction: () => context.push(isLoggedIn ? '/practice' : '/login'),
-                  onSecondaryAction: () => context.push('/discovery'),
+                  onPrimaryAction: () => context.push('/discovery'),
+                  onSecondaryAction: () => context.push(isLoggedIn ? '/my-courses' : '/login'),
                 ),
               ),
               _buildSectionHeader(
@@ -863,7 +873,7 @@ class _HomeBanner extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.primary.withOpacity(0.18)),
             ),
-            child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
+            child: const Icon(Icons.explore_rounded, color: AppColors.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -871,7 +881,7 @@ class _HomeBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Gợi ý hôm nay',
+                  'Gợi ý khóa học',
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.2,
@@ -880,8 +890,8 @@ class _HomeBanner extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   isLoggedIn
-                      ? 'Tiếp tục luyện tập mỗi ngày để giữ streak và tăng tốc ghi nhớ.'
-                      : 'Đăng nhập để lưu tiến độ học và nhận gợi ý phù hợp mỗi ngày.',
+                      ? 'Khám phá thêm khóa học phù hợp với bạn và tiếp tục học theo lộ trình.'
+                      : 'Khám phá khóa học và đăng nhập để lưu tiến độ học tập của bạn.',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.textTertiary,
                     height: 1.35,
@@ -902,7 +912,7 @@ class _HomeBanner extends StatelessWidget {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
                           child: Text(
-                            isLoggedIn ? 'Đi luyện tập' : 'Đăng nhập',
+                            'Khám phá ngay',
                             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5),
                           ),
                         ),
@@ -918,7 +928,10 @@ class _HomeBanner extends StatelessWidget {
                           side: BorderSide(color: AppColors.primary.withOpacity(0.45)),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
-                        child: const Text('Khám phá', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5)),
+                        child: Text(
+                          isLoggedIn ? 'Khóa học của tôi' : 'Đăng nhập',
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5),
+                        ),
                       ),
                     ),
                   ],

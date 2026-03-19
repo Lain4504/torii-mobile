@@ -281,7 +281,19 @@ class AuthService {
       final response = await _apiClient.client.get('/api/auth/linked-providers');
       return ApiResponse.fromJson(
         response.data,
-        (json) => List<String>.from((json['providers'] as List?) ?? const []),
+        (json) {
+          // Backend shape (gateway):
+          // { data: { providers: { providers: string[], hasPassword: boolean } } }
+          // Older/other possible shape:
+          // { data: { providers: string[] } }
+          final raw = (json is Map) ? json['providers'] : null;
+          if (raw is List) return List<String>.from(raw);
+          if (raw is Map) {
+            final inner = raw['providers'];
+            if (inner is List) return List<String>.from(inner);
+          }
+          return <String>[];
+        },
       );
     } on DioException catch (e) {
       return _handleError(e);

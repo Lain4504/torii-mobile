@@ -11,13 +11,20 @@ class MyCoursesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final enrollmentsAsync = ref.watch(myEnrollmentsProvider);
+    final theme = Theme.of(context);
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         backgroundColor: AppColors.surface,
         appBar: AppBar(
-          title: const Text('Khóa học của tôi', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+          title: Text(
+            'Khóa học của tôi',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
           backgroundColor: AppColors.surface,
           elevation: 0,
           bottom: TabBar(

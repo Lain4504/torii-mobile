@@ -12,11 +12,18 @@ class CourseDiscoveryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final coursesAsync = ref.watch(publicCourseOfferingsProvider);
     final selectedLevel = GoRouterState.of(context).uri.queryParameters['level'];
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('Khám phá khóa học', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Khám phá khóa học',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         backgroundColor: AppColors.surface,
         elevation: 0,
         actions: [
