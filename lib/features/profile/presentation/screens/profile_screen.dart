@@ -13,10 +13,12 @@ class ProfileScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final authAsync = ref.watch(authStateProvider);
     final gamificationAsync = ref.watch(gamificationProfileProvider);
+    final streakAsync = ref.watch(streakProvider);
     final achievementsAsync = ref.watch(gamificationAchievementsProvider);
 
     final user = authAsync.value?.user;
     final profile = gamificationAsync.value;
+    final streakModel = streakAsync.value;
     final achievements = achievementsAsync.value ?? const [];
 
     final displayName = (user?.displayName ?? '').isNotEmpty ? user!.displayName : 'Học viên Torii';
@@ -25,7 +27,7 @@ class ProfileScreen extends ConsumerWidget {
 
     final completedCourses = profile?.totalActiveDays.toString() ?? '0';
     final completedLessons = profile?.totalXp.toString() ?? '0';
-    final streak = profile?.currentStreak.toString() ?? '0';
+    final streak = streakModel?.currentStreak.toString() ?? '0';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -55,6 +57,7 @@ class ProfileScreen extends ConsumerWidget {
           onRefresh: () async {
             ref.invalidate(authStateProvider);
             ref.invalidate(gamificationProfileProvider);
+            ref.invalidate(streakProvider);
             ref.invalidate(gamificationAchievementsProvider);
           },
           child: SingleChildScrollView(

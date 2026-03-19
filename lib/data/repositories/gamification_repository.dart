@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import '../models/gamification_models.dart';
 import '../../core/models/api_response.dart';
 
-/// Gamification API - profile, streak, history, rewards, redeem, achievements, activity-heatmap
+/// Gamification API - profile, streak, history, rewards, redeem, achievements
 class GamificationRepository {
   const GamificationRepository(this._dio);
 
@@ -71,19 +71,6 @@ class GamificationRepository {
     return list.map((e) => AchievementModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  /// GET /api/gamification/activity-heatmap
-  Future<Map<String, dynamic>> getActivityHeatmap({String? startDate, String? endDate}) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/api/gamification/activity-heatmap',
-      queryParameters: <String, dynamic>{
-        if (startDate != null) 'startDate': startDate,
-        if (endDate != null) 'endDate': endDate,
-      },
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    return api.data ?? {};
-  }
-
   /// GET /api/academy/coupons/my-coupons
   Future<List<Map<String, dynamic>>> getMyCoupons() async {
     final response = await _dio.get<Map<String, dynamic>>('/api/academy/coupons/my-coupons');
@@ -95,10 +82,6 @@ class GamificationRepository {
         .toList();
   }
 
-  /// Leaderboard: if backend exposes a dedicated leaderboard endpoint use it.
-  /// Otherwise we can use profile + history or a custom endpoint. Schema had LeaderboardDTO with users, currentUser, type.
-  /// Gateway does not show a dedicated GET /api/gamification/leaderboard - web-learner may use a different path.
-  /// For now we return empty list; you can add GET /api/gamification/leaderboard when backend supports it.
   Future<LeaderboardData?> getLeaderboard({String type = 'global'}) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(

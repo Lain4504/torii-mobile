@@ -66,6 +66,8 @@ class StreakModel {
   final int totalActiveDays;
   final int weeklyActiveCount;
   final int monthlyActiveCount;
+  final List<String> recentActiveDates;
+  final bool? shouldShowToast;
 
   const StreakModel({
     required this.currentStreak,
@@ -77,6 +79,8 @@ class StreakModel {
     required this.totalActiveDays,
     required this.weeklyActiveCount,
     required this.monthlyActiveCount,
+    this.recentActiveDates = const [],
+    this.shouldShowToast,
   });
 
   factory StreakModel.fromJson(Map<String, dynamic> json) {
@@ -90,6 +94,11 @@ class StreakModel {
       totalActiveDays: (json['totalActiveDays'] as num?)?.toInt() ?? 0,
       weeklyActiveCount: (json['weeklyActiveCount'] as num?)?.toInt() ?? 0,
       monthlyActiveCount: (json['monthlyActiveCount'] as num?)?.toInt() ?? 0,
+      recentActiveDates: (json['recentActiveDates'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      shouldShowToast: json['shouldShowToast'] as bool?,
     );
   }
 }

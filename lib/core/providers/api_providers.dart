@@ -143,6 +143,11 @@ final gamificationAchievementsProvider = FutureProvider<List<AchievementModel>>(
   return repo.getAchievements();
 });
 
+final streakProvider = FutureProvider<StreakModel?>((ref) async {
+  final repo = ref.watch(gamificationRepositoryProvider);
+  return repo.getStreak();
+});
+
 // ---------- Live schedules ----------
 final liveSchedulesProvider = FutureProvider<List<LiveScheduleModel>>((ref) async {
   final repo = ref.watch(academyRepositoryProvider);

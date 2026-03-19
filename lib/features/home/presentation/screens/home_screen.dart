@@ -6,6 +6,7 @@ import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
+import 'package:torii_app/features/home/presentation/widgets/streak_calendar_sheet.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -20,6 +21,7 @@ class HomeScreen extends ConsumerWidget {
     final enrollmentsAsync = isLoggedIn ? ref.watch(myEnrollmentsProvider) : null;
     final liveSchedulesAsync = isLoggedIn ? ref.watch(liveSchedulesProvider) : null;
     final unreadCountAsync = isLoggedIn ? ref.watch(notificationsUnreadCountProvider) : null;
+    final streakAsync = isLoggedIn ? ref.watch(streakProvider) : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -66,9 +68,58 @@ class HomeScreen extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           if (isLoggedIn)
-                            Text(
-                              'Hôm nay bạn muốn học gì?',
-                              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                            Row(
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    showModalBottomSheet<void>(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: AppColors.background,
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                      ),
+                                      builder: (_) => const StreakCalendarSheet(),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(999),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(2),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.local_fire_department_rounded,
+                                          size: 18,
+                                          color: AppColors.primary,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        streakAsync == null
+                                            ? const SizedBox.shrink()
+                                            : streakAsync.when(
+                                                data: (s) => Text(
+                                                  '${s?.currentStreak ?? 0}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: AppColors.textSecondary,
+                                                  ),
+                                                ),
+                                                loading: () => const Text(
+                                                  '…',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w800,
+                                                    color: AppColors.textTertiary,
+                                                  ),
+                                                ),
+                                                error: (_, __) => const SizedBox.shrink(),
+                                              ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                         ],
                       ),
@@ -167,14 +218,27 @@ class HomeScreen extends ConsumerWidget {
               _buildSectionHeader(context, 'Chọn cấp độ', null),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
                   children: [
-                    _buildLevelIcon(context, 'N5', AppColors.primary, Icons.auto_awesome),
-                    _buildLevelIcon(context, 'N4', AppColors.success, Icons.psychology),
-                    _buildLevelIcon(context, 'N3', AppColors.accent, Icons.translate),
-                    _buildLevelIcon(context, 'N2', AppColors.detail, Icons.school),
-                    _buildLevelIcon(context, 'N1', AppColors.error, Icons.workspace_premium),
+                    Row(
+                      children: [
+                        Expanded(child: _buildLevelIcon(context, 'N5', AppColors.primary)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildLevelIcon(context, 'N4', AppColors.success)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildLevelIcon(context, 'N3', AppColors.accent)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Spacer(),
+                        Expanded(child: _buildLevelIcon(context, 'N2', AppColors.detail)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildLevelIcon(context, 'N1', AppColors.error)),
+                        const Spacer(),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -450,26 +514,49 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLevelIcon(BuildContext context, String level, Color color, IconData icon) {
-    return InkWell(
+  Widget _buildLevelIcon(BuildContext context, String level, Color color) {
+    // Use GestureDetector instead of InkWell to avoid hover/splash visuals on mobile.
+    return GestureDetector(
       onTap: () => context.go('/discovery?level=$level'),
-      borderRadius: BorderRadius.circular(999),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.grey300),
+        ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
-                border: Border.all(color: color.withValues(alpha: 0.2), width: 2),
+                border: Border.all(color: color.withValues(alpha: 0.28), width: 2),
               ),
-              child: Icon(icon, color: color, size: 22),
+              child: Center(
+                child: Text(
+                  level,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: color,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 8),
-            Text(level, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
+            Text(
+              level,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 12.5,
+                color: AppColors.textPrimary,
+              ),
+            ),
           ],
         ),
       ),
