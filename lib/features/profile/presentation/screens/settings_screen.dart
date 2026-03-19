@@ -43,6 +43,11 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => context.push('/profile/edit'),
               ),
               _SettingsTile(
+                icon: Icons.link_rounded,
+                title: 'Liên kết tài khoản',
+                onTap: () => context.push('/linked-accounts'),
+              ),
+              _SettingsTile(
                 icon: Icons.lock_outline,
                 title: 'Đổi mật khẩu',
                 onTap: () => context.push('/change-password'),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 
@@ -19,6 +20,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  Future<bool> _waitUntilAuthenticated({Duration timeout = const Duration(seconds: 2)}) async {
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      final auth = ref.read(authNotifierProvider).valueOrNull;
+      if (auth?.status == AuthStatus.authenticated) return true;
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+    }
+    return ref.read(authNotifierProvider).valueOrNull?.status == AuthStatus.authenticated;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -225,16 +236,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 );
                                 return;
                               }
-                              setState(() => _isLoading = true);
+                              if (mounted) setState(() => _isLoading = true);
                               final notifier =
                                   ref.read(authNotifierProvider.notifier);
                               final ok =
                                   await notifier.login(email, password);
+                              if (!mounted) return;
                               setState(() => _isLoading = false);
                               if (ok) {
-                                if (mounted) {
-                                  context.go('/');
-                                }
+                                // Wait until auth state is fully persisted & propagated
+                                // so HomeScreen won't flash "not logged in" UI.
+                                await _waitUntilAuthenticated();
+                                if (!mounted) return;
+                                context.go('/');
                               } else {
                                 final state = ref
                                     .read(authNotifierProvider)

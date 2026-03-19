@@ -26,6 +26,7 @@ import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/change_password_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../../features/profile/presentation/screens/linked_accounts_screen.dart';
 import '../../features/home/presentation/screens/live_schedule_screen.dart';
 import '../../features/profile/presentation/screens/order_list_screen.dart';
 import '../../features/profile/presentation/screens/order_detail_screen.dart';
@@ -295,6 +296,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
+              ),
+              GoRoute(
+                path: '/linked-accounts',
+                builder: (context, state) => const LinkedAccountsScreen(),
               ),
               GoRoute(
                 path: '/achievements',

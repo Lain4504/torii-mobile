@@ -25,6 +25,15 @@ class GamificationRepository {
     return StreakModel.fromJson(api.data as Map<String, dynamic>);
   }
 
+  /// POST /api/gamification/mark-toast-shown
+  Future<void> markToastShown() async {
+    final response = await _dio.post<Map<String, dynamic>>('/api/gamification/mark-toast-shown');
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success) {
+      throw Exception(api.message ?? 'Failed to mark toast shown');
+    }
+  }
+
   /// GET /api/gamification/history
   Future<Map<String, dynamic>> getHistory({int page = 1, int limit = 10, String? type}) async {
     final response = await _dio.get<Map<String, dynamic>>(

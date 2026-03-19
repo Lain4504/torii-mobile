@@ -7,12 +7,20 @@ import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 import 'package:torii_app/features/home/presentation/widgets/streak_calendar_sheet.dart';
+import 'package:torii_app/features/home/presentation/widgets/streak_welcome_dialog.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _streakModalShownThisSession = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authState = ref.watch(authStateProvider);
     final isLoggedIn = authState.valueOrNull?.isAuthenticated == true;
@@ -22,6 +30,56 @@ class HomeScreen extends ConsumerWidget {
     final liveSchedulesAsync = isLoggedIn ? ref.watch(liveSchedulesProvider) : null;
     final unreadCountAsync = isLoggedIn ? ref.watch(notificationsUnreadCountProvider) : null;
     final streakAsync = isLoggedIn ? ref.watch(streakProvider) : null;
+
+    if (isLoggedIn) {
+      ref.listen(streakProvider, (previous, next) async {
+        if (_streakModalShownThisSession) return;
+        final streak = next.valueOrNull;
+        if (streak == null) return;
+        if (streak.shouldShowToast != true) return;
+
+        _streakModalShownThisSession = true;
+
+        // Mark shown on server immediately (cross-device once/day)
+        try {
+          await ref.read(gamificationRepositoryProvider).markToastShown();
+          ref.invalidate(streakProvider);
+        } catch (_) {}
+
+        if (!mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return;
+
+          final activeDates = <String>{
+            ...streak.recentActiveDates,
+            if ((streak.lastActiveDate ?? '').isNotEmpty) streak.lastActiveDate!,
+          };
+
+          await showDialog<void>(
+            context: context,
+            barrierDismissible: true,
+            builder: (_) => StreakWelcomeDialog(
+              currentStreak: streak.currentStreak,
+              activeDates: activeDates,
+              isActiveToday: streak.isActiveToday,
+              onViewDetail: () {
+                Navigator.of(context).pop();
+                showModalBottomSheet<void>(
+                  context: context,
+                  useRootNavigator: true,
+                  isScrollControlled: true,
+                  backgroundColor: AppColors.background,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (_) => const StreakCalendarSheet(),
+                );
+              },
+            ),
+          );
+        });
+      });
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -74,6 +132,7 @@ class HomeScreen extends ConsumerWidget {
                                   onTap: () {
                                     showModalBottomSheet<void>(
                                       context: context,
+                                      useRootNavigator: true,
                                       isScrollControlled: true,
                                       backgroundColor: AppColors.background,
                                       shape: const RoundedRectangleBorder(
@@ -183,6 +242,14 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                   ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: _HomeBanner(
+                  isLoggedIn: isLoggedIn,
+                  onPrimaryAction: () => context.push(isLoggedIn ? '/practice' : '/login'),
+                  onSecondaryAction: () => context.push('/discovery'),
                 ),
               ),
               _buildSectionHeader(
@@ -740,6 +807,123 @@ class HomeScreen extends ConsumerWidget {
                 'Chi tiết',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeBanner extends StatelessWidget {
+  const _HomeBanner({
+    required this.isLoggedIn,
+    required this.onPrimaryAction,
+    required this.onSecondaryAction,
+  });
+
+  final bool isLoggedIn;
+  final VoidCallback onPrimaryAction;
+  final VoidCallback onSecondaryAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.primary.withOpacity(0.20)),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.10),
+            AppColors.surface,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textPrimary.withOpacity(0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.primary.withOpacity(0.18)),
+            ),
+            child: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Gợi ý hôm nay',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isLoggedIn
+                      ? 'Tiếp tục luyện tập mỗi ngày để giữ streak và tăng tốc ghi nhớ.'
+                      : 'Đăng nhập để lưu tiến độ học và nhận gợi ý phù hợp mỗi ngày.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.textTertiary,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: ElevatedButton(
+                          onPressed: onPrimaryAction,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.textOnPrimary,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                          child: Text(
+                            isLoggedIn ? 'Đi luyện tập' : 'Đăng nhập',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      height: 40,
+                      child: OutlinedButton(
+                        onPressed: onSecondaryAction,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: BorderSide(color: AppColors.primary.withOpacity(0.45)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: const Text('Khám phá', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],

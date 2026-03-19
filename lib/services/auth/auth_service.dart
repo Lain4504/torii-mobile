@@ -275,6 +275,40 @@ class AuthService {
     }
   }
 
+  /// 4. Linked providers
+  Future<ApiResponse<List<String>>> getLinkedProviders() async {
+    try {
+      final response = await _apiClient.client.get('/api/auth/linked-providers');
+      return ApiResponse.fromJson(
+        response.data,
+        (json) => List<String>.from((json['providers'] as List?) ?? const []),
+      );
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ApiResponse<void>> linkGoogle(String idToken) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/link/google',
+        data: {'idToken': idToken},
+      );
+      return ApiResponse.fromJson(response.data, (_) {});
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ApiResponse<void>> unlinkProvider(String provider) async {
+    try {
+      final response = await _apiClient.client.delete('/api/auth/link/$provider');
+      return ApiResponse.fromJson(response.data, (_) {});
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
   Future<ApiResponse<void>> changePassword({
     required String oldPassword,
     required String newPassword,
