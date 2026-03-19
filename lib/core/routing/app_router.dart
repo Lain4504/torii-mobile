@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -49,20 +50,39 @@ import '../../features/onboarding/providers/onboarding_provider.dart';
 import '../widgets/app_shell.dart';
 import '../../features/meet/presentation/screens/landing/meet_entry_screen.dart';
 
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen(authStateProvider, (_, __) => notifyListeners());
+    _ref.listen(onboardingNotifierProvider, (_, __) => notifyListeners());
+  }
+}
+
+final routerNotifierProvider = Provider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
+});
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final onboardingNotifier = ref.watch(onboardingNotifierProvider);
-  final hasCompletedOnboarding = onboardingNotifier.value;
-  final authAsync = ref.watch(authStateProvider);
-  final isAuthenticated = authAsync.asData?.value.status == AuthStatus.authenticated;
-
-  final initialLocation = hasCompletedOnboarding ? '/' : '/welcome';
-
+  final routerNotifier = ref.watch(routerNotifierProvider);
+  
   return GoRouter(
-    initialLocation: initialLocation,
+    initialLocation: '/',
+    refreshListenable: routerNotifier,
     redirect: (context, state) {
+      final onboardingNotifier = ref.read(onboardingNotifierProvider);
+      final hasCompletedOnboarding = onboardingNotifier.value;
+      final authAsync = ref.read(authStateProvider);
+      final isAuthenticated = authAsync.asData?.value.status == AuthStatus.authenticated;
+
       final path = state.uri.path;
 
-      // Gate practice / study-sets flow for authenticated users only
+      // Primary redirect: Onboarding
+      if (!hasCompletedOnboarding && path != '/welcome') {
+        return '/welcome';
+      }
+
+      // Secondary redirect: Auth gating
       final requiresAuth = path.startsWith('/practice') || path.startsWith('/study-sets');
       if (requiresAuth && !isAuthenticated) {
         return '/login';

@@ -10,6 +10,7 @@ import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/repositories/auth_repository.dart';
 import 'package:torii_app/features/auth/repositories/token_storage.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:torii_app/core/config/app_config.dart';
 
 // --- DATA LAYER ---
@@ -45,6 +46,11 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 class AuthNotifier extends AsyncNotifier<AuthState> {
   late AuthRepository _repository;
   late UserService _userService;
+  
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: AppConfig.googleServerClientId,
+    scopes: ['email', 'profile'],
+  );
 
   @override
   Future<AuthState> build() async {
@@ -127,6 +133,33 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     } catch (e) {
       await _repository.tokenStorage.clear();
       state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    state = const AsyncValue.loading();
+    try {
+      // Sign out from any previous sessions first to force account picker
+      await _googleSignIn.signOut();
+      
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        state = AsyncValue.data(AuthState.unauthenticated());
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+
+      if (idToken == null) {
+        state = AsyncValue.data(AuthState.unauthenticated(error: 'Failed to retrieve Google ID token'));
+        return;
+      }
+
+      await googleLogin(idToken);
+    } catch (e) {
+      debugPrint('Google Sign-In Error: $e');
+      state = AsyncValue.data(AuthState.unauthenticated(error: 'Google Sign-In Error: $e'));
     }
   }
 

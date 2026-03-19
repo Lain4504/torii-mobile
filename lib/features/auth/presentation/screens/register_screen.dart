@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -280,14 +281,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   _buildSocialButton(
                     'Đăng ký với Facebook',
                     Icons.facebook,
+                    () => ref.read(authNotifierProvider.notifier).signInWithFacebook(),
                     iconColor: const Color(0xFF1877F2),
-                    onPressed: () =>
-                        ref.read(authNotifierProvider.notifier).signInWithFacebook(),
                   ),
                   const SizedBox(height: 10),
-                  _buildSocialButton('Đăng ký với Google', Icons.g_mobiledata),
+                  _buildSocialButton(
+                    'Đăng ký với Google', 
+                    Icons.g_mobiledata,
+                    () async {
+                      final notifier = ref.read(authNotifierProvider.notifier);
+                      await notifier.signInWithGoogle();
+                      
+                      if (!mounted) return;
+                      
+                      final authState = ref.read(authNotifierProvider).valueOrNull;
+                      if (authState?.status == AuthStatus.authenticated) {
+                        context.go('/');
+                      } else if (authState?.error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(authState!.error!)),
+                        );
+                      }
+                    },
+                  ),
                   const SizedBox(height: 10),
-                  _buildSocialButton('Đăng ký với Apple', Icons.apple),
+                  _buildSocialButton('Đăng ký với Apple', Icons.apple, () {}),
 
                   const SizedBox(height: 32),
                   Row(
@@ -372,15 +390,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Widget _buildSocialButton(
     String label,
-    IconData icon, {
-    VoidCallback? onPressed,
+    IconData icon,
+    VoidCallback onPressed, {
     Color? iconColor,
   }) {
     return SizedBox(
       width: double.infinity,
       height: 46,
       child: OutlinedButton.icon(
-        onPressed: onPressed ?? () {},
+        onPressed: onPressed,
         icon: Icon(icon, color: iconColor ?? AppColors.textPrimary, size: 22),
         label: Text(
           label,

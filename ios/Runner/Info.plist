@@ -68,10 +68,12 @@
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
-		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>fb25843221668693805</string>
+				<string>com.googleusercontent.apps.373782967878-uearib8s37c233gclrhs0ohduq4haof9</string>
 			</array>
 		</dict>
 	</array>
