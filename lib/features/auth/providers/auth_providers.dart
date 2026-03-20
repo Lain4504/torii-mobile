@@ -9,6 +9,8 @@ import 'package:torii_app/data/models/auth_model.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/repositories/auth_repository.dart';
 import 'package:torii_app/features/auth/repositories/token_storage.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:torii_app/core/config/app_config.dart';
 
 // --- DATA LAYER ---
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
@@ -49,6 +51,34 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     _repository = ref.watch(authRepositoryProvider);
     _userService = ref.watch(userServiceProvider);
     return _init();
+  }
+
+  Future<void> signInWithFacebook() async {
+    try {
+      final LoginResult result = await FacebookAuth.instance.login(
+        permissions: ['public_profile', 'email'],
+      );
+
+      if (result.status == LoginStatus.success) {
+        final AccessToken? accessToken = result.accessToken;
+        if (accessToken != null) {
+          state = const AsyncValue.loading();
+          final (authResult, data, error) =
+              await _repository.facebookLogin(accessToken.tokenString);
+          await _handleAuthResult(authResult, data, error);
+        }
+      } else if (result.status == LoginStatus.cancelled) {
+        debugPrint('Facebook login cancelled');
+      } else {
+        debugPrint('Facebook login failed: ${result.message}');
+        state = AsyncValue.data(
+            AuthState.unauthenticated(error: 'Facebook login failed'));
+      }
+    } catch (e) {
+      debugPrint('Facebook sign in error: $e');
+      state = AsyncValue.data(
+          AuthState.unauthenticated(error: 'Facebook sign in failed'));
+    }
   }
 
   Future<AuthState> _init() async {

@@ -14,7 +14,11 @@ class AppConfig {
   );
 
   // Google OAuth Client ID (Web Client ID for server-side verification)
+  // Google OAuth Client ID (Web Client ID for server-side verification)
   static const String googleServerClientId = '236923025711-r70q3l0h749ooaqldbril43tq5nhmdk4.apps.googleusercontent.com';
+
+  // Facebook App ID
+  static const String facebookAppId = '25843221668693805';
 
   /// Meet (WAJLC) API key for /auth/room/* endpoints. Prefer from env (e.g. --dart-define) in production.
   static const String meetApiKey = String.fromEnvironment(

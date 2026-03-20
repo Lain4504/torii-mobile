@@ -286,6 +286,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 18),
                   _buildSocialButton(
+                    icon: Icons.facebook,
+                    label: 'Đăng nhập với Facebook',
+                    iconColor: const Color(0xFF1877F2),
+                    onPressed: () =>
+                        ref.read(authNotifierProvider.notifier).signInWithFacebook(),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildSocialButton(
                     icon: Icons.g_mobiledata, // Placeholder for Google
                     label: 'Đăng nhập với Google',
                     onPressed: () {},
@@ -332,13 +340,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     required IconData icon,
     required String label,
     required VoidCallback onPressed,
+    Color? iconColor,
   }) {
     return SizedBox(
       width: double.infinity,
       height: 46,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: Icon(icon, color: AppColors.textPrimary, size: 22),
+        icon: Icon(icon, color: iconColor ?? AppColors.textPrimary, size: 22),
         label: Text(
           label,
           style: const TextStyle(
