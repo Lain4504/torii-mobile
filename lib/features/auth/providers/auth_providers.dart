@@ -345,6 +345,34 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       state = AsyncValue.data(AuthState.authenticated(user));
     }
   }
+
+  /// Fallback khi backend đang lỗi/đang dùng API cũ:
+  /// đảm bảo router không redirect ngược về `onboarding-survey`.
+  Future<void> markOnboardedLocally({bool onboarded = true}) async {
+    final currentUser = state.asData?.value.user;
+    if (currentUser == null) return;
+
+    final updatedUser = User(
+      id: currentUser.id,
+      email: currentUser.email,
+      displayName: currentUser.displayName,
+      role: currentUser.role,
+      verifiedAt: currentUser.verifiedAt,
+      avatarUrl: currentUser.avatarUrl,
+      status: currentUser.status,
+      createdAt: currentUser.createdAt,
+      updatedAt: currentUser.updatedAt,
+      appMetadata: currentUser.appMetadata,
+      userMetadata: currentUser.userMetadata,
+      bannedUntil: currentUser.bannedUntil,
+      lastSignInAt: currentUser.lastSignInAt,
+      deletedAt: currentUser.deletedAt,
+      isOnboarded: onboarded,
+    );
+
+    await _userService.saveUserProfile(updatedUser);
+    state = AsyncValue.data(AuthState.authenticated(updatedUser));
+  }
 }
 
 

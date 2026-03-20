@@ -13,6 +13,7 @@ class UserService {
       id: user.id,
       email: user.email,
       displayName: user.displayName,
+      isOnboarded: user.isOnboarded,
       avatar: user.avatarUrl,
       role: user.role,
       status: user.status,
@@ -34,6 +35,7 @@ class UserService {
       avatarUrl: profile.avatar,
       role: profile.role ?? '',
       status: profile.status ?? '',
+      isOnboarded: profile.isOnboarded,
       createdAt: profile.createdAt,
       updatedAt: profile.updatedAt,
     );

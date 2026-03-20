@@ -8,6 +8,7 @@ class UserProfileEntity {
     required this.id,
     required this.email,
     required this.displayName,
+    this.isOnboarded = false,
     this.avatar,
     this.role,
     this.status,
@@ -18,6 +19,7 @@ class UserProfileEntity {
   final String id;
   final String email;
   final String displayName;
+  final bool isOnboarded;
   final String? avatar;
   final String? role;
   final String? status;
@@ -28,6 +30,7 @@ class UserProfileEntity {
         'id': id,
         'email': email,
         'displayName': displayName,
+        'isOnboarded': isOnboarded,
         'avatar': avatar,
         'role': role,
         'status': status,
@@ -49,6 +52,7 @@ class UserProfileEntity {
       id: json['id'] as String,
       email: json['email'] as String,
       displayName: json['displayName'] as String,
+      isOnboarded: json['isOnboarded'] ?? false,
       avatar: json['avatar'] as String?,
       role: json['role'] as String?,
       status: json['status'] as String?,
@@ -72,6 +76,7 @@ class AppDatabase {
     required String id,
     required String email,
     required String displayName,
+    required bool isOnboarded,
     String? avatar,
     String? role,
     String? status,
@@ -85,6 +90,7 @@ class AppDatabase {
       id: id,
       email: email,
       displayName: displayName,
+      isOnboarded: isOnboarded,
       avatar: avatar,
       role: role,
       status: status,

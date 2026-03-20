@@ -28,8 +28,11 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   Future<void> _skipSurvey() async {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
+    final authNotifier = ref.read(authStateProvider.notifier);
+
     try {
-      // Persist minimal/default values so backend can mark user as onboarded.
+      // Persist minimal/default values so backend can mark user as onboarded
+      // (trường hợp backend deploy được).
       final service = ref.read(onboardingServiceProvider);
       final response = await service.saveSurvey(
         learningTarget: _learningTarget,
@@ -41,14 +44,20 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
       );
 
       if (response.success) {
-        await ref.read(authStateProvider.notifier).refreshProfile();
+        await authNotifier.refreshProfile();
       }
-      if (mounted) context.go('/');
     } catch (_) {
-      if (mounted) context.go('/');
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      // Backend lỗi/đang dùng API cũ -> fallback đánh dấu onboarding cục bộ
     }
+
+    // Đảm bảo router không redirect ngược về `/onboarding-survey`
+    final user = ref.read(authStateProvider).asData?.value.user;
+    if (user == null || !user.isOnboarded) {
+      await authNotifier.markOnboardedLocally();
+    }
+
+    if (mounted) context.go('/');
+    if (mounted) setState(() => _isSubmitting = false);
   }
 
   List<Widget> get _pages {
