@@ -11,5 +11,6 @@ class MainActivity : FlutterActivity() {
         // Initialize Facebook SDK as per documentation
         FacebookSdk.sdkInitialize(applicationContext)
         AppEventsLogger.activateApp(application)
+        println("APP_LOG: STARTING_MAIN_ACTIVITY - onCreate")
     }
 }

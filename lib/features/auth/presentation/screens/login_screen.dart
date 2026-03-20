@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -296,7 +297,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   _buildSocialButton(
                     icon: Icons.g_mobiledata, // Placeholder for Google
                     label: 'Đăng nhập với Google',
-                    onPressed: () {},
+                    onPressed: () async {
+                      final notifier = ref.read(authNotifierProvider.notifier);
+                      await notifier.signInWithGoogle();
+                      
+                      if (!mounted) return;
+                      
+                      final authState = ref.read(authNotifierProvider).valueOrNull;
+                      if (authState?.status == AuthStatus.authenticated) {
+                        context.go('/');
+                      } else if (authState?.error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(authState!.error!)),
+                        );
+                      }
+                    },
                   ),
                   const SizedBox(height: 10),
                   _buildSocialButton(
