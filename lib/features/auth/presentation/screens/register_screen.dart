@@ -277,6 +277,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 18),
 
+                  _buildSocialButton(
+                    'Đăng ký với Facebook',
+                    Icons.facebook,
+                    iconColor: const Color(0xFF1877F2),
+                    onPressed: () =>
+                        ref.read(authNotifierProvider.notifier).signInWithFacebook(),
+                  ),
+                  const SizedBox(height: 10),
                   _buildSocialButton('Đăng ký với Google', Icons.g_mobiledata),
                   const SizedBox(height: 10),
                   _buildSocialButton('Đăng ký với Apple', Icons.apple),
@@ -319,8 +327,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Widget _buildTextField({
     required TextEditingController controller,
-    required String hint, 
-    required IconData icon, 
+    required String hint,
+    required IconData icon,
     bool isPassword = false,
     bool obscureText = false,
     VoidCallback? onToggle,
@@ -362,13 +370,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  Widget _buildSocialButton(String label, IconData icon) {
+  Widget _buildSocialButton(
+    String label,
+    IconData icon, {
+    VoidCallback? onPressed,
+    Color? iconColor,
+  }) {
     return SizedBox(
       width: double.infinity,
       height: 46,
       child: OutlinedButton.icon(
-        onPressed: () {},
-        icon: Icon(icon, color: AppColors.textPrimary, size: 22),
+        onPressed: onPressed ?? () {},
+        icon: Icon(icon, color: iconColor ?? AppColors.textPrimary, size: 22),
         label: Text(
           label,
           style: const TextStyle(

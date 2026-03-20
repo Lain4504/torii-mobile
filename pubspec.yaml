@@ -58,6 +58,7 @@ dependencies:
 
   # Firebase packages
   google_sign_in: ^6.2.1
+  flutter_facebook_auth: ^7.1.6
   # Meet dependencies
   livekit_client: ^2.6.1
   permission_handler: ^11.3.1

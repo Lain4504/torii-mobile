@@ -42,3 +42,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Facebook SDK - Added manually as per integration guide
+    implementation("com.facebook.android:facebook-android-sdk:17.0.0")
+}

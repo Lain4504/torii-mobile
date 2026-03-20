@@ -22,6 +22,11 @@ class AuthRepository {
     return _handleAuthResponse(response);
   }
 
+  Future<(AuthResult, AuthData?, String?)> facebookLogin(String accessToken) async {
+    final response = await authService.facebookLogin(accessToken);
+    return _handleAuthResponse(response);
+  }
+
   Future<(AuthResult, AuthData?, String?)> _handleAuthResponse(ApiResponse<AuthData> response) async {
     if (response.success && response.data != null) {
       final data = response.data!;

@@ -65,6 +65,21 @@ class AuthService {
     }
   }
 
+  /// 1.2.2 Facebook Login
+  Future<ApiResponse<AuthData>> facebookLogin(String accessToken) async {
+    try {
+      final response = await _apiClient.client.post(
+        '/api/auth/facebook',
+        data: {'accessToken': accessToken},
+        options: Options(headers: {'x-platform': 'mobile'}),
+      );
+      return ApiResponse.fromJson(
+          response.data, (json) => AuthData.fromJson(json));
+    } on DioException catch (e) {
+      return _handleError(e);
+    }
+  }
+
   /// 1.3 Verify 2FA
   Future<ApiResponse<AuthData>> verify2FA({
     required String tempToken,
