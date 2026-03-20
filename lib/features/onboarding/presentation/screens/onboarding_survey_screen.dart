@@ -25,6 +25,32 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   String _currentLevel = 'Never learned';
   bool _wantsPlacementTest = false;
 
+  Future<void> _skipSurvey() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      // Persist minimal/default values so backend can mark user as onboarded.
+      final service = ref.read(onboardingServiceProvider);
+      final response = await service.saveSurvey(
+        learningTarget: _learningTarget,
+        learningPurpose: _learningPurpose,
+        jlptExamDate: _learningPurpose == 'JLPT' ? _jlptExamDate : null,
+        dailyStudyTime: _dailyStudyTime,
+        currentLevel: _currentLevel,
+        wantsPlacementTest: _wantsPlacementTest,
+      );
+
+      if (response.success) {
+        await ref.read(authStateProvider.notifier).refreshProfile();
+      }
+      if (mounted) context.go('/');
+    } catch (_) {
+      if (mounted) context.go('/');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
   List<Widget> get _pages {
     return [
       _buildWelcomeStep(),
@@ -93,7 +119,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
           children: [
             // Progress Bar
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -102,11 +128,28 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                     children: [
                       Text(
                         'Step ${_currentPage + 1} of ${_pages.length}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _isSubmitting ? null : _skipSurvey,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        child: const Text(
+                          'Skip',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
                       ),
                       Text(
                         '${(progress * 100).toInt()}%',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                        style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.blue, fontSize: 12),
                       ),
                     ],
                   ),
@@ -116,7 +159,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                     backgroundColor: Colors.blue.withOpacity(0.1),
                     valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
                     borderRadius: BorderRadius.circular(10),
-                    minHeight: 8,
+                    minHeight: 6,
                   ),
                 ],
               ),
@@ -134,7 +177,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
             // Bottom Navigation
             Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -143,6 +186,11 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                       onPressed: _isSubmitting ? null : _prevPage,
                       icon: const Icon(Icons.chevron_left),
                       label: const Text('Back'),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      ),
                     )
                   else
                     const SizedBox.shrink(),
@@ -154,9 +202,11 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 4,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
                     ),
                     child: _isSubmitting 
                       ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
@@ -179,31 +229,31 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     Color iconColor = Colors.blue,
   }) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: iconColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 40, color: iconColor),
+            child: Icon(icon, size: 28, color: iconColor),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.grey, fontSize: 16),
+            style: const TextStyle(color: Colors.grey, fontSize: 13, height: 1.25),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 20),
           content,
         ],
       ),
@@ -391,10 +441,10 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: fullWidth ? double.infinity : null,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? Colors.blue.withOpacity(0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? Colors.blue : Colors.grey.withOpacity(0.3),
             width: isSelected ? 2 : 1,
@@ -402,25 +452,30 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
           boxShadow: isSelected ? [
             BoxShadow(
               color: Colors.blue.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
             )
           ] : null,
         ),
         child: Row(
           mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Colors.blue : Colors.black87,
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? Colors.blue : Colors.black87,
+                ),
               ),
             ),
+            if (fullWidth) const Spacer() else const SizedBox(width: 12),
             if (isSelected)
-              const Icon(Icons.check_circle, color: Colors.blue, size: 20),
+              const Icon(Icons.check_circle, color: Colors.blue, size: 18),
           ],
         ),
       ),

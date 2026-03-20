@@ -327,7 +327,7 @@ class _CourseSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final priceStr = '${price.toInt().toString().replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (m) => '${m[1]}.')}đ';
+    final priceStr = '${price.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
     final isLive = mode.toUpperCase() == 'LIVE';
 
     return Container(
@@ -432,7 +432,7 @@ class _OrderTotalsCard extends StatelessWidget {
     final discount = preview?.discountTotal ?? 0;
     final total = preview?.grandTotal ?? sub;
 
-    String fmt(double v) => '${v.toInt().toString().replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (m) => '${m[1]}.')}đ';
+    String fmt(double v) => '${v.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
 
     return Container(
       padding: const EdgeInsets.all(16),

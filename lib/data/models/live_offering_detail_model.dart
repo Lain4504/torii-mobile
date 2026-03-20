@@ -33,16 +33,24 @@ class LiveClassModel {
     final displayName = instructorMap?['displayName'] as String?;
     final avatarUrl = instructorMap?['avatarUrl'] as String?;
 
+    final term = json['term'];
+    final termMap = term is Map ? term.cast<String, dynamic>() : null;
+
+    final openingDate = _tryParseDateTime(json['openingDate'] ?? termMap?['openingDate']);
+    final closingDate = _tryParseDateTime(json['closingDate'] ?? termMap?['closingDate']);
+    final enrollmentOpenAt = _tryParseDateTime(json['enrollmentOpenAt'] ?? termMap?['enrollmentOpenAt']);
+    final enrollmentCloseAt = _tryParseDateTime(json['enrollmentCloseAt'] ?? termMap?['enrollmentCloseAt']);
+
     return LiveClassModel(
       id: (json['id'] as String?) ?? '',
       code: (json['code'] as String?) ?? '',
       name: (json['name'] as String?) ?? (json['title'] as String?) ?? '',
       mode: (json['mode'] as String?) ?? 'LIVE',
       status: json['status'] as String?,
-      openingDate: _tryParseDateTime(json['openingDate']),
-      closingDate: _tryParseDateTime(json['closingDate']),
-      enrollmentOpenAt: _tryParseDateTime(json['enrollmentOpenAt']),
-      enrollmentCloseAt: _tryParseDateTime(json['enrollmentCloseAt']),
+      openingDate: openingDate,
+      closingDate: closingDate,
+      enrollmentOpenAt: enrollmentOpenAt,
+      enrollmentCloseAt: enrollmentCloseAt,
       instructorName: displayName,
       instructorAvatarUrl: avatarUrl,
     );
@@ -68,7 +76,7 @@ class LiveOfferingDetailModel {
   });
 
   factory LiveOfferingDetailModel.fromJson(Map<String, dynamic> json) {
-    final rawClasses = json['classes'];
+    final rawClasses = json['siblingClasses'] ?? json['classes'];
     final List<dynamic> list = rawClasses is List ? rawClasses : const [];
 
     final classes = list

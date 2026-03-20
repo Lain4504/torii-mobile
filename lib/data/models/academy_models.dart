@@ -11,6 +11,8 @@ class CourseOfferingModel {
   final String? status;
   final String? thumbnailUrl;
   final String? slug;
+  final String? courseProfileId;
+  final String? termId;
 
   const CourseOfferingModel({
     required this.id,
@@ -24,6 +26,8 @@ class CourseOfferingModel {
     this.status,
     this.thumbnailUrl,
     this.slug,
+    this.courseProfileId,
+    this.termId,
   });
 
   factory CourseOfferingModel.fromJson(Map<String, dynamic> json) {
@@ -39,6 +43,8 @@ class CourseOfferingModel {
       status: json['status'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
       slug: json['slug'] as String?,
+      courseProfileId: json['courseProfileId']?.toString(),
+      termId: json['termId']?.toString(),
     );
   }
 

@@ -1,51 +1,78 @@
 import 'academy_models.dart';
+import 'live_offering_detail_model.dart';
 
 class CourseOfferingDetailModel {
   final CourseOfferingModel offering;
   final List<CurriculumModuleModel> modules;
   final String? instructorName;
+  final List<LiveClassModel> siblingClasses;
 
   const CourseOfferingDetailModel({
     required this.offering,
     required this.modules,
     this.instructorName,
+    this.siblingClasses = const [],
   });
 
   factory CourseOfferingDetailModel.fromJson(Map<String, dynamic> json) {
     // The gateway may wrap detail in many shapes; keep it defensive.
     final offering = CourseOfferingModel.fromJson(json);
 
-    // Try to locate curriculum modules from nested class -> courseProfile -> modules
+    // Try to locate curriculum modules
     final modules = <CurriculumModuleModel>[];
-    final classes = json['classes'];
-    if (classes is List) {
-      for (final c in classes) {
-        if (c is! Map) continue;
-        final klass = c['class'];
-        if (klass is! Map) continue;
-        
-        // Use courseProfile instead of syllabus
-        final profile = klass['courseProfile'] ?? klass['syllabus']; // Fallback for transition
-        if (profile is! Map) continue;
-        
-        final rawModules = profile['modules'];
-        if (rawModules is List) {
-          modules.addAll(
-            rawModules
-                .whereType<Map>()
-                .map((m) => CurriculumModuleModel.fromJson(m.cast<String, dynamic>())),
-          );
-          break; // Take the first profile found
+    
+    // Modern structure: courseProfile is at top level or inside offering
+    final profile = json['courseProfile'] ?? json['offering']?['courseProfile'];
+    
+    if (profile is Map) {
+      final rawModules = profile['modules'];
+      if (rawModules is List) {
+        modules.addAll(
+          rawModules
+              .whereType<Map>()
+              .map((m) => CurriculumModuleModel.fromJson(m.cast<String, dynamic>())),
+        );
+      }
+    } else {
+      // Legacy fallback
+      final classes = json['classes'];
+      if (classes is List) {
+        for (final c in classes) {
+          if (c is! Map) continue;
+          final klass = (c is Map<String, dynamic>) ? (c['class'] ?? c) : c;
+          if (klass is! Map) continue;
+          
+          final p = klass['courseProfile'] ?? klass['syllabus'];
+          if (p is! Map) continue;
+          
+          final rawModules = p['modules'];
+          if (rawModules is List) {
+            modules.addAll(
+              rawModules
+                  .whereType<Map>()
+                  .map((m) => CurriculumModuleModel.fromJson(m.cast<String, dynamic>())),
+            );
+            break;
+          }
         }
       }
     }
 
     final instructorName = _findInstructorName(json);
 
+    final rawSiblingClasses = json['siblingClasses'] ?? json['classes'];
+    final siblingClasses = (rawSiblingClasses is List)
+        ? rawSiblingClasses
+            .whereType<Map>()
+            .map((c) => LiveClassModel.fromJson(c.cast<String, dynamic>()))
+            .toList()
+        : <LiveClassModel>[];
+
     return CourseOfferingDetailModel(
       offering: offering,
       modules: modules..sort((a, b) => a.orderIndex.compareTo(b.orderIndex)),
       instructorName: instructorName,
+      siblingClasses: siblingClasses,
     );
   }
 }
@@ -101,15 +128,22 @@ class CurriculumLessonModel {
 }
 
 String? _findInstructorName(Map<String, dynamic> json) {
-  final classes = json['classes'];
+  final offering = json['offering'] ?? json;
+  final instructor = offering['instructor'] ?? offering['class']?['instructor'];
+  if (instructor is Map) {
+    final name = instructor['displayName'];
+    if (name != null) return name.toString();
+  }
+
+  final classes = json['classes'] ?? json['siblingClasses'];
   if (classes is List) {
     for (final c in classes) {
       if (c is! Map) continue;
-      final klass = c['class'];
+      final klass = c['class'] ?? c;
       if (klass is! Map) continue;
-      final instructor = klass['instructor'];
-      if (instructor is Map) {
-        final name = instructor['displayName'];
+      final instr = klass['instructor'];
+      if (instr is Map) {
+        final name = instr['displayName'];
         if (name != null) return name.toString();
       }
     }

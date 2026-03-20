@@ -6,13 +6,20 @@ import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/course_offering_detail_model.dart';
 
-class CourseDetailScreen extends ConsumerWidget {
+class CourseDetailScreen extends ConsumerStatefulWidget {
   const CourseDetailScreen({super.key, required this.courseId});
   final String courseId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final detailAsync = ref.watch(courseOfferingDetailRichProvider(courseId));
+  ConsumerState<CourseDetailScreen> createState() => _CourseDetailScreenState();
+}
+
+class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
+  String? _selectedClassId;
+
+  @override
+  Widget build(BuildContext context) {
+    final detailAsync = ref.watch(courseOfferingDetailRichProvider(widget.courseId));
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -150,7 +157,69 @@ class CourseDetailScreen extends ConsumerWidget {
                             .map((m) => _buildModuleTile(m))
                             .toList(),
                       ),
-                    SizedBox(height: bottomSafePadding + 88),
+                    if (detail.offering.mode.toUpperCase() == 'LIVE' && detail.siblingClasses.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      Text(
+                        'Chọn lớp học (Batch) của giảng viên bạn yêu thích',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: AppTypography.bold,
+                          letterSpacing: 0.1,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Column(
+                        children: detail.siblingClasses.map((c) {
+                          final isSelected = _selectedClassId == c.id;
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppColors.primary.withOpacity(0.05) : AppColors.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                width: isSelected ? 2 : 1,
+                              ),
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () => setState(() => _selectedClassId = c.id),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundImage: NetworkImage(c.instructorAvatarUrl ?? 'https://ui-avatars.com/api/?name=${c.instructorName ?? "GV"}'),
+                                      radius: 20,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            c.name,
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                          ),
+                                          Text(
+                                            'Giảng viên: ${c.instructorName ?? "Đang cập nhật"} • Mã lớp: ${c.code}',
+                                            style: TextStyle(color: AppColors.grey700, fontSize: 11),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      const Icon(Icons.check_circle, color: AppColors.primary, size: 24),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                    SizedBox(height: bottomSafePadding + 100),
                     ],
                   ),
                 ),
@@ -174,7 +243,16 @@ class CourseDetailScreen extends ConsumerWidget {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => context.push('/checkout/${course.id}'),
+                      onPressed: () {
+                        if (course.mode.toUpperCase() == 'LIVE' && _selectedClassId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Vui lòng chọn 1 lớp học (Batch) để mua khóa học LIVE.')),
+                          );
+                          return;
+                        }
+                        final extra = _selectedClassId != null ? '?classId=$_selectedClassId' : '';
+                        context.push('/checkout/${course.id}$extra');
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.textOnPrimary,
