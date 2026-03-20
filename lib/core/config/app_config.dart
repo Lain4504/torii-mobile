@@ -14,7 +14,7 @@ class AppConfig {
   );
 
   // Google OAuth Client ID (Web Client ID for server-side verification)
-  static const String googleServerClientId = '37150354353-jmc8ol8ue8blrp55483b7u8p6n68mks2.apps.googleusercontent.com';
+  static const String googleServerClientId = '527962310647-3op4ar2f6u2uh9f5flc3c9lmk4jp69ur.apps.googleusercontent.com';
 
   // Facebook App ID
   static const String facebookAppId = '25843221668693805';

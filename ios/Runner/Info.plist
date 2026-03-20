@@ -73,7 +73,8 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>fb25843221668693805</string>
-				<string>com.googleusercontent.apps.373782967878-uearib8s37c233gclrhs0ohduq4haof9</string>
+				<!-- Reversed ID for: 527962310647-3op4ar2f6u2uh9f5flc3c9lmk4jp69ur.apps.googleusercontent.com -->
+				<string>com.googleusercontent.apps.527962310647-3op4ar2f6u2uh9f5flc3c9lmk4jp69ur</string>
 			</array>
 		</dict>
 	</array>
