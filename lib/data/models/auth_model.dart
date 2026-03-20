@@ -14,6 +14,7 @@ class User {
   final DateTime? bannedUntil;
   final DateTime? lastSignInAt;
   final DateTime? deletedAt;
+  final bool isOnboarded;
 
   User({
     required this.id,
@@ -30,6 +31,7 @@ class User {
     this.bannedUntil,
     this.lastSignInAt,
     this.deletedAt,
+    this.isOnboarded = false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,7 @@ class User {
       bannedUntil: json['bannedUntil'] != null ? DateTime.parse(json['bannedUntil'] as String) : null,
       lastSignInAt: json['lastSignInAt'] != null ? DateTime.parse(json['lastSignInAt'] as String) : null,
       deletedAt: json['deletedAt'] != null ? DateTime.parse(json['deletedAt'] as String) : null,
+      isOnboarded: json['isOnboarded'] ?? false,
     );
   }
 
@@ -67,6 +70,7 @@ class User {
       'bannedUntil': bannedUntil?.toIso8601String(),
       'lastSignInAt': lastSignInAt?.toIso8601String(),
       'deletedAt': deletedAt?.toIso8601String(),
+      'isOnboarded': isOnboarded,
     };
   }
 }

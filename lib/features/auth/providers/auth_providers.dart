@@ -336,6 +336,15 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     );
     return response.success;
   }
+
+  Future<void> refreshProfile() async {
+    final response = await _repository.authService.getMe();
+    if (response.success && response.data != null) {
+      final user = response.data!;
+      await _userService.saveUserProfile(user);
+      state = AsyncValue.data(AuthState.authenticated(user));
+    }
+  }
 }
 
 

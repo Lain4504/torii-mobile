@@ -50,6 +50,7 @@ import '../../features/practice/presentation/screens/study_set_match_screen.dart
 import '../../features/onboarding/providers/onboarding_provider.dart';
 import '../widgets/app_shell.dart';
 import '../../features/meet/presentation/screens/landing/meet_entry_screen.dart';
+import '../../features/onboarding/presentation/screens/onboarding_survey_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -77,6 +78,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authAsync.asData?.value.status == AuthStatus.authenticated;
 
       final path = state.uri.path;
+      final auth = authAsync.asData?.value;
+      final user = auth?.user;
+
+      if (isAuthenticated && user != null && !user.isOnboarded && path != '/onboarding-survey') {
+        return '/onboarding-survey';
+      }
 
       // Primary redirect: Onboarding
       if (!hasCompletedOnboarding && path != '/welcome') {
@@ -127,6 +134,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             mode: mode,
           );
         },
+      ),
+
+      GoRoute(
+        path: '/onboarding-survey',
+        builder: (context, state) => const OnboardingSurveyScreen(),
       ),
 
       GoRoute(
