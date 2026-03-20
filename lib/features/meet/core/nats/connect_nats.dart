@@ -38,6 +38,7 @@ import '../livekit/connect_livekit.dart';
 
 // Providers
 import '../../providers/session_provider.dart';
+import '../../providers/participant_provider.dart';
 import '../../providers/room_settings_provider.dart';
 import '../../data/datasources/meet_api_service.dart';
 
@@ -435,6 +436,10 @@ class ConnectNats {
         await _handleJoinedUsersList(payload.msg);
         break;
 
+      case nats_msg.NatsMsgServerToClientEvents.RESP_ONLINE_USERS_LIST:
+        await _handleOnlineUsersList(payload.msg);
+        break;
+
       case nats_msg.NatsMsgServerToClientEvents.RES_MEDIA_SERVER_DATA:
         await _handleMediaServerData(payload.msg);
         break;
@@ -613,6 +618,26 @@ class ConnectNats {
     }
   }
 
+  /// Handle online users list reconciliation (matches web RESP_ONLINE_USERS_LIST -> reconcileParticipants()).
+  Future<void> _handleOnlineUsersList(String msg) async {
+    if (msg.isEmpty) return;
+    try {
+      final onlineUsers = jsonDecode(msg) as List<dynamic>;
+
+      final serverUsers = <nats_msg.NatsKvUserInfo>[];
+      for (final userJson in onlineUsers) {
+        final jsonStr = userJson is Map ? jsonEncode(userJson) : userJson.toString();
+        serverUsers.add(nats_msg.NatsKvUserInfo.fromJson(_normalizeJson(jsonStr)));
+      }
+
+      await handleParticipants.reconcileParticipants(serverUsers);
+    } catch (e) {
+      if (kDebugMode) {
+        print('ConnectNats: Error handling online users list - $e');
+      }
+    }
+  }
+
   /// After user ready - request media server data, subscribe channels (matches web onAfterUserReady)
   Future<void> _onAfterUserReady() async {
     // Request media server connection data (LiveKit URL + token)
@@ -624,6 +649,38 @@ class ConnectNats {
     if (kDebugMode) {
       print('ConnectNats: Requested media server data (onAfterUserReady)');
     }
+
+    // Start periodic participants reconciliation (matches web startUsersSync()).
+    _startUsersSync();
+
+    // Request initial whiteboard scene from a "donor" (presenter) so
+    // whiteboard viewers can render it immediately (view-only on mobile).
+    unawaited(_requestWhiteboardFullScene());
+  }
+
+  /// Periodically request the latest online users list from backend,
+  /// so the participant list stays consistent even if we missed realtime events.
+  void _startUsersSync() {
+    // Avoid multiple timers on reconnect / repeated ready flows.
+    _reconciliationInterval?.cancel();
+
+    // Fire once immediately.
+    _sendMessageToSystemWorker(
+      nats_msg.NatsMsgClientToServer(
+        event: nats_msg.NatsMsgClientToServerEvents.REQ_ONLINE_USERS_LIST,
+      ),
+    );
+
+    _reconciliationInterval = Timer.periodic(
+      const Duration(milliseconds: kUsersSyncInterval),
+      (_) {
+        _sendMessageToSystemWorker(
+          nats_msg.NatsMsgClientToServer(
+            event: nats_msg.NatsMsgClientToServerEvents.REQ_ONLINE_USERS_LIST,
+          ),
+        );
+      },
+    );
   }
 
   /// Handle media server data - connect to LiveKit (matches web handleMediaServerData)
@@ -1027,16 +1084,6 @@ class ConnectNats {
       final subject = '${_subjects.whiteboard}.$_roomId';
       final sub = _nc.sub(subject);
       
-      // Request whiteboard data from donors (users who have whiteboard state)
-      final donors = await _getWhiteboardDonors();
-      for (final donor in donors) {
-        await sendDataMessage(
-          type: 'REQ_FULL_WHITEBOARD_DATA',
-          msg: '',
-          toUserId: donor['userId'],
-        );
-      }
-      
       // Listen for whiteboard messages
       await for (final msg in sub.stream) {
         Uint8List dataToParse = msg.data;
@@ -1108,10 +1155,54 @@ class ConnectNats {
     }
   }
   
+  /// Request full whiteboard scene from donor(s).
+  /// Web does this via `REQ_FULL_WHITEBOARD_DATA` + donor list.
+  Future<void> _requestWhiteboardFullScene() async {
+    try {
+      final donors = await _getWhiteboardDonors();
+      if (donors.isEmpty) return;
+
+      for (final donor in donors) {
+        final userId = donor['userId']?.toString() ?? '';
+        if (userId.isEmpty) continue;
+
+        await sendDataMessage(
+          type: 'REQ_FULL_WHITEBOARD_DATA',
+          msg: '',
+          toUserId: userId,
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('ConnectNats: Error requesting whiteboard full scene - $e');
+      }
+    }
+  }
+  
   /// Get whiteboard donors (users with whiteboard state)
   Future<List<Map<String, dynamic>>> _getWhiteboardDonors() async {
-    // TODO: Get from local storage or provider
-    return [];
+    // For view-only mobile, we treat "presenter" as the donor
+    // who can provide the full scene.
+    final participantState = ref.read(participantProvider);
+    final participants = participantState.participants.values.toList();
+
+    // Prefer requesting from presenters (typically exactly one).
+    final presenters = participants
+        .where((p) => p.metadata.isPresenter == true)
+        .toList();
+
+    final donors = presenters
+        .where((p) => p.userId != _userId)
+        .map((p) => <String, dynamic>{'userId': p.userId})
+        .toList();
+
+    if (donors.isNotEmpty) return donors;
+
+    // Fallback: any other participant.
+    return participants
+        .where((p) => p.userId != _userId)
+        .map((p) => <String, dynamic>{'userId': p.userId})
+        .toList();
   }
   
   // ============================================================================

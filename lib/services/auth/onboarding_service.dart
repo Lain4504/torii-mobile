@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/api/api_client.dart';
 import '../../core/models/api_response.dart';
+import '../../features/auth/providers/auth_providers.dart';
 
 final onboardingServiceProvider = Provider<OnboardingService>((ref) {
   final apiClient = ref.watch(apiClientProvider);

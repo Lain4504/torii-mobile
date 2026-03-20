@@ -2,7 +2,7 @@ import 'academy_models.dart';
 
 class CourseOfferingDetailModel {
   final CourseOfferingModel offering;
-  final List<SyllabusModuleModel> modules;
+  final List<CurriculumModuleModel> modules;
   final String? instructorName;
 
   const CourseOfferingDetailModel({
@@ -15,24 +15,27 @@ class CourseOfferingDetailModel {
     // The gateway may wrap detail in many shapes; keep it defensive.
     final offering = CourseOfferingModel.fromJson(json);
 
-    // Try to locate syllabus modules from nested class -> syllabus -> modules
-    final modules = <SyllabusModuleModel>[];
+    // Try to locate curriculum modules from nested class -> courseProfile -> modules
+    final modules = <CurriculumModuleModel>[];
     final classes = json['classes'];
     if (classes is List) {
       for (final c in classes) {
         if (c is! Map) continue;
         final klass = c['class'];
         if (klass is! Map) continue;
-        final syllabus = klass['syllabus'];
-        if (syllabus is! Map) continue;
-        final rawModules = syllabus['modules'];
+        
+        // Use courseProfile instead of syllabus
+        final profile = klass['courseProfile'] ?? klass['syllabus']; // Fallback for transition
+        if (profile is! Map) continue;
+        
+        final rawModules = profile['modules'];
         if (rawModules is List) {
           modules.addAll(
             rawModules
                 .whereType<Map>()
-                .map((m) => SyllabusModuleModel.fromJson(m.cast<String, dynamic>())),
+                .map((m) => CurriculumModuleModel.fromJson(m.cast<String, dynamic>())),
           );
-          break; // take the first syllabus found
+          break; // Take the first profile found
         }
       }
     }
@@ -47,29 +50,29 @@ class CourseOfferingDetailModel {
   }
 }
 
-class SyllabusModuleModel {
+class CurriculumModuleModel {
   final String id;
   final String title;
   final int orderIndex;
-  final List<SyllabusLessonModel> lessons;
+  final List<CurriculumLessonModel> lessons;
 
-  const SyllabusModuleModel({
+  const CurriculumModuleModel({
     required this.id,
     required this.title,
     required this.orderIndex,
     required this.lessons,
   });
 
-  factory SyllabusModuleModel.fromJson(Map<String, dynamic> json) {
+  factory CurriculumModuleModel.fromJson(Map<String, dynamic> json) {
     final lessonsRaw = json['lessons'];
     final lessons = (lessonsRaw is List)
         ? lessonsRaw
             .whereType<Map>()
-            .map((l) => SyllabusLessonModel.fromJson(l.cast<String, dynamic>()))
+            .map((l) => CurriculumLessonModel.fromJson(l.cast<String, dynamic>()))
             .toList()
-        : <SyllabusLessonModel>[];
+        : <CurriculumLessonModel>[];
 
-    return SyllabusModuleModel(
+    return CurriculumModuleModel(
       id: (json['id'] ?? '').toString(),
       title: (json['title'] ?? '').toString(),
       orderIndex: (json['orderIndex'] is num)
@@ -80,17 +83,17 @@ class SyllabusModuleModel {
   }
 }
 
-class SyllabusLessonModel {
+class CurriculumLessonModel {
   final String id;
   final String title;
 
-  const SyllabusLessonModel({
+  const CurriculumLessonModel({
     required this.id,
     required this.title,
   });
 
-  factory SyllabusLessonModel.fromJson(Map<String, dynamic> json) {
-    return SyllabusLessonModel(
+  factory CurriculumLessonModel.fromJson(Map<String, dynamic> json) {
+    return CurriculumLessonModel(
       id: (json['id'] ?? '').toString(),
       title: (json['title'] ?? '').toString(),
     );

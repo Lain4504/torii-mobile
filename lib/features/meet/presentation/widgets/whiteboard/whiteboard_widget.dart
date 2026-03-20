@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/whiteboard_provider.dart';
 import 'whiteboard_canvas.dart';
-import 'whiteboard_toolbar.dart';
 
 /// Whiteboard Widget
 /// Main whiteboard container
@@ -31,24 +30,6 @@ class WhiteboardWidget extends ConsumerWidget {
             child: WhiteboardCanvas(),
           ),
           
-          // Toolbar
-          const Positioned(
-            left: 16,
-            top: 16,
-            bottom: 16,
-            child: WhiteboardToolbar(),
-          ),
-          
-          // Page controls (bottom center)
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: _buildPageControls(context, ref),
-            ),
-          ),
-          
           // Close button (top right)
           Positioned(
             top: 16,
@@ -64,61 +45,6 @@ class WhiteboardWidget extends ConsumerWidget {
                 foregroundColor: AppColors.textPrimary,
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPageControls(BuildContext context, WidgetRef ref) {
-    final currentPage = ref.watch(
-      whiteboardProvider.select((s) => s.currentPage),
-    );
-    final totalPages = ref.watch(
-      whiteboardProvider.select((s) => s.totalPages),
-    );
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.textPrimary.withOpacity(0.87),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left, color: AppColors.textOnPrimary),
-            onPressed: currentPage > 1 
-              ? () {
-                  // TODO: Previous page
-                  ref.read(whiteboardProvider.notifier).setCurrentPage(currentPage - 1);
-                } 
-              : null,
-            iconSize: 20,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            '$currentPage / $totalPages',
-            style: const TextStyle(
-              color: AppColors.textOnPrimary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 16),
-          IconButton(
-            icon: const Icon(Icons.chevron_right, color: AppColors.textOnPrimary),
-            onPressed: currentPage < totalPages 
-              ? () {
-                  // TODO: Next page
-                  ref.read(whiteboardProvider.notifier).setCurrentPage(currentPage + 1);
-                } 
-              : null,
-            iconSize: 20,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
           ),
         ],
       ),

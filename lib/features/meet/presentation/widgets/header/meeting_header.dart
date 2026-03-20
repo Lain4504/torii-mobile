@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import '../../../providers/participant_provider.dart';
 import '../../../providers/session_provider.dart';
 
 /// Meeting Header Widget
@@ -15,7 +16,7 @@ class MeetingHeader extends ConsumerWidget {
       sessionProvider.select((s) => s.currentRoom.metadata),
     );
     final participantCount = ref.watch(
-      sessionProvider.select((s) => s.totalParticipants),
+      participantProvider.select((p) => p.totalParticipants),
     );
     final isRecording = ref.watch(
       sessionProvider.select((s) => s.isActiveRecording),

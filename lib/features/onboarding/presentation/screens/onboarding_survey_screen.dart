@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../services/auth/onboarding_service.dart';
 import '../../../auth/providers/auth_providers.dart';
@@ -99,7 +98,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Step ${_currentPage + 1} of ${_pages.length}',
@@ -142,7 +141,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                   if (_currentPage > 0)
                     TextButton.icon(
                       onPressed: _isSubmitting ? null : _prevPage,
-                      icon: const Icon(LucideIcons.chevronLeft),
+                      icon: const Icon(Icons.chevron_left),
                       label: const Text('Back'),
                     )
                   else
@@ -213,7 +212,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
   Widget _buildWelcomeStep() {
     return _buildStepContainer(
-      icon: LucideIcons.sparkles,
+      icon: Icons.auto_awesome,
       title: 'Welcome to Torii Mon',
       subtitle: 'Let\'s personalize your experience to your goals and pace.',
       iconColor: Colors.amber,
@@ -232,7 +231,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
   Widget _buildTargetStep() {
     return _buildStepContainer(
-      icon: LucideIcons.target,
+      icon: Icons.flag,
       title: 'Your Deadline',
       subtitle: 'When do you want to reach your goal?',
       content: Wrap(
@@ -251,7 +250,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
   Widget _buildPurposeStep() {
     return _buildStepContainer(
-      icon: LucideIcons.trophy,
+      icon: Icons.emoji_events,
       title: 'Learning Purpose',
       subtitle: 'Why are you learning Japanese?',
       iconColor: Colors.orange,
@@ -277,7 +276,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
   Widget _buildJLPTDateStep() {
     return _buildStepContainer(
-      icon: LucideIcons.calendar,
+      icon: Icons.calendar_today,
       title: 'JLPT Exam Date',
       subtitle: 'When are you taking the exam?',
       iconColor: Colors.red,
@@ -299,7 +298,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
   Widget _buildFrequencyStep() {
     return _buildStepContainer(
-      icon: LucideIcons.clock,
+      icon: Icons.schedule,
       title: 'Study Time',
       subtitle: 'How many minutes per day?',
       iconColor: Colors.teal,
@@ -324,7 +323,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
   Widget _buildLevelStep() {
     return _buildStepContainer(
-      icon: LucideIcons.graduationCap,
+      icon: Icons.school,
       title: 'Current Level',
       subtitle: 'Where are you starting from?',
       iconColor: Colors.purple,
@@ -353,7 +352,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
             subtitle: const Text('Recommended if you have previous knowledge'),
             activeColor: Colors.blue,
             contentPadding: EdgeInsets.zero,
-            controlType: ListTileControlType.leading,
+            controlAffinity: ListTileControlAffinity.leading,
           ),
         ],
       ),
@@ -362,14 +361,14 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
   Widget _buildFinalStep() {
     return _buildStepContainer(
-      icon: LucideIcons.zap,
+      icon: Icons.flash_on,
       title: 'Ready to Go!',
       subtitle: 'We have generated your personalized roadmap.',
       iconColor: Colors.cyan,
       content: const Column(
         children: [
           SizedBox(height: 40),
-          Icon(LucideIcons.rocket, size: 80, color: Colors.blue),
+          Icon(Icons.rocket, size: 80, color: Colors.blue),
           SizedBox(height: 24),
           Text(
             'Your learning path is optimized for your target. Let\'s make it happen!',
@@ -421,7 +420,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
               ),
             ),
             if (isSelected)
-              const Icon(LucideIcons.checkCircle, color: Colors.blue, size: 20),
+              const Icon(Icons.check_circle, color: Colors.blue, size: 20),
           ],
         ),
       ),

@@ -132,7 +132,7 @@ class CourseDetailScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Syllabus',
+                      'Chương trình học',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: AppTypography.bold,
                         letterSpacing: 0.1,
@@ -141,7 +141,7 @@ class CourseDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     if (detail.modules.isEmpty)
                       Text(
-                        'Chưa có syllabus cho khóa học này.',
+                        'Chương trình học đang được cập nhật.',
                         style: TextStyle(color: AppColors.grey700, height: 1.5),
                       )
                     else
@@ -231,7 +231,7 @@ class CourseDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildModuleTile(SyllabusModuleModel module) {
+  Widget _buildModuleTile(CurriculumModuleModel module) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
