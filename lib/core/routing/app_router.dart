@@ -211,8 +211,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
-                path: '/curriculum',
-                builder: (context, state) => const CurriculumScreen(),
+                path: '/curriculum/:offeringId',
+                builder: (context, state) {
+                  final offeringId = state.pathParameters['offeringId'] ?? '';
+                  return CurriculumScreen(offeringId: offeringId);
+                },
               ),
               GoRoute(
                 path: '/lesson',

@@ -32,10 +32,19 @@ class _InsightsAiBottomSheetState extends ConsumerState<InsightsAiBottomSheet> {
       height: MediaQuery.of(context).size.height * 0.65,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
+          const SizedBox(height: 8),
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Theme.of(context).dividerColor.withOpacity(0.35),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
           _buildHeader(context),
           const Divider(height: 1),
           Expanded(
@@ -91,7 +100,7 @@ class _InsightsAiBottomSheetState extends ConsumerState<InsightsAiBottomSheet> {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -101,12 +110,24 @@ class _InsightsAiBottomSheetState extends ConsumerState<InsightsAiBottomSheet> {
       ),
       child: Row(
         children: [
-          Icon(Icons.smart_toy, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 8),
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.smart_toy,
+              size: 18,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 10),
           const Text(
             'Insights AI',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
           ),

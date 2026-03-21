@@ -148,14 +148,17 @@ class _MainAreaContent extends ConsumerWidget {
         (link != null && link.isActive && link.link.isNotEmpty);
     if (showExternal) {
       return const Padding(
-        padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+        padding: EdgeInsets.fromLTRB(12, 8, 12, 10),
         child: ClipRRect(
-          borderRadius: BorderRadius.all(Radius.circular(24)),
+          borderRadius: BorderRadius.all(Radius.circular(20)),
           child: ExternalContentView(),
         ),
       );
     }
-    return const VideoGrid();
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(8, 6, 8, 8),
+      child: VideoGrid(),
+    );
   }
 }
 

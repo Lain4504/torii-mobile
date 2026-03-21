@@ -31,6 +31,7 @@ class _LessonScreenState extends State<LessonScreen> with SingleTickerProviderSt
     final videoUrl = lesson['videoUrl'] as String?;
     final article = lesson['article'] as Map<String, dynamic>?;
     final nextLesson = lesson['nextLesson'] as Map<String, dynamic>?;
+    final offeringId = (lesson['offeringId'] ?? '').toString();
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -52,7 +53,7 @@ class _LessonScreenState extends State<LessonScreen> with SingleTickerProviderSt
           IconButton(
             tooltip: 'Lộ trình',
             icon: const Icon(Icons.list_alt_outlined, color: AppColors.textPrimary),
-            onPressed: () => context.push('/curriculum'),
+            onPressed: offeringId.isEmpty ? null : () => context.push('/curriculum/$offeringId'),
           ),
         ],
       ),

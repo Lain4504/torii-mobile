@@ -21,9 +21,8 @@ class CameraButton extends ConsumerWidget {
       label: isWebcamMuted ? 'Start Video' : 'Stop Video',
       isActive: !isWebcamMuted,
       onTap: () {
-        ref.read(bottomIconsProvider.notifier).toggleWebcam();
-        final isWebcamMuted = ref.read(bottomIconsProvider).isWebcamMuted;
-        ref.read(sessionProvider.notifier).livekitConn?.toggleVideo(!isWebcamMuted);
+        final enable = isWebcamMuted;
+        ref.read(sessionProvider.notifier).livekitConn?.toggleVideo(enable);
       },
     );
   }

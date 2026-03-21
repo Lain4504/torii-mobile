@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import '../../../providers/bottom_icons_provider.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/active_speakers_provider.dart';
 
@@ -10,12 +11,16 @@ import '../../../providers/active_speakers_provider.dart';
 /// Displays a single participant's video with name and status indicators
 /// 1:1 clone of apps/meet/src/components/media-elements/video/index.tsx
 class VideoTile extends ConsumerWidget {
-  final Participant participant;
+  final Participant? participant;
+  final String userId;
+  final String name;
   final bool isSmall;
 
   const VideoTile({
     super.key,
-    required this.participant,
+    required this.userId,
+    required this.name,
+    this.participant,
     this.isSmall = false,
   });
 
@@ -24,10 +29,10 @@ class VideoTile extends ConsumerWidget {
     // Check if this participant is speaking
     final activeSpeakers = ref.watch(activeSpeakersProvider);
     final isSpeaking = activeSpeakers.speakers.values.any(
-      (speaker) => speaker.userId == participant.identity && speaker.isSpeaking,
+      (speaker) => speaker.userId == userId && speaker.isSpeaking,
     );
     // Raised hand from our participant list (synced from NATS metadata)
-    final participantInfo = ref.watch(participantProvider).participants[participant.identity];
+    final participantInfo = ref.watch(participantProvider).participants[userId];
     final isRaisedHand = participantInfo?.metadata.isHandRaised ?? false;
 
     return AnimatedContainer(
@@ -57,10 +62,10 @@ class VideoTile extends ConsumerWidget {
           fit: StackFit.expand,
           children: [
             // Video or placeholder
-            _buildVideoContent(context),
+            _buildVideoContent(context, ref),
             
             // Overlay with name and status
-            _buildOverlay(context, isRaisedHand),
+            _buildOverlay(context, ref, isRaisedHand),
             
             // Speaking indicator (top right small dot)
             if (isSpeaking)
@@ -89,16 +94,31 @@ class VideoTile extends ConsumerWidget {
     );
   }
 
-  Widget _buildVideoContent(BuildContext context) {
+  Widget _buildVideoContent(BuildContext context, WidgetRef ref) {
+    // If local user turned camera off from mobile controls, always show avatar.
+    final localCameraMuted = ref.watch(
+      bottomIconsProvider.select((s) => s.isWebcamMuted),
+    );
+    if (participant is LocalParticipant && localCameraMuted) {
+      return _buildAvatarPlaceholder(context);
+    }
+
+    if (participant == null) {
+      return _buildAvatarPlaceholder(context);
+    }
+
     TrackPublication? videoPub;
-    for (var pub in participant.videoTrackPublications) {
+    for (var pub in participant!.videoTrackPublications) {
       if (pub.source == TrackSource.camera || pub.kind == TrackType.VIDEO) {
         videoPub = pub;
         break;
       }
     }
 
-    final hasVideo = videoPub != null && videoPub.subscribed && !videoPub.muted;
+    final hasVideo = videoPub != null &&
+        videoPub.track != null &&
+        videoPub.subscribed &&
+        !videoPub.muted;
 
     if (hasVideo && videoPub.track is VideoTrack) {
       return VideoTrackRenderer(
@@ -107,6 +127,10 @@ class VideoTile extends ConsumerWidget {
       );
     }
 
+    return _buildAvatarPlaceholder(context);
+  }
+
+  Widget _buildAvatarPlaceholder(BuildContext context) {
     return Container(
       color: AppColors.surfaceDark,
       child: Center(
@@ -123,7 +147,7 @@ class VideoTile extends ConsumerWidget {
           ),
           child: Center(
             child: Text(
-              _getInitials(participant.name ?? participant.identity),
+              _getInitials(name),
               style: TextStyle(
                 fontSize: isSmall ? 18 : 36,
                 fontWeight: FontWeight.w800,
@@ -137,14 +161,8 @@ class VideoTile extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverlay(BuildContext context, bool isRaisedHand) {
-    bool isMicOn = false;
-    for (var pub in participant.audioTrackPublications) {
-       if (pub.subscribed && !pub.muted) {
-         isMicOn = true;
-         break;
-       }
-    }
+  Widget _buildOverlay(BuildContext context, WidgetRef ref, bool isRaisedHand) {
+    final isMicOn = _resolveMicOn(ref);
 
     return Positioned(
       left: 10,
@@ -179,7 +197,7 @@ class VideoTile extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    participant.name ?? participant.identity,
+                    name,
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -191,13 +209,35 @@ class VideoTile extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                _buildConnectionQuality(context, participant.connectionQuality),
+                _buildConnectionQuality(
+                  context,
+                  participant?.connectionQuality ?? ConnectionQuality.unknown,
+                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  bool _resolveMicOn(WidgetRef ref) {
+    if (participant is LocalParticipant) {
+      // Must watch — ref.read would not rebuild overlay when footer/LiveKit updates mic state.
+      final isMicMuted = ref.watch(
+        bottomIconsProvider.select((s) => s.isMicMuted),
+      );
+      return !isMicMuted;
+    }
+    if (participant == null) return false;
+    for (final pub in participant!.audioTrackPublications) {
+      if (pub.source == TrackSource.microphone &&
+          !pub.muted &&
+          (pub.track != null || pub.subscribed)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Widget _buildConnectionQuality(BuildContext context, ConnectionQuality quality) {
@@ -239,9 +279,18 @@ class VideoTile extends ConsumerWidget {
   }
 
   String _getInitials(String name) {
-    final parts = name.trim().split(' ');
+    final normalized = name.trim();
+    if (normalized.isEmpty) return '?';
+    final parts = normalized.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
     if (parts.isEmpty) return '?';
-    if (parts.length == 1) return parts[0][0].toUpperCase();
-    return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+    if (parts.length == 1) {
+      final first = parts[0];
+      if (first.isEmpty) return '?';
+      return first[0].toUpperCase();
+    }
+    final first = parts.first;
+    final last = parts.last;
+    if (first.isEmpty || last.isEmpty) return '?';
+    return '${first[0]}${last[0]}'.toUpperCase();
   }
 }

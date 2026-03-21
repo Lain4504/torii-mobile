@@ -164,11 +164,15 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
               ),
               child: Row(
                 children: [
-                  Text(
-                    'Poll #${widget.poll.id}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      'Poll #${widget.poll.id}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (!widget.poll.isActive)
@@ -286,14 +290,27 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: notRespondents.map((userId) {
-                                  final participant = participants.firstWhere(
-                                    (p) => p.userId == userId,
-                                    orElse: () => participants.first,
-                                  );
+                                  String participantName = userId;
+                                  for (final p in participants) {
+                                    if (p.userId == userId) {
+                                      participantName = p.name;
+                                      break;
+                                    }
+                                  }
+                                  final safeName = participantName.trim().isEmpty
+                                      ? 'Unknown user'
+                                      : participantName;
+                                  final initial = safeName.isNotEmpty
+                                      ? safeName[0].toUpperCase()
+                                      : '?';
                                   return Chip(
-                                    label: Text(participant.name),
+                                    label: Text(
+                                      safeName,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                     avatar: CircleAvatar(
-                                      child: Text(participant.name[0].toUpperCase()),
+                                      child: Text(initial),
                                     ),
                                   );
                                 }).toList(),
