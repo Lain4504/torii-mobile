@@ -240,4 +240,11 @@ final senseiMenuItems = [
     color: AppColors.success,
     route: '/sensei/translate',
   ),
+  const SenseiMenuItem(
+    title: 'AI Voice',
+    description: 'Nói chuyện trực tiếp với AI',
+    icon: Icons.mic_rounded,
+    color: AppColors.detail,
+    route: '/sensei/voice',
+  ),
 ];

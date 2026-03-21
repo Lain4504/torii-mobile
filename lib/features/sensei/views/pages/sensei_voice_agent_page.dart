@@ -1,0 +1,377 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'dart:math' as math;
+import '../../../../core/constants/app_design_system.dart';
+import '../../providers/voice_agent_provider.dart';
+
+class SenseiVoiceAgentPage extends ConsumerStatefulWidget {
+  const SenseiVoiceAgentPage({super.key});
+
+  @override
+  ConsumerState<SenseiVoiceAgentPage> createState() => _SenseiVoiceAgentPageState();
+}
+
+class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> with TickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+  late AnimationController _waveController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Animation cho vòng sáng
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    // Animation cho sóng âm
+    _waveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
+    // Bắt đầu kết nối sau khi build xong frame đầu tiên
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(voiceAgentProvider.notifier).connect('japanese_tutor');
+    });
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    _waveController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final voiceState = ref.watch(voiceAgentProvider);
+    final voiceNotifier = ref.read(voiceAgentProvider.notifier);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('AI Voice Sensei'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.textPrimary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () {
+            voiceNotifier.disconnect();
+            context.pop();
+          },
+        ),
+      ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - 40),
+                child: IntrinsicHeight(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (voiceState.error != null)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 24),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                          ),
+                          child: Text(
+                            'Lỗi kết nối: ${voiceState.error}',
+                            style: const TextStyle(color: AppColors.error, fontSize: 13),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      const Spacer(),
+                      _buildCentralAvatar(voiceState),
+                      const SizedBox(height: 60),
+                      _buildStatusText(voiceState, theme),
+                      const Spacer(),
+                      _buildControlPanel(voiceState, voiceNotifier),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCentralAvatar(VoiceAgentState state) {
+    final isConnected = state.isConnected && !state.isReconnecting;
+    final isSpeaking = state.isAgentSpeaking;
+    
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: isSpeaking ? 1.0 : 0.0),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutBack,
+      builder: (context, speakingFactor, child) {
+        final currentScale = 1.0 + (0.15 * speakingFactor);
+            
+        return Transform.scale(
+          scale: currentScale,
+          child: Container(
+            width: 180,
+            height: 180,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isConnected 
+                  ? AppColors.primary.withOpacity(0.05 + 0.15 * speakingFactor) 
+                  : AppColors.surface,
+              border: Border.all(
+                color: isConnected 
+                    ? Color.lerp(AppColors.primary.withOpacity(0.5), AppColors.primary, speakingFactor)!
+                    : AppColors.grey200,
+                width: 4 + 2 * speakingFactor,
+              ),
+              boxShadow: [
+                if (isConnected && speakingFactor > 0.01)
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3 * speakingFactor),
+                    blurRadius: 30 * speakingFactor,
+                    spreadRadius: 10 * speakingFactor,
+                  )
+              ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  Icons.support_agent_rounded,
+                  size: 90,
+                  color: isConnected ? AppColors.primary : AppColors.textTertiary,
+                ),
+                if (speakingFactor > 0.01)
+                  Positioned(
+                    top: 20,
+                    right: 40,
+                    child: Opacity(
+                      opacity: speakingFactor.clamp(0.0, 1.0),
+                      child: const Icon(Icons.volume_up_rounded, color: AppColors.primary, size: 24),
+                    ),
+                  )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatusText(VoiceAgentState state, ThemeData theme) {
+    String status = 'Đang khởi tạo...';
+    String subStatus = '';
+    Color color = AppColors.textPrimary;
+
+    if (state.error != null) {
+      status = 'Lỗi kết nối';
+      color = AppColors.error;
+    } else if (state.isReconnecting) {
+      status = 'Đang kết nối lại...';
+      color = AppColors.primary;
+    } else if (!state.isConnected) {
+      status = 'Đang kết nối...';
+      color = AppColors.textSecondary;
+    } else {
+      status = 'Đã kết nối';
+      color = AppColors.success;
+      subStatus = 'Hãy thử giao tiếp bằng tiếng Nhật nhé';
+    }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 500),
+      transitionBuilder: (child, animation) {
+        return FadeTransition(opacity: animation, child: child);
+      },
+      child: Column(
+        key: ValueKey<String>('$status-$subStatus'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            status,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (subStatus.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              subStatus,
+              style: const TextStyle(color: AppColors.textTertiary, fontSize: 15),
+              textAlign: TextAlign.center,
+            ),
+          ]
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVisualizer(VoiceAgentState state) {
+    if (!state.isConnected) return const SizedBox(height: 40);
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.0, end: (state.isAgentSpeaking || state.isUserSpeaking) ? 1.0 : 0.0),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+      builder: (context, amplitudeFactor, child) {
+        return AnimatedBuilder(
+          animation: _waveController,
+          builder: (context, child) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                double animationValue = 0.5; // Default middle
+                if (state.isAgentSpeaking) {
+                  animationValue = (math.sin((_waveController.value * 2 * math.pi) + (index * 1.5)) + 1) / 2;
+                } else if (state.isUserSpeaking) {
+                  animationValue = (math.cos((_waveController.value * 3 * math.pi) + (index * 1.0)) + 1) / 2;
+                }
+
+                // Smoothly scale the wave height based on amplitudeFactor
+                final height = 10.0 + (animationValue * 30.0 * amplitudeFactor);
+                
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 6,
+                  height: height, // Height gets updated 60fps
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    decoration: BoxDecoration(
+                      color: state.isAgentSpeaking 
+                          ? AppColors.primary 
+                          : (state.isUserSpeaking ? AppColors.success : AppColors.grey300),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                );
+              }),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildControlPanel(VoiceAgentState state, VoiceAgentNotifier notifier) {
+    if (!state.isConnected) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: state.isConnecting ? null : () => notifier.connect('japanese_tutor'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+          child: state.isConnecting
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                )
+              : const Text(
+                  'Bắt đầu cuộc gọi',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        // Mic Toggle Button
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: () => notifier.toggleMicrophone(),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: state.isMicOn ? AppColors.surface : AppColors.mutedForeground.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                  border: state.isMicOn ? Border.all(color: AppColors.grey200) : null,
+                  boxShadow: state.isMicOn ? [
+                    BoxShadow(
+                      color: AppColors.textPrimary.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ] : [],
+                ),
+                child: Icon(
+                  state.isMicOn ? Icons.mic_rounded : Icons.mic_off_rounded,
+                  color: state.isMicOn ? AppColors.textPrimary : AppColors.textTertiary,
+                  size: 32,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              state.isMicOn ? 'Tắt Mic' : 'Mở Mic',
+              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+            )
+          ],
+        ),
+
+        // End Call Button
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: () {
+                notifier.disconnect();
+                context.pop();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.destructive,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.destructive.withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    )
+                  ],
+                ),
+                child: const Icon(
+                  Icons.call_end_rounded,
+                  color: Colors.white,
+                  size: 36,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Kết thúc',
+              style: TextStyle(fontSize: 13, color: AppColors.destructive, fontWeight: FontWeight.w600),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+}

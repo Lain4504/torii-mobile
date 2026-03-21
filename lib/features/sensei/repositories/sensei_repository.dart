@@ -147,4 +147,24 @@ class SenseiRepository {
       ),
     ];
   }
+
+  // --- VOICE AGENT API ---
+
+  Future<Map<String, dynamic>> getLiveKitToken(String graphName) async {
+    try {
+      final response = await _dio.post(
+        '/api/agents/livekit-token',
+        data: {'graphName': graphName},
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = response.data;
+        if (data['success'] == true) {
+          return data['data'];
+        }
+      }
+      throw Exception('Failed to get voice agent token: ${response.data?['message']}');
+    } catch (e) {
+      throw Exception('Failed to get voice agent token: $e');
+    }
+  }
 }
