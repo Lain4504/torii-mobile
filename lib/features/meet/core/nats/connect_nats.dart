@@ -12,6 +12,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dart_nats/dart_nats.dart' as nats;
@@ -58,7 +60,8 @@ class ConnectNats {
   
   // Connection config
   final List<String> _natsWSUrls;
-  final String _token;
+  /// Mutable: updated when server sends RESP_RENEW_WAJLC_TOKEN (matches web).
+  String _token;
   final String _roomId;
   final String _userId;
   String _userName = '';
@@ -110,6 +113,14 @@ class ConnectNats {
 
   // Room info (cached, won't be updated)
   Map<String, dynamic>? _currentRoomInfo;
+
+  /// Web: finalizeAppConn only after landing + not waitForApproval. Mobile defers
+  /// REQ_JOINED_USERS_LIST until approval when user is in waiting room.
+  bool _pendingFinalizeAfterWaitingRoom = false;
+  bool _finalizeAppConnCompleted = false;
+
+  /// Chat / whiteboard / data channel — web subscribes in onAfterUserReady only.
+  bool _realtimeChannelsStarted = false;
 
   ConnectNats({
     required List<String> natsWSUrls,
@@ -199,9 +210,8 @@ class ConnectNats {
     // Subscribe to streams
     unawaited(_subscribeToRoomEvents());
     unawaited(_subscribeToSystemPublicPubSub());
-    unawaited(_subscribeToChat()); // Chat pub/sub
-    unawaited(_subscribeToWhiteboard()); // Whiteboard pub/sub
-    unawaited(_subscribeToDataChannel()); // Data channel pub/sub
+    // Chat / whiteboard / data channel: web starts these in onAfterUserReady only
+    // (after RES_JOINED_USERS_LIST + REQ_MEDIA_SERVER_DATA path).
     
     // Start intervals
     _startTokenRenewInterval();
@@ -443,6 +453,22 @@ class ConnectNats {
       case nats_msg.NatsMsgServerToClientEvents.RES_MEDIA_SERVER_DATA:
         await _handleMediaServerData(payload.msg);
         break;
+
+      case nats_msg.NatsMsgServerToClientEvents.RESP_RENEW_WAJLC_TOKEN:
+        if (payload.msg.isNotEmpty) {
+          _token = payload.msg;
+          ref.read(sessionProvider.notifier).addToken(payload.msg);
+          // Keep Meet API protobuf calls in sync (uses manual token after join).
+          ref.read(meetApiServiceProvider).setManualToken(payload.msg);
+          if (kDebugMode) {
+            print('ConnectNats: Token renewed (RESP_RENEW_WAJLC_TOKEN)');
+          }
+        }
+        break;
+
+      case nats_msg.NatsMsgServerToClientEvents.DELIVERY_PRIVATE_DATA:
+        await _handlePrivateDataDelivery(payload);
+        break;
         
       case nats_msg.NatsMsgServerToClientEvents.ROOM_METADATA_UPDATE:
         if (payload.msg.isNotEmpty) {
@@ -584,13 +610,38 @@ class ConnectNats {
     ref.read(sessionProvider.notifier).updateIsNatsServerConnected(true);
     _setRoomConnectionStatusState('ready');
 
-    // 5. Finalize app conn: request joined users list (matches web finalizeAppConn)
-    // Web: user clicks Join → finalizeAppConn. Mobile: auto-call after RES_INITIAL_DATA
+    // 5. Finalize app conn (matches web components/landing: finalizeAppConn)
+    // Web skips until !waitForApproval && user ready; mobile user already tapped Join,
+    // but must still defer REQ_JOINED_USERS_LIST while in waiting room.
+    final waitForApproval =
+        ref.read(sessionProvider).currentUser?.metadata?.waitForApproval ?? false;
+    if (waitForApproval) {
+      _pendingFinalizeAfterWaitingRoom = true;
+      if (kDebugMode) {
+        print('ConnectNats: Waiting room — defer finalizeAppConn until approval');
+      }
+    } else {
+      _finalizeAppConn();
+    }
+  }
+
+  /// Called when local user's metadata updates (e.g. admin approved waiting room).
+  /// Matches web Landing useEffect: when waitForApproval becomes false, finalizeAppConn.
+  void notifyFinalizeAppConnIfPending() {
+    if (_finalizeAppConnCompleted) return;
+    if (!_pendingFinalizeAfterWaitingRoom) return;
+    final stillWaiting =
+        ref.read(sessionProvider).currentUser?.metadata?.waitForApproval ?? false;
+    if (stillWaiting) return;
+    _pendingFinalizeAfterWaitingRoom = false;
     _finalizeAppConn();
   }
 
   /// Finalize app connection - request joined users list (matches web finalizeAppConn)
   void _finalizeAppConn() {
+    if (_finalizeAppConnCompleted) return;
+    _finalizeAppConnCompleted = true;
+
     _sendMessageToSystemWorker(
       nats_msg.NatsMsgClientToServer(
         event: nats_msg.NatsMsgClientToServerEvents.REQ_JOINED_USERS_LIST,
@@ -652,6 +703,14 @@ class ConnectNats {
 
     // Start periodic participants reconciliation (matches web startUsersSync()).
     _startUsersSync();
+
+    // Real-time channels (web: Promise.all in onAfterUserReady after initial data + user list).
+    if (!_realtimeChannelsStarted) {
+      _realtimeChannelsStarted = true;
+      unawaited(_subscribeToChat());
+      unawaited(_subscribeToWhiteboard());
+      unawaited(_subscribeToDataChannel());
+    }
 
     // Request initial whiteboard scene from a "donor" (presenter) so
     // whiteboard viewers can render it immediately (view-only on mobile).
@@ -821,9 +880,15 @@ class ConnectNats {
         );
       }
       
-      // Listen for chat messages
+      // Listen for chat messages (never let one bad payload kill the subscription)
       await for (final msg in sub.stream) {
-        await _processToHandleChatMsg(msg.data);
+        try {
+          await _processToHandleChatMsg(msg.byte);
+        } catch (e, st) {
+          if (kDebugMode) {
+            print('ConnectNats: Chat message handling error - $e\n$st');
+          }
+        }
       }
     } catch (e) {
       if (kDebugMode) {
@@ -900,7 +965,23 @@ class ConnectNats {
       );
     } else {
       final subject = '${_subjects.chat}.$_roomId';
-      _nc.pub(subject, payload);
+      final ok = await _nc.pub(subject, payload);
+      if (ok != true) {
+        if (kDebugMode) {
+          print('ConnectNats: pub chat failed');
+        }
+        return;
+      }
+    }
+
+    // Core NATS does not deliver a client's own publish back to that client.
+    // Echo locally so the sender always sees their message (matches expected UX; dedupe skips NATS echo if any).
+    try {
+      await handleChat.handleMsg(chatMessage);
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('ConnectNats: Local chat echo failed - $e\n$st');
+      }
     }
     
     // Send analytics
@@ -1086,23 +1167,29 @@ class ConnectNats {
       
       // Listen for whiteboard messages
       await for (final msg in sub.stream) {
-        Uint8List dataToParse = msg.data;
-        
-        // Decrypt if E2EE is enabled for whiteboard
-        if (_enableE2EEWhiteboard) {
-          final decrypted = await _decryptData(dataToParse);
-          if (decrypted == null) {
-            continue; // Skip if decryption fails
+        try {
+          Uint8List dataToParse = msg.byte;
+          
+          // Decrypt if E2EE is enabled for whiteboard
+          if (_enableE2EEWhiteboard) {
+            final decrypted = await _decryptData(dataToParse);
+            if (decrypted == null) {
+              continue; // Skip if decryption fails
+            }
+            dataToParse = decrypted;
           }
-          dataToParse = decrypted;
-        }
-        
-        // Parse protobuf message
-        final payload = data_msg.DataChannelMessage.fromBuffer(dataToParse);
-        
-        // Avoid echo - don't process our own messages
-        if (payload.fromUserId != _userId) {
-          await handleWhiteboard.handleWhiteboardMsg(payload);
+          
+          // Parse protobuf message
+          final payload = data_msg.DataChannelMessage.fromBuffer(dataToParse);
+          
+          // Avoid echo - don't process our own messages
+          if (payload.fromUserId != _userId) {
+            await handleWhiteboard.handleWhiteboardMsg(payload);
+          }
+        } catch (e, st) {
+          if (kDebugMode) {
+            print('ConnectNats: Whiteboard message error - $e\n$st');
+          }
         }
       }
     } catch (e) {
@@ -1220,7 +1307,13 @@ class ConnectNats {
       
       // Listen for data channel messages
       await for (final msg in sub.stream) {
-        await _processToHandleDataMsg(msg.data);
+        try {
+          await _processToHandleDataMsg(msg.byte);
+        } catch (e, st) {
+          if (kDebugMode) {
+            print('ConnectNats: Data channel message error - $e\n$st');
+          }
+        }
       }
     } catch (e) {
       if (kDebugMode) {
@@ -1405,11 +1498,11 @@ class ConnectNats {
     return [];
   }
   
-  /// Generate random string for message IDs
+  /// Random id for chat messages (web uses crypto random; avoid ms-based collisions).
   String _randomString() {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    final random = DateTime.now().millisecondsSinceEpoch;
-    return List.generate(16, (i) => chars[(random + i) % chars.length]).join();
+    final r = Random.secure();
+    return List.generate(20, (_) => chars[r.nextInt(chars.length)]).join();
   }
   
   /// Parse data_msg.DataMsgBodyType from string

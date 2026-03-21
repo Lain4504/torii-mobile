@@ -140,6 +140,11 @@ class HandleParticipants {
         metadata.isHandRaised || metadata.raisedHand,
       );
 
+      // Web Landing: finalizeAppConn when waitForApproval becomes false.
+      if (!metadata.waitForApproval) {
+        connectNats.notifyFinalizeAppConnIfPending();
+      }
+
       if (kDebugMode) {
         print('HandleParticipants: Local user metadata updated');
       }

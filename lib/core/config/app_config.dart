@@ -4,7 +4,7 @@ class AppConfig {
   /// Backend Gateway API base URL (no trailing slash).
   /// Auth routes: POST /auth/room/isRoomActive, /auth/room/create, /auth/room/getJoinToken (API-KEY + HASH-SIGNATURE).
   /// API routes: POST /api/verifyToken (JWT in Authorization header).
-  static const String apiBaseUrl = 'https://api.torii.sbs';
+  static const String apiBaseUrl = 'http://localhost:8080';
 
   /// NATS WebSocket URL for Meet (WAJLC). Used in debug fallback when verifyToken is not available.
   /// Same host as [apiBaseUrl], path /socket-a (nginx proxies to NATS :8222).

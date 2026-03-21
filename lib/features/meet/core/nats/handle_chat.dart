@@ -10,6 +10,8 @@
 // - Handle chat translations
 // - Manage unread message counts
 
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
@@ -79,9 +81,9 @@ class HandleChat {
   void _addChatMessage(nats_msg.ChatMessage message) {
     // Map protobuf to local model
     // Ensure we have a unique ID to avoid deduplication issues (especially for mobile)
-    final msgId = message.id.isNotEmpty 
-        ? message.id 
-        : '${DateTime.now().millisecondsSinceEpoch}_${message.fromUserId}';
+    final msgId = message.id.isNotEmpty
+        ? message.id
+        : '${DateTime.now().microsecondsSinceEpoch}_${message.fromUserId}_${Random.secure().nextInt(1 << 30)}';
 
     final localMessage = ChatMessage(
       messageId: msgId,

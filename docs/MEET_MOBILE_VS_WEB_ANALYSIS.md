@@ -154,3 +154,11 @@ Clone 1:1 logic core và build UI phù hợp mobile cho meet frontend, đảm b�
 10. **Settings**: Gắn device & quality với LiveKit.
 
 Tài liệu này dùng để verify logic và UI; các bước tiếp theo là implement từng mục theo thứ tự ưu tiên trên.
+
+---
+
+## 5. Cập nhật đồng bộ gần đây (meet flow ↔ web `ConnectNats.ts` / `Landing`)
+
+- **Waiting room / `finalizeAppConn`**: Giống web `components/landing/index.tsx`, không gửi `REQ_JOINED_USERS_LIST` khi `waitForApproval` cho đến khi metadata local user chuyển `waitForApproval: false` (admin duyệt). Triển khai: `ConnectNats` defer + `HandleParticipants.handleUserMetadataUpdate` gọi `notifyFinalizeAppConnIfPending()`.
+- **Thứ tự subscribe realtime**: Chat / whiteboard / data channel chỉ khởi động trong `_onAfterUserReady()` (sau `RES_JOINED_USERS_LIST`), không còn subscribe ngay trong `openConn()` như web `onAfterUserReady` + `Promise.all([subscribeToChat, ...])`.
+- **Sự kiện NATS còn thiếu**: `DELIVERY_PRIVATE_DATA` → `_handlePrivateDataDelivery` (chat/data private). `RESP_RENEW_WAJLC_TOKEN` → cập nhật `_token`, `sessionProvider.addToken`, `MeetApiService.setManualToken`.
