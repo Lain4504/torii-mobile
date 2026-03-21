@@ -1,6 +1,7 @@
 // Whiteboard Provider - Riverpod State Management
 // 1:1 clone of apps/meet/src/store/slices/whiteboard.ts
 
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WhiteboardOfficeFile {
@@ -93,7 +94,53 @@ class WhiteboardNotifier extends StateNotifier<WhiteboardState> {
   WhiteboardNotifier() : super(const WhiteboardState());
   
   void updateExcalidrawElements(String elements) {
-    state = state.copyWith(excalidrawElements: elements);
+    // Web broadcasts diffs (changed elements only). To keep rendering correct,
+    // we merge these diffs into `allExcalidrawElements` (full scene cache).
+    final mergedAll = _mergeDiffIntoAllElements(elements);
+    state = state.copyWith(
+      excalidrawElements: elements,
+      allExcalidrawElements: mergedAll,
+    );
+  }
+
+  String _mergeDiffIntoAllElements(String diffElementsJson) {
+    // If we don't have a full cache yet, we can only render what we have.
+    if (diffElementsJson.isEmpty) return state.allExcalidrawElements;
+    if (state.allExcalidrawElements.isEmpty) return diffElementsJson;
+
+    try {
+      final existingDecoded = jsonDecode(state.allExcalidrawElements);
+      final diffDecoded = jsonDecode(diffElementsJson);
+
+      if (existingDecoded is! List<dynamic> || diffDecoded is! List<dynamic>) {
+        return diffElementsJson;
+      }
+
+      final map = <String, Map<String, dynamic>>{};
+
+      for (final e in existingDecoded) {
+        if (e is Map && e['id'] != null) {
+          map[e['id'].toString()] = Map<String, dynamic>.from(e);
+        }
+      }
+
+      for (final e in diffDecoded) {
+        if (e is Map && e['id'] != null) {
+          final id = e['id'].toString();
+          final isDeleted = e['isDeleted'] == true;
+          if (isDeleted) {
+            map.remove(id);
+          } else {
+            map[id] = Map<String, dynamic>.from(e);
+          }
+        }
+      }
+
+      return jsonEncode(map.values.toList());
+    } catch (_) {
+      // Fallback: keep rendering diffs if parsing/merge fails.
+      return diffElementsJson;
+    }
   }
   
   void updateMousePointerLocation(String location) {
@@ -162,11 +209,22 @@ class WhiteboardNotifier extends StateNotifier<WhiteboardState> {
   }
   
   void addWhiteboardDataSentFromDonor(Map<String, dynamic> data) {
+    final dynamic elementsRaw = data['elements'];
+    final String elementsJson;
+    if (elementsRaw is String) {
+      elementsJson = elementsRaw;
+    } else {
+      // Web donor sends `elements` as an array (JSON.stringify(elements)).
+      // Mobile provider keeps it as a JSON string for the renderer.
+      elementsJson = elementsRaw == null ? '' : jsonEncode(elementsRaw);
+    }
+
     state = state.copyWith(
       currentWhiteboardOfficeFileId: data['currentWhiteboardOfficeFileId'] as String? ?? '',
       currentPage: data['currentPageNumber'] as int? ?? 1,
       currentOfficeFilePages: data['currentOfficeFilePages'] as String? ?? '',
-      allExcalidrawElements: data['elements'] as String? ?? '',
+      excalidrawElements: elementsJson,
+      allExcalidrawElements: elementsJson,
     );
   }
   

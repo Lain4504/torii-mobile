@@ -28,7 +28,14 @@ final userServiceProvider = Provider<UserService>((ref) {
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   final tokenService = ref.watch(tokenServiceProvider);
-  return ApiClient(tokenService: tokenService);
+  return ApiClient(
+    tokenService: tokenService,
+    onUnauthorizedLogout: () async {
+      // Keep behavior consistent with web: refresh failed -> force logout.
+      // This also clears cached profile and updates authStateProvider.
+      await ref.read(authNotifierProvider.notifier).logout();
+    },
+  );
 });
 
 final authServiceProvider = Provider<AuthService>((ref) {
@@ -333,6 +340,43 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       newPassword: newPassword,
     );
     return response.success;
+  }
+
+  Future<void> refreshProfile() async {
+    final response = await _repository.authService.getMe();
+    if (response.success && response.data != null) {
+      final user = response.data!;
+      await _userService.saveUserProfile(user);
+      state = AsyncValue.data(AuthState.authenticated(user));
+    }
+  }
+
+  /// Fallback khi backend đang lỗi/đang dùng API cũ:
+  /// đảm bảo router không redirect ngược về `onboarding-survey`.
+  Future<void> markOnboardedLocally({bool onboarded = true}) async {
+    final currentUser = state.asData?.value.user;
+    if (currentUser == null) return;
+
+    final updatedUser = User(
+      id: currentUser.id,
+      email: currentUser.email,
+      displayName: currentUser.displayName,
+      role: currentUser.role,
+      verifiedAt: currentUser.verifiedAt,
+      avatarUrl: currentUser.avatarUrl,
+      status: currentUser.status,
+      createdAt: currentUser.createdAt,
+      updatedAt: currentUser.updatedAt,
+      appMetadata: currentUser.appMetadata,
+      userMetadata: currentUser.userMetadata,
+      bannedUntil: currentUser.bannedUntil,
+      lastSignInAt: currentUser.lastSignInAt,
+      deletedAt: currentUser.deletedAt,
+      isOnboarded: onboarded,
+    );
+
+    await _userService.saveUserProfile(updatedUser);
+    state = AsyncValue.data(AuthState.authenticated(updatedUser));
   }
 }
 

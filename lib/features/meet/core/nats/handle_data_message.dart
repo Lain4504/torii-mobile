@@ -26,6 +26,7 @@ import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/polls_provider.dart';
 import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
+import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'connect_nats.dart';
 
 class HandleDataMessage {
@@ -103,7 +104,7 @@ class HandleDataMessage {
         if (payload.fromUserId == connectNats.userId) {
           return;
         }
-        _handleNewPollResponse(payload.message);
+        await _handleNewPollResponse(payload.message);
         break;
       
       // Connection quality
@@ -148,7 +149,7 @@ class HandleDataMessage {
       final data = jsonDecode(msg) as Map<String, dynamic>;
       
       // Dispatch to whiteboard provider
-      // ref?.read(whiteboardProvider.notifier).addWhiteboardDataSentFromDonor(data);
+      ref?.read(whiteboardProvider.notifier).addWhiteboardDataSentFromDonor(data);
       
       if (kDebugMode) {
         print('HandleDataMessage: Received whiteboard data from donor');
@@ -291,47 +292,19 @@ class HandleDataMessage {
   // POLL HANDLER
   // ============================================================================
   
-  void _handleNewPollResponse(String msg) {
+  Future<void> _handleNewPollResponse(String msg) async {
     if (msg.isEmpty) return;
     
     try {
-      final data = jsonDecode(msg) as Map<String, dynamic>;
-      
-      // Determine if it's a new poll or a vote based on fields
-      if (data.containsKey('question')) {
-        // It's a new poll
-        final poll = Poll.fromJson(data);
-        ref?.read(pollsProvider.notifier).addPoll(poll);
-        
-        _showNotification('New poll: ${poll.question}', 'info');
-        
-        if (kDebugMode) {
-          print('HandleDataMessage: Received new poll ${poll.id}');
-        }
-      } else if (data.containsKey('pollId') && data.containsKey('optionId')) {
-        // It's a vote
-        final pollId = data['pollId'] as String;
-        final optionId = data['optionId'] as String;
-        final userId = data['userId'] as String;
-        
-        // This is a simplified vote handling. In a real app, you might receive the full updated votes list.
-        // attempting to find the poll and add the vote locally
-        // But ideally, the message should contain the full list of voters for that option or similar.
-        // For now, let's assume we receive the updated list of voters for that option or just the single vote.
-        
-        // If the payload has 'votes' list (userIds)
-        if (data.containsKey('votes')) {
-             final votes = (data['votes'] as List<dynamic>).map((e) => e as String).toList();
-             ref?.read(pollsProvider.notifier).updateVotes(pollId, optionId, votes);
-        } else {
-             // Fallback: manually fetch poll or add this single user (complex without current state knowledge)
-             // For now, we'll assume the message contains 'votes' as List<String>
-        }
+      // On mobile, we broadcast votes as `NEW_POLL_RESPONSE` with `message = pollId`.
+      // To keep it 1:1 with web (invalidate tags -> refetch), we refetch poll list.
+      final r = ref;
+      if (r == null) return;
 
-        if (kDebugMode) {
-           print('HandleDataMessage: Received vote for poll $pollId');
-        }
-      }
+      final api = r.read(meetApiServiceProvider);
+      final response = await api.listPolls();
+      final list = pollsFromPollResponse(response);
+      r.read(pollsProvider.notifier).setPollsFromApi(list);
     } catch (e) {
       if (kDebugMode) {
         print('HandleDataMessage: Failed to parse poll message - $e');

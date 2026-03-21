@@ -140,6 +140,11 @@ class HandleParticipants {
         metadata.isHandRaised || metadata.raisedHand,
       );
 
+      // Web Landing: finalizeAppConn when waitForApproval becomes false.
+      if (!metadata.waitForApproval) {
+        connectNats.notifyFinalizeAppConnIfPending();
+      }
+
       if (kDebugMode) {
         print('HandleParticipants: Local user metadata updated');
       }
@@ -246,5 +251,50 @@ class HandleParticipants {
       }
     });
     return result;
+  }
+
+  /// Reconcile participants list against server snapshot (similar to web reconcileParticipants).
+  ///
+  /// Important: This method is intentionally "silent" (no join/leave notifications)
+  /// because it is expected to run periodically.
+  Future<void> reconcileParticipants(List<nats_msg.NatsKvUserInfo> serverUsers) async {
+    if (ref == null) return;
+
+    final localState = ref!.read(participantProvider);
+    final localIds = localState.participants.keys.toSet();
+
+    final serverIds = serverUsers.map((u) => u.userId).toSet();
+
+    // 1) Add missing participants
+    for (final userInfo in serverUsers) {
+      if (userInfo.userId == connectNats.userId) continue; // keep local user
+      if (_isUserRecorder(userInfo.userId)) continue; // skip recorder bots
+      if (localIds.contains(userInfo.userId)) continue;
+
+      final metadata = UserMetadata.fromJson(
+        _normalizeMetadata(
+          userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
+              ? jsonDecode(userInfo.metadata)
+              : <String, dynamic>{},
+        ),
+      );
+
+      ref!.read(participantProvider.notifier).addParticipant(
+            ParticipantInfo(
+              userId: userInfo.userId,
+              sid: userInfo.userSid,
+              name: userInfo.name,
+              metadata: metadata,
+            ),
+          );
+    }
+
+    // 2) Remove stale participants
+    for (final localUserId in localIds) {
+      if (localUserId == connectNats.userId) continue; // never remove local
+      if (serverIds.contains(localUserId)) continue;
+
+      ref!.read(participantProvider.notifier).removeParticipant(localUserId);
+    }
   }
 }

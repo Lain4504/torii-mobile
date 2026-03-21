@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
@@ -13,14 +14,10 @@ class StudySetsDashboardScreen extends ConsumerStatefulWidget {
 
 class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScreen> {
   String? _selectedSetId;
-
-  final _newTermCtrl = TextEditingController();
-  final _newDefCtrl = TextEditingController();
+  String? _busyCardId;
 
   @override
   void dispose() {
-    _newTermCtrl.dispose();
-    _newDefCtrl.dispose();
     super.dispose();
   }
 
@@ -49,6 +46,15 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
           ),
         ],
       ),
+      floatingActionButton: (_selectedSetId == null)
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _showCreateCardSheet(context, _selectedSetId!),
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textOnPrimary,
+              icon: const Icon(Icons.add),
+              label: const Text('Thêm thẻ', style: TextStyle(fontWeight: FontWeight.w900)),
+            ),
       body: setsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
@@ -136,7 +142,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                     ),
                   ),
                   child: SizedBox(
-                    height: 98,
+                    height: 112,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: sets.length,
@@ -146,6 +152,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                         final isActive = s.id == selectedId;
                         return InkWell(
                           onTap: () => setState(() => _selectedSetId = s.id),
+                          onLongPress: () => _showEditSetSheet(context, s.id, initialTitle: s.title, initialDescription: s.description),
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
                             width: 220,
@@ -176,17 +183,20 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  s.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w900,
-                                    color: isActive ? AppColors.primary : AppColors.textPrimary,
+                                const SizedBox(height: 6),
+                                Expanded(
+                                  child: Text(
+                                    s.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      color: isActive ? AppColors.primary : AppColors.textPrimary,
+                                      height: 1.15,
+                                    ),
                                   ),
                                 ),
-                                const Spacer(),
+                                const SizedBox(height: 6),
                                 Text(
                                   '${s.cardCount} thẻ',
                                   style: theme.textTheme.bodySmall?.copyWith(
@@ -204,10 +214,10 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                 ),
                 const SizedBox(height: 12),
 
-                // Cards list + quick add (web parity)
+                // Cards list (mobile)
                 _SectionCard(
                   title: 'Danh sách thẻ ($selectedCount)',
-                  subtitle: 'Xem nhanh và thêm thẻ ngay trên mobile.',
+                  subtitle: 'Nhấn “+” để thêm thẻ mới. Danh sách hiển thị dạng list đồng đều.',
                   child: selectedAsync.when(
                     loading: () => const Padding(
                       padding: EdgeInsets.all(18),
@@ -218,108 +228,157 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                       child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error)),
                     ),
                     data: (_) {
+                      if (selectedCards.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            'Bộ thẻ này chưa có thẻ nào.',
+                            style: TextStyle(color: AppColors.textTertiary),
+                          ),
+                        );
+                      }
+
                       return Column(
                         children: [
-                          if (selectedCards.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 10),
-                              child: Text(
-                                'Bộ thẻ này chưa có thẻ nào.',
-                                style: TextStyle(color: AppColors.textTertiary),
-                              ),
-                            )
-                          else
-                            ...List.generate(selectedCards.length, (i) {
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: selectedCards.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 10),
+                            itemBuilder: (context, i) {
                               final c = selectedCards[i] as Map;
-                              final term = (c['term'] ?? '').toString();
-                              final def = (c['definition'] ?? '').toString();
-                              final hint = c['hint']?.toString();
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.background,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: AppColors.grey300),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      term,
-                                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      def,
-                                      style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary, height: 1.35),
-                                    ),
-                                    if (hint != null && hint.trim().isNotEmpty) ...[
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        'Gợi ý: $hint',
-                                        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                              final cardId = (c['id'] ?? '').toString();
+                              final term = (c['term'] ?? '').toString().trim();
+                              final def = (c['definition'] ?? '').toString().trim();
+
+                              final row = SizedBox(
+                                height: 64,
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.background,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(color: AppColors.grey300),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 36,
+                                        height: 36,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary.withOpacity(0.10),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: const Icon(Icons.style_rounded, color: AppColors.primary, size: 18),
                                       ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                term.isEmpty ? '(Trống)' : term,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                def.isEmpty ? '(Trống)' : def,
+                                                maxLines: 1,
+                                                textAlign: TextAlign.right,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: theme.textTheme.bodySmall?.copyWith(
+                                                  color: AppColors.textSecondary,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (_busyCardId == cardId) ...[
+                                        const SizedBox(width: 10),
+                                        const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(strokeWidth: 2),
+                                        ),
+                                      ],
                                     ],
-                                  ],
+                                  ),
                                 ),
                               );
-                            }),
-                          const SizedBox(height: 2),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppColors.grey300),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Thêm thuật ngữ mới',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: AppColors.textTertiary,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.6,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                TextField(
-                                  controller: _newTermCtrl,
-                                  textInputAction: TextInputAction.next,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Mặt trước (term)',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                TextField(
-                                  controller: _newDefCtrl,
-                                  textInputAction: TextInputAction.done,
-                                  onSubmitted: (_) => _createCard(selectedId),
-                                  decoration: const InputDecoration(
-                                    labelText: 'Mặt sau (definition)',
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                SizedBox(
-                                  height: 44,
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed: () => _createCard(selectedId),
-                                    style: ElevatedButton.styleFrom(
+
+                              return Slidable(
+                                key: ValueKey('card-$cardId'),
+                                endActionPane: ActionPane(
+                                  motion: const ScrollMotion(),
+                                  extentRatio: 0.46,
+                                  children: [
+                                    SlidableAction(
+                                      onPressed: (_) => _showEditCardSheet(
+                                        context,
+                                        setId: selectedId,
+                                        cardId: cardId,
+                                        initialTerm: term,
+                                        initialDefinition: def,
+                                      ),
                                       backgroundColor: AppColors.primary,
-                                      foregroundColor: AppColors.textOnPrimary,
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.edit_rounded,
+                                      label: 'Sửa',
                                     ),
-                                    icon: const Icon(Icons.add),
-                                    label: const Text('Thêm thẻ', style: TextStyle(fontWeight: FontWeight.w900)),
-                                  ),
+                                    SlidableAction(
+                                      onPressed: (_) async {
+                                        final ok = await showDialog<bool>(
+                                          context: context,
+                                          builder: (dCtx) => AlertDialog(
+                                            title: const Text('Xóa thẻ?'),
+                                            content: const Text('Bạn có chắc chắn muốn xóa thẻ này không?'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.of(dCtx).pop(false),
+                                                child: const Text('Hủy'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.of(dCtx).pop(true),
+                                                child: const Text('Xóa', style: TextStyle(color: AppColors.error)),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        if (ok == true) {
+                                          await _deleteCard(setId: selectedId, cardId: cardId);
+                                        }
+                                      },
+                                      backgroundColor: AppColors.error,
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.delete_rounded,
+                                      label: 'Xóa',
+                                    ),
+                                  ],
                                 ),
-                              ],
+                                child: row,
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            height: 44,
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _showCreateCardSheet(context, selectedId),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: BorderSide(color: AppColors.primary.withOpacity(0.45)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              icon: const Icon(Icons.note_add_rounded, size: 18),
+                              label: const Text('Thêm ghi chú', style: TextStyle(fontWeight: FontWeight.w900)),
                             ),
                           ),
                         ],
@@ -396,22 +455,435 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
     );
   }
 
-  Future<void> _createCard(String setId) async {
-    final term = _newTermCtrl.text.trim();
-    final def = _newDefCtrl.text.trim();
-    if (term.isEmpty || def.isEmpty) return;
+  Future<void> _createCard({
+    required String setId,
+    required String term,
+    required String definition,
+    String? hint,
+  }) async {
+    final t = term.trim();
+    final d = definition.trim();
+    final h = hint?.trim();
+    if (t.isEmpty || d.isEmpty) return;
     final repo = ref.read(academyRepositoryProvider);
-    final created = await repo.createStudySetCard(setId: setId, term: term, definition: def);
+    final created = await repo.createStudySetCard(setId: setId, term: t, definition: d, hint: h);
     if (!mounted) return;
     if (created != null) {
-      _newTermCtrl.clear();
-      _newDefCtrl.clear();
       ref.invalidate(studySetDetailProvider(setId));
       ref.invalidate(studyCardsProvider(setId));
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm thẻ mới!')));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thêm thẻ thất bại')));
     }
+  }
+
+  Future<void> _updateCard({
+    required String setId,
+    required String cardId,
+    required String term,
+    required String definition,
+  }) async {
+    final t = term.trim();
+    final d = definition.trim();
+    if (t.isEmpty || d.isEmpty) return;
+    final repo = ref.read(academyRepositoryProvider);
+    final updated = await repo.updateStudySetCard(cardId: cardId, term: t, definition: d);
+    if (!mounted) return;
+    if (updated != null) {
+      ref.invalidate(studySetDetailProvider(setId));
+      ref.invalidate(studyCardsProvider(setId));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật thẻ!')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật thẻ thất bại')));
+    }
+  }
+
+  Future<void> _deleteCard({required String setId, required String cardId}) async {
+    if (mounted) setState(() => _busyCardId = cardId);
+    try {
+      final repo = ref.read(academyRepositoryProvider);
+      final ok = await repo.deleteStudySetCard(cardId: cardId);
+      if (!mounted) return;
+      if (ok) {
+        ref.invalidate(studySetDetailProvider(setId));
+        ref.invalidate(studyCardsProvider(setId));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã xóa thẻ')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Xóa thẻ thất bại')));
+      }
+    } finally {
+      if (mounted) setState(() => _busyCardId = null);
+    }
+  }
+
+  Future<void> _showCreateCardSheet(BuildContext context, String setId) async {
+    final termCtrl = TextEditingController();
+    final defCtrl = TextEditingController();
+    final hintCtrl = TextEditingController();
+    final theme = Theme.of(context);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        bool busy = false;
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 12,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          ),
+          child: StatefulBuilder(
+            builder: (ctx, setSheet) {
+              Future<void> submit() async {
+                final term = termCtrl.text.trim();
+                final def = defCtrl.text.trim();
+                final hint = hintCtrl.text.trim();
+                if (term.isEmpty || def.isEmpty) return;
+                setSheet(() => busy = true);
+                await _createCard(setId: setId, term: term, definition: def, hint: hint.isEmpty ? null : hint);
+                if (!ctx.mounted) return;
+                setSheet(() => busy = false);
+                Navigator.of(ctx).pop();
+              }
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(999)),
+                    ),
+                  ),
+                  Text('Tạo thẻ mới', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Nhập thuật ngữ và định nghĩa cho thẻ.',
+                    style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: termCtrl,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Mặt trước (term) *',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: defCtrl,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Mặt sau (definition) *',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: hintCtrl,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => busy ? null : submit(),
+                    decoration: const InputDecoration(
+                      labelText: 'Gợi ý (tuỳ chọn)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: OutlinedButton(
+                            onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textSecondary,
+                              side: const BorderSide(color: AppColors.grey300),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: busy ? null : submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.textOnPrimary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: Text(busy ? 'Đang tạo...' : 'Tạo thẻ', style: const TextStyle(fontWeight: FontWeight.w900)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    termCtrl.dispose();
+    defCtrl.dispose();
+    hintCtrl.dispose();
+  }
+
+  Future<void> _showEditCardSheet(
+    BuildContext context, {
+    required String setId,
+    required String cardId,
+    required String initialTerm,
+    required String initialDefinition,
+  }) async {
+    final termCtrl = TextEditingController(text: initialTerm);
+    final defCtrl = TextEditingController(text: initialDefinition);
+    final theme = Theme.of(context);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        bool busy = false;
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 12,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          ),
+          child: StatefulBuilder(
+            builder: (ctx, setSheet) {
+              Future<void> submit() async {
+                final term = termCtrl.text.trim();
+                final def = defCtrl.text.trim();
+                if (term.isEmpty || def.isEmpty) return;
+                setSheet(() => busy = true);
+                await _updateCard(setId: setId, cardId: cardId, term: term, definition: def);
+                if (!ctx.mounted) return;
+                setSheet(() => busy = false);
+                Navigator.of(ctx).pop();
+              }
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(999)),
+                    ),
+                  ),
+                  Text('Chỉnh sửa thẻ', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: termCtrl,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Mặt trước *',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: defCtrl,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => busy ? null : submit(),
+                    decoration: const InputDecoration(
+                      labelText: 'Mặt sau *',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: OutlinedButton(
+                            onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textSecondary,
+                              side: const BorderSide(color: AppColors.grey300),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: busy ? null : submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.textOnPrimary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: Text(busy ? 'Đang lưu...' : 'Lưu', style: const TextStyle(fontWeight: FontWeight.w900)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    termCtrl.dispose();
+    defCtrl.dispose();
+  }
+
+  Future<void> _showEditSetSheet(
+    BuildContext context,
+    String setId, {
+    required String initialTitle,
+    String? initialDescription,
+  }) async {
+    final titleCtrl = TextEditingController(text: initialTitle);
+    final descCtrl = TextEditingController(text: initialDescription ?? '');
+    final theme = Theme.of(context);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        bool busy = false;
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 12,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          ),
+          child: StatefulBuilder(
+            builder: (ctx, setSheet) {
+              Future<void> submit() async {
+                final title = titleCtrl.text.trim();
+                final desc = descCtrl.text.trim();
+                if (title.isEmpty) return;
+                setSheet(() => busy = true);
+                final repo = ref.read(academyRepositoryProvider);
+                final ok = await repo.updateStudySet(setId: setId, title: title, description: desc.isEmpty ? null : desc);
+                if (!ctx.mounted) return;
+                setSheet(() => busy = false);
+                if (ok) {
+                  ref.invalidate(studySetsProvider);
+                  ref.invalidate(studySetDetailProvider(setId));
+                  Navigator.of(ctx).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật bài')));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật thất bại')));
+                }
+              }
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(999)),
+                    ),
+                  ),
+                  Text('Chỉnh sửa bài', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Nhấn giữ một bài để mở bảng chỉnh sửa.',
+                    style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: titleCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Tên bài *',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: descCtrl,
+                    minLines: 2,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Mô tả',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: OutlinedButton(
+                            onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textSecondary,
+                              side: const BorderSide(color: AppColors.grey300),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: const Text('Đóng', style: TextStyle(fontWeight: FontWeight.w800)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: busy ? null : submit,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.textOnPrimary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: Text(busy ? 'Đang lưu...' : 'Lưu', style: const TextStyle(fontWeight: FontWeight.w900)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    titleCtrl.dispose();
+    descCtrl.dispose();
   }
 
   Future<void> _showCreateSetSheet(BuildContext context) async {
@@ -631,7 +1103,10 @@ class _ModeCard extends StatelessWidget {
                   children: [
                     Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900)),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary, height: 1.35)),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary, height: 1.35),
+                    ),
                   ],
                 ),
               ),

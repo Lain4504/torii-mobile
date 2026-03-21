@@ -341,6 +341,66 @@ class AcademyRepository {
     return null;
   }
 
+  /// PATCH /api/academy/set-cards/:id
+  Future<SetCardModel?> updateStudySetCard({
+    required String cardId,
+    String? term,
+    String? definition,
+    String? hint,
+  }) async {
+    final payload = <String, dynamic>{
+      if (term != null) 'term': term,
+      if (definition != null) 'definition': definition,
+      if (hint != null) 'hint': hint,
+    };
+    if (payload.isEmpty) return null;
+
+    final response = await _dio.patch<Map<String, dynamic>>(
+      '/api/academy/set-cards/$cardId',
+      data: payload,
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return null;
+    final item = api.data!['item'];
+    if (item is Map<String, dynamic>) return SetCardModel.fromJson(item);
+    if (item is Map) return SetCardModel.fromJson(item.cast<String, dynamic>());
+    return null;
+  }
+
+  /// DELETE /api/academy/set-cards/:id
+  Future<bool> deleteStudySetCard({required String cardId}) async {
+    final response = await _dio.delete<Map<String, dynamic>>('/api/academy/set-cards/$cardId');
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return false;
+    final result = api.data!['result'];
+    if (result is bool) return result;
+    return api.success == true;
+  }
+
+  /// PATCH /api/academy/study-sets/:id
+  ///
+  /// Used by mobile to support long-press edit "drawer" on Study Set items.
+  /// Returns true on success, false otherwise (no throw to keep UI friendly).
+  Future<bool> updateStudySet({
+    required String setId,
+    required String title,
+    String? description,
+  }) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        '/api/academy/study-sets/$setId',
+        data: <String, dynamic>{
+          'title': title,
+          'description': description,
+        },
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      return api.success == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// GET /api/academy/study-sets/:id/study-modes/test
   Future<List<Map<String, dynamic>>> getStudySetTestQuiz(String setId, {int count = 20}) async {
     final response = await _dio.get<Map<String, dynamic>>(

@@ -16,11 +16,18 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
   @override
   Widget build(BuildContext context) {
     final blogListAsync = ref.watch(blogListProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('Blog học tiếng Nhật', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        title: Text(
+          'Blog học tiếng Nhật',
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         backgroundColor: AppColors.surface,
         elevation: 0,
       ),

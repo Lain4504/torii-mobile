@@ -14,6 +14,10 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _phoneController;
+  late TextEditingController _addressController;
+  late TextEditingController _bioController;
+  DateTime? _dob;
   bool _saving = false;
 
   @override
@@ -21,11 +25,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.initState();
     final authState = ref.read(authStateProvider).valueOrNull ?? AuthState.unauthenticated();
     _nameController = TextEditingController(text: authState.user?.displayName ?? '');
+    final meta = authState.user?.userMetadata ?? const <String, dynamic>{};
+    _phoneController = TextEditingController(text: (meta['phone'] ?? '').toString());
+    _addressController = TextEditingController(text: (meta['address'] ?? '').toString());
+    _bioController = TextEditingController(text: (meta['bio'] ?? '').toString());
+    final dobRaw = meta['dateOfBirth'];
+    if (dobRaw != null && dobRaw.toString().trim().isNotEmpty) {
+      _dob = DateTime.tryParse(dobRaw.toString());
+    }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -35,7 +50,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       _saving = true;
     });
     final notifier = ref.read(authNotifierProvider.notifier);
-    final success = await notifier.updateProfile(displayName: _nameController.text.trim());
+    final success = await notifier.updateProfile(
+      displayName: _nameController.text.trim(),
+      metadata: <String, dynamic>{
+        'phone': _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+        'address': _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+        'bio': _bioController.text.trim().isEmpty ? null : _bioController.text.trim(),
+        'dateOfBirth': _dob != null ? _dob!.toIso8601String() : null,
+      }..removeWhere((_, v) => v == null),
+    );
     if (mounted) {
       setState(() {
         _saving = false;
@@ -55,6 +78,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authAsync = ref.watch(authStateProvider);
+    final dobLabel = _dob == null ? 'Chọn ngày sinh' : '${_dob!.day.toString().padLeft(2, '0')}/${_dob!.month.toString().padLeft(2, '0')}/${_dob!.year}';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -163,6 +187,70 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               }
                               return null;
                             },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            decoration: const InputDecoration(
+                              labelText: 'Số điện thoại',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _addressController,
+                            decoration: const InputDecoration(
+                              labelText: 'Địa chỉ',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          InkWell(
+                            onTap: () async {
+                              final now = DateTime.now();
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: _dob ?? DateTime(now.year - 18, now.month, now.day),
+                                firstDate: DateTime(1900, 1, 1),
+                                lastDate: now,
+                              );
+                              if (picked != null && mounted) {
+                                setState(() => _dob = picked);
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: InputDecorator(
+                              decoration: const InputDecoration(
+                                labelText: 'Ngày sinh',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                                ),
+                              ),
+                              child: Text(
+                                dobLabel,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: _dob == null ? AppColors.textTertiary : AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _bioController,
+                            minLines: 2,
+                            maxLines: 4,
+                            decoration: const InputDecoration(
+                              labelText: 'Giới thiệu',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(12)),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           SizedBox(

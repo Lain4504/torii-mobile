@@ -55,12 +55,13 @@ String _getChatKey(ChatMessage message, String currentUserId) {
   if (!message.isPrivate) {
     return 'public';
   }
-  
-    if (message.fromUserId == currentUserId) {
+
+  // Use senderId (always set when mapping from NATS); legacy fromUserId was never set.
+  final fromId = message.senderId;
+  if (fromId == currentUserId) {
     return message.toUserId ?? 'unknown';
-  } else {
-    return message.fromUserId ?? 'unknown';
   }
+  return fromId;
 }
 
 /// Sort messages chronologically

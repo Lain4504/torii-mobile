@@ -86,9 +86,9 @@ final courseOfferingDetailRichProvider = FutureProvider.family<CourseOfferingDet
   final response = await repo.getPublicCourseOfferingById(id);
   if (response == null) return null;
 
-  // Fetch raw detail again to extract syllabus/modules (since CourseOfferingModel is flat)
+  // Fetch raw detail again to extract curriculum/modules (since CourseOfferingModel is flat)
   // We reuse Dio from repo and rely on repository method for the raw map shape.
-  // AcademyRepository already does the GET; but we need the raw JSON to parse syllabus.
+  // AcademyRepository already does the GET; but we need the raw JSON to parse curriculum.
   final dio = ref.watch(dioForApiProvider);
   final res = await dio.get<Map<String, dynamic>>('/api/academy/course-offerings/public/$id');
   final api = ApiResponse<Map<String, dynamic>>.fromJson(res.data ?? {});
@@ -141,6 +141,11 @@ final leaderboardProvider = FutureProvider<LeaderboardData?>((ref) async {
 final gamificationAchievementsProvider = FutureProvider<List<AchievementModel>>((ref) async {
   final repo = ref.watch(gamificationRepositoryProvider);
   return repo.getAchievements();
+});
+
+final streakProvider = FutureProvider<StreakModel?>((ref) async {
+  final repo = ref.watch(gamificationRepositoryProvider);
+  return repo.getStreak();
 });
 
 // ---------- Live schedules ----------

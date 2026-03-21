@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 
@@ -16,9 +17,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _rememberMe = false;
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _pendingNavigateHome = false;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Navigate ONLY after auth state is truly authenticated.
+    // This prevents HomeScreen flashing "guest" UI for a moment.
+    ref.listenManual(authStateProvider, (previous, next) {
+      if (!_pendingNavigateHome) return;
+      final authed = next.valueOrNull?.status == AuthStatus.authenticated;
+      if (authed && mounted) {
+        _pendingNavigateHome = false;
+        context.go('/');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -225,17 +243,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 );
                                 return;
                               }
-                              setState(() => _isLoading = true);
+                              if (mounted) setState(() => _isLoading = true);
                               final notifier =
                                   ref.read(authNotifierProvider.notifier);
                               final ok =
                                   await notifier.login(email, password);
-                              setState(() => _isLoading = false);
+                              if (!mounted) return;
                               if (ok) {
-                                if (mounted) {
-                                  context.go('/');
-                                }
+                                // Keep loading until authStateProvider becomes authenticated,
+                                // then the listener in initState will navigate.
+                                setState(() {
+                                  _pendingNavigateHome = true;
+                                  _isLoading = true;
+                                });
                               } else {
+                                setState(() => _isLoading = false);
                                 final state = ref
                                     .read(authNotifierProvider)
                                     .valueOrNull;

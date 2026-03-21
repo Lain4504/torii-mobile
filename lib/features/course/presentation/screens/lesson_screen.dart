@@ -21,6 +21,7 @@ class _LessonScreenState extends State<LessonScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final lesson = widget.lesson ?? const <String, dynamic>{};
     final title = (lesson['title'] ?? 'Bài học').toString();
     final subtitle = (lesson['subtitle'] ?? '').toString();
@@ -34,7 +35,13 @@ class _LessonScreenState extends State<LessonScreen> with SingleTickerProviderSt
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: Text(title, style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
+        title: Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(

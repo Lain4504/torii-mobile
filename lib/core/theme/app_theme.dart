@@ -12,6 +12,8 @@ import '../constants/app_design_system.dart';
 class AppTheme {
   AppTheme._();
 
+  static final _fontFamily = GoogleFonts.montserrat().fontFamily;
+
   // ============================================================================
   // LIGHT THEME
   // ============================================================================
@@ -19,7 +21,7 @@ class AppTheme {
   static final light = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    fontFamily: GoogleFonts.montserrat().fontFamily,
+    fontFamily: _fontFamily,
     
     // Color Scheme
     colorScheme: const ColorScheme.light(
@@ -46,7 +48,7 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.background,
     
     // App Bar Theme - Minimal & Clean
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -57,6 +59,7 @@ class AppTheme {
         fontWeight: AppTypography.semiBold,
         color: AppColors.textPrimary,
         letterSpacing: AppTypography.letterSpacingTight,
+        fontFamily: _fontFamily,
       ),
       iconTheme: IconThemeData(
         color: AppColors.textPrimary,
@@ -241,13 +244,13 @@ class AppTheme {
         color: AppColors.textSecondary,
         height: 1.6,
       ),
-    ),
+    ).apply(fontFamily: _fontFamily),
   );
  
   static final dark = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    fontFamily: GoogleFonts.montserrat().fontFamily,
+    fontFamily: _fontFamily,
     
     // Color Scheme
     colorScheme: const ColorScheme.dark(
@@ -273,7 +276,7 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.backgroundDark,
     
     // App Bar Theme
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -283,6 +286,7 @@ class AppTheme {
         fontSize: AppTypography.fontSizeLg,
         fontWeight: AppTypography.semiBold,
         color: AppColors.textPrimaryDark,
+        fontFamily: _fontFamily,
       ),
       iconTheme: IconThemeData(
         color: AppColors.textPrimaryDark,
@@ -343,6 +347,6 @@ class AppTheme {
         color: AppColors.textSecondaryDark,
         height: 1.6,
       ),
-    ),
+    ).apply(fontFamily: _fontFamily),
   );
 }
