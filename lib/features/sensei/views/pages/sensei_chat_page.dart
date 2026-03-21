@@ -75,7 +75,8 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
                   return _EmptyChatView();
                 }
                 final message = messages[index];
-                return _ChatBubble(message: message);
+                final isLatestMessage = index == messages.length - 1;
+                return _ChatBubble(message: message, isLatestMessage: isLatestMessage);
               },
             ),
           ),
@@ -89,13 +90,14 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
   }
 }
 
-class _ChatBubble extends StatelessWidget {
+class _ChatBubble extends ConsumerWidget {
   final ChatMessage message;
+  final bool isLatestMessage;
 
-  const _ChatBubble({required this.message});
+  const _ChatBubble({required this.message, this.isLatestMessage = false});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isAssistant = message.role == ChatMessageRole.assistant;
 
     return Padding(
@@ -108,47 +110,69 @@ class _ChatBubble extends StatelessWidget {
             _SenseiAvatar(),
           const SizedBox(width: 8),
           Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: isAssistant ? AppColors.textOnPrimary : AppColors.primary,
-                borderRadius: BorderRadius.circular(16).copyWith(
-                  topLeft: isAssistant ? const Radius.circular(4) : null,
-                  bottomRight: !isAssistant ? const Radius.circular(4) : null,
+            child: Column(
+              crossAxisAlignment: isAssistant ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isAssistant ? AppColors.textOnPrimary : AppColors.primary,
+                    borderRadius: BorderRadius.circular(16).copyWith(
+                      topLeft: isAssistant ? const Radius.circular(4) : null,
+                      bottomRight: !isAssistant ? const Radius.circular(4) : null,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.textPrimary.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: message.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                        )
+                      : isAssistant
+                          ? MarkdownBody(
+                              data: message.content,
+                              styleSheet: MarkdownStyleSheet(
+                                p: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 14.5,
+                                  height: 1.4,
+                                ),
+                              ),
+                            )
+                          : Text(
+                              message.content,
+                              style: const TextStyle(
+                                color: AppColors.textOnPrimary,
+                                fontSize: 14.5,
+                                height: 1.4,
+                              ),
+                            ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.textPrimary.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+                if (isAssistant && isLatestMessage && message.suggestions != null && message.suggestions!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: message.suggestions!.map((s) => ActionChip(
+                      label: Text(s, style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                      backgroundColor: AppColors.primarySurface,
+                      side: const BorderSide(color: AppColors.primaryLight),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                      onPressed: () {
+                        ref.read(senseiChatProvider.notifier).sendMessage(s);
+                      },
+                    )).toList(),
                   ),
                 ],
-              ),
-              child: message.isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-                    )
-                  : isAssistant
-                      ? MarkdownBody(
-                          data: message.content,
-                          styleSheet: MarkdownStyleSheet(
-                            p: TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: 14.5,
-                              height: 1.4,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          message.content,
-                          style: const TextStyle(
-                            color: AppColors.textOnPrimary,
-                            fontSize: 14.5,
-                            height: 1.4,
-                          ),
-                        ),
+              ],
             ),
           ),
           const SizedBox(width: 8),

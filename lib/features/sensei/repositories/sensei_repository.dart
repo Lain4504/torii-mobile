@@ -17,9 +17,13 @@ class SenseiRepository {
         'message': message,
         'history': history,
       });
+      final data = response.data?['data'];
       return ChatMessage(
         role: ChatMessageRole.assistant,
-        content: (response.data?['data']?['message'] ?? '').toString(),
+        content: (data?['message'] ?? '').toString(),
+        suggestions: data?['suggestions'] != null 
+            ? List<String>.from(data['suggestions']) 
+            : null,
       );
     } catch (e) {
       throw Exception('AI Sensei chat failed: $e');
@@ -107,36 +111,7 @@ class SenseiRepository {
     }
   }
 
-  // --- DRILL API ---
 
-  Future<DrillResponse> generateDrill({
-    required String type,
-    required String topic,
-    required String level,
-    required int count,
-  }) async {
-    try {
-      final response = await _dio.post(
-        '/api/agents/drill/generate',
-        data: {
-          'type': type,
-          'topic': topic,
-          'level': level,
-          'count': count,
-        },
-      );
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final data = response.data;
-        if (data['success'] == true) {
-          return DrillResponse.fromJson(data);
-        }
-      }
-      throw Exception('Failed to generate drill: ${response.data?['message'] ?? 'Unknown error'}');
-    } catch (e) {
-      throw Exception('Failed to generate drill: $e');
-    }
-  }
 
   // --- TOPICS ---
 

@@ -41,7 +41,7 @@ import '../../features/sensei/views/pages/sensei_chat_page.dart';
 import '../../features/sensei/views/pages/sensei_translate_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_chat_page.dart';
-import '../../features/sensei/views/pages/sensei_drill_page.dart';
+
 import '../../features/sensei/views/pages/sensei_voice_agent_page.dart';
 import '../../features/practice/presentation/screens/practice_home_screen.dart';
 import '../../features/practice/presentation/screens/study_sets_dashboard_screen.dart';
@@ -255,11 +255,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   return SenseiRoleplayChatPage(topic: topic.isNotEmpty ? topic : 'Roleplay');
                 },
               ),
-              // Placeholder route to avoid navigation errors from menu items
-              GoRoute(
-                path: '/sensei/drill',
-                builder: (context, state) => const SenseiDrillPage(),
-              ),
+
             ],
           ),
           // Branch 3: Blog (guest) / My courses (user)

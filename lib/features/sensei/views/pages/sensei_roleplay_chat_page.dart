@@ -238,6 +238,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                         setState(() => _voiceSelection = val);
                         // Stop any playing audio if voice changes to avoid bugs
                         _audioPlayer.stop();
+                        _flutterTts.stop();
                       }
                     },
                   ),
@@ -324,7 +325,15 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
           ),
           IconButton(
             icon: Icon(_autoPlay ? Icons.volume_up : Icons.volume_off),
-            onPressed: () => setState(() => _autoPlay = !_autoPlay),
+            onPressed: () {
+              setState(() {
+                _autoPlay = !_autoPlay;
+                if (!_autoPlay) {
+                  _audioPlayer.stop();
+                  _flutterTts.stop();
+                }
+              });
+            },
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
           ),
