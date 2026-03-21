@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../models/sensei_model.dart';
 import '../../providers/sensei_providers.dart';
 
@@ -129,14 +130,25 @@ class _ChatBubble extends StatelessWidget {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                     )
-                  : Text(
-                      message.content,
-                      style: TextStyle(
-                        color: isAssistant ? AppColors.textPrimary : AppColors.textOnPrimary,
-                        fontSize: 14.5,
-                        height: 1.4,
-                      ),
-                    ),
+                  : isAssistant
+                      ? MarkdownBody(
+                          data: message.content,
+                          styleSheet: MarkdownStyleSheet(
+                            p: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 14.5,
+                              height: 1.4,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          message.content,
+                          style: const TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontSize: 14.5,
+                            height: 1.4,
+                          ),
+                        ),
             ),
           ),
           const SizedBox(width: 8),
@@ -184,46 +196,53 @@ class _ChatInput extends StatelessWidget {
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.borderLight)),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.grey300),
-              ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
               child: TextField(
                 controller: controller,
                 maxLines: null,
                 onSubmitted: (_) => onSend(),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Nhập câu hỏi tại đây...',
-                  border: InputBorder.none,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                  filled: true,
+                  fillColor: AppColors.surface,
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 42,
-            height: 42,
-            child: ElevatedButton(
-              onPressed: onSend,
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
-                shape: const CircleBorder(),
-                elevation: 0,
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 42,
+              height: 42,
+              child: ElevatedButton(
+                onPressed: onSend,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.textOnPrimary,
+                  shape: const CircleBorder(),
+                  elevation: 0,
+                ),
+                child: const Icon(Icons.send, size: 18),
               ),
-              child: const Icon(Icons.send, size: 18),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

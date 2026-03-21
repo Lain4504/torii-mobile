@@ -193,6 +193,51 @@ class RoleplayTopic {
   });
 }
 
+// --- DRILL MODELS ---
+
+class DrillQuestion {
+  final String question;
+  final List<String> options;
+  final String correctAnswer;
+  final String explanation;
+
+  const DrillQuestion({
+    required this.question,
+    required this.options,
+    required this.correctAnswer,
+    required this.explanation,
+  });
+
+  factory DrillQuestion.fromJson(Map<String, dynamic> json) {
+    return DrillQuestion(
+      question: json['question'] ?? '',
+      options: List<String>.from(json['options'] ?? []),
+      correctAnswer: json['correctAnswer'] ?? '',
+      explanation: json['explanation'] ?? '',
+    );
+  }
+}
+
+class DrillResponse {
+  final String topic;
+  final List<DrillQuestion> drills;
+
+  const DrillResponse({
+    required this.topic,
+    required this.drills,
+  });
+
+  factory DrillResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? json;
+    return DrillResponse(
+      topic: data['topic'] ?? '',
+      drills: (data['drills'] as List? ?? [])
+          .map((e) => DrillQuestion.fromJson(e))
+          .toList(),
+    );
+  }
+}
+
 // --- MENU ---
 
 class SenseiMenuItem {
@@ -223,7 +268,7 @@ final senseiMenuItems = [
     title: 'AI Roleplay',
     description: 'Luyện hội thoại theo tình huống',
     icon: Icons.people_alt_outlined,
-    color: AppColors.accent,
+    color: Colors.orange, // Changed from AppColors.accent which was too faint (grey/white)
     route: '/sensei/roleplay-topics', // Changed to topics list
   ),
   const SenseiMenuItem(
