@@ -9,6 +9,8 @@
 // - Handle office file presentations
 // - Handle whiteboard reset
 
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart';
@@ -134,7 +136,10 @@ class HandleWhiteboard {
   void _updateMouseAppStateChanges(String appState) {
     // Dispatch to whiteboard provider  
     try {
-      final appStateMap = {'appState': appState}; // Simplified
+      final parsed = jsonDecode(appState);
+      final appStateMap = parsed is Map<String, dynamic>
+          ? parsed
+          : <String, dynamic>{};
       ref?.read(whiteboardProvider.notifier).updateMouseAppStateChanges(appStateMap);
     } catch (e) {
       if (kDebugMode) {

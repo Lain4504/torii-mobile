@@ -118,6 +118,7 @@ class ConnectNats {
   /// REQ_JOINED_USERS_LIST until approval when user is in waiting room.
   bool _pendingFinalizeAfterWaitingRoom = false;
   bool _finalizeAppConnCompleted = false;
+  bool _isLocalUserWaitingForApproval = false;
 
   /// Chat / whiteboard / data channel — web subscribes in onAfterUserReady only.
   bool _realtimeChannelsStarted = false;
@@ -571,6 +572,7 @@ class ConnectNats {
 
     if (payload.msg.isEmpty) return;
 
+    bool waitForApproval = false;
     try {
       // Server might send snake_case keys (e.g., local_user), but Dart Protobuf expects camelCase (localUser)
       // We'll normalize the JSON before parsing
@@ -586,14 +588,21 @@ class ConnectNats {
       }
 
       // 1. Room info -> HandleRoomData.setRoomInfo
-      handleRoomData.setRoomInfo(initialData.room).then((room) {
+      handleRoomData
+          .setRoomInfo(initialData.room)
+          .then((room) {
         _currentRoomInfo = room;
+      }).catchError((e, st) {
+        if (kDebugMode) {
+          print('ConnectNats: Failed to parse/set room info: $e\n$st');
+        }
       });
 
       // 2. Local user -> HandleParticipants.addLocalParticipantInfo + session/participant providers
       handleParticipants.addLocalParticipantInfo(initialData.localUser);
       _userName = initialData.localUser.name;
       _isAdmin = initialData.localUser.isAdmin;
+      waitForApproval = _extractWaitForApproval(initialData.localUser.metadata);
     } catch (e) {
       if (kDebugMode) {
         print('ConnectNats: Error parsing RES_INITIAL_DATA - $e');
@@ -613,8 +622,7 @@ class ConnectNats {
     // 5. Finalize app conn (matches web components/landing: finalizeAppConn)
     // Web skips until !waitForApproval && user ready; mobile user already tapped Join,
     // but must still defer REQ_JOINED_USERS_LIST while in waiting room.
-    final waitForApproval =
-        ref.read(sessionProvider).currentUser?.metadata?.waitForApproval ?? false;
+    _isLocalUserWaitingForApproval = waitForApproval;
     if (waitForApproval) {
       _pendingFinalizeAfterWaitingRoom = true;
       if (kDebugMode) {
@@ -630,11 +638,14 @@ class ConnectNats {
   void notifyFinalizeAppConnIfPending() {
     if (_finalizeAppConnCompleted) return;
     if (!_pendingFinalizeAfterWaitingRoom) return;
-    final stillWaiting =
-        ref.read(sessionProvider).currentUser?.metadata?.waitForApproval ?? false;
-    if (stillWaiting) return;
+    if (_isLocalUserWaitingForApproval) return;
     _pendingFinalizeAfterWaitingRoom = false;
     _finalizeAppConn();
+  }
+
+  /// Keep local waiting-room state without reading sessionProvider from NATS callbacks.
+  void updateLocalUserWaitingForApproval(bool waitForApproval) {
+    _isLocalUserWaitingForApproval = waitForApproval;
   }
 
   /// Finalize app connection - request joined users list (matches web finalizeAppConn)
@@ -1577,6 +1588,39 @@ class ConnectNats {
       return false;
     }
   }
+
+  bool _extractWaitForApproval(String metadataJson) {
+    if (metadataJson.isEmpty) return false;
+    try {
+      final decoded = jsonDecode(metadataJson);
+      if (decoded is! Map<String, dynamic>) return false;
+      final normalized = _normalizeMetadataKeys(decoded);
+      return normalized['waitForApproval'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Map<String, dynamic> _normalizeMetadataKeys(Map<String, dynamic> input) {
+    final result = <String, dynamic>{};
+    input.forEach((key, value) {
+      final normalizedKey = key.contains('_')
+          ? key.replaceAllMapped(RegExp(r'_([a-z])'), (m) => m.group(1)!.toUpperCase())
+          : key;
+
+      if (value is Map<String, dynamic>) {
+        result[normalizedKey] = _normalizeMetadataKeys(value);
+      } else if (value is List) {
+        result[normalizedKey] = value
+            .map((e) => e is Map<String, dynamic> ? _normalizeMetadataKeys(e) : e)
+            .toList();
+      } else {
+        result[normalizedKey] = value;
+      }
+    });
+    return result;
+  }
+
   /// Normalize JSON by converting snake_case keys to camelCase
   /// This is needed because the server uses marshalToProtoJson(useProtoFieldName: true)
   /// Normalize JSON from server (snake_case -> camelCase -> tag numbers)

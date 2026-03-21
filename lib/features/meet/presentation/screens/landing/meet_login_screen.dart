@@ -116,7 +116,6 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -143,11 +142,54 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.22),
+                        blurRadius: 14,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.textOnPrimary.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.video_chat_rounded,
+                          color: AppColors.textOnPrimary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Vào phòng họp Torii Meet',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                                color: AppColors.textOnPrimary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Container(
-                      width: 44,
-                      height: 44,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(14),
@@ -173,11 +215,11 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 10),
 
                 // Login Card
                 Container(
-                  constraints: const BoxConstraints(maxWidth: 450),
+                  constraints: const BoxConstraints(maxWidth: 460),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(16),

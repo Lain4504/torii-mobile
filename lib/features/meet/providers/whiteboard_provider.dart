@@ -2,6 +2,7 @@
 // 1:1 clone of apps/meet/src/store/slices/whiteboard.ts
 
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WhiteboardOfficeFile {
@@ -37,6 +38,7 @@ class WhiteboardState {
   final String allExcalidrawElements;
   final bool isVisible;
   final String tool;
+  final Offset panOffset;
   
   const WhiteboardState({
     this.totalPages = 10,
@@ -53,6 +55,7 @@ class WhiteboardState {
     this.allExcalidrawElements = '',
     this.isVisible = false,
     this.tool = 'pencil',
+    this.panOffset = Offset.zero,
   });
   
   WhiteboardState copyWith({
@@ -70,7 +73,9 @@ class WhiteboardState {
     String? allExcalidrawElements,
     bool? isVisible,
     String? tool,
+    Offset? panOffset,
   }) {
+    final safePan = (this.panOffset as dynamic) is Offset ? this.panOffset : Offset.zero;
     return WhiteboardState(
       totalPages: totalPages ?? this.totalPages,
       currentPage: currentPage ?? this.currentPage,
@@ -86,6 +91,7 @@ class WhiteboardState {
       allExcalidrawElements: allExcalidrawElements ?? this.allExcalidrawElements,
       isVisible: isVisible ?? this.isVisible,
       tool: tool ?? this.tool,
+      panOffset: panOffset ?? safePan,
     );
   }
 }
@@ -238,6 +244,25 @@ class WhiteboardNotifier extends StateNotifier<WhiteboardState> {
   
   void setCurrentPage(int page) {
     state = state.copyWith(currentPage: page);
+  }
+
+  void setPanOffset(Offset offset) {
+    state = state.copyWith(panOffset: offset);
+  }
+
+  void updatePanOffset(Offset delta) {
+    final currentPan =
+        (state.panOffset as dynamic) is Offset ? state.panOffset : Offset.zero;
+    state = state.copyWith(
+      panOffset: Offset(
+        currentPan.dx + delta.dx,
+        currentPan.dy + delta.dy,
+      ),
+    );
+  }
+
+  void resetPanOffset() {
+    state = state.copyWith(panOffset: Offset.zero);
   }
 }
 

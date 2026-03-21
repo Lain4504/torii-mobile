@@ -378,6 +378,7 @@ class WajlcTokenClaims extends $pb.GeneratedMessage {
     $core.String? roomId,
     $core.bool? isAdmin,
     $core.bool? isHidden,
+    $core.String? profilePic,
   }) {
     final result = create();
     if (name != null) result.name = name;
@@ -385,6 +386,7 @@ class WajlcTokenClaims extends $pb.GeneratedMessage {
     if (roomId != null) result.roomId = roomId;
     if (isAdmin != null) result.isAdmin = isAdmin;
     if (isHidden != null) result.isHidden = isHidden;
+    if (profilePic != null) result.profilePic = profilePic;
     return result;
   }
 
@@ -406,6 +408,7 @@ class WajlcTokenClaims extends $pb.GeneratedMessage {
     ..aOS(3, _omitFieldNames ? '' : 'roomId')
     ..aOB(4, _omitFieldNames ? '' : 'isAdmin')
     ..aOB(5, _omitFieldNames ? '' : 'isHidden')
+    ..aOS(6, _omitFieldNames ? '' : 'profilePic')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -473,6 +476,15 @@ class WajlcTokenClaims extends $pb.GeneratedMessage {
   $core.bool hasIsHidden() => $_has(4);
   @$pb.TagNumber(5)
   void clearIsHidden() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get profilePic => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set profilePic($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasProfilePic() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearProfilePic() => $_clearField(6);
 }
 
 class LockSettings extends $pb.GeneratedMessage {

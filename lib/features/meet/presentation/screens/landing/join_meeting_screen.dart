@@ -70,106 +70,134 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1024),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Waiting room / room message (from room metadata when available)
-                  Builder(
-                    builder: (context) {
-                      final roomMeta = ref.watch(
-                        sessionProvider.select((s) => s.currentRoom.metadata),
-                      );
-                      final welcomeMsg = roomMeta?.welcomeMessage;
-                      if (welcomeMsg == null || welcomeMsg.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.06),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.primary.withOpacity(0.12)),
-                          ),
-                          child: Text(
-                            welcomeMsg,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textSecondary,
-                                  height: 1.35,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  // Content
-                  Padding(
-                    padding: const EdgeInsets.all(0),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final isMobile = constraints.maxWidth < 768;
-                        
-                        if (isMobile) {
-                          return Column(
-                            children: [
-                              if (_loadingMessage == null) ...[
-                                DevicePreview(
-                                  lockMicrophone: lockMicrophone,
-                                  lockWebcam: lockWebcam,
-                                  onMicToggled: (val) => _isMicEnabled = val,
-                                  onCameraToggled: (val) => _isCameraEnabled = val,
-                                ),
-                                const SizedBox(height: 14),
-                              ],
-                              JoinForm(
-                                loadingMessage: _loadingMessage,
-                                waitForApproval: waitForApproval,
-                                lockMicrophone: lockMicrophone,
-                                lockWebcam: lockWebcam,
-                                onJoin: _handleJoin,
-                              ),
-                            ],
-                          );
-                        }
-                        
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (_loadingMessage == null)
-                              Expanded(
-                                child: DevicePreview(
-                                  lockMicrophone: lockMicrophone,
-                                  lockWebcam: lockWebcam,
-                                  onMicToggled: (val) => _isMicEnabled = val,
-                                  onCameraToggled: (val) => _isCameraEnabled = val,
-                                ),
-                              ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: JoinForm(
-                                loadingMessage: _loadingMessage,
-                                waitForApproval: waitForApproval,
-                                lockMicrophone: lockMicrophone,
-                                lockWebcam: lockWebcam,
-                                onJoin: _handleJoin,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.22),
+                      blurRadius: 14,
+                      offset: const Offset(0, 8),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.textOnPrimary.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.video_call_rounded,
+                        color: AppColors.textOnPrimary,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Sẵn sàng vào phòng học trực tuyến',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: AppColors.textOnPrimary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+
+              Builder(
+                builder: (context) {
+                  final roomMeta = ref.watch(
+                    sessionProvider.select((s) => s.currentRoom.metadata),
+                  );
+                  final welcomeMsg = roomMeta?.welcomeMessage;
+                  if (welcomeMsg == null || welcomeMsg.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.grey300.withOpacity(0.9)),
+                      ),
+                      child: Text(
+                        welcomeMsg,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                              height: 1.35,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                },
+              ),
+
+              if (_loadingMessage == null) ...[
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.grey300),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.textPrimary.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: DevicePreview(
+                    lockMicrophone: lockMicrophone,
+                    lockWebcam: lockWebcam,
+                    onMicToggled: (val) => _isMicEnabled = val,
+                    onCameraToggled: (val) => _isCameraEnabled = val,
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.grey300),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.textPrimary.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(14),
+                child: JoinForm(
+                  loadingMessage: _loadingMessage,
+                  waitForApproval: waitForApproval,
+                  lockMicrophone: lockMicrophone,
+                  lockWebcam: lockWebcam,
+                  onJoin: _handleJoin,
+                ),
+              ),
+            ],
           ),
         ),
       ),

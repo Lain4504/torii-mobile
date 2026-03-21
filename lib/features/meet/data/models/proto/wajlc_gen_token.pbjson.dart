@@ -190,6 +190,18 @@ const WajlcTokenClaims$json = {
     {'1': 'room_id', '3': 3, '4': 1, '5': 9, '10': 'roomId'},
     {'1': 'is_admin', '3': 4, '4': 1, '5': 8, '10': 'isAdmin'},
     {'1': 'is_hidden', '3': 5, '4': 1, '5': 8, '10': 'isHidden'},
+    {
+      '1': 'profile_pic',
+      '3': 6,
+      '4': 1,
+      '5': 9,
+      '9': 0,
+      '10': 'profilePic',
+      '17': true
+    },
+  ],
+  '8': [
+    {'1': '_profile_pic'},
   ],
 };
 
@@ -197,7 +209,8 @@ const WajlcTokenClaims$json = {
 final $typed_data.Uint8List wajlcTokenClaimsDescriptor = $convert.base64Decode(
     'ChBXYWpsY1Rva2VuQ2xhaW1zEhIKBG5hbWUYASABKAlSBG5hbWUSFwoHdXNlcl9pZBgCIAEoCV'
     'IGdXNlcklkEhcKB3Jvb21faWQYAyABKAlSBnJvb21JZBIZCghpc19hZG1pbhgEIAEoCFIHaXNB'
-    'ZG1pbhIbCglpc19oaWRkZW4YBSABKAhSCGlzSGlkZGVu');
+    'ZG1pbhIbCglpc19oaWRkZW4YBSABKAhSCGlzSGlkZGVuEiQKC3Byb2ZpbGVfcGljGAYgASgJSA'
+    'BSCnByb2ZpbGVQaWOIAQFCDgoMX3Byb2ZpbGVfcGlj');
 
 @$core.Deprecated('Use lockSettingsDescriptor instead')
 const LockSettings$json = {

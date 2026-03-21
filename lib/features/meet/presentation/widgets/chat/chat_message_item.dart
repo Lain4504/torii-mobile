@@ -39,6 +39,8 @@ class ChatMessageItem extends StatelessWidget {
       );
     }
 
+    final pollResult = _tryParsePollResultMessage(message.message);
+
     return Row(
       mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -93,15 +95,18 @@ class ChatMessageItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      message.message,
-                      style: TextStyle(
-                        color: isMe 
-                          ? AppColors.textOnPrimary 
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 14,
+                    if (pollResult != null)
+                      _buildPollResultContent(context, pollResult)
+                    else
+                      Text(
+                        message.message,
+                        style: TextStyle(
+                          color: isMe
+                              ? AppColors.textOnPrimary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 4),
                     Text(
                       DateFormat('HH:mm').format(message.createdAt),
@@ -133,4 +138,127 @@ class ChatMessageItem extends StatelessWidget {
     if (parts.length == 1) return parts[0][0].toUpperCase();
     return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
   }
+
+  _PollResultMessage? _tryParsePollResultMessage(String rawMessage) {
+    if (!rawMessage.contains('<div') || !rawMessage.contains('<li')) {
+      return null;
+    }
+
+    String decodeHtml(String s) {
+      return s
+          .replaceAll('&nbsp;', ' ')
+          .replaceAll('&amp;', '&')
+          .replaceAll('&lt;', '<')
+          .replaceAll('&gt;', '>')
+          .replaceAll('&quot;', '"')
+          .replaceAll('&#39;', "'");
+    }
+
+    String stripTags(String s) {
+      return s.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    }
+
+    final strongMatch = RegExp(
+      r'<strong[^>]*>(.*?)</strong>',
+      caseSensitive: false,
+      dotAll: true,
+    ).firstMatch(rawMessage);
+    final title = strongMatch != null
+        ? stripTags(decodeHtml(strongMatch.group(1) ?? ''))
+        : '';
+
+    final totalMatch = RegExp(
+      r'Tổng số phản hồi:\s*(\d+)',
+      caseSensitive: false,
+    ).firstMatch(rawMessage);
+    final total = totalMatch != null ? int.tryParse(totalMatch.group(1) ?? '') : null;
+
+    final itemMatches = RegExp(
+      r'<li[^>]*>(.*?)</li>',
+      caseSensitive: false,
+      dotAll: true,
+    ).allMatches(rawMessage);
+    final items = itemMatches
+        .map((m) => stripTags(decodeHtml(m.group(1) ?? '')))
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    if (title.isEmpty && items.isEmpty) return null;
+    return _PollResultMessage(title: title, total: total, items: items);
+  }
+
+  Widget _buildPollResultContent(BuildContext context, _PollResultMessage poll) {
+    final textColor = isMe
+        ? AppColors.textOnPrimary
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.poll_rounded, size: 16, color: textColor.withOpacity(0.9)),
+            const SizedBox(width: 6),
+            Text(
+              'Poll Result',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: textColor.withOpacity(0.9),
+              ),
+            ),
+          ],
+        ),
+        if (poll.title.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            poll.title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+            ),
+          ),
+        ],
+        if (poll.total != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            'Tổng số phản hồi: ${poll.total}',
+            style: TextStyle(
+              fontSize: 12,
+              color: textColor.withOpacity(0.85),
+            ),
+          ),
+        ],
+        if (poll.items.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          ...poll.items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                '• $item',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _PollResultMessage {
+  final String title;
+  final int? total;
+  final List<String> items;
+
+  _PollResultMessage({
+    required this.title,
+    required this.total,
+    required this.items,
+  });
 }

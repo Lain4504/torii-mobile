@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import '../chat/chat_bottom_sheet.dart';
 import '../participants/participants_bottom_sheet.dart';
 import '../settings/settings_bottom_sheet.dart';
@@ -8,6 +7,7 @@ import '../polls/polls_bottom_sheet.dart';
 import '../translation/translation_bottom_sheet.dart';
 import '../insights_ai/insights_ai_bottom_sheet.dart';
 import '../waiting_room/waiting_room_bottom_sheet.dart';
+import 'control_button.dart';
 import '../../../providers/whiteboard_provider.dart';
 import '../../../providers/session_provider.dart';
 
@@ -19,43 +19,11 @@ class MoreOptionsButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isMobile = MediaQuery.of(context).size.width < 768;
-
-    return InkWell(
+    return ControlButton(
+      icon: Icons.more_horiz_rounded,
+      label: 'Khác',
+      isActive: false,
       onTap: () => _showOptionsMenu(context, ref),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: isMobile ? 56 : 64,
-        height: isMobile ? 56 : 64,
-        decoration: BoxDecoration(
-          color: AppColors.surfaceDark,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.textPrimaryDark.withOpacity(0.3),
-            width: 2,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.more_vert,
-              color: AppColors.textPrimaryDark,
-              size: isMobile ? 24 : 28,
-            ),
-            if (!isMobile) ...[
-              const SizedBox(height: 4),
-              const Text(
-                'More',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: AppColors.textPrimaryDark,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 
@@ -67,8 +35,9 @@ class MoreOptionsButton extends ConsumerWidget {
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      showDragHandle: true,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -194,8 +163,21 @@ class MoreOptionsButton extends ConsumerWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.textPrimaryDark),
-      title: Text(title),
+      dense: true,
+      visualDensity: const VisualDensity(horizontal: 0, vertical: -1),
+      leading: Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
       onTap: onTap,
     );
   }

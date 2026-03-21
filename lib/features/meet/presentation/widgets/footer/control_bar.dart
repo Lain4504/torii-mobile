@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'mic_button.dart';
 import 'camera_button.dart';
 import 'screen_share_button.dart';
@@ -17,58 +16,30 @@ class ControlBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 768;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      height: isMobile ? 80 : 96,
-      padding: EdgeInsets.symmetric(
-        horizontal: isMobile ? 12 : 24,
-      ),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
-        border: Border(
-          top: BorderSide(
-            color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08),
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        height: isMobile ? 64 : 78,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Mic button
             const MicButton(),
-            SizedBox(width: isMobile ? 10 : 16),
-            
-            // Camera button
+            SizedBox(width: isMobile ? 7 : 12),
             const CameraButton(),
-            SizedBox(width: isMobile ? 10 : 16),
-            
-            // Screen share button (desktop only)
+            SizedBox(width: isMobile ? 7 : 12),
             if (!isMobile) ...[
               const ScreenShareButton(),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
             ],
-  
-            // Raise hand
             const RaiseHandButton(),
-            SizedBox(width: isMobile ? 10 : 16),
-  
-            // More options button
+            SizedBox(width: isMobile ? 7 : 12),
             const MoreOptionsButton(),
-            SizedBox(width: isMobile ? 10 : 16),
-
-            // Leave button
+            SizedBox(width: isMobile ? 7 : 12),
             const LeaveButton(),
           ],
         ),
-      );
+      ),
+    );
   }
 }

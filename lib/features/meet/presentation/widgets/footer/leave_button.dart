@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/session_provider.dart';
+import 'control_button.dart';
 
 /// Leave Button Widget
 /// Leaves the meeting
@@ -11,41 +12,12 @@ class LeaveButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return InkWell(
+    return ControlButton(
+      icon: Icons.call_end_rounded,
+      label: 'Rời phòng',
+      isActive: true,
+      isDanger: true,
       onTap: () => _showLeaveDialog(context, ref),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: MediaQuery.of(context).size.width < 768 ? 56 : 64,
-        height: MediaQuery.of(context).size.width < 768 ? 56 : 64,
-        decoration: BoxDecoration(
-          color: AppColors.error.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.error,
-            width: 2,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.call_end,
-              color: AppColors.error,
-              size: 28,
-            ),
-            if (MediaQuery.of(context).size.width >= 768) ...[
-              const SizedBox(height: 4),
-              const Text(
-                'Leave',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: AppColors.error,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 
