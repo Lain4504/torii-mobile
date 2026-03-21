@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/session_provider.dart';
@@ -22,8 +23,9 @@ class ParticipantItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasAudio = participant.hasAudioTrack;
-    final hasVideo = participant.hasVideoTrack;
+    final mediaStatus = _resolveMediaStatus(ref);
+    final hasAudio = mediaStatus.hasAudio;
+    final hasVideo = mediaStatus.hasVideo;
     final isRaisedHand = participant.metadata.isHandRaised;
     final waitForApproval = participant.metadata.waitForApproval;
     final isPresenter = participant.metadata.isPresenter;
@@ -64,7 +66,9 @@ class ParticipantItem extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isMe ? '${participant.name} (You)' : participant.name,
+                isMe
+                    ? '${_safeDisplayName(participant.name)} (You)'
+                    : _safeDisplayName(participant.name),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -249,7 +253,7 @@ class ParticipantItem extends ConsumerWidget {
           _safeGet(roomFeatures, 'adminOnlyWebcams', false) != true) {
         lockableFeatures.add({
           'key': 'webcam',
-          'isLocked': lockSettings?.lockWebcam ?? false,
+          'isLocked': _getLockSettingValue(lockSettings, 'lockWebcam'),
           'lockText': 'Lock webcam',
           'unlockText': 'Unlock webcam',
         });
@@ -257,7 +261,7 @@ class ParticipantItem extends ConsumerWidget {
       if (_safeGet(roomFeatures, 'allowScreenShare', true)) {
         lockableFeatures.add({
           'key': 'screenShare',
-          'isLocked': lockSettings?.lockScreenSharing ?? false,
+          'isLocked': _getLockSettingValue(lockSettings, 'lockScreenSharing'),
           'lockText': 'Lock screen sharing',
           'unlockText': 'Unlock screen sharing',
         });
@@ -279,14 +283,14 @@ class ParticipantItem extends ConsumerWidget {
         });
         lockableFeatures.add({
           'key': 'sendChatMsg',
-          'isLocked': lockSettings?.lockChatSendMessage ?? false,
+          'isLocked': _getLockSettingValue(lockSettings, 'lockChatSendMessage'),
           'lockText': 'Lock send chat message',
           'unlockText': 'Unlock send chat message',
         });
         if (_safeGet(roomFeatures?.chatFeatures, 'isAllowFileUpload', false)) {
           lockableFeatures.add({
             'key': 'chatFile',
-            'isLocked': lockSettings?.lockChatFileShare ?? false,
+            'isLocked': _getLockSettingValue(lockSettings, 'lockChatFileShare'),
             'lockText': 'Lock send file',
             'unlockText': 'Unlock send file',
           });
@@ -326,13 +330,13 @@ class ParticipantItem extends ConsumerWidget {
     } else {
       // Non-admin: check if can send private message
       final canSendPrivateMessage =
-          !(currentUser?.metadata?.lockSettings?.lockPrivateChat ?? false) &&
+          !_safeGet(currentUser?.metadata?.lockSettings, 'lockPrivateChat', false) &&
           !(defaultLockSettings?.lockChat ?? false) &&
-          !(defaultLockSettings?.lockPrivateChat ?? false);
+          !_safeGet(defaultLockSettings, 'lockPrivateChat', false);
 
       final canSendPrivateMessageToAdmin =
           !(defaultLockSettings?.lockChat ?? false) &&
-          (defaultLockSettings?.lockPrivateChat ?? false) &&
+          _safeGet(defaultLockSettings, 'lockPrivateChat', false) &&
           participant.metadata.isAdmin;
 
       if (canSendPrivateMessage || canSendPrivateMessageToAdmin) {
@@ -380,7 +384,7 @@ class ParticipantItem extends ConsumerWidget {
               sid: sid,
               roomId: roomId,
               userId: participant.userId,
-              muted: true,
+              muted: participant.hasAudioTrack,
             ),
           );
           if (context.mounted) {
@@ -568,10 +572,70 @@ class ParticipantItem extends ConsumerWidget {
   }
 
   String _getInitials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length == 1) return parts[0][0].toUpperCase();
-    return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+    final normalized = name.trim();
+    if (normalized.isEmpty) return '?';
+    final parts = normalized
+        .split(RegExp(r'\s+'))
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) {
+      final first = parts[0];
+      return first.isNotEmpty ? first[0].toUpperCase() : '?';
+    }
+    final first = parts.first;
+    final last = parts.last;
+    if (first.isEmpty || last.isEmpty) return '?';
+    return '${first[0]}${last[0]}'.toUpperCase();
+  }
+
+  String _safeDisplayName(String name) {
+    final n = name.trim();
+    return n.isEmpty ? 'Unknown user' : n;
+  }
+
+  _ParticipantMediaStatus _resolveMediaStatus(WidgetRef ref) {
+    final fallback = _ParticipantMediaStatus(
+      hasAudio: participant.hasAudioTrack,
+      hasVideo: participant.hasVideoTrack,
+    );
+
+    final conn = ref.read(sessionProvider.notifier).livekitConn;
+    final room = conn?.room;
+    if (room == null) return fallback;
+
+    Participant? lkParticipant;
+    if (room.localParticipant?.identity == participant.userId) {
+      lkParticipant = room.localParticipant;
+    } else {
+      lkParticipant = room.remoteParticipants[participant.userId];
+    }
+    if (lkParticipant == null) return fallback;
+
+    bool micOn = false;
+    for (final pub in lkParticipant.audioTrackPublications) {
+      if (pub.source == TrackSource.microphone &&
+          pub.track != null &&
+          !pub.muted) {
+        micOn = true;
+        break;
+      }
+    }
+
+    bool camOn = false;
+    for (final pub in lkParticipant.videoTrackPublications) {
+      if (pub.source == TrackSource.camera &&
+          pub.track != null &&
+          !pub.muted) {
+        camOn = true;
+        break;
+      }
+    }
+
+    return _ParticipantMediaStatus(
+      hasAudio: micOn,
+      hasVideo: camOn,
+    );
   }
 
   /// Safely get a property from an object that might not have it defined or might be null.
@@ -592,4 +656,14 @@ class ParticipantItem extends ConsumerWidget {
       return defaultValue;
     }
   }
+}
+
+class _ParticipantMediaStatus {
+  final bool hasAudio;
+  final bool hasVideo;
+
+  const _ParticipantMediaStatus({
+    required this.hasAudio,
+    required this.hasVideo,
+  });
 }

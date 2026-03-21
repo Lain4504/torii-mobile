@@ -164,6 +164,32 @@ class HandleDataMessage {
   // ============================================================================
   // CHAT HANDLERS
   // ============================================================================
+
+  /// JSON shape must match web `HandleDataMessage.handlePublicChatDataReq`:
+  /// `JSON.stringify(selectPublicChatMessages(...))` over protocol `ChatMessage`.
+  Map<String, dynamic> _chatMessageToWebPublicChatJson(ChatMessage c) {
+    final id = c.messageId.isNotEmpty
+        ? c.messageId
+        : (c.id != null && c.id!.isNotEmpty ? c.id! : '');
+    final sentMs = c.createdAt.millisecondsSinceEpoch;
+    final safeId = id.isNotEmpty ? id : 'm_${sentMs}_${c.senderId}';
+    final map = <String, dynamic>{
+      'id': safeId,
+      'fromUserId': c.senderId,
+      'fromName': c.senderName,
+      'sentAt': sentMs.toString(),
+      'isPrivate': c.isPrivate,
+      'message': c.message,
+      'fromAdmin': c.fromAdmin,
+    };
+    if (c.toUserId != null && c.toUserId!.isNotEmpty) {
+      map['toUserId'] = c.toUserId;
+    }
+    if (c.isSystemMsg) {
+      map['isSystemMsg'] = true;
+    }
+    return map;
+  }
   
   Future<void> _handlePublicChatDataReq(String fromUserId) async {
     // Get public chat messages
@@ -171,10 +197,14 @@ class HandleDataMessage {
     final chats = ref?.read(chatMessagesProvider).messages['public'] ?? [];
     
     if (chats.isNotEmpty) {
-      // Send chat data back
+      // Web meet expects the same JSON shape as Redux + JSON.stringify(publicChats)
+      // (protocol ChatMessage: id, fromUserId, fromName, sentAt as ms string, ...).
+      // Sending Flutter ChatMessage JSON (messageId, senderId, createdAt ISO) breaks
+      // web dedupe/sort and can surface garbage in UI for newly joined clients.
+      final payload = chats.map(_chatMessageToWebPublicChatJson).toList();
       await connectNats.sendDataMessage(
         type: 'RES_PUBLIC_CHAT_DATA',
-        msg: jsonEncode(chats.toList()),
+        msg: jsonEncode(payload),
         toUserId: fromUserId,
       );
       
@@ -190,15 +220,38 @@ class HandleDataMessage {
       
       for (final m in data) {
          final body = m as Map<String, dynamic>;
+         final messageId = (body['messageId'] ?? body['id'] ?? '').toString();
+         final senderId = (body['senderId'] ?? body['fromUserId'] ?? '').toString();
+         final senderName = (body['senderName'] ?? body['fromName'] ?? '').toString();
+         DateTime createdAt;
+         if (body['createdAt'] != null) {
+           createdAt = DateTime.tryParse(body['createdAt'].toString()) ?? DateTime.now();
+         } else if (body['sentAt'] != null) {
+           final s = body['sentAt'].toString();
+           final ms = int.tryParse(s);
+           createdAt = ms != null
+               ? DateTime.fromMillisecondsSinceEpoch(ms)
+               : DateTime.tryParse(s) ?? DateTime.now();
+         } else {
+           createdAt = DateTime.now();
+         }
+         final toRaw = body['toUserId'];
+         final toUserId = toRaw == null || toRaw.toString().isEmpty
+             ? null
+             : toRaw.toString();
          ref?.read(chatMessagesProvider.notifier).addChatMessage(
            message: ChatMessage(
-             messageId: body['messageId'] ?? '',
-             senderId: body['senderId'] ?? '',
-             senderName: body['senderName'] ?? '',
-             message: body['message'] ?? '',
+             messageId: messageId.isNotEmpty
+                 ? messageId
+                 : '${createdAt.microsecondsSinceEpoch}_$senderId',
+             senderId: senderId,
+             senderName: senderName,
+             message: body['message']?.toString() ?? '',
+             createdAt: createdAt,
+             toUserId: toUserId,
              isPrivate: body['isPrivate'] as bool? ?? false,
-             createdAt: body['createdAt'] != null ? DateTime.parse(body['createdAt']) : DateTime.now(),
              isSystemMsg: body['isSystemMsg'] as bool? ?? false,
+             fromAdmin: body['fromAdmin'] as bool? ?? false,
            ),
            currentUserId: connectNats.userId,
          );

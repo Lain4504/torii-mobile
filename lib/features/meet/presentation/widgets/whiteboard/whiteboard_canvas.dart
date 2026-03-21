@@ -24,18 +24,43 @@ class WhiteboardCanvas extends ConsumerWidget {
         return s.excalidrawElements;
       }),
     );
+    final appState = ref.watch(
+      whiteboardProvider.select((s) => s.whiteboardAppState),
+    );
+    final panOffset = ref.watch(
+      whiteboardProvider.select((s) => s.panOffset),
+    );
 
-    return CustomPaint(
-      painter: WhiteboardElementsPainter(elementsJson: elementsJson),
-      size: Size.infinite,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanUpdate: (details) {
+        ref.read(whiteboardProvider.notifier).updatePanOffset(details.delta);
+      },
+      onDoubleTap: () {
+        ref.read(whiteboardProvider.notifier).resetPanOffset();
+      },
+      child: CustomPaint(
+        painter: WhiteboardElementsPainter(
+          elementsJson: elementsJson,
+          appState: appState,
+          panOffset: panOffset,
+        ),
+        size: Size.infinite,
+      ),
     );
   }
 }
 
 class WhiteboardElementsPainter extends CustomPainter {
-  WhiteboardElementsPainter({required this.elementsJson});
+  WhiteboardElementsPainter({
+    required this.elementsJson,
+    required this.appState,
+    required this.panOffset,
+  });
 
   final String elementsJson;
+  final Map<String, dynamic>? appState;
+  final Offset panOffset;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -53,28 +78,50 @@ class WhiteboardElementsPainter extends CustomPainter {
         .toList(growable: false);
     if (elements.isEmpty) return;
 
-    final bounds = _computeBounds(elements);
-    if (bounds == null) return;
-    final (minX, minY, maxX, maxY) = bounds;
-    final w = maxX - minX;
-    final h = maxY - minY;
-    if (w <= 0 || h <= 0) return;
-
-    const padding = 20.0;
-    final scaleX = (size.width - padding * 2) / w;
-    final scaleY = (size.height - padding * 2) / h;
-    final scale = math.min(scaleX, scaleY);
-    if (!scale.isFinite || scale <= 0) return;
-
-    // Map scene coordinates -> screen coordinates.
-    final offset = Offset(
-      padding - minX * scale,
-      padding - minY * scale,
-    );
-
     canvas.save();
-    canvas.translate(offset.dx, offset.dy);
-    canvas.scale(scale, scale);
+
+    final zoom = _extractZoom(appState);
+    final scrollX = _toDouble(appState?['scrollX']);
+    final scrollY = _toDouble(appState?['scrollY']);
+
+    // Excalidraw-like viewport transform:
+    // screen = scene * zoom + (center + scroll) + localPan
+    if (zoom.isFinite && zoom > 0 && scrollX.isFinite && scrollY.isFinite) {
+      canvas.translate(
+        size.width / 2 + scrollX + panOffset.dx,
+        size.height / 2 + scrollY + panOffset.dy,
+      );
+      canvas.scale(zoom, zoom);
+    } else {
+      // Fallback: fit whole scene (legacy behavior)
+      final bounds = _computeBounds(elements);
+      if (bounds == null) {
+        canvas.restore();
+        return;
+      }
+      final (minX, minY, maxX, maxY) = bounds;
+      final w = maxX - minX;
+      final h = maxY - minY;
+      if (w <= 0 || h <= 0) {
+        canvas.restore();
+        return;
+      }
+
+      const padding = 20.0;
+      final scaleX = (size.width - padding * 2) / w;
+      final scaleY = (size.height - padding * 2) / h;
+      final scale = math.min(scaleX, scaleY);
+      if (!scale.isFinite || scale <= 0) {
+        canvas.restore();
+        return;
+      }
+      final offset = Offset(
+        padding - minX * scale + panOffset.dx,
+        padding - minY * scale + panOffset.dy,
+      );
+      canvas.translate(offset.dx, offset.dy);
+      canvas.scale(scale, scale);
+    }
 
     for (final element in elements) {
       if (_isDeleted(element)) continue;
@@ -108,7 +155,22 @@ class WhiteboardElementsPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     final old = oldDelegate;
     if (old is! WhiteboardElementsPainter) return true;
-    return old.elementsJson != elementsJson;
+    return old.elementsJson != elementsJson ||
+        old.appState != appState ||
+        old.panOffset != panOffset;
+  }
+
+  double _extractZoom(Map<String, dynamic>? state) {
+    if (state == null) return double.nan;
+    final zoomRaw = state['zoom'];
+    if (zoomRaw is num) return zoomRaw.toDouble();
+    if (zoomRaw is Map<String, dynamic>) {
+      final value = zoomRaw['value'];
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? double.nan;
+    }
+    if (zoomRaw is String) return double.tryParse(zoomRaw) ?? double.nan;
+    return double.nan;
   }
 
   List<dynamic>? _tryDecode(String json) {
@@ -141,15 +203,15 @@ class WhiteboardElementsPainter extends CustomPainter {
       if (points.isEmpty) continue;
 
       for (final p in points) {
-        minX = (minX == null) ? p.dx : math.min(minX!, p.dx);
-        minY = (minY == null) ? p.dy : math.min(minY!, p.dy);
-        maxX = (maxX == null) ? p.dx : math.max(maxX!, p.dx);
-        maxY = (maxY == null) ? p.dy : math.max(maxY!, p.dy);
+        minX = (minX == null) ? p.dx : math.min(minX, p.dx);
+        minY = (minY == null) ? p.dy : math.min(minY, p.dy);
+        maxX = (maxX == null) ? p.dx : math.max(maxX, p.dx);
+        maxY = (maxY == null) ? p.dy : math.max(maxY, p.dy);
       }
     }
 
     if (minX == null || minY == null || maxX == null || maxY == null) return null;
-    return (minX!, minY!, maxX!, maxY!);
+    return (minX, minY, maxX, maxY);
   }
 
   List<Offset> _elementPoints(Map<String, dynamic> e) {

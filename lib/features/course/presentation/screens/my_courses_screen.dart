@@ -120,7 +120,9 @@ class MyCoursesScreen extends ConsumerWidget {
                       width: double.infinity,
                       height: 48,
                       child: ElevatedButton(
-                        onPressed: () => context.push('/curriculum'), // Could pass classId for curriculum
+                        onPressed: e.offeringId == null || e.offeringId!.isEmpty
+                            ? null
+                            : () => context.push('/curriculum/${e.offeringId}'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isCompleted ? AppColors.grey200 : AppColors.primary,
                           foregroundColor: isCompleted ? AppColors.textPrimary : AppColors.textOnPrimary,

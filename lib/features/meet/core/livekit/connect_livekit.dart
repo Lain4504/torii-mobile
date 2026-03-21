@@ -18,6 +18,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/features/meet/providers/session_provider.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
+import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_analytics.pb.dart' as analytics;
 
 // Types
@@ -62,6 +63,7 @@ class ConnectLivekit implements IConnectLivekit {
   late final Room _room;
   E2EEManager? _e2eeManager;
   late final HandleMediaTracks handleMediaTracks;
+  EventsListener<RoomEvent>? _roomEventListener;
   
   // State
   bool _wasNormalDisconnected = false;
@@ -148,6 +150,10 @@ class ConnectLivekit implements IConnectLivekit {
       if (initialVideoEnabled) {
         await _room.localParticipant?.setCameraEnabled(true);
       }
+
+      // Sync footer button state with actual initial media state.
+      ref.read(bottomIconsProvider.notifier).updateMicStatus(!initialAudioEnabled);
+      ref.read(bottomIconsProvider.notifier).updateWebcamStatus(!initialVideoEnabled);
       
       // Initialize participants
       await _initiateParticipants();
@@ -214,6 +220,58 @@ class ConnectLivekit implements IConnectLivekit {
     
     // Participant events
     room.addListener(_onParticipantEvent);
+
+    // Clone web behavior: react to realtime media/participant events and
+    // keep camera/audio/screenshare maps always in sync.
+    _roomEventListener?.dispose();
+    _roomEventListener = room.createListener();
+    _roomEventListener!
+      ..on<ParticipantConnectedEvent>((_) {
+        _rebuildTrackSubscribersFromRoom();
+      })
+      ..on<ParticipantDisconnectedEvent>((_) {
+        _rebuildTrackSubscribersFromRoom();
+      })
+      ..on<TrackSubscribedEvent>((_) {
+        _rebuildTrackSubscribersFromRoom();
+      })
+      ..on<TrackUnsubscribedEvent>((_) {
+        _rebuildTrackSubscribersFromRoom();
+      })
+      ..on<TrackPublishedEvent>((_) {
+        _rebuildTrackSubscribersFromRoom();
+      })
+      ..on<TrackUnpublishedEvent>((_) {
+        _rebuildTrackSubscribersFromRoom();
+      })
+      ..on<LocalTrackPublishedEvent>((_) {
+        _rebuildTrackSubscribersFromRoom();
+      })
+      ..on<LocalTrackUnpublishedEvent>((_) {
+        _rebuildTrackSubscribersFromRoom();
+      })
+      ..on<TrackMutedEvent>((event) {
+        if (event.participant.identity == localUserId &&
+            event.publication.source == TrackSource.microphone) {
+          ref.read(bottomIconsProvider.notifier).updateMicStatus(true);
+        }
+        if (event.participant.identity == localUserId &&
+            event.publication.source == TrackSource.camera) {
+          ref.read(bottomIconsProvider.notifier).updateWebcamStatus(true);
+        }
+        _rebuildTrackSubscribersFromRoom();
+      })
+      ..on<TrackUnmutedEvent>((event) {
+        if (event.participant.identity == localUserId &&
+            event.publication.source == TrackSource.microphone) {
+          ref.read(bottomIconsProvider.notifier).updateMicStatus(false);
+        }
+        if (event.participant.identity == localUserId &&
+            event.publication.source == TrackSource.camera) {
+          ref.read(bottomIconsProvider.notifier).updateWebcamStatus(false);
+        }
+        _rebuildTrackSubscribersFromRoom();
+      });
     
     if (kDebugMode) {
       print('ConnectLivekit: Event listeners registered');
@@ -279,25 +337,7 @@ class ConnectLivekit implements IConnectLivekit {
   /// Initialize participants after connection
   /// Matches: initiateParticipants() in ConnectLivekit.ts
   Future<void> _initiateParticipants() async {
-    // Process all remote participants
-    for (final participant in _room.remoteParticipants.values) {
-      for (final publication in participant.trackPublications.values) {
-        if (publication.subscribed) {
-          if (publication.source == TrackSource.screenShareVideo ||
-              publication.source == TrackSource.screenShareAudio) {
-            // Screen share track
-            ref.read(participantProvider.notifier).updateParticipant(
-              userId: participant.identity,
-              changes: {'screenShareTrack': 1},
-            );
-            addScreenShareTrack(participant.identity, publication);
-          } else if (publication.source == TrackSource.camera) {
-            // Video track
-            addVideoSubscriber(participant);
-          }
-        }
-      }
-    }
+    _rebuildTrackSubscribersFromRoom();
     
     if (kDebugMode) {
       print('ConnectLivekit: Initialized ${_room.remoteParticipants.length} participants');
@@ -397,11 +437,6 @@ class ConnectLivekit implements IConnectLivekit {
   /// Matches: addScreenShareTrack() in ConnectLivekit.ts
   @override
   void addScreenShareTrack(String userId, TrackPublication track) {
-    final participant = ref.read(participantProvider).participants[userId];
-    if (participant == null || !participant.metadata.isOnline) {
-      return;
-    }
-    
     final tracks = <TrackPublication>[];
     if (_screenShareTracksMap.containsKey(userId)) {
       tracks.addAll(_screenShareTracksMap[userId]!);
@@ -409,7 +444,7 @@ class ConnectLivekit implements IConnectLivekit {
     tracks.add(track);
     
     _screenShareTracksMap[userId] = tracks;
-    _syncScreenShareTracks(userId);
+    _syncScreenShareTracks();
   }
   
   /// Remove screen share track
@@ -417,29 +452,45 @@ class ConnectLivekit implements IConnectLivekit {
   @override
   void removeScreenShareTrack(String userId) {
     _screenShareTracksMap.remove(userId);
-    _syncScreenShareTracks(userId);
+    _syncScreenShareTracks();
   }
   
   /// Sync screen share tracks
   /// Matches: syncScreenShareTracks() in ConnectLivekit.ts
-  void _syncScreenShareTracks(String userId) {
-    // Notify about status
-    if (_screenShareTracksMap.isNotEmpty) {
+  void _syncScreenShareTracks() {
+    _emitScreenShareSessionFromMap();
+  }
+
+  /// Pushes map to listeners and updates session only when a screen-share *video* track is active.
+  void _emitScreenShareSessionFromMap() {
+    _screenShareTracksController.add(Map.from(_screenShareTracksMap));
+
+    String? activeSharerUserId;
+    for (final e in _screenShareTracksMap.entries) {
+      for (final pub in e.value) {
+        if (pub.source == TrackSource.screenShareVideo &&
+            pub.track is VideoTrack &&
+            !pub.muted) {
+          activeSharerUserId = e.key;
+          break;
+        }
+      }
+      if (activeSharerUserId != null) break;
+    }
+
+    if (activeSharerUserId != null) {
       _screenShareStatusController.add(true);
       ref.read(sessionProvider.notifier).updateScreenSharing(
-        isActive: true,
-        sharedBy: userId,
-      );
+            isActive: true,
+            sharedBy: activeSharerUserId,
+          );
     } else {
       _screenShareStatusController.add(false);
       ref.read(sessionProvider.notifier).updateScreenSharing(
-        isActive: false,
-        sharedBy: '',
-      );
+            isActive: false,
+            sharedBy: '',
+          );
     }
-    
-    // Emit new tracks map
-    _screenShareTracksController.add(Map.from(_screenShareTracksMap));
   }
   
   /// Add audio subscriber
@@ -537,6 +588,49 @@ class ConnectLivekit implements IConnectLivekit {
     // Sort by active speakers (simplified - full implementation in HandleMediaTracks)
     _videoSubscribersController.add(Map.from(_videoSubscribersMap));
   }
+
+  /// Rebuild all track subscriber maps from current LiveKit room state.
+  /// This keeps mobile behavior aligned with web's HandleMediaTracks flow.
+  void _rebuildTrackSubscribersFromRoom() {
+    _audioSubscribersMap.clear();
+    _videoSubscribersMap.clear();
+    _screenShareTracksMap.clear();
+
+    final local = _room.localParticipant;
+    if (local != null) {
+      for (final pub in local.trackPublications.values) {
+        if (pub.source == TrackSource.screenShareVideo ||
+            pub.source == TrackSource.screenShareAudio) {
+          _screenShareTracksMap.putIfAbsent(local.identity, () => []).add(pub);
+          continue;
+        }
+        if (!pub.subscribed || pub.track == null || pub.muted) continue;
+        if (pub.source == TrackSource.camera) {
+          _videoSubscribersMap[local.identity] = local;
+        }
+      }
+    }
+
+    for (final p in _room.remoteParticipants.values) {
+      for (final pub in p.trackPublications.values) {
+        if (pub.source == TrackSource.screenShareVideo ||
+            pub.source == TrackSource.screenShareAudio) {
+          _screenShareTracksMap.putIfAbsent(p.identity, () => []).add(pub);
+          continue;
+        }
+        if (!pub.subscribed || pub.track == null || pub.muted) continue;
+        if (pub.source == TrackSource.microphone) {
+          _audioSubscribersMap[p.identity] = p;
+        } else if (pub.source == TrackSource.camera) {
+          _videoSubscribersMap[p.identity] = p;
+        }
+      }
+    }
+
+    _syncAudioSubscribers();
+    _syncVideoSubscribers();
+    _emitScreenShareSessionFromMap();
+  }
   
   /// Toggle audio
   /// Matches: toggleAudio() in ConnectLivekit.ts
@@ -544,6 +638,7 @@ class ConnectLivekit implements IConnectLivekit {
   Future<void> toggleAudio(bool enable) async {
     if (_room.localParticipant != null) {
       await _room.localParticipant!.setMicrophoneEnabled(enable);
+      ref.read(bottomIconsProvider.notifier).updateMicStatus(!enable);
       
       // Update local participant state in provider if needed
       // (LiveKit events should handle this automatically via _onTrackEvent)
@@ -560,6 +655,7 @@ class ConnectLivekit implements IConnectLivekit {
   Future<void> toggleVideo(bool enable) async {
     if (_room.localParticipant != null) {
       await _room.localParticipant!.setCameraEnabled(enable);
+      ref.read(bottomIconsProvider.notifier).updateWebcamStatus(!enable);
       
       // Update local participant state in provider if needed
       // (LiveKit events should handle this automatically via _onTrackEvent)
@@ -572,6 +668,7 @@ class ConnectLivekit implements IConnectLivekit {
 
   /// Dispose resources
   void dispose() {
+    _roomEventListener?.dispose();
     _screenShareStatusController.close();
     _videoStatusController.close();
     _audioSubscribersController.close();

@@ -186,9 +186,6 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
   Widget build(BuildContext context) {
     final participants = ref.watch(participantProvider).allParticipants;
     final currentUserId = ref.watch(sessionProvider.select((s) => s.currentUser?.userId));
-    final isAdmin = ref.watch(
-      sessionProvider.select((s) => s.currentUser?.metadata?.isAdmin ?? false),
-    );
     final breakoutRoomIsActive = ref.watch(
       sessionProvider.select(
         (s) => s.currentRoom.metadata?.roomFeatures?.breakoutRoomFeatures?.isActive ?? false,
@@ -205,13 +202,22 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
+          const SizedBox(height: 8),
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Theme.of(context).dividerColor.withOpacity(0.35),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
           // Header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
@@ -221,12 +227,24 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
             ),
             child: Row(
               children: [
-                const Icon(Icons.grid_view, size: 20),
-                const SizedBox(width: 8),
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.grid_view,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
                 const Text(
                   'Breakout Rooms',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -432,13 +450,22 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
+          const SizedBox(height: 8),
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Theme.of(context).dividerColor.withOpacity(0.35),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
           // Header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
@@ -448,12 +475,24 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
             ),
             child: Row(
               children: [
-                const Icon(Icons.grid_view, size: 20),
-                const SizedBox(width: 8),
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.grid_view,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Text(
                   'Active Breakout Rooms (${_activeRooms?.length ?? 0})',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

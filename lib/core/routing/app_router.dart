@@ -41,7 +41,6 @@ import '../../features/sensei/views/pages/sensei_chat_page.dart';
 import '../../features/sensei/views/pages/sensei_translate_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_chat_page.dart';
-
 import '../../features/sensei/views/pages/sensei_voice_agent_page.dart';
 import '../../features/practice/presentation/screens/practice_home_screen.dart';
 import '../../features/practice/presentation/screens/study_sets_dashboard_screen.dart';
@@ -211,8 +210,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
-                path: '/curriculum',
-                builder: (context, state) => const CurriculumScreen(),
+                path: '/curriculum/:offeringId',
+                builder: (context, state) {
+                  final offeringId = state.pathParameters['offeringId'] ?? '';
+                  return CurriculumScreen(offeringId: offeringId);
+                },
               ),
               GoRoute(
                 path: '/lesson',

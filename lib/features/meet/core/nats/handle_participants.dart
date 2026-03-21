@@ -38,13 +38,14 @@ class HandleParticipants {
     final Map<String, dynamic> rawMetadata = info.hasMetadata() && info.metadata.isNotEmpty
         ? jsonDecode(info.metadata)
         : {};
+    final displayName = _resolveDisplayName(info.name, rawMetadata, info.userId);
     final metadata = UserMetadata.fromJson(_normalizeMetadata(rawMetadata));
     
     final isRecorder = _isUserRecorder(info.userId);
     final currentUser = CurrentUser(
       sid: info.userSid,
       userId: info.userId,
-      name: info.name,
+      name: displayName,
       isRecorder: isRecorder,
       metadata: metadata,
     );
@@ -53,7 +54,7 @@ class HandleParticipants {
       ParticipantInfo(
         userId: info.userId,
         sid: info.userSid,
-        name: info.name,
+        name: displayName,
         metadata: metadata,
       ),
     );
@@ -61,7 +62,7 @@ class HandleParticipants {
       metadata.isHandRaised || metadata.raisedHand,
     );
     if (kDebugMode) {
-      print('HandleParticipants: Local user set - ${info.name}');
+      print('HandleParticipants: Local user set - $displayName');
     }
   }
   
@@ -82,6 +83,7 @@ class HandleParticipants {
     final Map<String, dynamic> rawMetadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
         ? jsonDecode(userInfo.metadata)
         : {};
+    final displayName = _resolveDisplayName(userInfo.name, rawMetadata, userInfo.userId);
     final metadata = UserMetadata.fromJson(_normalizeMetadata(rawMetadata));
     
     // Add participant to provider
@@ -89,16 +91,16 @@ class HandleParticipants {
       ParticipantInfo(
         userId: userInfo.userId,
         sid: userInfo.userSid,
-        name: userInfo.name,
+        name: displayName,
         metadata: metadata,
       ),
     );
     
     // Show notification
-    _showUserJoinedNotification(userInfo.name);
+    _showUserJoinedNotification(displayName);
     
     if (kDebugMode) {
-      print('HandleParticipants: User joined - ${userInfo.name}');
+      print('HandleParticipants: User joined - $displayName');
     }
   }
   
@@ -129,12 +131,14 @@ class HandleParticipants {
     final Map<String, dynamic> rawMetadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
         ? jsonDecode(userInfo.metadata)
         : {};
+    final displayName = _resolveDisplayName(userInfo.name, rawMetadata, userInfo.userId);
     final metadata = UserMetadata.fromJson(_normalizeMetadata(rawMetadata));
 
     // Skip if it's the local user
     if (userInfo.userId == connectNats.userId) {
       // Update local user metadata
       ref?.read(sessionProvider.notifier).updateCurrentUserMetadata(metadata);
+      connectNats.updateLocalUserWaitingForApproval(metadata.waitForApproval);
       // Sync raise hand state to footer UI
       ref?.read(bottomIconsProvider.notifier).updateIsActiveRaisehand(
         metadata.isHandRaised || metadata.raisedHand,
@@ -156,18 +160,18 @@ class HandleParticipants {
     ref?.read(participantProvider.notifier).updateParticipant(
       userId: userInfo.userId,
       changes: {
-        'name': userInfo.name,
+        if (displayName.trim().isNotEmpty) 'name': displayName,
         'metadata': metadata,
       },
     );
     
     // Handle raise hand updates
     if (metadata.raisedHand) {
-      _handleRaiseHand(userInfo.name);
+      _handleRaiseHand(displayName);
     }
     
     if (kDebugMode) {
-      print('HandleParticipants: User metadata updated - ${userInfo.name}');
+      print('HandleParticipants: User metadata updated - $displayName');
     }
   }
   
@@ -253,6 +257,26 @@ class HandleParticipants {
     return result;
   }
 
+  String _resolveDisplayName(
+    String rawName,
+    Map<String, dynamic> metadata,
+    String userId,
+  ) {
+    final trimmed = rawName.trim();
+    if (trimmed.isNotEmpty) return trimmed;
+
+    final candidates = <dynamic>[
+      metadata['name'],
+      metadata['userName'],
+      metadata['displayName'],
+      metadata['nickname'],
+    ];
+    for (final c in candidates) {
+      if (c is String && c.trim().isNotEmpty) return c.trim();
+    }
+    return userId;
+  }
+
   /// Reconcile participants list against server snapshot (similar to web reconcileParticipants).
   ///
   /// Important: This method is intentionally "silent" (no join/leave notifications)
@@ -267,23 +291,32 @@ class HandleParticipants {
 
     // 1) Add missing participants
     for (final userInfo in serverUsers) {
-      if (userInfo.userId == connectNats.userId) continue; // keep local user
       if (_isUserRecorder(userInfo.userId)) continue; // skip recorder bots
-      if (localIds.contains(userInfo.userId)) continue;
+      final rawMetadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
+          ? jsonDecode(userInfo.metadata) as Map<String, dynamic>
+          : <String, dynamic>{};
+      final metadata = UserMetadata.fromJson(_normalizeMetadata(rawMetadata));
+      final displayName =
+          _resolveDisplayName(userInfo.name, rawMetadata, userInfo.userId);
 
-      final metadata = UserMetadata.fromJson(
-        _normalizeMetadata(
-          userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
-              ? jsonDecode(userInfo.metadata)
-              : <String, dynamic>{},
-        ),
-      );
+      if (localIds.contains(userInfo.userId)) {
+        // Refresh existing participant data from authoritative server snapshot.
+        ref!.read(participantProvider.notifier).updateParticipant(
+          userId: userInfo.userId,
+          changes: {
+            if (displayName.trim().isNotEmpty) 'name': displayName,
+            'sid': userInfo.userSid,
+            'metadata': metadata,
+          },
+        );
+        continue;
+      }
 
       ref!.read(participantProvider.notifier).addParticipant(
             ParticipantInfo(
               userId: userInfo.userId,
               sid: userInfo.userSid,
-              name: userInfo.name,
+              name: displayName,
               metadata: metadata,
             ),
           );

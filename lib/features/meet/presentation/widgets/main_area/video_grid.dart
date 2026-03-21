@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
-import '../../../providers/session_provider.dart';
+import '../../../providers/participant_provider.dart';
 import '../../../providers/livekit_providers.dart';
+import '../../../providers/session_provider.dart';
 import 'video_tile.dart';
 
 /// Video Grid Widget
@@ -14,42 +15,66 @@ class VideoGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Get LiveKit participants
-    final remoteParticipantsAsync = ref.watch(videoSubscribersProvider);
-    final localParticipant = ref.watch(localParticipantProvider);
-    
-    // Combine participants
-    final participants = <Participant>[];
-    if (localParticipant != null) {
-      participants.add(localParticipant);
-    }
-    
-    remoteParticipantsAsync.whenData((remoteMap) {
-      participants.addAll(remoteMap.values);
-    });
-    
-    final screenSharing = ref.watch(
-      sessionProvider.select((s) => s.screenSharing),
-    );
+    // Source of truth for who should appear on grid is NATS participant list.
+    // LiveKit participant is attached when available to render video/audio state.
+    final participantInfos = ref.watch(allParticipantsProvider);
+    final livekitConn = ref.read(sessionProvider.notifier).livekitConn;
+    final localIdentity = livekitConn?.room.localParticipant?.identity;
 
-    // If someone is screen sharing, show screen share prominently
-    if (screenSharing.isActive) {
-      return _buildScreenShareLayout(context, ref, participants);
-    }
-    
-    // Check if loading or error
-    if (remoteParticipantsAsync.isLoading && participants.isEmpty) {
-       return const Center(child: CircularProgressIndicator());
+    final tiles = participantInfos
+        .where((p) => p.metadata.isOnline)
+        .map((info) {
+      Participant? livekitParticipant;
+      if (livekitConn != null) {
+        if (localIdentity != null && info.userId == localIdentity) {
+          livekitParticipant = livekitConn.room.localParticipant;
+        } else {
+          livekitParticipant = livekitConn.room.remoteParticipants[info.userId];
+        }
+      }
+
+      return _TileData(
+        userId: info.userId,
+        name: info.name,
+        livekitParticipant: livekitParticipant,
+      );
+    }).toList();
+
+    final screenShareTracksAsync = ref.watch(screenShareTracksProvider);
+    final screenShareTracks = screenShareTracksAsync.valueOrNull ??
+        (livekitConn?.screenShareTracksMap ?? const <String, List<TrackPublication>>{});
+    final focusedScreenShare = _findActiveScreenShareFromMap(
+      screenShareTracks,
+      participantInfos,
+    );
+    final fallbackScreenShare = focusedScreenShare ??
+        _findActiveScreenShareFromRoom(
+          livekitConn?.room,
+          participantInfos,
+        );
+
+    final screenShareToShow = focusedScreenShare ?? fallbackScreenShare;
+
+    // Only show screen-share layout when there is a real video track. Session flag can stay
+    // true briefly (e.g. audio-only publication left) and would otherwise keep a black/placeholder panel.
+    if (screenShareToShow != null && screenShareToShow.track != null) {
+      return _buildScreenShareLayout(
+        context,
+        ref,
+        tiles,
+        screenShareToShow,
+      );
     }
 
     // Normal grid layout
-    return _buildGridLayout(context, participants);
+    return _buildGridLayout(context, tiles);
   }
 
   Widget _buildScreenShareLayout(
     BuildContext context,
     WidgetRef ref,
-    List<Participant> participants,
+    List<_TileData> participants,
+    _ScreenShareFocus? focusedScreenShare,
   ) {
     final screenSharing = ref.watch(
       sessionProvider.select((s) => s.screenSharing),
@@ -62,14 +87,34 @@ class VideoGrid extends ConsumerWidget {
           flex: 3,
           child: Container(
             color: AppColors.textPrimary,
-            child: Center(
-              child: Text(
-                'Screen Share by ${screenSharing.sharedBy}',
-                style: const TextStyle(color: AppColors.textOnPrimary),
+            child: focusedScreenShare?.track != null
+                ? VideoTrackRenderer(
+                    focusedScreenShare!.track!,
+                    fit: VideoViewFit.contain,
+                  )
+                : Center(
+                    child: Text(
+                      'Screen Share by ${focusedScreenShare?.sharedBy ?? screenSharing.sharedBy}',
+                      style: const TextStyle(color: AppColors.textOnPrimary),
+                    ),
+                  ),
+          ),
+        ),
+
+        if (focusedScreenShare != null)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            color: AppColors.surfaceDark,
+            child: Text(
+              'Đang chia sẻ màn hình: ${focusedScreenShare.sharedBy}',
+              style: const TextStyle(
+                color: AppColors.textOnPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-        ),
         
         // Participant thumbnails
         SizedBox(
@@ -84,7 +129,9 @@ class VideoGrid extends ConsumerWidget {
                 child: SizedBox(
                   width: 160,
                   child: VideoTile(
-                    participant: participants[index],
+                    userId: participants[index].userId,
+                    name: participants[index].name,
+                    participant: participants[index].livekitParticipant,
                     isSmall: true,
                   ),
                 ),
@@ -96,7 +143,7 @@ class VideoGrid extends ConsumerWidget {
     );
   }
 
-  Widget _buildGridLayout(BuildContext context, List<Participant> participants) {
+  Widget _buildGridLayout(BuildContext context, List<_TileData> participants) {
     if (participants.isEmpty) {
       return Center(
         child: Text(
@@ -133,8 +180,100 @@ class VideoGrid extends ConsumerWidget {
       ),
       itemCount: participants.length,
       itemBuilder: (context, index) {
-        return VideoTile(participant: participants[index]);
+        return VideoTile(
+          userId: participants[index].userId,
+          name: participants[index].name,
+          participant: participants[index].livekitParticipant,
+        );
       },
     );
   }
+}
+
+class _ScreenShareFocus {
+  final String sharedBy;
+  final VideoTrack? track;
+
+  _ScreenShareFocus({
+    required this.sharedBy,
+    required this.track,
+  });
+}
+
+_ScreenShareFocus? _findActiveScreenShareFromMap(
+  Map<String, List<TrackPublication>> screenShareTracks,
+  List<ParticipantInfo> participants,
+) {
+  if (screenShareTracks.isEmpty) return null;
+
+  for (final entry in screenShareTracks.entries) {
+    final userId = entry.key;
+    final tracks = entry.value;
+    for (final pub in tracks) {
+      if (pub.source == TrackSource.screenShareVideo &&
+          pub.track is VideoTrack &&
+          !pub.muted) {
+        final p = participants.where((e) => e.userId == userId).toList();
+        final name = p.isNotEmpty ? p.first.name : userId;
+        return _ScreenShareFocus(
+          sharedBy: name,
+          track: pub.track as VideoTrack,
+        );
+      }
+    }
+  }
+  return null;
+}
+
+_ScreenShareFocus? _findActiveScreenShareFromRoom(
+  Room? room,
+  List<ParticipantInfo> participants,
+) {
+  if (room == null) return null;
+
+  final remoteParticipants = room.remoteParticipants.values.toList();
+  for (final participant in remoteParticipants) {
+    for (final pub in participant.trackPublications.values) {
+      if (pub.source == TrackSource.screenShareVideo &&
+          pub.track is VideoTrack &&
+          !pub.muted) {
+        final p = participants.where((e) => e.userId == participant.identity).toList();
+        final name = p.isNotEmpty ? p.first.name : participant.identity;
+        return _ScreenShareFocus(
+          sharedBy: name,
+          track: pub.track as VideoTrack,
+        );
+      }
+    }
+  }
+
+  final local = room.localParticipant;
+  if (local != null) {
+    for (final pub in local.trackPublications.values) {
+      if (pub.source == TrackSource.screenShareVideo &&
+          pub.track is VideoTrack &&
+          !pub.muted) {
+        final p = participants.where((e) => e.userId == local.identity).toList();
+        final name = p.isNotEmpty ? p.first.name : local.identity;
+        return _ScreenShareFocus(
+          sharedBy: name,
+          track: pub.track as VideoTrack,
+        );
+      }
+    }
+  }
+
+  return null;
+}
+
+class _TileData {
+  final String userId;
+  final String name;
+  final Participant? livekitParticipant;
+
+  _TileData({
+    required this.userId,
+    required this.name,
+    required this.livekitParticipant,
+  });
 }

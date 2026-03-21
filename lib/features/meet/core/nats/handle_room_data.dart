@@ -277,6 +277,26 @@ class HandleRoomData {
 
   /// Recursively convert Map keys from snake_case to camelCase
   Map<String, dynamic> _normalizeMetadata(Map<String, dynamic> map) {
+    // Server metadata thường gửi các trường số dưới dạng string (ví dụ "0"),
+    // trong khi model freezed/json_serializable lại cast sang num? => crash.
+    // Vì vậy, ta chuẩn hóa các string số thành int/double trước khi parse.
+    const numericStringPattern = r'^-?\d+(\.\d+)?$';
+    final numericRe = RegExp(numericStringPattern);
+
+    dynamic normalizeValue(dynamic value) {
+      if (value is String) {
+        final s = value.trim();
+        if (numericRe.hasMatch(s)) {
+          // If it looks like a float, parse as double; otherwise parse as int.
+          if (s.contains('.')) {
+            return double.tryParse(s) ?? value;
+          }
+          return int.tryParse(s) ?? value;
+        }
+      }
+      return value;
+    }
+
     final result = <String, dynamic>{};
     map.forEach((key, value) {
       final newKey = key.contains('_') 
@@ -285,9 +305,14 @@ class HandleRoomData {
       if (value is Map<String, dynamic>) {
         result[newKey] = _normalizeMetadata(value);
       } else if (value is List) {
-        result[newKey] = value.map((e) => e is Map<String, dynamic> ? _normalizeMetadata(e) : e).toList();
+        result[newKey] = value.map((e) {
+          if (e is Map<String, dynamic>) {
+            return _normalizeMetadata(e);
+          }
+          return normalizeValue(e);
+        }).toList();
       } else {
-        result[newKey] = value;
+        result[newKey] = normalizeValue(value);
       }
     });
     return result;
