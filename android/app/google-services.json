@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "820535138066",
+    "project_id": "flutterapp-8448e",
+    "storage_bucket": "flutterapp-8448e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:820535138066:android:07be6c8ed04dc7fe3405cb",
+        "android_client_info": {
+          "package_name": "com.miraimagiclab.torii_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByJo6FyS8Fw29mL9w-82fcjkwSkPZzOXI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

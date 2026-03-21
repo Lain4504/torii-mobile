@@ -3,4 +3,5 @@
     <string name="facebook_app_id">25843221668693805</string>
     <string name="fb_login_protocol_scheme">fb25843221668693805</string>
     <string name="facebook_client_token">c9941a7a977035f3197a839d325b2ba4</string>
+    <string name="default_notification_channel_id">high_importance_channel</string>
 </resources>

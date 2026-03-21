@@ -3,6 +3,7 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -13,6 +14,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Required by some Flutter plugins (e.g. flutter_local_notifications)
+        // for Java 8+ API desugaring support.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -46,4 +50,7 @@ flutter {
 dependencies {
     // Facebook SDK - Added manually as per integration guide
     implementation("com.facebook.android:facebook-android-sdk:17.0.0")
+
+    // Enables core library desugaring for plugins that require it.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
