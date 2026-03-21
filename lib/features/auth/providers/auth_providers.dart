@@ -12,6 +12,7 @@ import 'package:torii_app/features/auth/repositories/token_storage.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:torii_app/core/config/app_config.dart';
+import 'package:torii_app/services/notification_service.dart';
 
 // --- DATA LAYER ---
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
@@ -93,6 +94,8 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     if (token != null) {
       final user = await _userService.getUserProfile();
       if (user != null) {
+        // Register token for push notifications
+        ref.read(notificationServiceProvider).registerToken();
         return AuthState.authenticated(user);
       } else {
         try {
@@ -172,6 +175,8 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       await _userService.saveUserProfile(data.user);
 
       // Invalidate feature-specific caches if those providers are available.
+      // Register token for push notifications
+      ref.read(notificationServiceProvider).registerToken();
 
       state = AsyncValue.data(AuthState.authenticated(data.user));
     } else if (result == AuthResult.requires2FA && data != null && data.tempToken != null) {

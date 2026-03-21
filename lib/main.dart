@@ -11,6 +11,8 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:torii_app/data/database/app_database.dart';
 import 'package:torii_app/services/auth/user_service.dart';
 import 'package:torii_app/services/auth/token_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:torii_app/services/notification_service.dart';
 
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -25,19 +27,30 @@ Future<void> main() async {
   final database = AppDatabase();
   final userService = UserService(database);
   final tokenService = TokenService();
+  // Integrated ProviderContainer for early service initialization
+  final container = ProviderContainer(
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(sharedPrefs),
+      onboardingNotifierProvider.overrideWithValue(onboardingNotifier),
+      databaseProvider.overrideWithValue(database),
+      tokenServiceProvider.overrideWithValue(tokenService),
+      userServiceProvider.overrideWithValue(userService),
+    ],
+  );
+  
+  // Initialize Firebase
+  await Firebase.initializeApp();
+  
+  // Resolve and initialize NotificationService using the container
+  final notificationService = container.read(notificationServiceProvider);
+  await notificationService.initialize();
 
   // Remove splash screen now that data is ready
   FlutterNativeSplash.remove();
 
   runApp(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(sharedPrefs),
-        onboardingNotifierProvider.overrideWithValue(onboardingNotifier),
-        databaseProvider.overrideWithValue(database),
-        tokenServiceProvider.overrideWithValue(tokenService),
-        userServiceProvider.overrideWithValue(userService),
-      ],
+    UncontrolledProviderScope(
+      container: container,
       child: const ToriiApp(),
     ),
   );
