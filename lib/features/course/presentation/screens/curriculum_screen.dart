@@ -1,63 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/core/providers/api_providers.dart';
+import 'package:torii_app/data/models/course_offering_detail_model.dart';
 
-class CurriculumScreen extends StatelessWidget {
-  const CurriculumScreen({super.key});
+class CurriculumScreen extends ConsumerWidget {
+  const CurriculumScreen({super.key, required this.offeringId});
+
+  final String offeringId;
 
   @override
-  Widget build(BuildContext context) {
-    // Demo curriculum data với quan hệ "bài tiếp theo"
-    final Map<String, dynamic> lesson1 = {
-      'title': 'Lesson 1: Giới thiệu Hiragana',
-      'subtitle': 'Video bài học',
-      'duration': '15:00',
-      'type': 'video',
-      'thumbnailUrl': 'https://picsum.photos/seed/lesson1/800/450',
-      'videoUrl': 'https://example.com/video.mp4',
-    };
-    final Map<String, dynamic> lesson2 = {
-      'title': 'Lesson 2: Luyện đọc các nguyên âm',
-      'subtitle': 'Bài học + tài liệu',
-      'duration': '20:00',
-      'type': 'video',
-      'thumbnailUrl': 'https://picsum.photos/seed/lesson2/800/450',
-      'videoUrl': 'https://example.com/video.mp4',
-    };
-    final Map<String, dynamic> lesson3 = {
-      'title': 'Lesson 3: Bài tập trắc nghiệm 1',
-      'subtitle': 'Quiz',
-      'duration': '10:00',
-      'type': 'quiz',
-    };
-    final Map<String, dynamic> lesson4 = {
-      'title': 'Lesson 4: Giới thiệu Katakana',
-      'subtitle': 'Article',
-      'duration': '15:00',
-      'type': 'article',
-      'article': {
-        'title': 'Giới thiệu Katakana',
-        'content': 'Katakana là một trong ba hệ chữ viết tiếng Nhật.\n\n'
-            'Trong bài này bạn sẽ học:\n'
-            '- Vai trò của Katakana\n'
-            '- Cách đọc và cách viết cơ bản\n\n'
-            'Gợi ý: hãy luyện viết mỗi ký tự 5 lần.',
-      },
-    };
-    final Map<String, dynamic> lesson5 = {
-      'title': 'Lesson 5: Luyện viết Katakana',
-      'subtitle': 'Video bài học',
-      'duration': '25:00',
-      'type': 'video',
-      'thumbnailUrl': 'https://picsum.photos/seed/lesson5/800/450',
-      'videoUrl': 'https://example.com/video.mp4',
-    };
-
-    // Thiết lập quan hệ "bài tiếp theo"
-    lesson1['nextLesson'] = lesson2;
-    lesson2['nextLesson'] = lesson3;
-    lesson4['nextLesson'] = lesson5;
-
+  Widget build(BuildContext context, WidgetRef ref) {
+    final detailAsync = ref.watch(courseOfferingDetailRichProvider(offeringId));
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -74,71 +29,68 @@ class CurriculumScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildCourseHeaderCard(theme),
-            const SizedBox(height: 28),
+      body: detailAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Lỗi tải chương trình học: $e', style: const TextStyle(color: AppColors.error))),
+        data: (detail) {
+          if (detail == null) {
+            return const Center(child: Text('Không tìm thấy dữ liệu khóa học'));
+          }
 
-            _buildModuleItem('Module 1: Bảng chữ cái Hiragana', [
-              _buildLessonItem(
-                context,
-                title: lesson1['title'] as String,
-                duration: lesson1['duration'] as String,
-                icon: Icons.play_circle_fill,
-                status: 'Hoàn thành',
-                statusColor: AppColors.success,
-                lesson: lesson1,
-              ),
-              _buildLessonItem(
-                context,
-                title: lesson2['title'] as String,
-                duration: lesson2['duration'] as String,
-                icon: Icons.play_circle_fill,
-                status: 'Đang học',
-                statusColor: AppColors.primary,
-                lesson: lesson2,
-              ),
-              _buildLessonItem(
-                context,
-                title: lesson3['title'] as String,
-                duration: lesson3['duration'] as String,
-                icon: Icons.quiz_rounded,
-                status: 'Chưa học',
-                statusColor: AppColors.textTertiary,
-                lesson: lesson3,
-              ),
-            ]),
-            const SizedBox(height: 16),
-            _buildModuleItem('Module 2: Bảng chữ cái Katakana', [
-              _buildLessonItem(
-                context,
-                title: lesson4['title'] as String,
-                duration: lesson4['duration'] as String,
-                icon: Icons.article_outlined,
-                status: 'Chưa học',
-                statusColor: AppColors.textTertiary,
-                lesson: lesson4,
-              ),
-              _buildLessonItem(
-                context,
-                title: lesson5['title'] as String,
-                duration: lesson5['duration'] as String,
-                icon: Icons.play_circle_fill,
-                status: 'Chưa học',
-                statusColor: AppColors.textTertiary,
-                lesson: lesson5,
-              ),
-            ]),
-          ],
-        ),
+          final lessonOrder = <CurriculumLessonModel>[
+            for (final module in detail.modules) ...module.lessons,
+          ];
+          final lessonIndexById = <String, int>{
+            for (int i = 0; i < lessonOrder.length; i++) lessonOrder[i].id: i,
+          };
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCourseHeaderCard(theme, detail),
+                const SizedBox(height: 28),
+                if (detail.modules.isEmpty)
+                  Text(
+                    'Chương trình học đang được cập nhật.',
+                    style: TextStyle(color: AppColors.grey700),
+                  )
+                else
+                  ...detail.modules.map(
+                    (module) => _buildModuleItem(
+                      module.title,
+                      module.lessons.map((lesson) {
+                        final idx = lessonIndexById[lesson.id] ?? -1;
+                        final hasNext = idx >= 0 && idx + 1 < lessonOrder.length;
+                        return _buildLessonItem(
+                          context,
+                          title: lesson.title.isNotEmpty ? lesson.title : 'Bài học',
+                          duration: _labelByType(lesson.type),
+                          icon: _iconByType(lesson.type),
+                          status: 'Chưa học',
+                          statusColor: AppColors.textTertiary,
+                          lesson: _lessonPayload(
+                            offeringId: offeringId,
+                            lesson: lesson,
+                            nextLesson: hasNext ? lessonOrder[idx + 1] : null,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildCourseHeaderCard(ThemeData theme) {
+  Widget _buildCourseHeaderCard(ThemeData theme, CourseOfferingDetailModel detail) {
+    final totalLessons = detail.modules.fold<int>(0, (sum, m) => sum + m.lessons.length);
+    final totalModules = detail.modules.length;
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -156,7 +108,7 @@ class CurriculumScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Tiếng Nhật N5 cho người mới',
+            detail.offering.title,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               letterSpacing: 0.1,
@@ -164,34 +116,20 @@ class CurriculumScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Lộ trình học từ bảng chữ cái tới những mẫu câu cơ bản.',
+            detail.offering.description?.trim().isNotEmpty == true
+                ? detail.offering.description!
+                : 'Lộ trình học đang được cập nhật.',
             style: theme.textTheme.bodySmall?.copyWith(
               color: AppColors.grey700,
               height: 1.5,
             ),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Tiến độ học tập', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              Text('45%', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          LinearProgressIndicator(
-            value: 0.45,
-            backgroundColor: AppColors.grey200,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-            minHeight: 8,
-            borderRadius: BorderRadius.circular(4),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Icon(Icons.menu_book_outlined, size: 16, color: AppColors.grey700),
               const SizedBox(width: 4),
-              Text('5 bài học • 2 module', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
+              Text('$totalLessons bài học • $totalModules module', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
             ],
           ),
         ],
@@ -268,5 +206,61 @@ class CurriculumScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+Map<String, dynamic> _lessonPayload({
+  required String offeringId,
+  required CurriculumLessonModel lesson,
+  CurriculumLessonModel? nextLesson,
+}) {
+  return <String, dynamic>{
+    'offeringId': offeringId,
+    'id': lesson.id,
+    'title': lesson.title,
+    'type': lesson.type.toLowerCase(),
+    'videoUrl': lesson.videoUrl,
+    'article': <String, dynamic>{
+      'title': lesson.title,
+      'content': lesson.content ?? 'Nội dung bài học đang được cập nhật.',
+    },
+    if (nextLesson != null)
+      'nextLesson': <String, dynamic>{
+        'offeringId': offeringId,
+        'id': nextLesson.id,
+        'title': nextLesson.title,
+        'type': nextLesson.type.toLowerCase(),
+        'videoUrl': nextLesson.videoUrl,
+        'article': <String, dynamic>{
+          'title': nextLesson.title,
+          'content': nextLesson.content ?? 'Nội dung bài học đang được cập nhật.',
+        },
+      },
+  };
+}
+
+IconData _iconByType(String type) {
+  switch (type.toUpperCase()) {
+    case 'READING':
+    case 'ARTICLE':
+      return Icons.article_outlined;
+    case 'QUIZ':
+      return Icons.quiz_rounded;
+    case 'VIDEO':
+    default:
+      return Icons.play_circle_fill;
+  }
+}
+
+String _labelByType(String type) {
+  switch (type.toUpperCase()) {
+    case 'READING':
+    case 'ARTICLE':
+      return 'Bài đọc';
+    case 'QUIZ':
+      return 'Quiz';
+    case 'VIDEO':
+    default:
+      return 'Video';
   }
 }

@@ -105,24 +105,41 @@ class CurriculumModuleModel {
       orderIndex: (json['orderIndex'] is num)
           ? (json['orderIndex'] as num).toInt()
           : int.tryParse((json['orderIndex'] ?? '').toString()) ?? 0,
-      lessons: lessons,
+      lessons: lessons..sort((a, b) => a.orderIndex.compareTo(b.orderIndex)),
     );
   }
 }
 
 class CurriculumLessonModel {
   final String id;
+  final String moduleId;
   final String title;
+  final String type;
+  final int orderIndex;
+  final String? videoUrl;
+  final String? content;
 
   const CurriculumLessonModel({
     required this.id,
+    required this.moduleId,
     required this.title,
+    required this.type,
+    required this.orderIndex,
+    this.videoUrl,
+    this.content,
   });
 
   factory CurriculumLessonModel.fromJson(Map<String, dynamic> json) {
     return CurriculumLessonModel(
       id: (json['id'] ?? '').toString(),
+      moduleId: (json['moduleId'] ?? '').toString(),
       title: (json['title'] ?? '').toString(),
+      type: (json['type'] ?? 'VIDEO').toString(),
+      orderIndex: (json['orderIndex'] is num)
+          ? (json['orderIndex'] as num).toInt()
+          : int.tryParse((json['orderIndex'] ?? '').toString()) ?? 0,
+      videoUrl: json['videoUrl'] as String?,
+      content: json['content'] as String?,
     );
   }
 }
