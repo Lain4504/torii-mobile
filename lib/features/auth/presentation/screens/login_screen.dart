@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -315,60 +316,59 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      const Expanded(
-                        child: Divider(color: AppColors.grey300),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        child: Text(
-                          'Hoặc',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.textTertiary,
+                  if (defaultTargetPlatform != TargetPlatform.iOS) ...[
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Divider(color: AppColors.grey300),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          child: Text(
+                            'Hoặc',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
                           ),
                         ),
-                      ),
-                      const Expanded(
-                        child: Divider(color: AppColors.grey300),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  _buildSocialButton(
-                    icon: Icons.facebook,
-                    label: 'Đăng nhập với Facebook',
-                    iconColor: const Color(0xFF1877F2),
-                    onPressed: () =>
-                        ref.read(authNotifierProvider.notifier).signInWithFacebook(),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildSocialButton(
-                    icon: Icons.g_mobiledata, // Placeholder for Google
-                    label: 'Đăng nhập với Google',
-                    onPressed: () async {
-                      final notifier = ref.read(authNotifierProvider.notifier);
-                      await notifier.signInWithGoogle();
-                      
-                      if (!mounted) return;
-                      
-                      final authState = ref.read(authNotifierProvider).valueOrNull;
-                      if (authState?.status == AuthStatus.authenticated) {
-                        context.go('/');
-                      } else if (authState?.error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(authState!.error!)),
-                        );
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  _buildSocialButton(
-                    icon: Icons.apple,
-                    label: 'Đăng nhập với Apple',
-                    onPressed: () {},
-                  ),
+                        const Expanded(
+                          child: Divider(color: AppColors.grey300),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    _buildSocialButton(
+                      icon: Icons.facebook,
+                      label: 'Đăng nhập với Facebook',
+                      iconColor: const Color(0xFF1877F2),
+                      onPressed: () => ref
+                          .read(authNotifierProvider.notifier)
+                          .signInWithFacebook(),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildSocialButton(
+                      icon: Icons.g_mobiledata,
+                      label: 'Đăng nhập với Google',
+                      onPressed: () async {
+                        final notifier =
+                            ref.read(authNotifierProvider.notifier);
+                        await notifier.signInWithGoogle();
+
+                        if (!mounted) return;
+
+                        final authState =
+                            ref.read(authNotifierProvider).valueOrNull;
+                        if (authState?.status == AuthStatus.authenticated) {
+                          context.go('/');
+                        } else if (authState?.error != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(authState!.error!)),
+                          );
+                        }
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

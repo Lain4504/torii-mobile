@@ -38,15 +38,17 @@ Future<void> main() async {
     ],
   );
   
-  // Initialize Firebase (required: GoogleService-Info.plist in ios/Runner/)
-  // Without it, iOS app crashes with white screen on launch.
+  // Firebase + FCM: iOS cần GoogleService-Info.plist; Android cần google-services.json + plugin.
+  // Nếu chưa cấu hình, init lỗi — bắt và chạy app; FCM bị bỏ qua khi không có app [Default].
   try {
     await Firebase.initializeApp();
-    final notificationService = container.read(notificationServiceProvider);
-    await notificationService.initialize();
+    if (Firebase.apps.isEmpty) {
+      debugPrint('Firebase: initializeApp returned without any app — skip FCM.');
+    } else {
+      final notificationService = container.read(notificationServiceProvider);
+      await notificationService.initialize();
+    }
   } catch (e, st) {
-    // Firebase/Notification init failed (e.g. missing GoogleService-Info.plist on iOS).
-    // App will still run but push notifications won't work.
     debugPrint('Firebase/Notification init failed: $e\n$st');
   }
 
