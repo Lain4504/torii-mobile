@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_offering_detail_model.dart';
+import 'package:torii_app/data/utils/learner_offering_display.dart';
 
 class CourseLiveDetailScreen extends ConsumerStatefulWidget {
   const CourseLiveDetailScreen({super.key, required this.courseId});
@@ -37,6 +38,7 @@ class _CourseLiveDetailScreenState extends ConsumerState<CourseLiveDetailScreen>
 
   Widget _buildContent(BuildContext context, LiveOfferingDetailModel detail) {
     final offering = detail.offering;
+    final disp = offering.learnerOfferingDisplay(liveClasses: detail.classes);
     final classes = detail.classes.where((c) => c.isLive).toList();
     final priceStr =
         '${offering.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (m) => '${m[1]}.')}đ';
@@ -98,7 +100,17 @@ class _CourseLiveDetailScreenState extends ConsumerState<CourseLiveDetailScreen>
                       ],
                     ),
                     const SizedBox(height: 14),
-                    Text(offering.title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    Text(
+                      disp.learnerDisplayTitle,
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    if (disp.liveContextLine != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        disp.liveContextLine!,
+                        style: TextStyle(fontSize: 14, color: AppColors.grey700, fontWeight: FontWeight.w600),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     if ((offering.description ?? '').isNotEmpty) ...[
                       Text(offering.description!, style: const TextStyle(height: 1.55, color: AppColors.textPrimary)),

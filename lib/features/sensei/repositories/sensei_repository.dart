@@ -17,9 +17,13 @@ class SenseiRepository {
         'message': message,
         'history': history,
       });
+      final data = response.data?['data'];
       return ChatMessage(
         role: ChatMessageRole.assistant,
-        content: (response.data?['data']?['message'] ?? '').toString(),
+        content: (data?['message'] ?? '').toString(),
+        suggestions: data?['suggestions'] != null 
+            ? List<String>.from(data['suggestions']) 
+            : null,
       );
     } catch (e) {
       throw Exception('AI Sensei chat failed: $e');
@@ -106,6 +110,8 @@ class SenseiRepository {
       throw Exception('Failed to generate TTS: $e');
     }
   }
+
+
 
   // --- TOPICS ---
 

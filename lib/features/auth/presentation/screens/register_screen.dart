@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
@@ -13,25 +15,16 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
-  String? _selectedGoal;
   bool _agreeToTerms = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-
-  final List<String> _goals = [
-    'Giao tiếp cơ bản',
-    'Thi JLPT N5',
-    'Thi JLPT N4',
-    'Làm việc tại Nhật',
-    'Du học Nhật Bản',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -84,10 +77,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 20),
 
                   // Form fields
-                  _buildLabel('Họ và tên'),
+                  _buildLabel('Họ và tên (full name)'),
               _buildTextField(
-                controller: _nameController,
-                hint: 'Nhập họ và tên của bạn',
+                controller: _fullNameController,
+                hint: 'Nhập họ và tên đầy đủ của bạn',
                 icon: Icons.person_outline,
               ),
               
@@ -117,35 +110,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 obscureText: _obscureConfirmPassword,
                 onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
               ),
-
-                  _buildLabel('Mục tiêu học tiếng Nhật'),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.grey300),
-                      color: AppColors.surface,
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: _selectedGoal,
-                        hint: const Text('Chọn mục tiêu của bạn'),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedGoal = newValue;
-                          });
-                        },
-                        items: _goals
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
 
                   const SizedBox(height: 14),
                   Row(
@@ -186,12 +150,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       onPressed: _isLoading
                           ? null
                           : () async {
-                          final name = _nameController.text.trim();
+                          final fullName = _fullNameController.text.trim();
                           final email = _emailController.text.trim();
                           final password = _passwordController.text;
                           final confirm = _confirmPasswordController.text;
 
-                          if (name.isEmpty ||
+                          if (fullName.isEmpty ||
                               email.isEmpty ||
                               password.isEmpty ||
                               confirm.isEmpty) {
@@ -199,6 +163,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               const SnackBar(
                                 content:
                                     Text('Vui lòng nhập đầy đủ thông tin bắt buộc'),
+                              ),
+                            );
+                            return;
+                          }
+                          if (fullName.length < 2) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Họ và tên phải có ít nhất 2 ký tự',
+                                ),
                               ),
                             );
                             return;
@@ -226,7 +200,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           final notifier =
                               ref.read(authNotifierProvider.notifier);
                           final ok =
-                              await notifier.register(email, password, name);
+                              await notifier.register(email, password, fullName);
                           setState(() => _isLoading = false);
                           if (ok) {
                             if (mounted) {
@@ -258,55 +232,61 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      const Expanded(
-                        child: Divider(color: AppColors.grey300),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          'hoặc',
-                          style: TextStyle(color: AppColors.textTertiary),
+                  if (defaultTargetPlatform != TargetPlatform.iOS) ...[
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Divider(color: AppColors.grey300),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'hoặc',
+                            style: TextStyle(color: AppColors.textTertiary),
+                          ),
+                        ),
+                        const Expanded(
+                          child: Divider(color: AppColors.grey300),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    _buildSocialButton(
+                      'Đăng ký với Facebook',
+                      icon: Icons.facebook,
+                      onPressed: () => ref
+                          .read(authNotifierProvider.notifier)
+                          .signInWithFacebook(),
+                      iconColor: const Color(0xFF1877F2),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildSocialButton(
+                      'Đăng ký với Google',
+                      leading: const FaIcon(
+                        FontAwesomeIcons.google,
+                        size: 20,
+                        color: Color(0xFF4285F4),
                       ),
-                      const Expanded(
-                        child: Divider(color: AppColors.grey300),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
+                      onPressed: () async {
+                        final notifier =
+                            ref.read(authNotifierProvider.notifier);
+                        await notifier.signInWithGoogle();
 
-                  _buildSocialButton(
-                    'Đăng ký với Facebook',
-                    Icons.facebook,
-                    () => ref.read(authNotifierProvider.notifier).signInWithFacebook(),
-                    iconColor: const Color(0xFF1877F2),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildSocialButton(
-                    'Đăng ký với Google', 
-                    Icons.g_mobiledata,
-                    () async {
-                      final notifier = ref.read(authNotifierProvider.notifier);
-                      await notifier.signInWithGoogle();
-                      
-                      if (!mounted) return;
-                      
-                      final authState = ref.read(authNotifierProvider).valueOrNull;
-                      if (authState?.status == AuthStatus.authenticated) {
-                        context.go('/');
-                      } else if (authState?.error != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(authState!.error!)),
-                        );
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  _buildSocialButton('Đăng ký với Apple', Icons.apple, () {}),
+                        if (!mounted) return;
 
+                        final authState =
+                            ref.read(authNotifierProvider).valueOrNull;
+                        if (authState?.status == AuthStatus.authenticated) {
+                          context.go('/');
+                        } else if (authState?.error != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(authState!.error!)),
+                          );
+                        }
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -389,17 +369,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Widget _buildSocialButton(
-    String label,
-    IconData icon,
-    VoidCallback onPressed, {
+    String label, {
+    IconData? icon,
+    Widget? leading,
+    required VoidCallback onPressed,
     Color? iconColor,
   }) {
+    assert(icon != null || leading != null);
+    final Widget prefix = leading ??
+        Icon(icon!, color: iconColor ?? AppColors.textPrimary, size: 22);
     return SizedBox(
       width: double.infinity,
       height: 46,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: Icon(icon, color: iconColor ?? AppColors.textPrimary, size: 22),
+        icon: prefix,
         label: Text(
           label,
           style: const TextStyle(

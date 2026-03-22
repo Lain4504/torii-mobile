@@ -18,11 +18,15 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
   int _correct = 0;
   bool _autoSpeak = true;
   bool _locked = false;
+  /// Tránh đọc TTS lặp lại mỗi lần rebuild (gây nhấp nháy / giật UI).
+  int _lastSpokenIndex = -1;
+  late final Future<List<Map<String, dynamic>>> _quizFuture;
   final FlutterTts _tts = FlutterTts();
 
   @override
   void initState() {
     super.initState();
+    _quizFuture = ref.read(academyRepositoryProvider).getStudySetTestQuiz(widget.setId, count: 20);
     _initTts();
   }
 
@@ -43,10 +47,59 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
     await _tts.speak(text);
   }
 
+  void _scheduleSpeakIfNewQuestion(String questionText, int questionIndex) {
+    if (_lastSpokenIndex == questionIndex) return;
+    _lastSpokenIndex = questionIndex;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _speak(questionText);
+    });
+  }
+
+  Future<void> _onAnswerMultipleChoice({
+    required String selected,
+    required String correctAnswer,
+  }) async {
+    if (_locked) return;
+    final isCorrect = selected == correctAnswer;
+    HapticFeedback.lightImpact();
+    if (!isCorrect) HapticFeedback.heavyImpact();
+    setState(() {
+      _locked = true;
+      if (isCorrect) _correct += 1;
+    });
+    await Future.delayed(const Duration(milliseconds: 350));
+    if (!mounted) return;
+    setState(() {
+      _index += 1;
+      _locked = false;
+    });
+  }
+
+  Future<void> _onAnswerTrueFalse({
+    required List<Map<String, dynamic>> questions,
+    required bool choseTrue,
+  }) async {
+    if (_locked) return;
+    final q = questions[_index];
+    final correctIsTrue = q['correctAnswer'] == true;
+    final isCorrect = choseTrue ? correctIsTrue : !correctIsTrue;
+    HapticFeedback.lightImpact();
+    if (!isCorrect) HapticFeedback.heavyImpact();
+    setState(() {
+      _locked = true;
+      if (isCorrect) _correct += 1;
+    });
+    await Future.delayed(const Duration(milliseconds: 280));
+    if (!mounted) return;
+    setState(() {
+      _index += 1;
+      _locked = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final repo = ref.watch(academyRepositoryProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -66,7 +119,7 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
         ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: repo.getStudySetTestQuiz(widget.setId, count: 20),
+        future: _quizFuture,
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -90,7 +143,7 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.10),
+                        color: AppColors.primary.withValues(alpha: 0.10),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.flag_rounded, color: AppColors.primary, size: 38),
@@ -110,6 +163,7 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                           _index = 0;
                           _correct = 0;
                           _locked = false;
+                          _lastSpokenIndex = -1;
                         }),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
@@ -129,9 +183,7 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
           final q = questions[_index];
           final type = (q['type'] ?? '').toString();
           final questionText = (q['question'] ?? '').toString();
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _speak(questionText);
-          });
+          _scheduleSpeakIfNewQuestion(questionText, _index);
 
           return Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -181,23 +233,10 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                         child: OutlinedButton(
                           onPressed: _locked
                               ? null
-                              : () async {
-                                  setState(() => _locked = true);
-                                  final isCorrect = text == correctAnswer;
-                                  HapticFeedback.lightImpact();
-                                  if (isCorrect) {
-                                    setState(() => _correct += 1);
-                                  } else {
-                                    HapticFeedback.heavyImpact();
-                                  }
-                                  await Future.delayed(const Duration(milliseconds: 350));
-                                  if (mounted) {
-                                    setState(() {
-                                      _index += 1;
-                                      _locked = false;
-                                    });
-                                  }
-                                },
+                              : () => _onAnswerMultipleChoice(
+                                    selected: text,
+                                    correctAnswer: correctAnswer,
+                                  ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.textPrimary,
                             side: const BorderSide(color: AppColors.grey300),
@@ -207,7 +246,7 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ] else ...[
                   Row(
                     children: [
@@ -217,23 +256,10 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                           child: OutlinedButton(
                             onPressed: _locked
                                 ? null
-                                : () async {
-                                    setState(() => _locked = true);
-                                    final correctAnswer = q['correctAnswer'] == true;
-                                    final isCorrect = correctAnswer == true;
-                                    if (isCorrect) setState(() => _correct += 1);
-                                    HapticFeedback.lightImpact();
-                                    await Future.delayed(const Duration(milliseconds: 250));
-                                    if (mounted) {
-                                      setState(() {
-                                        _index += 1;
-                                        _locked = false;
-                                      });
-                                    }
-                                  },
+                                : () => _onAnswerTrueFalse(questions: questions, choseTrue: true),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.success,
-                              side: BorderSide(color: AppColors.success.withOpacity(0.5)),
+                              side: BorderSide(color: AppColors.success.withValues(alpha: 0.5)),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             child: const Text('Đúng', style: TextStyle(fontWeight: FontWeight.w900)),
@@ -247,23 +273,10 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                           child: OutlinedButton(
                             onPressed: _locked
                                 ? null
-                                : () async {
-                                    setState(() => _locked = true);
-                                    final correctAnswer = q['correctAnswer'] == true;
-                                    final isCorrect = correctAnswer == false;
-                                    if (isCorrect) setState(() => _correct += 1);
-                                    HapticFeedback.lightImpact();
-                                    await Future.delayed(const Duration(milliseconds: 250));
-                                    if (mounted) {
-                                      setState(() {
-                                        _index += 1;
-                                        _locked = false;
-                                      });
-                                    }
-                                  },
+                                : () => _onAnswerTrueFalse(questions: questions, choseTrue: false),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.error,
-                              side: BorderSide(color: AppColors.error.withOpacity(0.5)),
+                              side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             child: const Text('Sai', style: TextStyle(fontWeight: FontWeight.w900)),
@@ -314,4 +327,3 @@ class _TopProgress extends StatelessWidget {
     );
   }
 }
-

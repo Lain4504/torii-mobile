@@ -6,6 +6,7 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/bottom_icons_provider.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/active_speakers_provider.dart';
+import '../../../providers/room_settings_provider.dart';
 
 /// Video Tile Widget
 /// Displays a single participant's video with name and status indicators
@@ -16,12 +17,16 @@ class VideoTile extends ConsumerWidget {
   final String name;
   final bool isSmall;
 
+  /// Web `PinWebcam`: hiện nút ghim khi có từ 2 người trở lên.
+  final bool showPinButton;
+
   const VideoTile({
     super.key,
     required this.userId,
     required this.name,
     this.participant,
     this.isSmall = false,
+    this.showPinButton = false,
   });
 
   @override
@@ -52,7 +57,7 @@ class VideoTile extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                   blurRadius: 12,
                   spreadRadius: 2,
-                )
+                ),
               ]
             : null,
       ),
@@ -63,29 +68,17 @@ class VideoTile extends ConsumerWidget {
           children: [
             // Video or placeholder
             _buildVideoContent(context, ref),
-            
+
             // Overlay with name and status
-            _buildOverlay(context, ref, isRaisedHand),
-            
-            // Speaking indicator (top right small dot)
+            _buildOverlay(context, ref, isRaisedHand, isSpeaking),
+
+            // Đang nói: chấm pulse (LiveKit ActiveSpeakersChangedEvent).
             if (isSpeaking)
               Positioned(
                 top: 12,
                 right: 12,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.6),
-                        blurRadius: 6,
-                        spreadRadius: 1,
-                      )
-                    ],
-                  ),
+                child: _SpeakingPulseDot(
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
           ],
@@ -115,7 +108,8 @@ class VideoTile extends ConsumerWidget {
       }
     }
 
-    final hasVideo = videoPub != null &&
+    final hasVideo =
+        videoPub != null &&
         videoPub.track != null &&
         videoPub.subscribed &&
         !videoPub.muted;
@@ -161,8 +155,16 @@ class VideoTile extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverlay(BuildContext context, WidgetRef ref, bool isRaisedHand) {
+  Widget _buildOverlay(
+    BuildContext context,
+    WidgetRef ref,
+    bool isRaisedHand,
+    bool isSpeaking,
+  ) {
     final isMicOn = _resolveMicOn(ref);
+    final isPinned = ref.watch(
+      roomSettingsProvider.select((s) => s.pinCamUserId == userId),
+    );
 
     return Positioned(
       left: 10,
@@ -172,27 +174,36 @@ class VideoTile extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.textPrimary.withOpacity(0.4),
+              color: AppColors.textPrimary.withOpacity(isSpeaking ? 0.52 : 0.4),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.textOnPrimary.withOpacity(0.1),
-                width: 0.5,
+                color: isSpeaking
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.55)
+                    : AppColors.textOnPrimary.withOpacity(0.1),
+                width: isSpeaking ? 1.2 : 0.5,
               ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (isRaisedHand) ...[
-                  const Icon(Icons.back_hand_rounded, size: 14, color: AppColors.accent),
+                  const Icon(
+                    Icons.back_hand_rounded,
+                    size: 14,
+                    color: AppColors.accent,
+                  ),
                   const SizedBox(width: 6),
                 ],
                 Icon(
                   isMicOn ? Icons.mic_rounded : Icons.mic_off_rounded,
                   size: 14,
-                  color: isMicOn ? Theme.of(context).colorScheme.primary : AppColors.error,
+                  color: isMicOn
+                      ? Theme.of(context).colorScheme.primary
+                      : AppColors.error,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -208,6 +219,34 @@ class VideoTile extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (showPinButton) ...[
+                  const SizedBox(width: 2),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        final notifier = ref.read(
+                          roomSettingsProvider.notifier,
+                        );
+                        final cur = ref.read(roomSettingsProvider).pinCamUserId;
+                        notifier.updatePinCamUserId(
+                          cur == userId ? null : userId,
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                          size: 15,
+                          color: isPinned
+                              ? Theme.of(context).colorScheme.primary
+                              : AppColors.textOnPrimary.withOpacity(0.85),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(width: 4),
                 _buildConnectionQuality(
                   context,
@@ -240,10 +279,13 @@ class VideoTile extends ConsumerWidget {
     return false;
   }
 
-  Widget _buildConnectionQuality(BuildContext context, ConnectionQuality quality) {
+  Widget _buildConnectionQuality(
+    BuildContext context,
+    ConnectionQuality quality,
+  ) {
     Color color;
     int bars;
-    
+
     switch (quality) {
       case ConnectionQuality.excellent:
         color = AppColors.accent;
@@ -270,7 +312,9 @@ class VideoTile extends ConsumerWidget {
           height: 4.0 + index * 2.5,
           margin: const EdgeInsets.only(left: 1.5),
           decoration: BoxDecoration(
-            color: index < bars ? color : AppColors.textOnPrimary.withOpacity(0.1),
+            color: index < bars
+                ? color
+                : AppColors.textOnPrimary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(1),
           ),
         );
@@ -281,7 +325,10 @@ class VideoTile extends ConsumerWidget {
   String _getInitials(String name) {
     final normalized = name.trim();
     if (normalized.isEmpty) return '?';
-    final parts = normalized.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+    final parts = normalized
+        .split(RegExp(r'\s+'))
+        .where((e) => e.isNotEmpty)
+        .toList();
     if (parts.isEmpty) return '?';
     if (parts.length == 1) {
       final first = parts[0];
@@ -292,5 +339,67 @@ class VideoTile extends ConsumerWidget {
     final last = parts.last;
     if (first.isEmpty || last.isEmpty) return '?';
     return '${first[0]}${last[0]}'.toUpperCase();
+  }
+}
+
+/// Chấm sáng pulse khi LiveKit báo participant đang nói.
+class _SpeakingPulseDot extends StatefulWidget {
+  final Color color;
+
+  const _SpeakingPulseDot({required this.color});
+
+  @override
+  State<_SpeakingPulseDot> createState() => _SpeakingPulseDotState();
+}
+
+class _SpeakingPulseDotState extends State<_SpeakingPulseDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 850),
+    )..repeat(reverse: true);
+    _scale = Tween<double>(
+      begin: 0.88,
+      end: 1.12,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _scale,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scale.value,
+          child: Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: widget.color,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: widget.color.withOpacity(0.65),
+                  blurRadius: 10 * _scale.value,
+                  spreadRadius: 1.5,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

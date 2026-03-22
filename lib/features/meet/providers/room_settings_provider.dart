@@ -9,7 +9,7 @@ class UserNotification {
   final String? notificationCat;
   final bool autoClose;
   final bool disableToastNotification;
-  
+
   const UserNotification({
     required this.message,
     required this.typeOption,
@@ -22,11 +22,8 @@ class UserNotification {
 class InitiatePrivateChat {
   final String name;
   final String userId;
-  
-  const InitiatePrivateChat({
-    required this.name,
-    required this.userId,
-  });
+
+  const InitiatePrivateChat({required this.name, required this.userId});
 }
 
 class RoomSettingsState {
@@ -36,7 +33,13 @@ class RoomSettingsState {
   final Map<String, int> unreadMsgFrom; // userId -> count
   final bool playAudioNotification;
   final InitiatePrivateChat? initiatePrivateChat;
-  
+
+  /// Web `roomSettings.pinCamUserId` — ghim webcam lên vùng lớn (pinned layout).
+  final String? pinCamUserId;
+
+  /// Web `roomSettings.focusActiveSpeakerWebcam` — ưu tiên sắp xếp người đang nói.
+  final bool focusActiveSpeakerWebcam;
+
   const RoomSettingsState({
     this.notifications = const [],
     this.selectedChatOption = 'public',
@@ -44,8 +47,10 @@ class RoomSettingsState {
     this.unreadMsgFrom = const {},
     this.playAudioNotification = false,
     this.initiatePrivateChat,
+    this.pinCamUserId,
+    this.focusActiveSpeakerWebcam = true,
   });
-  
+
   RoomSettingsState copyWith({
     List<UserNotification>? notifications,
     String? selectedChatOption,
@@ -53,41 +58,49 @@ class RoomSettingsState {
     Map<String, int>? unreadMsgFrom,
     bool? playAudioNotification,
     InitiatePrivateChat? initiatePrivateChat,
+    String? pinCamUserId,
+    bool? focusActiveSpeakerWebcam,
+    bool clearPinCam = false,
   }) {
     return RoomSettingsState(
       notifications: notifications ?? this.notifications,
       selectedChatOption: selectedChatOption ?? this.selectedChatOption,
-      selectedChatTransLang: selectedChatTransLang ?? this.selectedChatTransLang,
+      selectedChatTransLang:
+          selectedChatTransLang ?? this.selectedChatTransLang,
       unreadMsgFrom: unreadMsgFrom ?? this.unreadMsgFrom,
-      playAudioNotification: playAudioNotification ?? this.playAudioNotification,
+      playAudioNotification:
+          playAudioNotification ?? this.playAudioNotification,
       initiatePrivateChat: initiatePrivateChat ?? this.initiatePrivateChat,
+      pinCamUserId: clearPinCam ? null : (pinCamUserId ?? this.pinCamUserId),
+      focusActiveSpeakerWebcam:
+          focusActiveSpeakerWebcam ?? this.focusActiveSpeakerWebcam,
     );
   }
 }
 
 class RoomSettingsNotifier extends StateNotifier<RoomSettingsState> {
   RoomSettingsNotifier() : super(const RoomSettingsState());
-  
+
   void addUserNotification(UserNotification notification) {
     state = state.copyWith(
       notifications: [...state.notifications, notification],
     );
   }
-  
+
   void updateSelectedChatOption(String option) {
     state = state.copyWith(selectedChatOption: option);
   }
-  
+
   void updateSelectedChatTransLang(String lang) {
     state = state.copyWith(selectedChatTransLang: lang);
   }
-  
+
   void updateUnreadMsgFrom(String userId, int count) {
     final newUnread = Map<String, int>.from(state.unreadMsgFrom);
     newUnread[userId] = count;
     state = state.copyWith(unreadMsgFrom: newUnread);
   }
-  
+
   void clearUnreadMsgFrom(String userId) {
     final newUnread = Map<String, int>.from(state.unreadMsgFrom);
     newUnread.remove(userId);
@@ -101,8 +114,18 @@ class RoomSettingsNotifier extends StateNotifier<RoomSettingsState> {
   void updateInitiatePrivateChat(InitiatePrivateChat? chat) {
     state = state.copyWith(initiatePrivateChat: chat);
   }
+
+  /// Ghim / bỏ ghim webcam (clone web `updatePinCamUserId`).
+  void updatePinCamUserId(String? userId) {
+    state = state.copyWith(pinCamUserId: userId, clearPinCam: userId == null);
+  }
+
+  void updateFocusActiveSpeakerWebcam(bool enabled) {
+    state = state.copyWith(focusActiveSpeakerWebcam: enabled);
+  }
 }
 
-final roomSettingsProvider = StateNotifierProvider<RoomSettingsNotifier, RoomSettingsState>((ref) {
-  return RoomSettingsNotifier();
-});
+final roomSettingsProvider =
+    StateNotifierProvider<RoomSettingsNotifier, RoomSettingsState>((ref) {
+      return RoomSettingsNotifier();
+    });

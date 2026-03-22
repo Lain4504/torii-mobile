@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
+import 'package:torii_app/data/utils/learner_offering_display.dart';
 
 class CourseDiscoveryScreen extends ConsumerWidget {
   const CourseDiscoveryScreen({super.key});
@@ -26,9 +27,6 @@ class CourseDiscoveryScreen extends ConsumerWidget {
         ),
         backgroundColor: AppColors.surface,
         elevation: 0,
-        actions: [
-          IconButton(icon: const Icon(Icons.search, color: AppColors.textPrimary), onPressed: () {}),
-        ],
       ),
       body: Column(
         children: [
@@ -72,7 +70,14 @@ class CourseDiscoveryScreen extends ConsumerWidget {
     bool match(String? s) => s != null && re.hasMatch(s.toUpperCase());
 
     return list.where((c) {
-      return match(c.code) || match(c.title) || match(c.slug) || match(c.description);
+      final disp = c.learnerOfferingDisplay();
+      return match(c.code) ||
+          match(c.title) ||
+          match(c.slug) ||
+          match(c.description) ||
+          match(disp.learnerDisplayTitle) ||
+          match(c.className) ||
+          match(c.courseProfileTitle);
     }).toList();
   }
 
@@ -95,6 +100,7 @@ class CourseDiscoveryScreen extends ConsumerWidget {
   }
 
   Widget _buildCourseCard(BuildContext context, CourseOfferingModel course) {
+    final disp = course.learnerOfferingDisplay();
     final priceStr = '${course.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -136,7 +142,30 @@ class CourseDiscoveryScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(course.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(
+                  disp.learnerDisplayTitle,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (disp.liveContextLine != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    disp.liveContextLine!,
+                    style: TextStyle(fontSize: 12, color: AppColors.grey700, fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if (disp.learnerMarketingSubtitle != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Gói: ${disp.learnerMarketingSubtitle}',
+                    style: TextStyle(fontSize: 12, color: AppColors.grey700),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Row(
                   children: [

@@ -4,8 +4,8 @@ import '../../../providers/chat_messages_provider.dart';
 import 'chat_input.dart';
 import 'chat_message_list.dart';
 
-/// Chat Bottom Sheet with Public/Private tabs
-/// 1:1 clone of apps/meet/src/components/chat/index.tsx
+/// Chat Bottom Sheet with Public/Private tabs.
+/// Chiều cao do parent [SizedBox] truyền vào (đã trừ vùng bàn phím ở menu Khác).
 class ChatBottomSheet extends ConsumerWidget {
   const ChatBottomSheet({super.key});
 
@@ -13,15 +13,15 @@ class ChatBottomSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final chatState = ref.watch(chatMessagesProvider);
     final keys = chatState.chatKeys;
+    final divider = Theme.of(context).dividerColor.withValues(alpha: 0.35);
+    final onSurface = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
 
-    return DefaultTabController(
-      length: keys.length < 2 ? 1 : keys.length,
-      child: Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      clipBehavior: Clip.antiAlias,
+      child: DefaultTabController(
+        length: keys.length < 2 ? 1 : keys.length,
         child: Column(
           children: [
             const SizedBox(height: 8),
@@ -29,7 +29,7 @@ class ChatBottomSheet extends ConsumerWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).dividerColor.withOpacity(0.35),
+                color: divider,
                 borderRadius: BorderRadius.circular(999),
               ),
             ),
@@ -38,7 +38,7 @@ class ChatBottomSheet extends ConsumerWidget {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -48,7 +48,7 @@ class ChatBottomSheet extends ConsumerWidget {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
@@ -87,12 +87,12 @@ class ChatBottomSheet extends ConsumerWidget {
               ),
             Container(
               padding: const EdgeInsets.all(8),
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
               child: Text(
                 'Messages can only be seen by people in the call and are deleted when the call ends.',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),

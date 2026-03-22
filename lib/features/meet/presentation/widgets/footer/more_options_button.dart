@@ -48,11 +48,23 @@ class MoreOptionsButton extends ConsumerWidget {
               title: 'Chat',
               onTap: () {
                 Navigator.pop(context);
-                showModalBottomSheet(
+                showModalBottomSheet<void>(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (context) => const ChatBottomSheet(),
+                  builder: (ctx) {
+                    final mq = MediaQuery.of(ctx);
+                    final kb = mq.viewInsets.bottom;
+                    final visibleH = mq.size.height - kb;
+                    final sheetH = (visibleH * 0.78).clamp(240.0, mq.size.height);
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: kb),
+                      child: SizedBox(
+                        height: sheetH,
+                        child: const ChatBottomSheet(),
+                      ),
+                    );
+                  },
                 );
               },
             ),

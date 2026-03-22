@@ -19,6 +19,7 @@ import '../../features/course/presentation/screens/payment_webview_screen.dart';
 import '../../features/course/presentation/screens/payment_result_screen.dart';
 import '../../features/course/presentation/screens/my_courses_screen.dart';
 import '../../features/course/presentation/screens/curriculum_screen.dart';
+import '../../features/course/presentation/screens/enrolled_live_course_screen.dart';
 import '../../features/course/presentation/screens/lesson_screen.dart';
 import '../../features/blog/presentation/screens/blog_list_screen.dart';
 import '../../features/blog/presentation/screens/blog_detail_screen.dart';
@@ -41,7 +42,6 @@ import '../../features/sensei/views/pages/sensei_chat_page.dart';
 import '../../features/sensei/views/pages/sensei_translate_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_chat_page.dart';
-import '../../features/sensei/views/pages/sensei_drill_page.dart';
 import '../../features/sensei/views/pages/sensei_voice_agent_page.dart';
 import '../../features/practice/presentation/screens/practice_home_screen.dart';
 import '../../features/practice/presentation/screens/study_sets_dashboard_screen.dart';
@@ -86,8 +86,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/onboarding-survey';
       }
 
-      // Primary redirect: Onboarding
-      if (!hasCompletedOnboarding && path != '/welcome') {
+      // Welcome 3-slide: chỉ bắt buộc khi chưa đăng nhập hoặc đã đăng nhập nhưng chưa onboard trên server.
+      // User đã làm khảo sát trên web → isOnboarded true → không ép xem welcome lại trên mobile.
+      final skipProductWelcome =
+          isAuthenticated && user != null && user.isOnboarded;
+      if (!hasCompletedOnboarding &&
+          !skipProductWelcome &&
+          path != '/welcome') {
         return '/welcome';
       }
 
@@ -214,7 +219,28 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/curriculum/:offeringId',
                 builder: (context, state) {
                   final offeringId = state.pathParameters['offeringId'] ?? '';
-                  return CurriculumScreen(offeringId: offeringId);
+                  final classId = state.uri.queryParameters['classId'];
+                  final live = state.uri.queryParameters['live'] == '1';
+                  return CurriculumScreen(
+                    offeringId: offeringId,
+                    classId: classId,
+                    progressDisabled: live,
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/enrolled-live/:classId',
+                builder: (context, state) {
+                  final classId = state.pathParameters['classId'] ?? '';
+                  final offeringId = state.uri.queryParameters['offeringId'];
+                  final titleRaw = state.uri.queryParameters['title'];
+                  final courseTitle =
+                      titleRaw != null && titleRaw.isNotEmpty ? Uri.decodeQueryComponent(titleRaw) : null;
+                  return EnrolledLiveCourseScreen(
+                    classId: classId,
+                    offeringId: offeringId,
+                    courseTitle: courseTitle,
+                  );
                 },
               ),
               GoRoute(
@@ -258,11 +284,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   return SenseiRoleplayChatPage(topic: topic.isNotEmpty ? topic : 'Roleplay');
                 },
               ),
-              // Placeholder route to avoid navigation errors from menu items
-              GoRoute(
-                path: '/sensei/drill',
-                builder: (context, state) => const SenseiDrillPage(),
-              ),
+
             ],
           ),
           // Branch 3: Blog (guest) / My courses (user)

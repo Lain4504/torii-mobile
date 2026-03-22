@@ -48,7 +48,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 12),
             itemCount: list.length,
-            separatorBuilder: (_, __) => const Divider(height: 1, indent: 80),
+            separatorBuilder: (_, __) => const Divider(height: 1, indent: 16),
             itemBuilder: (context, index) {
               final n = list[index];
               return _buildNotificationItem(n);
@@ -62,17 +62,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Widget _buildNotificationItem(NotificationModel n) {
-    IconData icon = Icons.notifications_rounded;
-    Color iconColor = AppColors.primary;
-    if (n.notificationType.toUpperCase().contains('COURSE') || n.title.toLowerCase().contains('bài học')) {
-      icon = Icons.book_rounded;
-    } else if (n.notificationType.toUpperCase().contains('LIVE') || n.title.toLowerCase().contains('live')) {
-      icon = Icons.videocam_rounded;
-    } else if (n.title.toLowerCase().contains('hạng') || n.title.toLowerCase().contains('xp')) {
-      icon = Icons.workspace_premium_rounded;
-      iconColor = AppColors.accent;
-    }
-
     return InkWell(
       onTap: () async {
         if (n.isRead) return;
@@ -82,31 +71,23 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         ref.invalidate(notificationsUnreadCountProvider);
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         color: n.isRead ? Colors.transparent : AppColors.primary.withOpacity(0.03),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: iconColor.withOpacity(0.1), shape: BoxShape.circle),
-                  child: Icon(icon, color: iconColor, size: 24),
-                ),
-                if (!n.isRead)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle, border: Border.all(color: AppColors.surface, width: 2)),
-                    ),
+            if (!n.isRead)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, right: 10),
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
                   ),
-              ],
-            ),
-            const SizedBox(width: 16),
+                ),
+              ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

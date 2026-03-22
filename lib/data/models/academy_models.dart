@@ -14,6 +14,13 @@ class CourseOfferingModel {
   final String? courseProfileId;
   final String? termId;
 
+  /// Từ `class` (API public offering) — dùng cho tiêu đề hiển thị VOD.
+  final String? className;
+  final String? courseProfileTitle;
+  final String? termName;
+  final String? termCode;
+  final DateTime? termOpeningDate;
+
   const CourseOfferingModel({
     required this.id,
     required this.code,
@@ -28,9 +35,46 @@ class CourseOfferingModel {
     this.slug,
     this.courseProfileId,
     this.termId,
+    this.className,
+    this.courseProfileTitle,
+    this.termName,
+    this.termCode,
+    this.termOpeningDate,
   });
 
   factory CourseOfferingModel.fromJson(Map<String, dynamic> json) {
+    String? className;
+    final c = json['class'];
+    if (c is Map) {
+      final cm = Map<String, dynamic>.from(c);
+      final n = cm['name']?.toString();
+      if (n != null && n.isNotEmpty) className = n;
+    }
+
+    String? courseProfileTitle;
+    final p = json['courseProfile'];
+    if (p is Map) {
+      final pm = Map<String, dynamic>.from(p);
+      final t = pm['title']?.toString();
+      if (t != null && t.isNotEmpty) courseProfileTitle = t;
+    }
+
+    String? termName;
+    String? termCode;
+    DateTime? termOpeningDate;
+    final term = json['term'];
+    if (term is Map) {
+      final tm = Map<String, dynamic>.from(term);
+      final n = tm['name']?.toString();
+      final co = tm['code']?.toString();
+      if (n != null && n.isNotEmpty) termName = n;
+      if (co != null && co.isNotEmpty) termCode = co;
+      final od = tm['openingDate'];
+      if (od != null) {
+        termOpeningDate = DateTime.tryParse(od.toString());
+      }
+    }
+
     return CourseOfferingModel(
       id: (json['id'] ?? '').toString(),
       code: json['code'] as String? ?? '',
@@ -45,6 +89,11 @@ class CourseOfferingModel {
       slug: json['slug'] as String?,
       courseProfileId: json['courseProfileId']?.toString(),
       termId: json['termId']?.toString(),
+      className: className,
+      courseProfileTitle: courseProfileTitle,
+      termName: termName,
+      termCode: termCode,
+      termOpeningDate: termOpeningDate,
     );
   }
 
@@ -82,6 +131,9 @@ class EnrollmentModel {
   final int? completedLessons;
   final int? totalLessons;
 
+  /// `LIVE` | `VOD` | … từ offering/class (dùng lọc lịch live).
+  final String? mode;
+
   const EnrollmentModel({
     required this.id,
     required this.classId,
@@ -99,6 +151,7 @@ class EnrollmentModel {
     this.progress,
     this.completedLessons,
     this.totalLessons,
+    this.mode,
   });
 
   factory EnrollmentModel.fromJson(Map<String, dynamic> json) {
@@ -106,6 +159,15 @@ class EnrollmentModel {
     final createdAtRaw = json['createdAt'] ?? enrolledAtRaw;
     final updatedAtRaw = json['updatedAt'] ?? enrolledAtRaw;
     final fallbackDate = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
+    String? instructorName = json['instructorName'] as String?;
+    if (instructorName == null || instructorName.isEmpty) {
+      final ins = json['instructor'];
+      if (ins is Map) {
+        final dn = ins['displayName']?.toString();
+        if (dn != null && dn.isNotEmpty) instructorName = dn;
+      }
+    }
 
     return EnrollmentModel(
       id: (json['id'] ?? '').toString(),
@@ -121,11 +183,12 @@ class EnrollmentModel {
       courseTitle: json['courseTitle'] as String?,
       courseCode: json['courseCode'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
-      instructorName: json['instructorName'] as String?,
+      instructorName: instructorName,
       slug: json['slug'] as String?,
       progress: (json['progress'] as num?)?.toDouble(),
       completedLessons: (json['completedLessons'] as num?)?.toInt(),
       totalLessons: (json['totalLessons'] as num?)?.toInt(),
+      mode: json['mode'] as String?,
     );
   }
 }

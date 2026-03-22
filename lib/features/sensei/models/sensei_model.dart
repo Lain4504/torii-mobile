@@ -10,12 +10,14 @@ class ChatMessage {
   final String content;
   final bool isLoading;
   final bool isError;
+  final List<String>? suggestions;
 
   const ChatMessage({
     required this.role,
     required this.content,
     this.isLoading = false,
     this.isError = false,
+    this.suggestions,
   });
 }
 
@@ -24,20 +26,24 @@ class GrammarError {
   final String correction;
   final String type;
   final String explanation;
+  /// Đoạn/cụm API chỉ ra (có thể trùng với originalText).
+  final String location;
 
   const GrammarError({
     required this.issue,
     required this.correction,
     required this.type,
     required this.explanation,
+    this.location = '',
   });
 
   factory GrammarError.fromJson(Map<String, dynamic> json) {
     return GrammarError(
-      issue: json['issue'] ?? '',
-      correction: json['correction'] ?? '',
-      type: json['type'] ?? '',
-      explanation: json['explanation'] ?? '',
+      issue: json['issue']?.toString() ?? '',
+      correction: json['correction']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+      explanation: json['explanation']?.toString() ?? '',
+      location: json['location']?.toString() ?? '',
     );
   }
 }
@@ -193,6 +199,8 @@ class RoleplayTopic {
   });
 }
 
+
+
 // --- MENU ---
 
 class SenseiMenuItem {
@@ -223,16 +231,10 @@ final senseiMenuItems = [
     title: 'AI Roleplay',
     description: 'Luyện hội thoại theo tình huống',
     icon: Icons.people_alt_outlined,
-    color: AppColors.accent,
+    color: Colors.orange, // Changed from AppColors.accent which was too faint (grey/white)
     route: '/sensei/roleplay-topics', // Changed to topics list
   ),
-  const SenseiMenuItem(
-    title: 'AI Drill',
-    description: 'Tạo bài tập ngữ pháp, từ vựng',
-    icon: Icons.fitness_center_rounded,
-    color: AppColors.textSecondary,
-    route: '/sensei/drill',
-  ),
+
   const SenseiMenuItem(
     title: 'AI Dịch thuật',
     description: 'Dịch và giải thích ngữ cảnh',

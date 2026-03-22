@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -32,9 +34,12 @@ class SettingsScreen extends StatelessWidget {
         backgroundColor: AppColors.surface,
         elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        children: [
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          children: [
           _SectionCard(
             children: [
               _SettingsTile(
@@ -105,18 +110,45 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _SectionCard(
-            children: const [
+            children: [
               _SettingsTile(
                 icon: Icons.logout_rounded,
                 title: 'Đăng xuất',
                 isDestructive: true,
+                onTap: () => _onLogoutTap(context, ref),
               ),
             ],
           ),
         ],
+        ),
       ),
     );
   }
+}
+
+Future<void> _onLogoutTap(BuildContext context, WidgetRef ref) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Đăng xuất'),
+      content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text('Hủy'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text('Đăng xuất', style: TextStyle(color: AppColors.error)),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+
+  await ref.read(authNotifierProvider.notifier).logout();
+  if (!context.mounted) return;
+  context.go('/');
 }
 
 class _SectionCard extends StatelessWidget {

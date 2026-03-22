@@ -1,10 +1,11 @@
+import 'dart:io';
+
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:async';
-import 'dart:io';
 import '../features/auth/providers/auth_providers.dart';
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
@@ -20,34 +21,39 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class NotificationService {
-  final Ref ref;
-  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  
-  // Stream controller to broadcast notification tap events
-  final _notificationTapController = StreamController<RemoteMessage>.broadcast();
-  Stream<RemoteMessage> get onNotificationTap => _notificationTapController.stream;
-
   NotificationService({required this.ref});
 
-  Future<void> initialize() async {
-    // 1. Request permissions (especially for iOS and Android 13+)
-    try {
-      NotificationSettings settings = await _fcm.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+  final Ref ref;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        // Get the token and register it
-        String? token = await _fcm.getToken();
-        if (token != null) {
-          await registerToken(token: token);
-        }
-      }
-    } catch (e) {
-      print('NotificationService: ERROR during initialization: $e');
+  /// Không dùng [FirebaseMessaging.instance] ở field initializer — nếu chưa cấu hình Firebase
+  /// (iOS: GoogleService-Info.plist; Android: google-services.json) thì [Firebase.apps] rỗng / lỗi [core/no-app].
+  static bool get _firebaseReady => Firebase.apps.isNotEmpty;
+
+  Future<void> initialize() async {
+    if (!_firebaseReady) {
+      debugPrint(
+        'NotificationService: bỏ qua FCM (Firebase chưa init — cấu hình iOS/Android khi cần push).',
+      );
+      return;
+    }
+
+    final fcm = FirebaseMessaging.instance;
+
+    // 1. Request permissions (especially for iOS and Android 13+)
+    NotificationSettings settings = await fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      debugPrint('NotificationService: User granted permission');
+    } else {
+      debugPrint(
+        'NotificationService: User declined or has not accepted permission',
+      );
     }
 
     // 2. Setup Local Notifications
@@ -62,28 +68,26 @@ class NotificationService {
       settings: initializationSettings,
       onDidReceiveNotificationResponse: (details) {
         // Handle notification tap
-        print('NotificationService: Notification tapped: ${details.payload}');
+        debugPrint('NotificationService: Notification tapped: ${details.payload}');
       },
     );
 
     // 3. Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('NotificationService: Got a message whilst in the foreground!');
+      debugPrint('NotificationService: Got a message whilst in the foreground!');
       _showLocalNotification(message);
     });
 
     // 4. Handle background/terminated state messages
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('NotificationService: A new onMessageOpenedApp event was published!');
-      _notificationTapController.add(message);
+      debugPrint(
+        'NotificationService: A new onMessageOpenedApp event was published!',
+      );
     });
 
-    // 5. Check for initial message (app opened from terminated state)
-    _handleInitialMessage();
-
-    // 6. Setup Token refresh listener
-    _fcm.onTokenRefresh.listen((token) {
-      print('NotificationService: FCM Token refreshed');
+    // 5. Setup Token refresh listener
+    fcm.onTokenRefresh.listen((token) {
+      debugPrint('NotificationService: FCM Token refreshed');
       registerToken(token: token);
     });
 
@@ -111,16 +115,24 @@ class NotificationService {
 
   Future<void> registerToken({String? token}) async {
     try {
-      final authState = ref.read(authNotifierProvider);
-      if (!(authState.value?.isAuthenticated ?? false)) {
-        print('NotificationService: Skip registration, user not authenticated');
+      if (!_firebaseReady) {
+        debugPrint(
+          'NotificationService: Skip registerToken — Firebase chưa cấu hình (iOS/Android).',
+        );
         return;
       }
 
-      final fcmToken = token ?? await _fcm.getToken();
+      final authState = ref.read(authNotifierProvider);
+      if (!(authState.value?.isAuthenticated ?? false)) {
+        debugPrint('NotificationService: Skip registration, user not authenticated');
+        return;
+      }
+
+      final fcm = FirebaseMessaging.instance;
+      final fcmToken = token ?? await fcm.getToken();
       if (fcmToken == null) return;
 
-      print('NotificationService: Registering FCM Token: $fcmToken');
+      debugPrint('NotificationService: Registering FCM Token: $fcmToken');
 
       final deviceInfo = DeviceInfoPlugin();
       String? deviceName;
@@ -135,7 +147,7 @@ class NotificationService {
           deviceName = iosInfo.name;
         }
       } catch (e) {
-        print('NotificationService: Error getting device info: $e');
+        debugPrint('NotificationService: Error getting device info: $e');
       }
 
       final apiClient = ref.read(apiClientProvider);
@@ -146,9 +158,11 @@ class NotificationService {
         'deviceName': deviceName,
       });
       
-      print('NotificationService: Device token registered with backend successfully');
+      debugPrint(
+        'NotificationService: Device token registered with backend successfully',
+      );
     } catch (e) {
-      print('NotificationService: Error registering device token: $e');
+      debugPrint('NotificationService: Error registering device token: $e');
     }
   }
 

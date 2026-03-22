@@ -16,11 +16,26 @@ import '../../data/models/study_set_models.dart';
 import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 import '../../features/auth/providers/auth_providers.dart';
+import '../../features/auth/models/auth_state.dart';
 
 /// Re-expose API client for repositories that need Dio
 final dioForApiProvider = Provider((ref) {
   return ref.watch(apiClientProvider).client;
 });
+
+/// Chỉ gọi API cá nhân (enrollments trên Home, streak, …) khi đã đăng nhập và đã onboard — tránh gọi khi đang redirect sang khảo sát.
+bool _personalizedApisAllowed(Ref ref) {
+  final auth = ref.watch(authStateProvider).valueOrNull;
+  return auth?.status == AuthStatus.authenticated &&
+      auth?.user != null &&
+      auth!.user!.isOnboarded;
+}
+
+/// Chỉ cần đã đăng nhập (có token + user). Dùng cho lịch live: user đã login nhưng chưa onboard vẫn tải được lịch.
+bool _authenticatedAcademyUser(Ref ref) {
+  final auth = ref.watch(authStateProvider).valueOrNull;
+  return auth?.status == AuthStatus.authenticated && auth?.user != null;
+}
 
 // ---------- Repositories ----------
 final blogRepositoryProvider = Provider<BlogRepository>((ref) {
@@ -62,8 +77,27 @@ final publicCourseOfferingsProvider = FutureProvider<List<CourseOfferingModel>>(
 });
 
 final myEnrollmentsProvider = FutureProvider<PaginatedResponse<EnrollmentModel>>((ref) async {
+  if (!_personalizedApisAllowed(ref)) {
+    return const PaginatedResponse<EnrollmentModel>(
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 50,
+      totalPages: 1,
+    );
+  }
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getMyEnrollments(limit: 50);
+});
+
+/// Tiến độ bài học theo lớp (`lessonId` đã hoàn thành) — cần `classId` từ enrollment.
+final classCompletedLessonIdsProvider =
+    FutureProvider.autoDispose.family<List<String>, String>((ref, classId) async {
+  if (!_personalizedApisAllowed(ref) || classId.isEmpty) {
+    return const [];
+  }
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getCompletedLessonIds(classId);
 });
 
 final myOrdersProvider = FutureProvider<PaginatedResponse<OrderModel>>((ref) async {
@@ -123,6 +157,9 @@ final notificationsListProvider = FutureProvider<PaginatedResponse<NotificationM
 });
 
 final notificationsUnreadCountProvider = FutureProvider<int>((ref) async {
+  if (!_personalizedApisAllowed(ref)) {
+    return 0;
+  }
   final repo = ref.watch(notificationRepositoryProvider);
   return repo.getUnreadCount();
 });
@@ -144,12 +181,18 @@ final gamificationAchievementsProvider = FutureProvider<List<AchievementModel>>(
 });
 
 final streakProvider = FutureProvider<StreakModel?>((ref) async {
+  if (!_personalizedApisAllowed(ref)) {
+    return null;
+  }
   final repo = ref.watch(gamificationRepositoryProvider);
   return repo.getStreak();
 });
 
-// ---------- Live schedules ----------
+// ---------- Live schedules (enrollments LIVE + /api/academy/live-sessions, parity web-learner) ----------
 final liveSchedulesProvider = FutureProvider<List<LiveScheduleModel>>((ref) async {
+  if (!_authenticatedAcademyUser(ref)) {
+    return const <LiveScheduleModel>[];
+  }
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getLiveSchedules();
 });

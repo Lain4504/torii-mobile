@@ -327,3 +327,5 @@ final grammarCheckProvider = StateNotifierProvider<GrammarCheckNotifier, Grammar
   final repository = ref.watch(senseiRepositoryProvider);
   return GrammarCheckNotifier(repository);
 });
+
+

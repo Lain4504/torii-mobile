@@ -4,15 +4,31 @@ import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/course_offering_detail_model.dart';
+import 'package:torii_app/data/utils/learner_offering_display.dart';
 
 class CurriculumScreen extends ConsumerWidget {
-  const CurriculumScreen({super.key, required this.offeringId});
+  const CurriculumScreen({
+    super.key,
+    required this.offeringId,
+    this.classId,
+    this.progressDisabled = false,
+  });
 
   final String offeringId;
+  /// Từ enrollment — cần để tiến độ & khóa bài học tuần tự.
+  final String? classId;
+  /// Khóa LIVE: xem lộ trình tham khảo, không khóa/không tính tiến độ (parity web).
+  final bool progressDisabled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = ref.watch(courseOfferingDetailRichProvider(offeringId));
+    final useProgress =
+        !progressDisabled && classId != null && classId!.isNotEmpty;
+    final completedIds = useProgress
+        ? (ref.watch(classCompletedLessonIdsProvider(classId!)).value ?? const [])
+        : const <String>[];
+    final completed = completedIds.toSet();
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -43,6 +59,7 @@ class CurriculumScreen extends ConsumerWidget {
           final lessonIndexById = <String, int>{
             for (int i = 0; i < lessonOrder.length; i++) lessonOrder[i].id: i,
           };
+          final trackableOrdered = lessonOrder.where(_isTrackableKind).toList();
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -63,17 +80,34 @@ class CurriculumScreen extends ConsumerWidget {
                       module.lessons.map((lesson) {
                         final idx = lessonIndexById[lesson.id] ?? -1;
                         final hasNext = idx >= 0 && idx + 1 < lessonOrder.length;
+                        final nextL = hasNext ? lessonOrder[idx + 1] : null;
+                        final unlocked = _effectiveLessonUnlocked(
+                          lesson: lesson,
+                          trackableOrdered: trackableOrdered,
+                          completed: completed,
+                          useProgress: useProgress,
+                        );
+                        final done =
+                            useProgress && _isTrackableKind(lesson) && completed.contains(lesson.id);
+                        final status = !unlocked
+                            ? 'Đã khóa'
+                            : (done ? 'Hoàn thành' : 'Chưa học');
+                        final statusColor =
+                            !unlocked ? AppColors.textTertiary : (done ? AppColors.success : AppColors.textTertiary);
                         return _buildLessonItem(
                           context,
                           title: lesson.title.isNotEmpty ? lesson.title : 'Bài học',
                           duration: _labelByType(lesson.type),
-                          icon: _iconByType(lesson.type),
-                          status: 'Chưa học',
-                          statusColor: AppColors.textTertiary,
+                          icon: unlocked ? _iconByType(lesson.type) : Icons.lock_outline_rounded,
+                          status: status,
+                          statusColor: statusColor,
+                          locked: !unlocked,
                           lesson: _lessonPayload(
                             offeringId: offeringId,
+                            classId: classId,
+                            progressDisabled: progressDisabled,
                             lesson: lesson,
-                            nextLesson: hasNext ? lessonOrder[idx + 1] : null,
+                            nextLesson: nextL,
                           ),
                         );
                       }).toList(),
@@ -90,6 +124,7 @@ class CurriculumScreen extends ConsumerWidget {
   Widget _buildCourseHeaderCard(ThemeData theme, CourseOfferingDetailModel detail) {
     final totalLessons = detail.modules.fold<int>(0, (sum, m) => sum + m.lessons.length);
     final totalModules = detail.modules.length;
+    final disp = detail.offering.learnerOfferingDisplay(liveClasses: detail.siblingClasses);
 
     return Container(
       decoration: BoxDecoration(
@@ -108,12 +143,30 @@ class CurriculumScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            detail.offering.title,
+            disp.learnerDisplayTitle,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               letterSpacing: 0.1,
             ),
           ),
+          if (disp.liveContextLine != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              disp.liveContextLine!,
+              style: TextStyle(
+                color: AppColors.grey700,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          if (disp.learnerMarketingSubtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Tên gói bán: ${disp.learnerMarketingSubtitle}',
+              style: TextStyle(color: AppColors.grey700, fontSize: 12, height: 1.35),
+            ),
+          ],
           const SizedBox(height: 8),
           Text(
             detail.offering.description?.trim().isNotEmpty == true
@@ -169,12 +222,19 @@ class CurriculumScreen extends ConsumerWidget {
     required String status,
     required Color statusColor,
     required Map<String, dynamic> lesson,
+    required bool locked,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => context.push('/lesson', extra: lesson),
+        onTap: locked
+            ? () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Hoàn thành bài trước để mở khóa bài này.')),
+                );
+              }
+            : () => context.push('/lesson', extra: lesson),
         child: Row(
           children: [
             Icon(icon, color: AppColors.textTertiary, size: 24),
@@ -201,7 +261,7 @@ class CurriculumScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+            Icon(locked ? Icons.lock_outline : Icons.chevron_right, color: AppColors.textTertiary),
           ],
         ),
       ),
@@ -209,13 +269,35 @@ class CurriculumScreen extends ConsumerWidget {
   }
 }
 
+bool _isTrackableKind(CurriculumLessonModel l) {
+  final t = l.type.toUpperCase();
+  return t == 'VIDEO' || t == 'READING' || t == 'ARTICLE';
+}
+
+bool _effectiveLessonUnlocked({
+  required CurriculumLessonModel lesson,
+  required List<CurriculumLessonModel> trackableOrdered,
+  required Set<String> completed,
+  required bool useProgress,
+}) {
+  if (!_isTrackableKind(lesson)) return true;
+  if (!useProgress) return true;
+  final idx = trackableOrdered.indexWhere((l) => l.id == lesson.id);
+  if (idx <= 0) return true;
+  return completed.contains(trackableOrdered[idx - 1].id);
+}
+
 Map<String, dynamic> _lessonPayload({
   required String offeringId,
   required CurriculumLessonModel lesson,
   CurriculumLessonModel? nextLesson,
+  String? classId,
+  bool progressDisabled = false,
 }) {
   return <String, dynamic>{
     'offeringId': offeringId,
+    if (classId != null && classId.isNotEmpty) 'classId': classId,
+    if (progressDisabled) 'progressDisabled': true,
     'id': lesson.id,
     'title': lesson.title,
     'type': lesson.type.toLowerCase(),
@@ -227,6 +309,8 @@ Map<String, dynamic> _lessonPayload({
     if (nextLesson != null)
       'nextLesson': <String, dynamic>{
         'offeringId': offeringId,
+        if (classId != null && classId.isNotEmpty) 'classId': classId,
+        if (progressDisabled) 'progressDisabled': true,
         'id': nextLesson.id,
         'title': nextLesson.title,
         'type': nextLesson.type.toLowerCase(),
