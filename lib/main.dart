@@ -38,12 +38,17 @@ Future<void> main() async {
     ],
   );
   
-  // Initialize Firebase
-  await Firebase.initializeApp();
-  
-  // Resolve and initialize NotificationService using the container
-  final notificationService = container.read(notificationServiceProvider);
-  await notificationService.initialize();
+  // Initialize Firebase (required: GoogleService-Info.plist in ios/Runner/)
+  // Without it, iOS app crashes with white screen on launch.
+  try {
+    await Firebase.initializeApp();
+    final notificationService = container.read(notificationServiceProvider);
+    await notificationService.initialize();
+  } catch (e, st) {
+    // Firebase/Notification init failed (e.g. missing GoogleService-Info.plist on iOS).
+    // App will still run but push notifications won't work.
+    debugPrint('Firebase/Notification init failed: $e\n$st');
+  }
 
   // Remove splash screen now that data is ready
   FlutterNativeSplash.remove();

@@ -5,6 +5,7 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/course_offering_detail_model.dart';
+import 'package:torii_app/data/utils/learner_offering_display.dart';
 
 class CourseDetailScreen extends ConsumerStatefulWidget {
   const CourseDetailScreen({super.key, required this.courseId});
@@ -44,6 +45,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
     WidgetRef? ref,
   ]) {
     final course = detail.offering;
+    final disp = course.learnerOfferingDisplay(liveClasses: detail.siblingClasses);
     final priceStr = '${course.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
     const bottomNavBarHeight = 64.0; // matches AppShell bottom bar
     final bottomInset = MediaQuery.of(context).padding.bottom;
@@ -87,12 +89,30 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        course.title,
+                        disp.learnerDisplayTitle,
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: AppTypography.extraBold,
                           letterSpacing: 0.1,
                         ),
                       ),
+                    if (disp.liveContextLine != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        disp.liveContextLine!,
+                        style: TextStyle(
+                          color: AppColors.grey700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                    if (disp.learnerMarketingSubtitle != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Tên gói bán: ${disp.learnerMarketingSubtitle}',
+                        style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.35),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

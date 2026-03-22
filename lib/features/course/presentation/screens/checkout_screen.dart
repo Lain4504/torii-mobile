@@ -8,6 +8,7 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/checkout_models.dart';
 import 'package:torii_app/data/models/live_offering_detail_model.dart';
+import 'package:torii_app/data/utils/learner_offering_display.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
@@ -78,6 +79,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           if (detail == null) return const Center(child: Text('Không tìm thấy khóa học'));
           final offering = detail.offering;
           final isLive = offering.mode.toUpperCase() == 'LIVE';
+          final disp = offering.learnerOfferingDisplay(liveClasses: detail.classes);
 
           final classes = detail.classes.where((c) => c.isLive).toList();
           final selectedClass = isLive && _selectedClassId != null ? classes.where((c) => c.id == _selectedClassId).cast<LiveClassModel?>().firstOrNull : null;
@@ -88,7 +90,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 padding: EdgeInsets.fromLTRB(16, 12, 16, bottomSafePadding + 96),
                 children: [
                   _CourseSummaryCard(
-                    title: offering.title,
+                    displayTitle: disp.learnerDisplayTitle,
+                    liveContextLine: disp.liveContextLine,
+                    marketingPackageLine: disp.learnerMarketingSubtitle != null
+                        ? 'Gói: ${disp.learnerMarketingSubtitle}'
+                        : null,
                     thumbnailUrl: offering.thumbnailUrl,
                     mode: offering.mode,
                     price: offering.displayPrice,
@@ -311,14 +317,18 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
 class _CourseSummaryCard extends StatelessWidget {
   const _CourseSummaryCard({
-    required this.title,
+    required this.displayTitle,
+    this.liveContextLine,
+    this.marketingPackageLine,
     required this.thumbnailUrl,
     required this.mode,
     required this.price,
     required this.selectedClass,
   });
 
-  final String title;
+  final String displayTitle;
+  final String? liveContextLine;
+  final String? marketingPackageLine;
   final String? thumbnailUrl;
   final String mode;
   final double price;
@@ -388,7 +398,7 @@ class _CourseSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  title,
+                  displayTitle,
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: AppTypography.extraBold,
                     letterSpacing: 0.1,
@@ -396,6 +406,24 @@ class _CourseSummaryCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (liveContextLine != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    liveContextLine!,
+                    style: TextStyle(color: AppColors.grey700, fontSize: 12, fontWeight: FontWeight.w600),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if (marketingPackageLine != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    marketingPackageLine!,
+                    style: TextStyle(color: AppColors.grey700, fontSize: 11),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 if (selectedClass != null) ...[
                   const SizedBox(height: 6),
                   Text(

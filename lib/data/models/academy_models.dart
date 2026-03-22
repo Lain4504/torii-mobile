@@ -14,6 +14,13 @@ class CourseOfferingModel {
   final String? courseProfileId;
   final String? termId;
 
+  /// Từ `class` (API public offering) — dùng cho tiêu đề hiển thị VOD.
+  final String? className;
+  final String? courseProfileTitle;
+  final String? termName;
+  final String? termCode;
+  final DateTime? termOpeningDate;
+
   const CourseOfferingModel({
     required this.id,
     required this.code,
@@ -28,9 +35,46 @@ class CourseOfferingModel {
     this.slug,
     this.courseProfileId,
     this.termId,
+    this.className,
+    this.courseProfileTitle,
+    this.termName,
+    this.termCode,
+    this.termOpeningDate,
   });
 
   factory CourseOfferingModel.fromJson(Map<String, dynamic> json) {
+    String? className;
+    final c = json['class'];
+    if (c is Map) {
+      final cm = Map<String, dynamic>.from(c);
+      final n = cm['name']?.toString();
+      if (n != null && n.isNotEmpty) className = n;
+    }
+
+    String? courseProfileTitle;
+    final p = json['courseProfile'];
+    if (p is Map) {
+      final pm = Map<String, dynamic>.from(p);
+      final t = pm['title']?.toString();
+      if (t != null && t.isNotEmpty) courseProfileTitle = t;
+    }
+
+    String? termName;
+    String? termCode;
+    DateTime? termOpeningDate;
+    final term = json['term'];
+    if (term is Map) {
+      final tm = Map<String, dynamic>.from(term);
+      final n = tm['name']?.toString();
+      final co = tm['code']?.toString();
+      if (n != null && n.isNotEmpty) termName = n;
+      if (co != null && co.isNotEmpty) termCode = co;
+      final od = tm['openingDate'];
+      if (od != null) {
+        termOpeningDate = DateTime.tryParse(od.toString());
+      }
+    }
+
     return CourseOfferingModel(
       id: (json['id'] ?? '').toString(),
       code: json['code'] as String? ?? '',
@@ -45,6 +89,11 @@ class CourseOfferingModel {
       slug: json['slug'] as String?,
       courseProfileId: json['courseProfileId']?.toString(),
       termId: json['termId']?.toString(),
+      className: className,
+      courseProfileTitle: courseProfileTitle,
+      termName: termName,
+      termCode: termCode,
+      termOpeningDate: termOpeningDate,
     );
   }
 

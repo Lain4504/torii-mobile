@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/course_offering_detail_model.dart';
+import 'package:torii_app/data/utils/learner_offering_display.dart';
 
 class CurriculumScreen extends ConsumerWidget {
   const CurriculumScreen({super.key, required this.offeringId});
@@ -90,6 +91,7 @@ class CurriculumScreen extends ConsumerWidget {
   Widget _buildCourseHeaderCard(ThemeData theme, CourseOfferingDetailModel detail) {
     final totalLessons = detail.modules.fold<int>(0, (sum, m) => sum + m.lessons.length);
     final totalModules = detail.modules.length;
+    final disp = detail.offering.learnerOfferingDisplay(liveClasses: detail.siblingClasses);
 
     return Container(
       decoration: BoxDecoration(
@@ -108,12 +110,30 @@ class CurriculumScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            detail.offering.title,
+            disp.learnerDisplayTitle,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               letterSpacing: 0.1,
             ),
           ),
+          if (disp.liveContextLine != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              disp.liveContextLine!,
+              style: TextStyle(
+                color: AppColors.grey700,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+          if (disp.learnerMarketingSubtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Tên gói bán: ${disp.learnerMarketingSubtitle}',
+              style: TextStyle(color: AppColors.grey700, fontSize: 12, height: 1.35),
+            ),
+          ],
           const SizedBox(height: 8),
           Text(
             detail.offering.description?.trim().isNotEmpty == true
