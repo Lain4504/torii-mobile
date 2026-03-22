@@ -131,6 +131,9 @@ class EnrollmentModel {
   final int? completedLessons;
   final int? totalLessons;
 
+  /// `LIVE` | `VOD` | … từ offering/class (dùng lọc lịch live).
+  final String? mode;
+
   const EnrollmentModel({
     required this.id,
     required this.classId,
@@ -148,6 +151,7 @@ class EnrollmentModel {
     this.progress,
     this.completedLessons,
     this.totalLessons,
+    this.mode,
   });
 
   factory EnrollmentModel.fromJson(Map<String, dynamic> json) {
@@ -155,6 +159,15 @@ class EnrollmentModel {
     final createdAtRaw = json['createdAt'] ?? enrolledAtRaw;
     final updatedAtRaw = json['updatedAt'] ?? enrolledAtRaw;
     final fallbackDate = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
+    String? instructorName = json['instructorName'] as String?;
+    if (instructorName == null || instructorName.isEmpty) {
+      final ins = json['instructor'];
+      if (ins is Map) {
+        final dn = ins['displayName']?.toString();
+        if (dn != null && dn.isNotEmpty) instructorName = dn;
+      }
+    }
 
     return EnrollmentModel(
       id: (json['id'] ?? '').toString(),
@@ -170,11 +183,12 @@ class EnrollmentModel {
       courseTitle: json['courseTitle'] as String?,
       courseCode: json['courseCode'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
-      instructorName: json['instructorName'] as String?,
+      instructorName: instructorName,
       slug: json['slug'] as String?,
       progress: (json['progress'] as num?)?.toDouble(),
       completedLessons: (json['completedLessons'] as num?)?.toInt(),
       totalLessons: (json['totalLessons'] as num?)?.toInt(),
+      mode: json['mode'] as String?,
     );
   }
 }

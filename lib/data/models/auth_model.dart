@@ -50,7 +50,7 @@ class User {
       bannedUntil: json['bannedUntil'] != null ? DateTime.parse(json['bannedUntil'] as String) : null,
       lastSignInAt: json['lastSignInAt'] != null ? DateTime.parse(json['lastSignInAt'] as String) : null,
       deletedAt: json['deletedAt'] != null ? DateTime.parse(json['deletedAt'] as String) : null,
-      isOnboarded: json['isOnboarded'] ?? false,
+      isOnboarded: json['isOnboarded'] ?? json['is_onboarded'] ?? false,
     );
   }
 

@@ -85,8 +85,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/onboarding-survey';
       }
 
-      // Primary redirect: Onboarding
-      if (!hasCompletedOnboarding && path != '/welcome') {
+      // Welcome 3-slide: chỉ bắt buộc khi chưa đăng nhập hoặc đã đăng nhập nhưng chưa onboard trên server.
+      // User đã làm khảo sát trên web → isOnboarded true → không ép xem welcome lại trên mobile.
+      final skipProductWelcome =
+          isAuthenticated && user != null && user.isOnboarded;
+      if (!hasCompletedOnboarding &&
+          !skipProductWelcome &&
+          path != '/welcome') {
         return '/welcome';
       }
 

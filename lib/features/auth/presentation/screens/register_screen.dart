@@ -13,25 +13,16 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
-  String? _selectedGoal;
   bool _agreeToTerms = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-
-  final List<String> _goals = [
-    'Giao tiếp cơ bản',
-    'Thi JLPT N5',
-    'Thi JLPT N4',
-    'Làm việc tại Nhật',
-    'Du học Nhật Bản',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -84,10 +75,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 20),
 
                   // Form fields
-                  _buildLabel('Họ và tên'),
+                  _buildLabel('Họ và tên (full name)'),
               _buildTextField(
-                controller: _nameController,
-                hint: 'Nhập họ và tên của bạn',
+                controller: _fullNameController,
+                hint: 'Nhập họ và tên đầy đủ của bạn',
                 icon: Icons.person_outline,
               ),
               
@@ -117,35 +108,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 obscureText: _obscureConfirmPassword,
                 onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
               ),
-
-                  _buildLabel('Mục tiêu học tiếng Nhật'),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.grey300),
-                      color: AppColors.surface,
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: _selectedGoal,
-                        hint: const Text('Chọn mục tiêu của bạn'),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedGoal = newValue;
-                          });
-                        },
-                        items: _goals
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
 
                   const SizedBox(height: 14),
                   Row(
@@ -186,12 +148,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       onPressed: _isLoading
                           ? null
                           : () async {
-                          final name = _nameController.text.trim();
+                          final fullName = _fullNameController.text.trim();
                           final email = _emailController.text.trim();
                           final password = _passwordController.text;
                           final confirm = _confirmPasswordController.text;
 
-                          if (name.isEmpty ||
+                          if (fullName.isEmpty ||
                               email.isEmpty ||
                               password.isEmpty ||
                               confirm.isEmpty) {
@@ -199,6 +161,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               const SnackBar(
                                 content:
                                     Text('Vui lòng nhập đầy đủ thông tin bắt buộc'),
+                              ),
+                            );
+                            return;
+                          }
+                          if (fullName.length < 2) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Họ và tên phải có ít nhất 2 ký tự',
+                                ),
                               ),
                             );
                             return;
@@ -226,7 +198,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           final notifier =
                               ref.read(authNotifierProvider.notifier);
                           final ok =
-                              await notifier.register(email, password, name);
+                              await notifier.register(email, password, fullName);
                           setState(() => _isLoading = false);
                           if (ok) {
                             if (mounted) {

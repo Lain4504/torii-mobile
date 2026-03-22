@@ -27,13 +27,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isLoggedIn = authValue?.isAuthenticated == true;
     final isAuthLoading = authAsync.isLoading;
     final user = authValue?.user;
+    final loadPersonalized = isLoggedIn && user?.isOnboarded == true;
     final displayName = isAuthLoading ? 'Đang tải...' : (user?.displayName ?? 'Bạn');
-    final enrollmentsAsync = isLoggedIn ? ref.watch(myEnrollmentsProvider) : null;
-    final liveSchedulesAsync = isLoggedIn ? ref.watch(liveSchedulesProvider) : null;
-    final unreadCountAsync = isLoggedIn ? ref.watch(notificationsUnreadCountProvider) : null;
-    final streakAsync = isLoggedIn ? ref.watch(streakProvider) : null;
+    final enrollmentsAsync = loadPersonalized ? ref.watch(myEnrollmentsProvider) : null;
+    final liveSchedulesAsync = loadPersonalized ? ref.watch(liveSchedulesProvider) : null;
+    final unreadCountAsync = loadPersonalized ? ref.watch(notificationsUnreadCountProvider) : null;
+    final streakAsync = loadPersonalized ? ref.watch(streakProvider) : null;
 
-    if (isLoggedIn) {
+    if (loadPersonalized) {
       ref.listen(streakProvider, (previous, next) async {
         if (_streakModalShownThisSession) return;
         final streak = next.valueOrNull;
@@ -673,6 +674,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final instructor = (s.instructorName ?? '').trim();
     final dateLabel = start != null ? '${_weekdayLabel(start)} • ${_formatDayMonth(start)}' : 'Sắp diễn ra';
     final timeLabel = hasTime ? s.timeRange : 'Chưa có giờ';
+    final ui = s.uiStateAt(DateTime.now());
+    final statusLabel = ui == LiveScheduleUiState.live
+        ? 'LIVE'
+        : ui == LiveScheduleUiState.joinable
+            ? 'Vào lớp'
+            : null;
+    final statusColor =
+        ui == LiveScheduleUiState.live ? AppColors.error : AppColors.primary;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -728,6 +737,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (statusLabel != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: statusColor.withValues(alpha: 0.25)),
+                    ),
+                    child: Text(
+                      statusLabel,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: statusColor,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                ],
                 Text(
                   title,
                   style: theme.textTheme.bodyMedium?.copyWith(

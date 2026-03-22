@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
-import 'package:torii_app/features/auth/models/auth_state.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -33,6 +32,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final authed = next.valueOrNull?.status == AuthStatus.authenticated;
       if (authed && mounted) {
         _pendingNavigateHome = false;
+        context.go('/');
+      }
+    });
+  }
+
+  /// Sau khi [AuthNotifier.login] trả về true, state có thể đã là [AuthStatus.authenticated]
+  /// *trước* khi [setState] gán [_pendingNavigateHome] — listener lúc đó bỏ qua và UI kẹt "Đang xử lý".
+  void _completeLoginNavigationAfterOk() {
+    if (!mounted) return;
+    final auth = ref.read(authStateProvider).valueOrNull;
+    if (auth?.status == AuthStatus.authenticated) {
+      _pendingNavigateHome = false;
+      context.go('/');
+      return;
+    }
+    if (auth?.status == AuthStatus.pending2FA) {
+      setState(() {
+        _pendingNavigateHome = false;
+        _isLoading = false;
+      });
+      return;
+    }
+    setState(() {
+      _pendingNavigateHome = true;
+      _isLoading = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final a = ref.read(authStateProvider).valueOrNull;
+      if (a?.status == AuthStatus.authenticated && _pendingNavigateHome) {
+        setState(() => _pendingNavigateHome = false);
         context.go('/');
       }
     });
@@ -250,19 +280,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   await notifier.login(email, password);
                               if (!mounted) return;
                               if (ok) {
-                                // Keep loading until authStateProvider becomes authenticated,
-                                // then the listener in initState will navigate.
-                                setState(() {
-                                  _pendingNavigateHome = true;
-                                  _isLoading = true;
-                                });
+                                _completeLoginNavigationAfterOk();
                               } else {
                                 setState(() => _isLoading = false);
-                                final state = ref
-                                    .read(authNotifierProvider)
-                                    .valueOrNull;
-                                final message =
-                                    state?.error ?? 'Đăng nhập thất bại';
+                                final asyncAuth =
+                                    ref.read(authNotifierProvider);
+                                final message = asyncAuth.when(
+                                  data: (s) =>
+                                      s.error ?? 'Đăng nhập thất bại',
+                                  error: (e, _) => e.toString(),
+                                  loading: () => 'Đang xử lý...',
+                                );
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text(message)),

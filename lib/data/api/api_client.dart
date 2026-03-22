@@ -69,26 +69,24 @@ class ApiClient {
     _dio.interceptors.add(
       QueuedInterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Get Access Token from TokenService
-          try {
-            final tokenService = _tokenService;
-            if (tokenService != null) {
-              // ONLY add Authorization header if it's not already manually provided
-              // This allows verify-2fa and verify-otp to use a tempToken
-              if (!options.headers.containsKey('Authorization')) {
+          // Luôn gửi — gateway cần header này để trả token trong body (mobile),
+          // không phụ thuộc getAccessToken (Keychain iOS có thể ném lỗi trước khi gán header).
+          options.headers['x-platform'] = 'mobile';
+
+          final tokenService = _tokenService;
+          if (tokenService != null) {
+            if (!options.headers.containsKey('Authorization')) {
+              try {
                 final token = await tokenService.getAccessToken();
                 if (token != null) {
                   options.headers['Authorization'] = 'Bearer $token';
                 }
+              } catch (e) {
+                debugPrint('ApiClient: getAccessToken failed: $e');
               }
-              
-              // Add platform header for mobile-specific logic
-              options.headers['x-platform'] = 'mobile';
             }
-          } catch (e) {
-            // If token retrieval fails, continue without token
           }
-          
+
           handler.next(options);
         },
         onError: (DioException error, ErrorInterceptorHandler handler) async {

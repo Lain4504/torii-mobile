@@ -26,6 +26,9 @@ class AppShell extends ConsumerWidget {
     // Lesson: full-screen learning experience, hide bottom nav
     final isOnLessonRoute = currentPath.startsWith('/lesson');
 
+    // Settings: full-width list, hide bottom nav (parity with other full-screen sub-pages)
+    final isOnSettingsRoute = currentPath == '/settings';
+
     // Sensei: keep bottom bar only on dashboard (/sensei). Hide on sub-pages.
     final isSenseiRoute = currentPath.startsWith('/sensei');
     final isSenseiDashboard = currentPath == '/sensei';
@@ -35,8 +38,9 @@ class AppShell extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Hide bottom bar for Meet routes, Sensei sub-pages and full-screen lesson
-    final shouldHideBottomNav = isOnMeetRoute || hideBottomNavForSensei || isOnLessonRoute;
+    // Hide bottom bar for Meet routes, Sensei sub-pages, settings, and full-screen lesson
+    final shouldHideBottomNav =
+        isOnMeetRoute || hideBottomNavForSensei || isOnLessonRoute || isOnSettingsRoute;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -152,14 +156,6 @@ class _BottomNavBar extends StatelessWidget {
                       label: 'Home',
                       isSelected: activeIndex == 0,
                       onTap: () => onTap('/'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
-                      icon: Icons.explore_outlined,
-                      activeIcon: Icons.explore_rounded,
-                      label: 'Discovery',
-                      isSelected: activeIndex == 1,
-                      onTap: () => onTap('/discovery'),
                       isDark: isDark,
                     ),
                     _NavBarItem(
