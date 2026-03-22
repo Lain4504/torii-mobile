@@ -12,6 +12,7 @@ import 'package:torii_app/data/database/app_database.dart';
 import 'package:torii_app/services/auth/user_service.dart';
 import 'package:torii_app/services/auth/token_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:torii_app/services/notification_service.dart';
 
 Future<void> main() async {
@@ -40,6 +41,9 @@ Future<void> main() async {
   
   // Initialize Firebase
   await Firebase.initializeApp();
+
+  // Register background message handler
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   
   // Resolve and initialize NotificationService using the container
   final notificationService = container.read(notificationServiceProvider);

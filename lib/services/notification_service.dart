@@ -1,33 +1,53 @@
-import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:async';
+import 'dart:io';
 import '../features/auth/providers/auth_providers.dart';
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService(ref: ref);
 });
 
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using otherwise they will throw an error.
+  await Firebase.initializeApp();
+  print("NotificationService: Handling a background message: ${message.messageId}");
+}
+
 class NotificationService {
   final Ref ref;
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  
+  // Stream controller to broadcast notification tap events
+  final _notificationTapController = StreamController<RemoteMessage>.broadcast();
+  Stream<RemoteMessage> get onNotificationTap => _notificationTapController.stream;
 
   NotificationService({required this.ref});
 
   Future<void> initialize() async {
     // 1. Request permissions (especially for iOS and Android 13+)
-    NotificationSettings settings = await _fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    try {
+      NotificationSettings settings = await _fcm.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('NotificationService: User granted permission');
-    } else {
-      print('NotificationService: User declined or has not accepted permission');
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        // Get the token and register it
+        String? token = await _fcm.getToken();
+        if (token != null) {
+          await registerToken(token: token);
+        }
+      }
+    } catch (e) {
+      print('NotificationService: ERROR during initialization: $e');
     }
 
     // 2. Setup Local Notifications
@@ -55,9 +75,13 @@ class NotificationService {
     // 4. Handle background/terminated state messages
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('NotificationService: A new onMessageOpenedApp event was published!');
+      _notificationTapController.add(message);
     });
 
-    // 5. Setup Token refresh listener
+    // 5. Check for initial message (app opened from terminated state)
+    _handleInitialMessage();
+
+    // 6. Setup Token refresh listener
     _fcm.onTokenRefresh.listen((token) {
       print('NotificationService: FCM Token refreshed');
       registerToken(token: token);
@@ -66,6 +90,14 @@ class NotificationService {
     // Initial token registration will be handled manually when user is logged in
     // or on app start if already logged in.
     _checkAndRegisterToken();
+  }
+
+  Future<void> _handleInitialMessage() async {
+    RemoteMessage? initialMessage = await _fcm.getInitialMessage();
+    if (initialMessage != null) {
+      print('NotificationService: App opened from terminated state via notification');
+      _notificationTapController.add(initialMessage);
+    }
   }
 
   Future<void> _checkAndRegisterToken() async {
