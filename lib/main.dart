@@ -46,6 +46,9 @@ Future<void> main() async {
     if (Firebase.apps.isEmpty) {
       debugPrint('Firebase: initializeApp returned without any app — skip FCM.');
     } else {
+      // Register background message handler
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      
       final notificationService = container.read(notificationServiceProvider);
       await notificationService.initialize();
     }

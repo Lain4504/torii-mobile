@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -24,8 +25,13 @@ class NotificationService {
   NotificationService({required this.ref});
 
   final Ref ref;
+  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+
+  // Stream controller to broadcast notification tap events
+  final _notificationTapController = StreamController<RemoteMessage>.broadcast();
+  Stream<RemoteMessage> get onNotificationTap => _notificationTapController.stream;
 
   /// Không dùng [FirebaseMessaging.instance] ở field initializer — nếu chưa cấu hình Firebase
   /// (iOS: GoogleService-Info.plist; Android: google-services.json) thì [Firebase.apps] rỗng / lỗi [core/no-app].
@@ -83,9 +89,13 @@ class NotificationService {
       debugPrint(
         'NotificationService: A new onMessageOpenedApp event was published!',
       );
+      _notificationTapController.add(message);
     });
 
-    // 5. Setup Token refresh listener
+    // 5. Check for initial message (app opened from terminated state)
+    _handleInitialMessage();
+
+    // 6. Setup Token refresh listener
     fcm.onTokenRefresh.listen((token) {
       debugPrint('NotificationService: FCM Token refreshed');
       registerToken(token: token);
