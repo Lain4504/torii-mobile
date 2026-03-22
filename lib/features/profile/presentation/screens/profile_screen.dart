@@ -58,7 +58,7 @@ class ProfileScreen extends ConsumerWidget {
               color: AppColors.textPrimary,
             ),
             tooltip: 'Cài đặt',
-            onPressed: () => context.go('/settings'),
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),

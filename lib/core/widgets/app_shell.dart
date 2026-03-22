@@ -5,6 +5,20 @@ import '../constants/app_design_system.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/auth/models/auth_state.dart';
 
+/// Các route mở từ [SettingsScreen] (và con như order detail): full-screen, không cần bottom bar.
+bool _isSettingsHubSubRoute(String path) {
+  return path == '/settings' ||
+      path == '/profile/edit' ||
+      path == '/linked-accounts' ||
+      path == '/achievements' ||
+      path == '/rewards-store' ||
+      path == '/my-coupons' ||
+      path == '/security-2fa' ||
+      path == '/notifications' ||
+      path == '/orders' ||
+      path.startsWith('/order-detail/');
+}
+
 /// App Shell - Main Layout Wrapper
 /// 
 /// Contains the curved bottom navigation with centered FAB (Home).
@@ -26,8 +40,7 @@ class AppShell extends ConsumerWidget {
     // Lesson: full-screen learning experience, hide bottom nav
     final isOnLessonRoute = currentPath.startsWith('/lesson');
 
-    // Settings: full-width list, hide bottom nav (parity with other full-screen sub-pages)
-    final isOnSettingsRoute = currentPath == '/settings';
+    final hideBottomNavForSettingsFlow = _isSettingsHubSubRoute(currentPath);
 
     // Sensei: keep bottom bar only on dashboard (/sensei). Hide on sub-pages.
     final isSenseiRoute = currentPath.startsWith('/sensei');
@@ -43,9 +56,12 @@ class AppShell extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Hide bottom bar for Meet routes, Sensei sub-pages, settings, lesson, flashcard/test/match
-    final shouldHideBottomNav =
-        isOnMeetRoute || hideBottomNavForSensei || isOnLessonRoute || isOnSettingsRoute || isOnStudySetsReview;
+    // Hide bottom bar for Meet, Sensei sub-pages, settings hub subtree, lesson, flashcard/test/match
+    final shouldHideBottomNav = isOnMeetRoute ||
+        hideBottomNavForSensei ||
+        isOnLessonRoute ||
+        hideBottomNavForSettingsFlow ||
+        isOnStudySetsReview;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

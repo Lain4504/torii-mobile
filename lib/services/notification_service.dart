@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -6,12 +7,22 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../features/auth/providers/auth_providers.dart';
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService(ref: ref);
 });
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Isolate nền: chưa có app [Default] — phải init trước (idempotent nếu đã có app).
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp();
+  }
+  debugPrint(
+    'NotificationService: background message: ${message.messageId}',
+  );
+}
 
 class NotificationService {
   NotificationService({required this.ref});
@@ -20,8 +31,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
-  /// Không dùng [FirebaseMessaging.instance] ở field initializer — nếu chưa cấu hình Firebase
-  /// (iOS: GoogleService-Info.plist; Android: google-services.json) thì [Firebase.apps] rỗng / lỗi [core/no-app].
+  // Stream controller to broadcast notification tap events
+  final _notificationTapController = StreamController<RemoteMessage>.broadcast();
+  Stream<RemoteMessage> get onNotificationTap => _notificationTapController.stream;
+
+  /// Không gọi [FirebaseMessaging.instance] trong constructor / field initializer: provider có thể
+  /// được đọc khi đăng nhập hoặc từ [ToriiApp] trước khi [Firebase.initializeApp] thành công.
   static bool get _firebaseReady => Firebase.apps.isNotEmpty;
 
   Future<void> initialize() async {
@@ -76,9 +91,13 @@ class NotificationService {
       debugPrint(
         'NotificationService: A new onMessageOpenedApp event was published!',
       );
+      _notificationTapController.add(message);
     });
 
-    // 5. Setup Token refresh listener
+    // 5. Check for initial message (app opened from terminated state)
+    _handleInitialMessage();
+
+    // 6. Setup Token refresh listener
     fcm.onTokenRefresh.listen((token) {
       debugPrint('NotificationService: FCM Token refreshed');
       registerToken(token: token);
@@ -87,6 +106,18 @@ class NotificationService {
     // Initial token registration will be handled manually when user is logged in
     // or on app start if already logged in.
     _checkAndRegisterToken();
+  }
+
+  Future<void> _handleInitialMessage() async {
+    if (!_firebaseReady) return;
+    RemoteMessage? initialMessage =
+        await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      debugPrint(
+        'NotificationService: App opened from terminated state via notification',
+      );
+      _notificationTapController.add(initialMessage);
+    }
   }
 
   Future<void> _checkAndRegisterToken() async {

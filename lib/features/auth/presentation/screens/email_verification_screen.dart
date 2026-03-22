@@ -208,7 +208,10 @@ class _EmailVerificationScreenState
         loading: () => 'Đang xử lý...',
       );
       messenger.showSnackBar(
-        SnackBar(content: Text(message)),
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.error,
+        ),
       );
     }
   }

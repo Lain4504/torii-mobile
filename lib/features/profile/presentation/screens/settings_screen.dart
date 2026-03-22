@@ -16,11 +16,10 @@ class SettingsScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
           onPressed: () {
-            final router = GoRouter.maybeOf(context);
-            if (router != null) {
-              router.pop();
+            if (context.canPop()) {
+              context.pop();
             } else {
-              Navigator.of(context).pop();
+              context.go('/profile');
             }
           },
         ),

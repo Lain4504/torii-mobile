@@ -224,7 +224,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 final message =
                     state?.error ?? 'Cập nhật mật khẩu thất bại';
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(message)),
+                  SnackBar(
+                    content: Text(message),
+                    backgroundColor: AppColors.error,
+                  ),
                 );
               }
             },

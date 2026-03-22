@@ -127,6 +127,14 @@ class _ForgotPasswordScreenState
                                 'mode': 'reset-password',
                               },
                             );
+                          } else if (mounted) {
+                            final authState = ref.read(authNotifierProvider).valueOrNull;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(authState?.error ?? 'Không thể gửi email đặt lại mật khẩu'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
                           }
                         },
                       style: ElevatedButton.styleFrom(

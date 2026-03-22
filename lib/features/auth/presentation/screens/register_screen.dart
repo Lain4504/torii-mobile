@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -212,6 +211,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 },
                               );
                             }
+                          } else {
+                            if (mounted) {
+                              final authState = ref.read(authNotifierProvider).valueOrNull;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(authState?.error ?? 'Đăng ký thất bại. Vui lòng thử lại.'),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            }
                           }
                         },
                       style: ElevatedButton.styleFrom(
@@ -232,61 +241,81 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
 
-                  if (defaultTargetPlatform != TargetPlatform.iOS) ...[
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Divider(color: AppColors.grey300),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            'hoặc',
-                            style: TextStyle(color: AppColors.textTertiary),
-                          ),
-                        ),
-                        const Expanded(
-                          child: Divider(color: AppColors.grey300),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 18),
-                    _buildSocialButton(
-                      'Đăng ký với Facebook',
-                      icon: Icons.facebook,
-                      onPressed: () => ref
-                          .read(authNotifierProvider.notifier)
-                          .signInWithFacebook(),
-                      iconColor: const Color(0xFF1877F2),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildSocialButton(
-                      'Đăng ký với Google',
-                      leading: const FaIcon(
-                        FontAwesomeIcons.google,
-                        size: 20,
-                        color: Color(0xFF4285F4),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Divider(color: AppColors.grey300),
                       ),
-                      onPressed: () async {
-                        final notifier =
-                            ref.read(authNotifierProvider.notifier);
-                        await notifier.signInWithGoogle();
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          'hoặc',
+                          style: TextStyle(color: AppColors.textTertiary),
+                        ),
+                      ),
+                      const Expanded(
+                        child: Divider(color: AppColors.grey300),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  _buildSocialButton(
+                    'Đăng ký với Facebook',
+                    icon: Icons.facebook,
+                    onPressed: () async {
+                      setState(() => _isLoading = true);
+                      await ref
+                          .read(authNotifierProvider.notifier)
+                          .signInWithFacebook();
+                      setState(() => _isLoading = false);
 
-                        if (!mounted) return;
+                      if (!mounted) return;
 
-                        final authState =
-                            ref.read(authNotifierProvider).valueOrNull;
-                        if (authState?.status == AuthStatus.authenticated) {
-                          context.go('/');
-                        } else if (authState?.error != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(authState!.error!)),
-                          );
-                        }
-                      },
+                      final authState =
+                          ref.read(authNotifierProvider).valueOrNull;
+                      if (authState?.status == AuthStatus.authenticated) {
+                        context.go('/');
+                      } else if (authState?.error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(authState!.error!),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      }
+                    },
+                    iconColor: const Color(0xFF1877F2),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildSocialButton(
+                    'Đăng ký với Google',
+                    leading: const FaIcon(
+                      FontAwesomeIcons.google,
+                      size: 20,
+                      color: Color(0xFF4285F4),
                     ),
-                  ],
+                    onPressed: () async {
+                      final notifier =
+                          ref.read(authNotifierProvider.notifier);
+                      await notifier.signInWithGoogle();
+
+                      if (!mounted) return;
+
+                      final authState =
+                          ref.read(authNotifierProvider).valueOrNull;
+                      if (authState?.status == AuthStatus.authenticated) {
+                        context.go('/');
+                      } else if (authState?.error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(authState!.error!),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      }
+                    },
+                  ),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

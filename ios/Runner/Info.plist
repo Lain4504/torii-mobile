@@ -94,5 +94,9 @@
 	<string>Torii Meet cần quyền truy cập camera để bạn có thể tham gia cuộc họp video.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Torii Meet cần quyền truy cập micro để bạn có thể gửi và nhận âm thanh trong cuộc họp.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

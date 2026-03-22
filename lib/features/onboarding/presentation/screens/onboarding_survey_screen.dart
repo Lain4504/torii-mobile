@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/constants/app_design_system.dart';
 import '../../../../services/auth/onboarding_service.dart';
 import '../../../auth/providers/auth_providers.dart';
 
@@ -18,11 +19,13 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   bool _isSubmitting = false;
 
   // Form State
-  String _learningTarget = '6 months';
+  String _learningTarget = '6 tháng';
   String _learningPurpose = 'JLPT';
-  String? _jlptExamDate = 'July 2024';
+  String? _selectedJlptMonth = 'Tháng 7';
+  String? _selectedJlptYear = '2026';
+  String _jlptExamDate = 'Tháng 7/2026';
   int _dailyStudyTime = 60;
-  String _currentLevel = 'Never learned';
+  String _currentLevel = 'Mới bắt đầu';
   bool _wantsPlacementTest = false;
 
   Future<void> _skipSurvey() async {
@@ -31,8 +34,6 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     final authNotifier = ref.read(authStateProvider.notifier);
 
     try {
-      // Persist minimal/default values so backend can mark user as onboarded
-      // (trường hợp backend deploy được).
       final service = ref.read(onboardingServiceProvider);
       final response = await service.saveSurvey(
         learningTarget: _learningTarget,
@@ -47,10 +48,9 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
         await authNotifier.refreshProfile();
       }
     } catch (_) {
-      // Backend lỗi/đang dùng API cũ -> fallback đánh dấu onboarding cục bộ
+      // Fallback mark onboarding locally if backend fails
     }
 
-    // Đảm bảo router không redirect ngược về `/onboarding-survey`
     final user = ref.read(authStateProvider).asData?.value.user;
     if (user == null || !user.isOnboarded) {
       await authNotifier.markOnboardedLocally();
@@ -63,11 +63,11 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   List<Widget> get _pages {
     return [
       _buildWelcomeStep(),
-      _buildTargetStep(),
       _buildPurposeStep(),
-      if (_learningPurpose == 'JLPT') _buildJLPTDateStep(),
-      _buildFrequencyStep(),
       _buildLevelStep(),
+      _buildTargetStep(),
+      _buildFrequencyStep(),
+      if (_learningPurpose == 'JLPT' || _learningPurpose == 'JLPT Exam') _buildJLPTDateStep(),
       _buildFinalStep(),
     ];
   }
@@ -75,7 +75,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
     }
@@ -84,7 +84,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   void _prevPage() {
     if (_currentPage > 0) {
       _pageController.previousPage(
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
     }
@@ -97,20 +97,19 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     final response = await service.saveSurvey(
       learningTarget: _learningTarget,
       learningPurpose: _learningPurpose,
-      jlptExamDate: _learningPurpose == 'JLPT' ? _jlptExamDate : null,
+      jlptExamDate: (_learningPurpose == 'JLPT' || _learningPurpose == 'JLPT Exam') ? _jlptExamDate : null,
       dailyStudyTime: _dailyStudyTime,
       currentLevel: _currentLevel,
       wantsPlacementTest: _wantsPlacementTest,
     );
 
     if (response.success) {
-      // Refresh Auth State to get new isOnboarded flag
       await ref.read(authStateProvider.notifier).refreshProfile();
       if (mounted) context.go('/');
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message ?? 'Failed to save survey')),
+          SnackBar(content: Text(response.message ?? 'Không thể lưu khảo sát')),
         );
       }
     }
@@ -122,53 +121,43 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     final progress = (_currentPage + 1) / _pages.length;
 
     return Scaffold(
-      backgroundColor: AppTheme.light.colorScheme.background,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            // Progress Bar
+            // Simplified Progress Bar
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Step ${_currentPage + 1} of ${_pages.length}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _isSubmitting ? null : _skipSurvey,
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        child: const Text(
-                          'Skip',
-                          style: TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      Text(
-                        '${(progress * 100).toInt()}%',
-                        style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.blue, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
                   LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: Colors.blue.withOpacity(0.1),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                     borderRadius: BorderRadius.circular(10),
-                    minHeight: 6,
+                    minHeight: 8,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      if (_currentPage < _pages.length - 1)
+                        TextButton(
+                          onPressed: _isSubmitting ? null : _skipSurvey,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            minimumSize: Size.zero,
+                          ),
+                          child: const Text(
+                            'Bỏ qua',
+                            style: TextStyle(
+                              color: AppColors.textTertiary,
+                              fontWeight: AppTypography.semiBold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
@@ -184,42 +173,52 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
               ),
             ),
 
-            // Bottom Navigation
+            // Navigation Bar
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   if (_currentPage > 0)
-                    TextButton.icon(
-                      onPressed: _isSubmitting ? null : _prevPage,
-                      icon: const Icon(Icons.chevron_left),
-                      label: const Text('Back'),
-                      style: TextButton.styleFrom(
-                        visualDensity: VisualDensity.compact,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    Expanded(
+                      flex: 1,
+                      child: TextButton(
+                        onPressed: _isSubmitting ? null : _prevPage,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text(
+                          'Quay lại',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontWeight: AppTypography.semiBold,
+                          ),
+                        ),
                       ),
                     )
                   else
-                    const SizedBox.shrink(),
+                    const Expanded(flex: 1, child: SizedBox.shrink()),
                   
-                  ElevatedButton(
-                    onPressed: _isSubmitting 
-                      ? null 
-                      : (_currentPage == _pages.length - 1 ? _submit : _nextPage),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      elevation: 0,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
+                  const SizedBox(width: 16),
+                  
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _isSubmitting 
+                        ? null 
+                        : (_currentPage == _pages.length - 1 ? _submit : _nextPage),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
+                      ),
+                      child: _isSubmitting 
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : Text(
+                            _currentPage == _pages.length - 1 ? 'Bắt đầu ngay' : 'Tiếp tục',
+                            style: const TextStyle(fontWeight: AppTypography.bold),
+                          ),
                     ),
-                    child: _isSubmitting 
-                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : Text(_currentPage == _pages.length - 1 ? 'Finish' : 'Next'),
                   ),
                 ],
               ),
@@ -235,35 +234,45 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     required String title,
     required String subtitle,
     required Widget content,
-    Color iconColor = Colors.blue,
+    Color iconColor = AppColors.primary,
   }) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: 32),
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
-              shape: BoxShape.circle,
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(icon, size: 28, color: iconColor),
+            child: Icon(icon, size: 36, color: iconColor),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: AppTypography.bold,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.grey, fontSize: 13, height: 1.25),
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 15,
+              height: 1.5,
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 40),
           content,
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -272,37 +281,30 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   Widget _buildWelcomeStep() {
     return _buildStepContainer(
       icon: Icons.auto_awesome,
-      title: 'Welcome to Torii Mon',
-      subtitle: 'Let\'s personalize your experience to your goals and pace.',
+      title: 'Chào mừng đến với Torii Nihongo',
+      subtitle: 'Chúng tôi muốn cá nhân hóa trải nghiệm học tập của bạn để đạt kết quả tốt nhất.',
       iconColor: Colors.amber,
-      content: const Column(
-        children: [
-          SizedBox(height: 40),
-          Text(
-            'Japanese is a journey. We are here to help you every step of the way.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTargetStep() {
-    return _buildStepContainer(
-      icon: Icons.flag,
-      title: 'Your Deadline',
-      subtitle: 'When do you want to reach your goal?',
-      content: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: [
-          '4 months', '6 months', '8 months', '12 months', 'No deadline'
-        ].map((t) => _buildOptionCard(
-          label: t,
-          isSelected: _learningTarget == t,
-          onTap: () => setState(() => _learningTarget = t),
-        )).toList(),
+      content: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.primarySurface,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Column(
+          children: [
+            Icon(Icons.rocket_launch, size: 48, color: AppColors.primary),
+            SizedBox(height: 16),
+            Text(
+              'Tiếng Nhật là một hành trình thú vị. Chúng tôi sẽ đồng hành cùng bạn trên mọi chặng đường.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: AppColors.primaryDark,
+                height: 1.6,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -310,16 +312,16 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   Widget _buildPurposeStep() {
     return _buildStepContainer(
       icon: Icons.emoji_events,
-      title: 'Learning Purpose',
-      subtitle: 'Why are you learning Japanese?',
+      title: 'Mục tiêu của bạn?',
+      subtitle: 'Tại sao bạn lại chọn học tiếng Nhật?',
       iconColor: Colors.orange,
       content: Column(
         children: [
-          { 'label': 'JLPT Exam', 'value': 'JLPT' },
-          { 'label': 'Work / Business', 'value': 'Work' },
-          { 'label': 'Study Abroad', 'value': 'Study' },
-          { 'label': 'Travel / Culture', 'value': 'Travel' },
-          { 'label': 'Other', 'value': 'Other' },
+          { 'label': 'Thi chứng chỉ JLPT', 'value': 'JLPT' },
+          { 'label': 'Phục vụ công việc', 'value': 'Work' },
+          { 'label': 'Chuẩn bị du học', 'value': 'Study' },
+          { 'label': 'Du lịch & Văn hóa', 'value': 'Travel' },
+          { 'label': 'Sở thích cá nhân', 'value': 'Other' },
         ].map((p) => Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: _buildOptionCard(
@@ -333,21 +335,66 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     );
   }
 
-  Widget _buildJLPTDateStep() {
+  Widget _buildLevelStep() {
     return _buildStepContainer(
-      icon: Icons.calendar_today,
-      title: 'JLPT Exam Date',
-      subtitle: 'When are you taking the exam?',
-      iconColor: Colors.red,
+      icon: Icons.school,
+      title: 'Trình độ hiện tại',
+      subtitle: 'Bạn đã có nền tảng tiếng Nhật chưa?',
+      iconColor: Colors.purple,
       content: Column(
         children: [
-          'July 2024', 'December 2024', 'July 2025', 'December 2025', 'Not decided'
-        ].map((d) => Padding(
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 2.5,
+            children: [
+              'Mới bắt đầu', 'N5', 'N4', 'N3', 'N2', 'N1'
+            ].map((l) => _buildOptionCard(
+              label: l,
+              isSelected: _currentLevel == l,
+              onTap: () => setState(() => _currentLevel = l),
+            )).toList(),
+          ),
+          const SizedBox(height: 32),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: CheckboxListTile(
+              value: _wantsPlacementTest,
+              onChanged: (val) => setState(() => _wantsPlacementTest = val ?? false),
+              title: const Text('Làm bài kiểm tra đầu vào', style: TextStyle(fontWeight: AppTypography.semiBold, fontSize: 14)),
+              subtitle: const Text('Khuyên dùng nếu bạn đã từng học', style: TextStyle(fontSize: 12)),
+              activeColor: AppColors.primary,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              controlAffinity: ListTileControlAffinity.leading,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTargetStep() {
+    return _buildStepContainer(
+      icon: Icons.flag,
+      title: 'Thời hạn hoàn thành',
+      subtitle: 'Bạn dự kiến đạt mục tiêu trong bao lâu?',
+      content: Column(
+        children: [
+          '4 tháng', '6 tháng', '8 tháng', '12 tháng', 'Không giới hạn'
+        ].map((t) => Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: _buildOptionCard(
-            label: d,
-            isSelected: _jlptExamDate == d,
-            onTap: () => setState(() => _jlptExamDate = d),
+            label: t,
+            isSelected: _learningTarget == t,
+            onTap: () => setState(() => _learningTarget = t),
             fullWidth: true,
           ),
         )).toList(),
@@ -357,16 +404,16 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
   Widget _buildFrequencyStep() {
     return _buildStepContainer(
-      icon: Icons.schedule,
-      title: 'Study Time',
-      subtitle: 'How many minutes per day?',
+      icon: Icons.access_time_filled,
+      title: 'Thời gian học mỗi ngày',
+      subtitle: 'Bạn có thể dành bao nhiêu thời gian để học?',
       iconColor: Colors.teal,
       content: Column(
         children: [
-          { 'label': '15-30 minutes', 'value': 30 },
-          { 'label': '1 hour', 'value': 60 },
-          { 'label': '2 hours', 'value': 120 },
-          { 'label': '3+ hours', 'value': 240 },
+          { 'label': '15-30 phút', 'value': 30 },
+          { 'label': '1 giờ', 'value': 60 },
+          { 'label': '2 giờ', 'value': 120 },
+          { 'label': 'Trên 3 giờ', 'value': 240 },
         ].map((f) => Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: _buildOptionCard(
@@ -380,59 +427,159 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     );
   }
 
-  Widget _buildLevelStep() {
+  Widget _buildJLPTDateStep() {
+    final years = ['2026', '2027', '2028', '2029'];
+    final months = ['Tháng 7', 'Tháng 12'];
+
     return _buildStepContainer(
-      icon: Icons.school,
-      title: 'Current Level',
-      subtitle: 'Where are you starting from?',
-      iconColor: Colors.purple,
+      icon: Icons.calendar_today,
+      title: 'Kỳ thi JLPT',
+      subtitle: 'Chọn thời gian dự kiến bạn sẽ tham gia kỳ thi.',
+      iconColor: Colors.red,
       content: Column(
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
+          const Text(
+            'Chọn năm và tháng',
+            style: TextStyle(
+              fontWeight: AppTypography.semiBold,
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
             children: [
-              'Zero', 'N5.1', 'N5.2', 'N5.3', 'N4', 'N3', 'N2', 'N1'
-            ].map((l) => SizedBox(
-              width: 80,
-              child: _buildOptionCard(
-                label: l,
-                isSelected: _currentLevel == l,
-                onTap: () => setState(() => _currentLevel = l),
+              // Year Selector
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Năm', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                    const SizedBox(height: 8),
+                    _buildMiniSelector(
+                      value: _selectedJlptYear!,
+                      items: years,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedJlptYear = val;
+                          _jlptExamDate = '$_selectedJlptMonth/$_selectedJlptYear';
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
-            )).toList(),
+              const SizedBox(width: 16),
+              // Month Selector
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Tháng', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                    const SizedBox(height: 8),
+                    _buildMiniSelector(
+                      value: _selectedJlptMonth!,
+                      items: months,
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedJlptMonth = val;
+                          _jlptExamDate = '$_selectedJlptMonth/$_selectedJlptYear';
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 32),
-          CheckboxListTile(
-            value: _wantsPlacementTest,
-            onChanged: (val) => setState(() => _wantsPlacementTest = val ?? false),
-            title: const Text('I want a placement test', style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: const Text('Recommended if you have previous knowledge'),
-            activeColor: Colors.blue,
-            contentPadding: EdgeInsets.zero,
-            controlAffinity: ListTileControlAffinity.leading,
+          _buildOptionCard(
+            label: 'Chưa quyết định',
+            isSelected: _jlptExamDate == 'Chưa quyết định',
+            onTap: () {
+              setState(() {
+                _jlptExamDate = 'Chưa quyết định';
+              });
+            },
+            fullWidth: true,
           ),
         ],
       ),
     );
   }
 
+  Widget _buildMiniSelector({
+    required String value,
+    required List<String> items,
+    required ValueChanged<String> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.grey200, width: 1),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+          items: items.map((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(
+                item,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: AppTypography.medium,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (val) => val != null ? onChanged(val) : null,
+        ),
+      ),
+    );
+  }
+
   Widget _buildFinalStep() {
     return _buildStepContainer(
-      icon: Icons.flash_on,
-      title: 'Ready to Go!',
-      subtitle: 'We have generated your personalized roadmap.',
+      icon: Icons.auto_awesome,
+      title: 'Đã sẵn sàng!',
+      subtitle: 'Chúng tôi đã thiết lập lộ trình học tập cá nhân hóa dành riêng cho bạn.',
       iconColor: Colors.cyan,
-      content: const Column(
+      content: Column(
         children: [
-          SizedBox(height: 40),
-          Icon(Icons.rocket, size: 80, color: Colors.blue),
-          SizedBox(height: 24),
-          Text(
-            'Your learning path is optimized for your target. Let\'s make it happen!',
+          const SizedBox(height: 20),
+          Container(
+            height: 180,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                )
+              ],
+            ),
+            child: const Center(
+              child: Icon(Icons.check_circle_rounded, size: 80, color: Colors.white),
+            ),
+          ),
+          const SizedBox(height: 40),
+          const Text(
+            'Lộ trình của bạn đã được tối ưu hóa. Hãy bắt đầu chinh phục tiếng Nhật ngay thôi!',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
           ),
         ],
       ),
@@ -450,44 +597,45 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: fullWidth ? double.infinity : null,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.withOpacity(0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? AppColors.primarySurface : Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey.withOpacity(0.3),
-            width: isSelected ? 2 : 1,
+            color: isSelected ? AppColors.primary : AppColors.grey200.withValues(alpha: 0.5),
+            width: isSelected ? 2 : 1.5,
           ),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.08),
               blurRadius: 10,
-              offset: const Offset(0, 6),
+              offset: const Offset(0, 4),
             )
           ] : null,
         ),
         child: Row(
           mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Flexible(
               child: Text(
                 label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? Colors.blue : Colors.black87,
+                  fontSize: 15,
+                  fontWeight: isSelected ? AppTypography.bold : AppTypography.semiBold,
+                  color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
                 ),
               ),
             ),
-            if (fullWidth) const Spacer() else const SizedBox(width: 12),
-            if (isSelected)
-              const Icon(Icons.check_circle, color: Colors.blue, size: 18),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+            ],
           ],
         ),
       ),
     );
   }
 }
+
