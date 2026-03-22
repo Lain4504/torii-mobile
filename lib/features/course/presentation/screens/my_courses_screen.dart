@@ -122,7 +122,18 @@ class MyCoursesScreen extends ConsumerWidget {
                       child: ElevatedButton(
                         onPressed: e.offeringId == null || e.offeringId!.isEmpty
                             ? null
-                            : () => context.push('/curriculum/${e.offeringId}'),
+                            : () {
+                                final mode = (e.mode ?? '').toUpperCase();
+                                if (mode == 'LIVE' && e.classId.isNotEmpty) {
+                                  final t = Uri.encodeQueryComponent(e.courseTitle ?? '');
+                                  context.push(
+                                    '/enrolled-live/${e.classId}?offeringId=${e.offeringId}&title=$t',
+                                  );
+                                } else {
+                                  final q = e.classId.isNotEmpty ? '?classId=${e.classId}' : '';
+                                  context.push('/curriculum/${e.offeringId}$q');
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isCompleted ? AppColors.grey200 : AppColors.primary,
                           foregroundColor: isCompleted ? AppColors.textPrimary : AppColors.textOnPrimary,

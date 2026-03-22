@@ -81,6 +81,8 @@ dependencies:
   firebase_messaging: ^16.1.2
   flutter_local_notifications: ^21.0.0
   flutter_markdown: ^0.7.7+1
+  chewie: ^1.13.0
+  android_pip: ^2.0.2
 
 
 

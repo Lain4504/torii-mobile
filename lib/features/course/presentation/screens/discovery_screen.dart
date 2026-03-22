@@ -27,9 +27,6 @@ class CourseDiscoveryScreen extends ConsumerWidget {
         ),
         backgroundColor: AppColors.surface,
         elevation: 0,
-        actions: [
-          IconButton(icon: const Icon(Icons.search, color: AppColors.textPrimary), onPressed: () {}),
-        ],
       ),
       body: Column(
         children: [

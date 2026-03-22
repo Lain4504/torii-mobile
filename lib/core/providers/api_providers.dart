@@ -23,12 +23,18 @@ final dioForApiProvider = Provider((ref) {
   return ref.watch(apiClientProvider).client;
 });
 
-/// Chỉ gọi API cá nhân (enrollments, streak, …) khi đã đăng nhập và đã onboard — tránh gọi khi đang redirect sang khảo sát.
+/// Chỉ gọi API cá nhân (enrollments trên Home, streak, …) khi đã đăng nhập và đã onboard — tránh gọi khi đang redirect sang khảo sát.
 bool _personalizedApisAllowed(Ref ref) {
   final auth = ref.watch(authStateProvider).valueOrNull;
   return auth?.status == AuthStatus.authenticated &&
       auth?.user != null &&
       auth!.user!.isOnboarded;
+}
+
+/// Chỉ cần đã đăng nhập (có token + user). Dùng cho lịch live: user đã login nhưng chưa onboard vẫn tải được lịch.
+bool _authenticatedAcademyUser(Ref ref) {
+  final auth = ref.watch(authStateProvider).valueOrNull;
+  return auth?.status == AuthStatus.authenticated && auth?.user != null;
 }
 
 // ---------- Repositories ----------
@@ -82,6 +88,16 @@ final myEnrollmentsProvider = FutureProvider<PaginatedResponse<EnrollmentModel>>
   }
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getMyEnrollments(limit: 50);
+});
+
+/// Tiến độ bài học theo lớp (`lessonId` đã hoàn thành) — cần `classId` từ enrollment.
+final classCompletedLessonIdsProvider =
+    FutureProvider.autoDispose.family<List<String>, String>((ref, classId) async {
+  if (!_personalizedApisAllowed(ref) || classId.isEmpty) {
+    return const [];
+  }
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getCompletedLessonIds(classId);
 });
 
 final myOrdersProvider = FutureProvider<PaginatedResponse<OrderModel>>((ref) async {
@@ -174,7 +190,7 @@ final streakProvider = FutureProvider<StreakModel?>((ref) async {
 
 // ---------- Live schedules (enrollments LIVE + /api/academy/live-sessions, parity web-learner) ----------
 final liveSchedulesProvider = FutureProvider<List<LiveScheduleModel>>((ref) async {
-  if (!_personalizedApisAllowed(ref)) {
+  if (!_authenticatedAcademyUser(ref)) {
     return const <LiveScheduleModel>[];
   }
   final repo = ref.watch(academyRepositoryProvider);

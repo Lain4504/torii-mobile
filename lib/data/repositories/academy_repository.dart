@@ -576,4 +576,59 @@ class AcademyRepository {
     final items = api.data!['items'] as List<dynamic>? ?? [];
     return items.map((e) => (e as Map).cast<String, dynamic>()).toList();
   }
+
+  /// GET /api/academy/classes/:classId/progress — lessonId đã hoàn thành (parity web-learner).
+  /// API trả `{ modules: [{ lessons: [{ id, isCompleted }] }] }` — không có `lessons` phẳng.
+  Future<List<String>> getCompletedLessonIds(String classId) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>('/api/academy/classes/$classId/progress');
+      final body = response.data ?? {};
+      final data = body['data'] ?? body;
+      if (data is! Map) return [];
+      final out = <String>{};
+
+      void addFromLessonMap(Map<String, dynamic> map) {
+        final completed = map['isCompleted'] == true;
+        final id = map['lessonId']?.toString() ?? map['id']?.toString();
+        if (completed && id != null && id.isNotEmpty) out.add(id);
+      }
+
+      final flat = data['lessons'];
+      if (flat is List) {
+        for (final l in flat) {
+          if (l is Map) addFromLessonMap(Map<String, dynamic>.from(l));
+        }
+      }
+      final modules = data['modules'];
+      if (modules is List) {
+        for (final m in modules) {
+          if (m is! Map) continue;
+          final modLessons = m['lessons'];
+          if (modLessons is! List) continue;
+          for (final l in modLessons) {
+            if (l is Map) addFromLessonMap(Map<String, dynamic>.from(l));
+          }
+        }
+      }
+      return out.toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// POST /api/academy/classes/:classId/lessons/:lessonId/complete
+  Future<bool> completeClassLesson({
+    required String classId,
+    required String lessonId,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/academy/classes/$classId/lessons/$lessonId/complete',
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      return api.success == true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

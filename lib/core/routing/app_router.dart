@@ -19,6 +19,7 @@ import '../../features/course/presentation/screens/payment_webview_screen.dart';
 import '../../features/course/presentation/screens/payment_result_screen.dart';
 import '../../features/course/presentation/screens/my_courses_screen.dart';
 import '../../features/course/presentation/screens/curriculum_screen.dart';
+import '../../features/course/presentation/screens/enrolled_live_course_screen.dart';
 import '../../features/course/presentation/screens/lesson_screen.dart';
 import '../../features/blog/presentation/screens/blog_list_screen.dart';
 import '../../features/blog/presentation/screens/blog_detail_screen.dart';
@@ -218,7 +219,28 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/curriculum/:offeringId',
                 builder: (context, state) {
                   final offeringId = state.pathParameters['offeringId'] ?? '';
-                  return CurriculumScreen(offeringId: offeringId);
+                  final classId = state.uri.queryParameters['classId'];
+                  final live = state.uri.queryParameters['live'] == '1';
+                  return CurriculumScreen(
+                    offeringId: offeringId,
+                    classId: classId,
+                    progressDisabled: live,
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/enrolled-live/:classId',
+                builder: (context, state) {
+                  final classId = state.pathParameters['classId'] ?? '';
+                  final offeringId = state.uri.queryParameters['offeringId'];
+                  final titleRaw = state.uri.queryParameters['title'];
+                  final courseTitle =
+                      titleRaw != null && titleRaw.isNotEmpty ? Uri.decodeQueryComponent(titleRaw) : null;
+                  return EnrolledLiveCourseScreen(
+                    classId: classId,
+                    offeringId: offeringId,
+                    courseTitle: courseTitle,
+                  );
                 },
               ),
               GoRoute(

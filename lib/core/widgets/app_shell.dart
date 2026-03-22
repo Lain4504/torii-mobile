@@ -34,13 +34,18 @@ class AppShell extends ConsumerWidget {
     final isSenseiDashboard = currentPath == '/sensei';
     final hideBottomNavForSensei = isSenseiRoute && !isSenseiDashboard;
 
+    // Flashcard/Test/Match: full-screen để nút bên dưới không bị bottom bar che.
+    final isOnStudySetsReview = RegExp(r'/study-sets/[^/]+/review$').hasMatch(currentPath) ||
+        RegExp(r'/study-sets/[^/]+/test$').hasMatch(currentPath) ||
+        RegExp(r'/study-sets/[^/]+/match$').hasMatch(currentPath);
+
     final activeIndex = navigationShell.currentIndex;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Hide bottom bar for Meet routes, Sensei sub-pages, settings, and full-screen lesson
+    // Hide bottom bar for Meet routes, Sensei sub-pages, settings, lesson, flashcard/test/match
     final shouldHideBottomNav =
-        isOnMeetRoute || hideBottomNavForSensei || isOnLessonRoute || isOnSettingsRoute;
+        isOnMeetRoute || hideBottomNavForSensei || isOnLessonRoute || isOnSettingsRoute || isOnStudySetsReview;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -109,14 +114,6 @@ class _BottomNavBar extends StatelessWidget {
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.explore_outlined,
-                      activeIcon: Icons.explore_rounded,
-                      label: 'Discovery',
-                      isSelected: activeIndex == 1,
-                      onTap: () => onTap('/discovery'),
-                      isDark: isDark,
-                    ),
-                    _NavBarItem(
                       icon: Icons.auto_awesome_outlined,
                       activeIcon: Icons.auto_awesome_rounded,
                       label: 'AI Sensei',
@@ -159,11 +156,11 @@ class _BottomNavBar extends StatelessWidget {
                       isDark: isDark,
                     ),
                     _NavBarItem(
-                      icon: Icons.auto_awesome_outlined,
-                      activeIcon: Icons.auto_awesome_rounded,
-                      label: 'AI Sensei',
-                      isSelected: activeIndex == 2,
-                      onTap: () => onTap('/sensei'),
+                      icon: Icons.explore_outlined,
+                      activeIcon: Icons.explore_rounded,
+                      label: 'Discovery',
+                      isSelected: activeIndex == 1,
+                      onTap: () => onTap('/discovery'),
                       isDark: isDark,
                     ),
                     _NavBarItem(

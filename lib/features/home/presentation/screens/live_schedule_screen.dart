@@ -6,6 +6,9 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 
+/// Lịch live: cùng pattern các màn khác — `ref.watch(liveSchedulesProvider)` (xem `api_providers.dart`).
+/// Provider gọi [AcademyRepository.getLiveSchedules]: enrollments/me + live-sessions theo lớp LIVE.
+/// Chỉ cần đã đăng nhập (không bắt buộc onboard) mới gọi API lịch.
 class LiveScheduleScreen extends ConsumerStatefulWidget {
   const LiveScheduleScreen({super.key});
 
@@ -14,10 +17,21 @@ class LiveScheduleScreen extends ConsumerStatefulWidget {
 }
 
 class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
-  final ScrollController _horizontalScrollController = ScrollController();
+  final ScrollController _weekListScrollController = ScrollController();
   DateTime _currentWeekStart = _startOfWeekMonday(DateTime.now());
   bool _upcomingPanelAnimated = false;
   String? _joiningSessionId;
+  final List<GlobalKey> _dayRowKeys = List<GlobalKey>.generate(7, (_) => GlobalKey());
+
+  @override
+  void initState() {
+    super.initState();
+    // Vào tab này: làm mới lịch để luôn có request (provider có cache từ Home).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.invalidate(liveSchedulesProvider);
+    });
+  }
 
   static DateTime _startOfWeekMonday(DateTime d) {
     final date = DateTime(d.year, d.month, d.day);
@@ -26,8 +40,19 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
 
   @override
   void dispose() {
-    _horizontalScrollController.dispose();
+    _weekListScrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToDay(int dayIndex) {
+    final ctx = _dayRowKeys[dayIndex].currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+      alignment: 0.05,
+    );
   }
 
   void _changeWeek(int delta) {
@@ -115,14 +140,12 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    // Gọi API gián tiếp: FutureProvider tự chạy khi watch; khi invalidate ở initState sẽ refetch.
     final liveSchedulesAsync = ref.watch(liveSchedulesProvider);
 
     final primaryColor = AppColors.primary;
     final bgColor = isDark ? AppColors.backgroundDark : AppColors.muted;
     final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
-    final gridLineColor = primaryColor.withValues(alpha: 0.1);
-    final headerBgColor = isDark ? AppColors.surfaceDark : AppColors.sidebar;
-
     final weekEnd = _currentWeekStart.add(const Duration(days: 6));
     final dateRangeText =
         '${DateFormat('dd/MM').format(_currentWeekStart)} – ${DateFormat('dd/MM/yyyy').format(weekEnd)}';
@@ -171,16 +194,16 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
               ),
               child: Column(
                 children: [
-                  _buildHeader(context, isDark, primaryColor),
+                  _buildHeader(context, isDark, primaryColor, () {
+                    ref.invalidate(liveSchedulesProvider);
+                  }),
                   _buildNavigation(context, dateRangeText, primaryColor, isDark),
                   Expanded(
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
                         Positioned.fill(
-                          child: _buildTimetableGrid(
-                            headerBgColor,
-                            gridLineColor,
+                          child: _buildWeekScheduleBody(
                             isDark,
                             primaryColor,
                             liveSchedulesAsync,
@@ -223,8 +246,13 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     );
   }
 
-  /// Đồng bộ phong cách với web-learner `dashboard/schedule`: tiêu đề + mô tả + hành động Meet (test).
-  Widget _buildHeader(BuildContext context, bool isDark, Color primaryColor) {
+  /// Header đồng bộ phong cách web-learner `dashboard/schedule`: tiêu đề + Meet + làm mới lịch.
+  Widget _buildHeader(
+    BuildContext context,
+    bool isDark,
+    Color primaryColor,
+    VoidCallback onRefreshSchedule,
+  ) {
     final theme = Theme.of(context);
     final muted = isDark ? AppColors.textTertiary : AppColors.textSecondary;
 
@@ -261,7 +289,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Theo dõi lịch học trực tuyến các khóa Live bạn đã đăng ký.',
+                      'Tuần · chấm xanh = có buổi · chạm ngày để cuộn tới.',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: muted,
                         height: 1.35,
@@ -270,9 +298,18 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  IconButton(
+                    tooltip: 'Tải lại lịch',
+                    onPressed: onRefreshSchedule,
+                    icon: Icon(Icons.refresh_rounded, color: primaryColor, size: 22),
+                    style: IconButton.styleFrom(
+                      padding: const EdgeInsets.all(6),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
                   TextButton(
                     onPressed: () => context.push('/meet'),
                     style: TextButton.styleFrom(
@@ -284,23 +321,6 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                     child: const Text(
                       'Vào Meet',
                       style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => context.push('/meet?roomId=demo-room'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      foregroundColor: muted,
-                    ),
-                    child: Text(
-                      'Test nhanh',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                        color: muted,
-                      ),
                     ),
                   ),
                 ],
@@ -380,150 +400,128 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     );
   }
 
-  Widget _buildTimetableGrid(
-    Color headerBg,
-    Color gridLine,
+  List<LiveScheduleModel> _sessionsForDay(List<LiveScheduleModel> weekList, DateTime day) {
+    final d = DateTime(day.year, day.month, day.day);
+    final list = weekList.where((s) {
+      final t = s.startAt;
+      if (t == null) return false;
+      final sd = DateTime(t.year, t.month, t.day);
+      return sd == d;
+    }).toList()
+      ..sort((a, b) => (a.startAt ?? DateTime(0)).compareTo(b.startAt ?? DateTime(0)));
+    return list;
+  }
+
+  Widget _buildWeekScheduleBody(
     bool isDark,
     Color primaryColor,
     AsyncValue<List<LiveScheduleModel>> schedulesAsync,
     List<LiveScheduleModel> weekList,
   ) {
-    const double timeColWidth = 55.0;
-    const double dayColWidth = 120.0;
-    const double rowHeight = 100.0;
-    final List<String> days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-    final List<String> times = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '19:00', '21:00'];
-
+    const dayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
     final bottomInset = MediaQuery.paddingOf(context).bottom + 8;
+    final dividerColor = isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.grey300.withValues(alpha: 0.7);
+    final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     return schedulesAsync.when(
-      data: (_) => SingleChildScrollView(
-        controller: _horizontalScrollController,
-        scrollDirection: Axis.horizontal,
-        child: SizedBox(
-          width: timeColWidth + (dayColWidth * 7),
-          child: Column(
-            children: [
-              Container(
-                height: 50,
-                decoration: BoxDecoration(
-                  color: headerBg,
-                  border: Border(bottom: BorderSide(color: gridLine)),
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: timeColWidth),
-                    ...List.generate(7, (index) {
-                      final dayDate = _currentWeekStart.add(Duration(days: index));
-                      final isToday = DateFormat('yyyy-MM-dd').format(dayDate) ==
-                          DateFormat('yyyy-MM-dd').format(DateTime.now());
+      data: (_) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildWeekDayStrip(
+            primaryColor,
+            isDark,
+            weekList,
+            todayStr,
+          ),
+          Expanded(
+            child: ListView.separated(
+              controller: _weekListScrollController,
+              padding: EdgeInsets.only(bottom: bottomInset + (weekList.isEmpty ? 24 : 120)),
+              itemCount: 7,
+              separatorBuilder: (context, _) => Divider(height: 1, thickness: 1, color: dividerColor),
+              itemBuilder: (context, dayIndex) {
+                final day = _currentWeekStart.add(Duration(days: dayIndex));
+                final daySessions = _sessionsForDay(weekList, day);
+                final dayStr = DateFormat('yyyy-MM-dd').format(day);
+                final isToday = dayStr == todayStr;
 
-                      return Container(
-                        width: dayColWidth,
-                        decoration: BoxDecoration(
-                          border: Border(
-                            left: BorderSide(color: gridLine),
-                            bottom: isToday ? BorderSide(color: primaryColor, width: 2) : BorderSide.none,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              days[index],
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: isToday ? primaryColor : AppColors.textTertiary,
-                              ),
-                            ),
-                            Text(
-                              dayDate.day.toString(),
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: isToday
-                                    ? primaryColor
-                                    : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.only(bottom: bottomInset + (weekList.isEmpty ? 24 : 120)),
-                  itemCount: times.length,
-                  itemBuilder: (context, timeIndex) {
-                    return SizedBox(
-                      height: rowHeight,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Container(
-                            width: timeColWidth,
-                            alignment: Alignment.topCenter,
-                            padding: const EdgeInsets.only(top: 12),
-                            decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(color: gridLine.withValues(alpha: 0.5))),
-                            ),
-                            child: Text(
-                              times[timeIndex],
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textTertiary,
-                              ),
-                            ),
-                          ),
-                          ...List.generate(7, (dayIndex) {
-                            final currentDay = _currentWeekStart.add(Duration(days: dayIndex));
-                            final hour = int.parse(times[timeIndex].split(':')[0]);
-                            final nextHour = timeIndex < times.length - 1
-                                ? int.parse(times[timeIndex + 1].split(':')[0])
-                                : hour + 2;
-
-                            final events = weekList.where((s) {
-                              if (s.startAt == null) return false;
-                              return s.startAt!.year == currentDay.year &&
-                                  s.startAt!.month == currentDay.month &&
-                                  s.startAt!.day == currentDay.day &&
-                                  s.startAt!.hour >= hour &&
-                                  s.startAt!.hour < nextHour;
-                            }).toList();
-
-                            return Container(
-                              width: dayColWidth,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  left: BorderSide(color: gridLine.withValues(alpha: 0.45)),
-                                  bottom: BorderSide(color: gridLine.withValues(alpha: 0.45)),
+                return Material(
+                  key: _dayRowKeys[dayIndex],
+                  color: isToday ? primaryColor.withValues(alpha: 0.06) : Colors.transparent,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 52,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                DateFormat('dd/MM').format(day),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                                 ),
                               ),
-                              padding: const EdgeInsets.all(4),
-                              child: events.isEmpty
-                                  ? null
-                                  : Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                      children: [
-                                        for (final e in events) _buildEventCard(e, primaryColor, isDark),
-                                      ],
+                              Text(
+                                dayLabels[dayIndex],
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textTertiary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: daySessions.isEmpty
+                              ? Container(
+                                  constraints: const BoxConstraints(minHeight: 48),
+                                  alignment: Alignment.centerLeft,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.04)
+                                        : AppColors.grey200.withValues(alpha: 0.55),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    'Không có buổi học',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textTertiary.withValues(alpha: 0.75),
                                     ),
-                            );
-                          }),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+                                  ),
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    for (var i = 0; i < daySessions.length; i++)
+                                      Padding(
+                                        padding: EdgeInsets.only(bottom: i < daySessions.length - 1 ? 8 : 0),
+                                        child: _buildCompactSessionCard(
+                                          daySessions[i],
+                                          slotIndex: i + 1,
+                                          primaryColor: primaryColor,
+                                          isDark: isDark,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ),
+        ],
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, stack) => Center(
@@ -539,77 +537,284 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     );
   }
 
-  Widget _buildEventCard(LiveScheduleModel e, Color primaryColor, bool isDark) {
-    final ui = e.uiStateAt(DateTime.now());
-    final isLive = ui == LiveScheduleUiState.live;
-    final isJoinable = ui == LiveScheduleUiState.joinable;
-    final cardColor = isLive
-        ? AppColors.error
-        : isJoinable
-            ? primaryColor
-            : const Color(0xFFF59E0B);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: cardColor.withValues(alpha: 0.12),
-          border: Border(left: BorderSide(color: cardColor, width: 4)),
-          borderRadius: BorderRadius.circular(8),
+  Widget _buildWeekDayStrip(
+    Color primaryColor,
+    bool isDark,
+    List<LiveScheduleModel> weekList,
+    String todayStr,
+  ) {
+    const dayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark.withValues(alpha: 0.9) : AppColors.grey200.withValues(alpha: 0.35),
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.grey300.withValues(alpha: 0.6),
+          ),
         ),
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isLive)
-              Row(
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'LIVE',
-                    style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.error.withValues(alpha: 0.95),
+      ),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: List.generate(7, (i) {
+            final day = _currentWeekStart.add(Duration(days: i));
+            final dayStr = DateFormat('yyyy-MM-dd').format(day);
+            final isToday = dayStr == todayStr;
+            final has = _sessionsForDay(weekList, day).isNotEmpty;
+            return Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: InkWell(
+                onTap: () => _scrollToDay(i),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 48,
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: isToday ? primaryColor : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isToday ? primaryColor : AppColors.grey300.withValues(alpha: 0.65),
                     ),
+                    boxShadow: isToday
+                        ? [BoxShadow(color: primaryColor.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2))]
+                        : null,
                   ),
-                ],
-              )
-            else if (isJoinable)
-              Text(
-                'VÀO LỚP',
-                style: TextStyle(
-                  fontSize: 8,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        dayLabels[i],
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: isToday ? Colors.white.withValues(alpha: 0.95) : AppColors.textTertiary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${day.day}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: isToday ? Colors.white : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                        ),
+                      ),
+                      if (has)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: isToday ? Colors.white : const Color(0xFF3B82F6),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            Text(
-              e.title ?? 'Buổi học',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              e.instructorName ?? e.courseTitle ?? '',
-              style: const TextStyle(fontSize: 8, color: AppColors.textTertiary),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            );
+          }),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCompactSessionCard(
+    LiveScheduleModel e, {
+    required int slotIndex,
+    required Color primaryColor,
+    required bool isDark,
+  }) {
+    final now = DateTime.now();
+    final ui = e.uiStateAt(now);
+    final isLive = ui == LiveScheduleUiState.live;
+    final isEnded = ui == LiveScheduleUiState.ended;
+    final start = e.startAt;
+    final end = e.endAt;
+    final timeTop = start != null ? DateFormat('HH:mm').format(start) : '—';
+    final timeBot = end != null ? DateFormat('HH:mm').format(end) : '—';
+    final accentGreen = AppColors.success;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.04) : AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isLive
+              ? AppColors.error.withValues(alpha: 0.45)
+              : isEnded
+                  ? AppColors.grey300
+                  : AppColors.grey300.withValues(alpha: 0.85),
+        ),
+      ),
+      padding: const EdgeInsets.all(10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 22,
+            child: Center(
+              child: Transform.rotate(
+                angle: -1.5708,
+                child: Text(
+                  'Slot $slotIndex',
+                  style: TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.2,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8, left: 2),
+            child: Column(
+              children: [
+                Text(timeTop, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 4),
+                Container(
+                  width: 2,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: AppColors.grey300.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(timeBot, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    if (isLive)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'LIVE',
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.error),
+                        ),
+                      )
+                    else if (!isEnded && start != null && start.isAfter(now))
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.muted.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Sắp tới',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                          ),
+                        ),
+                      )
+                    else if (isEnded)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.grey200.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Đã xong',
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.textTertiary),
+                        ),
+                      ),
+                    if (e.canAttemptJoin)
+                      TextButton(
+                        onPressed: _joiningSessionId != null
+                            ? null
+                            : () {
+                                if (e.canAttemptJoin) {
+                                  _onJoin(e);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Chưa tới giờ mở phòng. Bạn sẽ vào được trước buổi học vài chục phút.',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                        style: TextButton.styleFrom(
+                          foregroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          backgroundColor: primaryColor.withValues(alpha: 0.12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                        child: _joiningSessionId == e.id
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(
+                                isLive ? 'Vào lớp' : 'Vào phòng',
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+                              ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  (e.title ?? '').trim().isNotEmpty ? e.title! : (e.courseTitle ?? 'Buổi học'),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    height: 1.25,
+                    color: isLive ? AppColors.error : accentGreen,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if ((e.courseTitle ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Khóa: ${e.courseTitle}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                if ((e.instructorName ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    e.instructorName!,
+                    style: const TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

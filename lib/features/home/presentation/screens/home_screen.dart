@@ -5,7 +5,7 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
-import 'package:torii_app/data/models/live_schedule_model.dart';
+import 'package:torii_app/data/models/blog_model.dart';
 import 'package:torii_app/features/home/presentation/widgets/streak_calendar_sheet.dart';
 import 'package:torii_app/features/home/presentation/widgets/streak_welcome_dialog.dart';
 
@@ -18,6 +18,19 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _streakModalShownThisSession = false;
+  late final PageController _blogPageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _blogPageController = PageController(viewportFraction: 0.88);
+  }
+
+  @override
+  void dispose() {
+    _blogPageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +43,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final loadPersonalized = isLoggedIn && user?.isOnboarded == true;
     final displayName = isAuthLoading ? 'Đang tải...' : (user?.displayName ?? 'Bạn');
     final enrollmentsAsync = loadPersonalized ? ref.watch(myEnrollmentsProvider) : null;
-    final liveSchedulesAsync = loadPersonalized ? ref.watch(liveSchedulesProvider) : null;
+    final blogListAsync = ref.watch(blogListProvider);
     final unreadCountAsync = loadPersonalized ? ref.watch(notificationsUnreadCountProvider) : null;
     final streakAsync = loadPersonalized ? ref.watch(streakProvider) : null;
 
@@ -293,78 +306,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              _buildSectionHeader(context, 'Chọn cấp độ', null),
+              _buildSectionHeader(context, 'Cấp độ JLPT', null),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(child: _buildLevelIcon(context, 'N5', AppColors.primary)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildLevelIcon(context, 'N4', AppColors.success)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildLevelIcon(context, 'N3', AppColors.accent)),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        const Spacer(),
-                        Expanded(child: _buildLevelIcon(context, 'N2', AppColors.detail)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildLevelIcon(context, 'N1', AppColors.error)),
-                        const Spacer(),
-                      ],
-                    ),
-                  ],
-                ),
+                padding: const EdgeInsets.only(left: 16),
+                child: _buildJlptLevelStrip(context),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
               _buildSectionHeader(
                 context,
-                'Lịch học live sắp tới',
-                isLoggedIn ? () => context.push('/live-schedule') : null,
+                'Blog',
+                () => context.push('/blog'),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: isLoggedIn
-                    ? liveSchedulesAsync!.when(
-                        data: (list) {
-                          if (list.isEmpty) {
-                            return const Padding(
-                              padding: EdgeInsets.all(12),
-                              child: Text('Chưa có lịch live', style: TextStyle(color: AppColors.textTertiary)),
-                            );
-                          }
-                          final items = list.take(6).toList();
-                          return SizedBox(
-                            height: 128,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: items.length,
-                              separatorBuilder: (_, __) => const SizedBox(width: 12),
-                              itemBuilder: (context, index) => SizedBox(
-                                width: 300,
-                                child: _buildLiveCard(context, items[index]),
-                              ),
-                            ),
-                          );
-                        },
-                        loading: () => const SizedBox(
-                          height: 80,
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                        error: (error, _) => const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: Text('Không tải được lịch live', style: TextStyle(color: AppColors.textTertiary)),
-                        ),
-                      )
-                    : _loginRequiredInline(
-                        context,
-                        text: 'Đăng nhập để xem lịch học live và nhắc lịch.',
-                        onLogin: () => context.push('/login'),
+              blogListAsync.when(
+                data: (paginated) {
+                  final items = paginated.data.take(8).toList();
+                  if (items.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Text(
+                        'Chưa có bài viết',
+                        style: TextStyle(color: AppColors.textTertiary),
                       ),
+                    );
+                  }
+                  return SizedBox(
+                    height: 268,
+                    child: PageView.builder(
+                      controller: _blogPageController,
+                      padEnds: true,
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
+                          child: _buildBlogSwiperCard(context, items[index]),
+                        );
+                      },
+                    ),
+                  );
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, _) => const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Text(
+                    'Không tải được blog',
+                    style: TextStyle(color: AppColors.textTertiary, fontSize: 13),
+                  ),
+                ),
               ),
               const SizedBox(height: 100),
             ],
@@ -437,55 +427,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _loginRequiredInline(
-    BuildContext context, {
-    required String text,
-    required VoidCallback onLogin,
-  }) {
-    final theme = Theme.of(context);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey300),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.lock_outline, color: AppColors.textTertiary, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary, height: 1.35),
-            ),
-          ),
-          const SizedBox(width: 10),
-          TextButton(
-            onPressed: onLogin,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: const Text(
-              'Đăng nhập',
-              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -592,263 +533,129 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildLevelIcon(BuildContext context, String level, Color color) {
-    // Use GestureDetector instead of InkWell to avoid hover/splash visuals on mobile.
-    return GestureDetector(
-      onTap: () => context.go('/discovery?level=$level'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey300),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-                border: Border.all(color: color.withValues(alpha: 0.28), width: 2),
-              ),
-              child: Center(
+  /// Một hàng pill cuộn ngang — gọn, đúng kiểu mobile.
+  Widget _buildJlptLevelStrip(BuildContext context) {
+    const levels = ['N5', 'N4', 'N3', 'N2', 'N1'];
+    return SizedBox(
+      height: 42,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.only(right: 16),
+        itemCount: levels.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final level = levels[i];
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.go('/discovery?level=$level'),
+              borderRadius: BorderRadius.circular(999),
+              child: Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: AppColors.grey300),
+                ),
                 child: Text(
                   level,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
                     fontSize: 14,
-                    color: color,
-                    letterSpacing: 0.4,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              level,
-              style: const TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 12.5,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  String _weekdayLabel(DateTime dt) {
-    switch (dt.weekday) {
-      case DateTime.monday:
-        return 'Thứ 2';
-      case DateTime.tuesday:
-        return 'Thứ 3';
-      case DateTime.wednesday:
-        return 'Thứ 4';
-      case DateTime.thursday:
-        return 'Thứ 5';
-      case DateTime.friday:
-        return 'Thứ 6';
-      case DateTime.saturday:
-        return 'Thứ 7';
-      case DateTime.sunday:
-        return 'CN';
-    }
-    return '';
-  }
-
-  String _formatDayMonth(DateTime dt) {
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}';
-  }
-
-  Widget _buildLiveCard(BuildContext context, LiveScheduleModel s) {
+  /// Thẻ blog cho PageView (swiper).
+  Widget _buildBlogSwiperCard(BuildContext context, BlogModel blog) {
     final theme = Theme.of(context);
-    final start = s.startAt;
-    final end = s.endAt;
-    final hasTime = start != null && end != null;
-    final title = (s.title ?? '').trim().isNotEmpty ? s.title!.trim() : (s.courseTitle ?? 'Buổi học live');
-    final instructor = (s.instructorName ?? '').trim();
-    final dateLabel = start != null ? '${_weekdayLabel(start)} • ${_formatDayMonth(start)}' : 'Sắp diễn ra';
-    final timeLabel = hasTime ? s.timeRange : 'Chưa có giờ';
-    final ui = s.uiStateAt(DateTime.now());
-    final statusLabel = ui == LiveScheduleUiState.live
-        ? 'LIVE'
-        : ui == LiveScheduleUiState.joinable
-            ? 'Vào lớp'
-            : null;
-    final statusColor =
-        ui == LiveScheduleUiState.live ? AppColors.error : AppColors.primary;
+    final excerpt = (blog.excerpt ?? '').trim();
+    final rawContent = blog.content.trim();
+    final preview = excerpt.isNotEmpty
+        ? excerpt
+        : (rawContent.length > 100 ? '${rawContent.substring(0, 100)}…' : rawContent);
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey300),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 58,
-            height: 90,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.primary.withOpacity(0.20)),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 18),
-                const SizedBox(height: 8),
-                Text(
-                  start != null ? _formatDayMonth(start) : '--/--',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  start != null ? _weekdayLabel(start) : '',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (statusLabel != null) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.25)),
-                    ),
-                    child: Text(
-                      statusLabel,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: statusColor,
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                ],
-                Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14.5,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
+    return Material(
+      color: AppColors.surface,
+      elevation: 0,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/blog-detail/${blog.slug}'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 3,
+              child: blog.coverImageUrl != null && blog.coverImageUrl!.isNotEmpty
+                  ? Image.network(
+                      blog.coverImageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => ColoredBox(
                         color: AppColors.grey200,
-                        borderRadius: BorderRadius.circular(999),
+                        child: Icon(Icons.article_rounded, color: AppColors.primary.withValues(alpha: 0.45), size: 40),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.schedule_rounded, size: 14, color: AppColors.textSecondary),
-                          const SizedBox(width: 6),
-                          Text(
-                            timeLabel,
-                            style: const TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
+                    )
+                  : ColoredBox(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      child: const Icon(Icons.article_rounded, color: AppColors.primary, size: 40),
                     ),
-                    const SizedBox(width: 8),
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      blog.title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
                     Expanded(
                       child: Text(
-                        dateLabel,
-                        style: const TextStyle(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
+                        preview,
+                        style: theme.textTheme.bodySmall?.copyWith(
                           color: AppColors.textTertiary,
+                          height: 1.35,
                         ),
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    Row(
+                      children: [
+                        Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textTertiary.withValues(alpha: 0.85)),
+                        const SizedBox(width: 4),
+                        Text(
+                          blog.formattedDate,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.textTertiary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-                if (instructor.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.person_outline_rounded, size: 16, color: AppColors.textTertiary),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          instructor,
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          SizedBox(
-            height: 38,
-            child: ElevatedButton(
-              onPressed: () => context.push('/live-schedule'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Chi tiết',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -938,28 +745,42 @@ class _HomeBanner extends StatelessWidget {
                             backgroundColor: AppColors.primary,
                             foregroundColor: AppColors.textOnPrimary,
                             elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
-                          child: Text(
-                            'Khám phá ngay',
-                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Khám phá ngay',
+                              maxLines: 1,
+                              softWrap: false,
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5),
+                            ),
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 10),
-                    SizedBox(
-                      height: 40,
-                      child: OutlinedButton(
-                        onPressed: onSecondaryAction,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: BorderSide(color: AppColors.primary.withOpacity(0.45)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                        child: Text(
-                          isLoggedIn ? 'Khóa học của tôi' : 'Đăng nhập',
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5),
+                    Expanded(
+                      child: SizedBox(
+                        height: 40,
+                        child: OutlinedButton(
+                          onPressed: onSecondaryAction,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            side: BorderSide(color: AppColors.primary.withOpacity(0.45)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              isLoggedIn ? 'Khóa học của tôi' : 'Đăng nhập',
+                              maxLines: 1,
+                              softWrap: false,
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5),
+                            ),
+                          ),
                         ),
                       ),
                     ),
