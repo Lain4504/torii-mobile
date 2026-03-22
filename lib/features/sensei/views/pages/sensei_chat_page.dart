@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../models/sensei_model.dart';
 import '../../providers/sensei_providers.dart';
 
@@ -74,7 +75,8 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
                   return _EmptyChatView();
                 }
                 final message = messages[index];
-                return _ChatBubble(message: message);
+                final isLatestMessage = index == messages.length - 1;
+                return _ChatBubble(message: message, isLatestMessage: isLatestMessage);
               },
             ),
           ),
@@ -88,13 +90,14 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
   }
 }
 
-class _ChatBubble extends StatelessWidget {
+class _ChatBubble extends ConsumerWidget {
   final ChatMessage message;
+  final bool isLatestMessage;
 
-  const _ChatBubble({required this.message});
+  const _ChatBubble({required this.message, this.isLatestMessage = false});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isAssistant = message.role == ChatMessageRole.assistant;
 
     return Padding(
@@ -107,36 +110,69 @@ class _ChatBubble extends StatelessWidget {
             _SenseiAvatar(),
           const SizedBox(width: 8),
           Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: isAssistant ? AppColors.textOnPrimary : AppColors.primary,
-                borderRadius: BorderRadius.circular(16).copyWith(
-                  topLeft: isAssistant ? const Radius.circular(4) : null,
-                  bottomRight: !isAssistant ? const Radius.circular(4) : null,
+            child: Column(
+              crossAxisAlignment: isAssistant ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isAssistant ? AppColors.textOnPrimary : AppColors.primary,
+                    borderRadius: BorderRadius.circular(16).copyWith(
+                      topLeft: isAssistant ? const Radius.circular(4) : null,
+                      bottomRight: !isAssistant ? const Radius.circular(4) : null,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.textPrimary.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: message.isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                        )
+                      : isAssistant
+                          ? MarkdownBody(
+                              data: message.content,
+                              styleSheet: MarkdownStyleSheet(
+                                p: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 14.5,
+                                  height: 1.4,
+                                ),
+                              ),
+                            )
+                          : Text(
+                              message.content,
+                              style: const TextStyle(
+                                color: AppColors.textOnPrimary,
+                                fontSize: 14.5,
+                                height: 1.4,
+                              ),
+                            ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.textPrimary.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+                if (isAssistant && isLatestMessage && message.suggestions != null && message.suggestions!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: message.suggestions!.map((s) => ActionChip(
+                      label: Text(s, style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                      backgroundColor: AppColors.primarySurface,
+                      side: const BorderSide(color: AppColors.primaryLight),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                      onPressed: () {
+                        ref.read(senseiChatProvider.notifier).sendMessage(s);
+                      },
+                    )).toList(),
                   ),
                 ],
-              ),
-              child: message.isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-                    )
-                  : Text(
-                      message.content,
-                      style: TextStyle(
-                        color: isAssistant ? AppColors.textPrimary : AppColors.textOnPrimary,
-                        fontSize: 14.5,
-                        height: 1.4,
-                      ),
-                    ),
+              ],
             ),
           ),
           const SizedBox(width: 8),
@@ -184,46 +220,53 @@ class _ChatInput extends StatelessWidget {
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.borderLight)),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.grey300),
-              ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
               child: TextField(
                 controller: controller,
                 maxLines: null,
                 onSubmitted: (_) => onSend(),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Nhập câu hỏi tại đây...',
-                  border: InputBorder.none,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.grey300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                  filled: true,
+                  fillColor: AppColors.surface,
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 42,
-            height: 42,
-            child: ElevatedButton(
-              onPressed: onSend,
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
-                shape: const CircleBorder(),
-                elevation: 0,
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 42,
+              height: 42,
+              child: ElevatedButton(
+                onPressed: onSend,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.textOnPrimary,
+                  shape: const CircleBorder(),
+                  elevation: 0,
+                ),
+                child: const Icon(Icons.send, size: 18),
               ),
-              child: const Icon(Icons.send, size: 18),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

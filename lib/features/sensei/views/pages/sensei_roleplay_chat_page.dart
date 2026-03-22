@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../providers/sensei_providers.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../models/sensei_model.dart';
 
 class SenseiRoleplayChatPage extends ConsumerStatefulWidget {
@@ -32,6 +33,10 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterTts _flutterTts = FlutterTts();
   bool _autoPlay = true;
+  bool _showTranslation = true;
+  String _voiceSelection = 'ja-JP-NanamiNeural'; 
+  double _voiceSpeed = 1.0;
+  String _sttLanguage = 'ja-JP';
 
   @override
   void initState() {
@@ -101,7 +106,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(
-          localeId: 'ja-JP',
+          localeId: _sttLanguage,
           partialResults: true,
           listenFor: const Duration(seconds: 30),
           pauseFor: const Duration(seconds: 2),
@@ -161,25 +166,118 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
     if (!_autoPlay) return;
     
     try {
+      if (_voiceSelection == 'system') {
+        await _flutterTts.setSpeechRate(_voiceSpeed * 0.5);
+        await _flutterTts.speak(message.content);
+        return;
+      }
       final repo = ref.read(senseiRepositoryProvider);
-      final tts = await repo.getTTS(message.content);
+      final tts = await repo.getTTS(message.content, voice: _voiceSelection);
       if (tts.url.isNotEmpty) {
         final bytes = _tryDecodeDataAudioUrl(tts.url);
         if (bytes != null) {
           await _audioPlayer.stop();
           await _audioPlayer.play(BytesSource(bytes));
+          await _audioPlayer.setPlaybackRate(_voiceSpeed);
         } else {
           await _audioPlayer.stop();
           await _audioPlayer.play(UrlSource(tts.url));
+          await _audioPlayer.setPlaybackRate(_voiceSpeed);
         }
       } else {
         // Fallback to local TTS
+        await _flutterTts.setSpeechRate(_voiceSpeed * 0.5);
         await _flutterTts.speak(message.content);
       }
     } catch (e) {
       // Fallback
+      await _flutterTts.setSpeechRate(_voiceSpeed * 0.5);
       await _flutterTts.speak(message.content);
     }
+  }
+
+  void _showSettingsModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final theme = Theme.of(context);
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Cài đặt Roleplay', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  SwitchListTile(
+                    title: const Text('Hiển thị bản dịch & Romaji'),
+                    value: _showTranslation,
+                    onChanged: (val) {
+                      setModalState(() => _showTranslation = val);
+                      setState(() => _showTranslation = val);
+                    },
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  const Divider(),
+                  Text('Giọng đọc AI', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  DropdownButton<String>(
+                    isExpanded: true,
+                    value: _voiceSelection,
+                    items: const [
+                      DropdownMenuItem(value: 'ja-JP-NanamiNeural', child: Text('Nanami (Server Neural)')),
+                      DropdownMenuItem(value: 'ja-JP-KeitaNeural', child: Text('Keita (Server Neural)')),
+                      DropdownMenuItem(value: 'system', child: Text('Giọng mặc định thiết bị')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setModalState(() => _voiceSelection = val);
+                        setState(() => _voiceSelection = val);
+                        // Stop any playing audio if voice changes to avoid bugs
+                        _audioPlayer.stop();
+                        _flutterTts.stop();
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  Text('Tốc độ đọc: ${_voiceSpeed.toStringAsFixed(1)}x', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Slider(
+                    value: _voiceSpeed,
+                    min: 0.5,
+                    max: 2.0,
+                    divisions: 15,
+                    onChanged: (val) {
+                      setModalState(() => _voiceSpeed = val);
+                      setState(() => _voiceSpeed = val);
+                    },
+                  ),
+                  const Divider(),
+                  Text('Ngôn ngữ nhập giọng nói (Mic)', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  DropdownButton<String>(
+                    isExpanded: true,
+                    value: _sttLanguage,
+                    items: const [
+                      DropdownMenuItem(value: 'ja-JP', child: Text('Tiếng Nhật (ja-JP)')),
+                      DropdownMenuItem(value: 'vi-VN', child: Text('Tiếng Việt (vi-VN)')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setModalState(() => _sttLanguage = val);
+                        setState(() => _sttLanguage = val);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -220,8 +318,22 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: _showSettingsModal,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+          ),
+          IconButton(
             icon: Icon(_autoPlay ? Icons.volume_up : Icons.volume_off),
-            onPressed: () => setState(() => _autoPlay = !_autoPlay),
+            onPressed: () {
+              setState(() {
+                _autoPlay = !_autoPlay;
+                if (!_autoPlay) {
+                  _audioPlayer.stop();
+                  _flutterTts.stop();
+                }
+              });
+            },
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
           ),
@@ -246,18 +358,49 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
-              itemCount: state.messages.length + (state.isLoading ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == state.messages.length) {
-                  return _buildTypingIndicator();
-                }
-                final msg = state.messages[index];
-                return _buildMessageBubble(msg);
-              },
-            ),
+            child: state.error != null && state.messages.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Lỗi kết nối hoặc máy chủ phản hồi chậm.\nChi tiết: ${state.error}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () => notifier.start(),
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Thử lại'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.textOnPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+                    itemCount: state.messages.length + (state.isLoading ? 1 : 0) + (state.error != null && state.messages.isNotEmpty ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == state.messages.length && state.isLoading) {
+                        return _buildTypingIndicator();
+                      }
+                      if (index == state.messages.length + (state.isLoading ? 1 : 0) && state.error != null) {
+                         return _buildErrorBubble(state.error!, notifier);
+                      }
+                      final msg = state.messages[index];
+                      return _buildMessageBubble(msg);
+                    },
+                  ),
           ),
           _buildInputBar(state, notifier),
         ],
@@ -294,14 +437,24 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  msg.content,
-                  style: TextStyle(
-                    color: isAI ? AppColors.textPrimary : AppColors.textOnPrimary,
-                    fontSize: 14.5,
-                  ),
-                ),
-                if (isAI && !msg.isFeedback) ...[
+                isAI
+                    ? MarkdownBody(
+                        data: msg.content,
+                        styleSheet: MarkdownStyleSheet(
+                          p: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 14.5,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        msg.content,
+                        style: const TextStyle(
+                          color: AppColors.textOnPrimary,
+                          fontSize: 14.5,
+                        ),
+                      ),
+                if (isAI && !msg.isFeedback && _showTranslation) ...[
                   if (msg.romaji != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
@@ -354,6 +507,56 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildErrorBubble(String error, dynamic notifier) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16, top: 8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.error.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.error.withOpacity(0.5)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 18),
+                SizedBox(width: 8),
+                Text('Lỗi kết nối', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(error, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                   if (ref.read(senseiRoleplayProvider(widget.topic)).messages.isEmpty) {
+                      notifier.start();
+                   } else {
+                      // We don't have a direct "retry last message" in the provider, 
+                      // but user can just type again or we can re-send the last user message.
+                      // For now, let's just instruct them.
+                   }
+                },
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  backgroundColor: AppColors.error.withOpacity(0.1),
+                  foregroundColor: AppColors.error,
+                ),
+                child: const Text('Đã hiểu'),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

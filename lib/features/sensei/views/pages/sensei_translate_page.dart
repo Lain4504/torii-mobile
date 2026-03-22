@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
-import '../providers/sensei_providers.dart';
+import '../../providers/sensei_providers.dart';
 
 class SenseiTranslatePage extends ConsumerStatefulWidget {
   const SenseiTranslatePage({super.key});
@@ -62,10 +62,11 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
-        child: Column(
-          children: [
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
+          child: Column(
+            children: [
             // Language Selector
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -254,6 +255,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
               _GrammarResultView(response: grammarState.response!),
           ],
         ),
+      ),
       ),
     );
   }
