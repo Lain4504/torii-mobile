@@ -17,6 +17,8 @@ class ChatMessageList extends ConsumerStatefulWidget {
 
 class _ChatMessageListState extends ConsumerState<ChatMessageList> {
   final ScrollController _scrollController = ScrollController();
+  /// -1 = chưa đồng bộ lần đầu (để cuộn khi mở sheet đã có tin).
+  int _lastMessageCount = -1;
 
   @override
   void dispose() {
@@ -24,13 +26,17 @@ class _ChatMessageListState extends ConsumerState<ChatMessageList> {
     super.dispose();
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
+  void _scrollToBottom({bool animated = true}) {
+    if (!_scrollController.hasClients) return;
+    final max = _scrollController.position.maxScrollExtent;
+    if (animated) {
       _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+        max,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
       );
+    } else {
+      _scrollController.jumpTo(max);
     }
   }
 
@@ -39,10 +45,15 @@ class _ChatMessageListState extends ConsumerState<ChatMessageList> {
     final chatState = ref.watch(chatMessagesProvider);
     final messages = chatState.messagesByKey(widget.chatKey);
     final currentUser = ref.watch(sessionProvider.select((s) => s.currentUser));
-    
-    // Auto-scroll to bottom when new messages arrive
-    // Note: In production, consider using a reverse list or smarter scrolling logic
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+
+    final n = messages.length;
+    if (n != _lastMessageCount) {
+      _lastMessageCount = n;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _scrollToBottom(animated: n > 1);
+      });
+    }
 
     if (messages.isEmpty) {
       return Center(
@@ -52,7 +63,7 @@ class _ChatMessageListState extends ConsumerState<ChatMessageList> {
             Icon(
               Icons.chat_bubble_outline,
               size: 48,
-              color: Theme.of(context).disabledColor.withOpacity(0.2),
+              color: Theme.of(context).disabledColor.withValues(alpha: 0.2),
             ),
             const SizedBox(height: 16),
             Text(

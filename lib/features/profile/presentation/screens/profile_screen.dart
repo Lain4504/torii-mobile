@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
+import 'package:torii_app/core/theme/theme_provider.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -15,6 +16,7 @@ class ProfileScreen extends ConsumerWidget {
     final gamificationAsync = ref.watch(gamificationProfileProvider);
     final streakAsync = ref.watch(streakProvider);
     final achievementsAsync = ref.watch(gamificationAchievementsProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     final user = authAsync.value?.user;
     final profile = gamificationAsync.value;
@@ -42,6 +44,14 @@ class ProfileScreen extends ConsumerWidget {
         backgroundColor: AppColors.surface,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: Icon(
+              themeMode == ThemeMode.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+              color: AppColors.textPrimary,
+            ),
+            tooltip: 'Sáng / tối',
+            onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
+          ),
           IconButton(
             icon: const Icon(
               Icons.settings_outlined,

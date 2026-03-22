@@ -33,8 +33,13 @@ class AuthRepository {
       if (data.requiresTwoFactor) {
         return (AuthResult.requires2FA, data, null);
       } else {
-        if (data.accessToken != null && data.refreshToken != null) {
-          await tokenStorage.saveTokens(data.accessToken!, data.refreshToken!);
+        // Chỉ cần accessToken: gateway mobile có thể trả refresh rỗng / một phần;
+        // trước đây yêu cầu cả hai khiến login thất bại dù server đã tạo session.
+        if (data.accessToken != null) {
+          await tokenStorage.saveTokens(
+            data.accessToken!,
+            data.refreshToken ?? '',
+          );
           return (AuthResult.success, data, null);
         }
       }
@@ -51,8 +56,11 @@ class AuthRepository {
 
     if (response.success && response.data != null) {
       final data = response.data!;
-      if (data.accessToken != null && data.refreshToken != null) {
-        await tokenStorage.saveTokens(data.accessToken!, data.refreshToken!);
+      if (data.accessToken != null) {
+        await tokenStorage.saveTokens(
+          data.accessToken!,
+          data.refreshToken ?? '',
+        );
         return data;
       }
     }

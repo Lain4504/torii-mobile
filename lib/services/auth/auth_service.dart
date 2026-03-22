@@ -12,7 +12,7 @@ class AuthService {
   Future<ApiResponse<AuthData>> register({
     required String email,
     required String password,
-    required String displayName,
+    required String fullName,
   }) async {
     try {
       final response = await _apiClient.client.post(
@@ -20,7 +20,7 @@ class AuthService {
         data: {
           'email': email,
           'password': password,
-          'displayName': displayName,
+          'fullName': fullName,
           'platform': 'mobile',
         },
         options: Options(headers: {'x-platform': 'mobile'}),
@@ -45,9 +45,21 @@ class AuthService {
         },
         options: Options(headers: {'x-platform': 'mobile'}),
       );
-      return ApiResponse.fromJson(response.data, (json) => AuthData.fromJson(json));
+      final raw = response.data;
+      if (raw is! Map<String, dynamic>) {
+        return ApiResponse<AuthData>(
+          success: false,
+          message: 'Phản hồi máy chủ không hợp lệ (${response.statusCode})',
+        );
+      }
+      return ApiResponse.fromJson(raw, (json) => AuthData.fromJson(json));
     } on DioException catch (e) {
       return _handleError(e);
+    } catch (e) {
+      return ApiResponse<AuthData>(
+        success: false,
+        message: e.toString(),
+      );
     }
   }
 
@@ -245,15 +257,44 @@ class AuthService {
   }
 
   /// 3. User Profile
-  Future<ApiResponse<User>> getMe() async {
+  /// [authorizationBearer] — dùng token vừa nhận sau login để tránh race Keychain trên iOS
+  /// (interceptor đọc [TokenService] có thể chưa kịp sync).
+  Future<ApiResponse<User>> getMe({String? authorizationBearer}) async {
     try {
-      final response = await _apiClient.client.get('/api/auth/me');
+      final response = await _apiClient.client.get(
+        '/api/auth/me',
+        options: Options(
+          headers: <String, dynamic>{
+            'x-platform': 'mobile',
+            if (authorizationBearer != null)
+              'Authorization': 'Bearer $authorizationBearer',
+          },
+        ),
+      );
+      final raw = response.data;
+      if (raw is! Map<String, dynamic>) {
+        return ApiResponse<User>(
+          success: false,
+          message: 'Phản hồi /me không hợp lệ (${response.statusCode})',
+        );
+      }
       return ApiResponse.fromJson(
-        response.data,
-        (json) => User.fromJson(json['user'] as Map<String, dynamic>),
+        raw,
+        (json) {
+          final u = json['user'];
+          if (u is! Map<String, dynamic>) {
+            throw FormatException('Missing user in /me response');
+          }
+          return User.fromJson(u);
+        },
       );
     } on DioException catch (e) {
       return _handleError(e);
+    } catch (e) {
+      return ApiResponse<User>(
+        success: false,
+        message: e.toString(),
+      );
     }
   }
 
@@ -353,8 +394,16 @@ class AuthService {
   }
 
   ApiResponse<T> _handleError<T>(DioException e) {
+    final code = e.response?.statusCode;
+    if (code == 502 || code == 503 || code == 504) {
+      return ApiResponse<T>(
+        success: false,
+        message:
+            'Cổng API tạm thời lỗi (HTTP $code). Đăng nhập có thể đã thành công phía server — thử lại sau vài giây.',
+      );
+    }
     if (e.response?.data != null && e.response?.data is Map) {
-      return ApiResponse.fromJson(e.response!.data, (_) => null as T);
+      return ApiResponse.fromJson(e.response!.data as Map<String, dynamic>, (_) => null as T);
     }
     return ApiResponse(
       success: false,

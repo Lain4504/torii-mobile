@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
@@ -189,7 +190,13 @@ class _ProviderRow extends StatelessWidget {
               color: AppColors.primary.withOpacity(0.10),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.g_mobiledata_rounded, color: AppColors.primary),
+            child: const Center(
+              child: FaIcon(
+                FontAwesomeIcons.google,
+                size: 20,
+                color: Color(0xFF4285F4),
+              ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

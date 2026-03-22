@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import '../../../providers/active_speakers_provider.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/livekit_providers.dart';
+import '../../../providers/room_settings_provider.dart';
 import '../../../providers/session_provider.dart';
 import 'video_tile.dart';
 
@@ -21,9 +23,7 @@ class VideoGrid extends ConsumerWidget {
     final livekitConn = ref.read(sessionProvider.notifier).livekitConn;
     final localIdentity = livekitConn?.room.localParticipant?.identity;
 
-    final tiles = participantInfos
-        .where((p) => p.metadata.isOnline)
-        .map((info) {
+    var tiles = participantInfos.where((p) => p.metadata.isOnline).map((info) {
       Participant? livekitParticipant;
       if (livekitConn != null) {
         if (localIdentity != null && info.userId == localIdentity) {
@@ -40,33 +40,71 @@ class VideoGrid extends ConsumerWidget {
       );
     }).toList();
 
+    final focusOnSpeaker = ref.watch(
+      roomSettingsProvider.select((s) => s.focusActiveSpeakerWebcam),
+    );
+    if (focusOnSpeaker) {
+      final speakingIds = ref
+          .watch(currentlySpeakingProvider)
+          .map((s) => s.userId)
+          .toSet();
+      tiles = List<_TileData>.from(tiles)
+        ..sort((a, b) {
+          final aSp = speakingIds.contains(a.userId);
+          final bSp = speakingIds.contains(b.userId);
+          if (aSp == bSp) return 0;
+          return aSp ? -1 : 1;
+        });
+    }
+
+    final pinCamUserId = ref.watch(
+      roomSettingsProvider.select((s) => s.pinCamUserId),
+    );
+    if (pinCamUserId != null) {
+      final hasPin = tiles.any((t) => t.userId == pinCamUserId);
+      if (!hasPin || tiles.length <= 1) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(roomSettingsProvider.notifier).updatePinCamUserId(null);
+        });
+      }
+    }
+
     final screenShareTracksAsync = ref.watch(screenShareTracksProvider);
-    final screenShareTracks = screenShareTracksAsync.valueOrNull ??
-        (livekitConn?.screenShareTracksMap ?? const <String, List<TrackPublication>>{});
+    final screenShareTracks =
+        screenShareTracksAsync.valueOrNull ??
+        (livekitConn?.screenShareTracksMap ??
+            const <String, List<TrackPublication>>{});
     final focusedScreenShare = _findActiveScreenShareFromMap(
       screenShareTracks,
       participantInfos,
     );
-    final fallbackScreenShare = focusedScreenShare ??
-        _findActiveScreenShareFromRoom(
-          livekitConn?.room,
-          participantInfos,
-        );
+    final fallbackScreenShare =
+        focusedScreenShare ??
+        _findActiveScreenShareFromRoom(livekitConn?.room, participantInfos);
 
     final screenShareToShow = focusedScreenShare ?? fallbackScreenShare;
 
     // Only show screen-share layout when there is a real video track. Session flag can stay
     // true briefly (e.g. audio-only publication left) and would otherwise keep a black/placeholder panel.
     if (screenShareToShow != null && screenShareToShow.track != null) {
-      return _buildScreenShareLayout(
-        context,
-        ref,
-        tiles,
-        screenShareToShow,
-      );
+      return _buildScreenShareLayout(context, ref, tiles, screenShareToShow);
     }
 
-    // Normal grid layout
+    // Web VideosComponent: ghim webcam (pinCamUserId) khi có ≥ 2 người.
+    if (pinCamUserId != null && tiles.length > 1) {
+      _TileData? pinTile;
+      for (final t in tiles) {
+        if (t.userId == pinCamUserId) {
+          pinTile = t;
+          break;
+        }
+      }
+      if (pinTile != null) {
+        final others = tiles.where((t) => t.userId != pinCamUserId).toList();
+        return _buildPinnedCamLayout(context, pinTile, others);
+      }
+    }
+
     return _buildGridLayout(context, tiles);
   }
 
@@ -79,7 +117,7 @@ class VideoGrid extends ConsumerWidget {
     final screenSharing = ref.watch(
       sessionProvider.select((s) => s.screenSharing),
     );
-    
+
     return Column(
       children: [
         // Screen share (main area)
@@ -115,7 +153,7 @@ class VideoGrid extends ConsumerWidget {
               ),
             ),
           ),
-        
+
         // Participant thumbnails
         SizedBox(
           height: 120,
@@ -133,6 +171,7 @@ class VideoGrid extends ConsumerWidget {
                     name: participants[index].name,
                     participant: participants[index].livekitParticipant,
                     isSmall: true,
+                    showPinButton: participants.length > 1,
                   ),
                 ),
               );
@@ -155,7 +194,7 @@ class VideoGrid extends ConsumerWidget {
 
     final orientation = MediaQuery.of(context).orientation;
     final isPortrait = orientation == Orientation.portrait;
-    
+
     // Calculate grid columns based on participant count and orientation
     int crossAxisCount;
     if (participants.length == 1) {
@@ -184,8 +223,57 @@ class VideoGrid extends ConsumerWidget {
           userId: participants[index].userId,
           name: participants[index].name,
           participant: participants[index].livekitParticipant,
+          showPinButton: participants.length > 1,
         );
       },
+    );
+  }
+
+  /// Web `PinnedLayout`: một ô lớn + strip ngang (không có screen share).
+  Widget _buildPinnedCamLayout(
+    BuildContext context,
+    _TileData pinned,
+    List<_TileData> others,
+  ) {
+    final showPin = others.isNotEmpty;
+    return Column(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            child: VideoTile(
+              userId: pinned.userId,
+              name: pinned.name,
+              participant: pinned.livekitParticipant,
+              showPinButton: showPin,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 128,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+            itemCount: others.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: SizedBox(
+                  width: 160,
+                  child: VideoTile(
+                    userId: others[index].userId,
+                    name: others[index].name,
+                    participant: others[index].livekitParticipant,
+                    isSmall: true,
+                    showPinButton: showPin,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -194,10 +282,7 @@ class _ScreenShareFocus {
   final String sharedBy;
   final VideoTrack? track;
 
-  _ScreenShareFocus({
-    required this.sharedBy,
-    required this.track,
-  });
+  _ScreenShareFocus({required this.sharedBy, required this.track});
 }
 
 _ScreenShareFocus? _findActiveScreenShareFromMap(
@@ -237,7 +322,9 @@ _ScreenShareFocus? _findActiveScreenShareFromRoom(
       if (pub.source == TrackSource.screenShareVideo &&
           pub.track is VideoTrack &&
           !pub.muted) {
-        final p = participants.where((e) => e.userId == participant.identity).toList();
+        final p = participants
+            .where((e) => e.userId == participant.identity)
+            .toList();
         final name = p.isNotEmpty ? p.first.name : participant.identity;
         return _ScreenShareFocus(
           sharedBy: name,
@@ -253,7 +340,9 @@ _ScreenShareFocus? _findActiveScreenShareFromRoom(
       if (pub.source == TrackSource.screenShareVideo &&
           pub.track is VideoTrack &&
           !pub.muted) {
-        final p = participants.where((e) => e.userId == local.identity).toList();
+        final p = participants
+            .where((e) => e.userId == local.identity)
+            .toList();
         final name = p.isNotEmpty ? p.first.name : local.identity;
         return _ScreenShareFocus(
           sharedBy: name,

@@ -38,23 +38,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
         ),
         backgroundColor: AppColors.surface,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () => _showCreateSetSheet(context),
-            icon: const Icon(Icons.add_circle_outline_rounded),
-            tooltip: 'Tạo bài mới',
-          ),
-        ],
       ),
-      floatingActionButton: (_selectedSetId == null)
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _showCreateCardSheet(context, _selectedSetId!),
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textOnPrimary,
-              icon: const Icon(Icons.add),
-              label: const Text('Thêm thẻ', style: TextStyle(fontWeight: FontWeight.w900)),
-            ),
       body: setsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
@@ -114,6 +98,10 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
           final selectedCards = (selected?['setCards'] as List?)?.cast<dynamic>() ?? const [];
           final selectedCount = selectedCards.length;
 
+          // AppShell dùng extendBody: true → body vẽ xuyên qua bottom bar; padding đáy cho nav + safe area.
+          final mq = MediaQuery.of(context);
+          final shellBottomInset = mq.padding.bottom + 64 + 12;
+
           return RefreshIndicator(
             onRefresh: () async {
               ref.invalidate(studySetsProvider);
@@ -122,7 +110,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, shellBottomInset),
               children: [
                 // List of sets (mobile adaptation of the web grid)
                 _SectionCard(
@@ -217,7 +205,20 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                 // Cards list (mobile)
                 _SectionCard(
                   title: 'Danh sách thẻ ($selectedCount)',
-                  subtitle: 'Nhấn “+” để thêm thẻ mới. Danh sách hiển thị dạng list đồng đều.',
+                  subtitle: 'Nhấn «Thêm thẻ» hoặc vuốt thẻ để sửa / xóa.',
+                  trailing: SizedBox(
+                    height: 32,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showCreateCardSheet(context, selectedId),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('Thêm thẻ', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
+                    ),
+                  ),
                   child: selectedAsync.when(
                     loading: () => const Padding(
                       padding: EdgeInsets.all(18),
@@ -336,6 +337,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                       onPressed: (_) async {
                                         final ok = await showDialog<bool>(
                                           context: context,
+                                          useRootNavigator: true,
                                           builder: (dCtx) => AlertDialog(
                                             title: const Text('Xóa thẻ?'),
                                             content: const Text('Bạn có chắc chắn muốn xóa thẻ này không?'),
@@ -365,21 +367,6 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                 child: row,
                               );
                             },
-                          ),
-                          const SizedBox(height: 10),
-                          SizedBox(
-                            height: 44,
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () => _showCreateCardSheet(context, selectedId),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.primary,
-                                side: BorderSide(color: AppColors.primary.withOpacity(0.45)),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              ),
-                              icon: const Icon(Icons.note_add_rounded, size: 18),
-                              label: const Text('Thêm ghi chú', style: TextStyle(fontWeight: FontWeight.w900)),
-                            ),
                           ),
                         ],
                       );
@@ -524,6 +511,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
 
     await showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
@@ -546,7 +534,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                 await _createCard(setId: setId, term: term, definition: def, hint: hint.isEmpty ? null : hint);
                 if (!ctx.mounted) return;
                 setSheet(() => busy = false);
-                Navigator.of(ctx).pop();
+                Navigator.of(ctx, rootNavigator: true).pop();
               }
 
               return Column(
@@ -602,7 +590,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                         child: SizedBox(
                           height: 44,
                           child: OutlinedButton(
-                            onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                            onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textSecondary,
                               side: const BorderSide(color: AppColors.grey300),
@@ -656,6 +644,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
 
     await showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
@@ -677,7 +666,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                 await _updateCard(setId: setId, cardId: cardId, term: term, definition: def);
                 if (!ctx.mounted) return;
                 setSheet(() => busy = false);
-                Navigator.of(ctx).pop();
+                Navigator.of(ctx, rootNavigator: true).pop();
               }
 
               return Column(
@@ -719,7 +708,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                         child: SizedBox(
                           height: 44,
                           child: OutlinedButton(
-                            onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                            onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textSecondary,
                               side: const BorderSide(color: AppColors.grey300),
@@ -771,6 +760,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
 
     await showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
@@ -796,7 +786,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                 if (ok) {
                   ref.invalidate(studySetsProvider);
                   ref.invalidate(studySetDetailProvider(setId));
-                  Navigator.of(ctx).pop();
+                  Navigator.of(ctx, rootNavigator: true).pop();
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật bài')));
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật thất bại')));
@@ -846,7 +836,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                         child: SizedBox(
                           height: 44,
                           child: OutlinedButton(
-                            onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                            onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textSecondary,
                               side: const BorderSide(color: AppColors.grey300),
@@ -893,6 +883,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
 
     await showModalBottomSheet<void>(
       context: context,
+      useRootNavigator: true,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
@@ -918,7 +909,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                   if (created != null) {
                     ref.invalidate(studySetsProvider);
                     setState(() => _selectedSetId = created.id);
-                    Navigator.of(ctx).pop();
+                    Navigator.of(ctx, rootNavigator: true).pop();
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tạo bộ thẻ thất bại')));
                   }
@@ -968,7 +959,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                         child: SizedBox(
                           height: 44,
                           child: OutlinedButton(
-                            onPressed: busy ? null : () => Navigator.of(ctx).pop(),
+                            onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textSecondary,
                               side: const BorderSide(color: AppColors.grey300),

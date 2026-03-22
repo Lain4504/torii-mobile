@@ -88,6 +88,21 @@ Nếu repo monorepo không nằm cạnh torii-mobile, set biến môi trường:
 
 ---
 
+## 📱 iOS Build & Firebase (Codemagic)
+
+Ứng dụng dùng Firebase (push notifications). **iOS cần file `GoogleService-Info.plist`** để tránh crash màn hình trắng khi mở app.
+
+### Thêm GoogleService-Info.plist
+1. Vào [Firebase Console](https://console.firebase.google.com) → Project **flutterapp-8448e** → Project settings.
+2. Trong **Your apps**, thêm iOS app (nếu chưa có):
+   - Bundle ID: `com.miraimagiclab.toriiApp`
+3. Tải **GoogleService-Info.plist** và đặt vào `ios/Runner/`.
+4. Commit file (hoặc cấu hình Codemagic để inject qua environment variable).
+
+Nếu file thiếu, app vẫn khởi động nhưng push notifications sẽ không hoạt động (đã thêm fallback trong `main.dart`).
+
+---
+
 ## 🔐 Authentication Config
 *   **Transport:** JSON Body (via `x-platform: mobile` header).
 *   **Storage:** 

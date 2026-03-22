@@ -135,12 +135,19 @@ class _ChatInputState extends ConsumerState<ChatInput> {
 
   @override
   Widget build(BuildContext context) {
+    final view = MediaQuery.of(context);
+    final keyboardOpen = view.viewInsets.bottom > 0;
+    // Khi bàn phím mở: padding nhỏ (sheet đã co theo keyboard). Khi đóng: thêm safe area (home indicator).
+    final bottomPad = keyboardOpen
+        ? 12.0
+        : (24.0 + view.padding.bottom).clamp(24.0, 48.0);
+
     return Container(
-      padding: const EdgeInsets.only(
+      padding: EdgeInsets.only(
         left: 16,
         right: 16,
         top: 12,
-        bottom: 24, // Safety padding for bottom area
+        bottom: bottomPad,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -167,6 +174,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
           Expanded(
             child: TextField(
               controller: _controller,
+              scrollPadding: const EdgeInsets.only(bottom: 120),
               decoration: InputDecoration(
                 hintText: 'Send a message...',
                 hintStyle: TextStyle(

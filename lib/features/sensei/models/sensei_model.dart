@@ -26,20 +26,24 @@ class GrammarError {
   final String correction;
   final String type;
   final String explanation;
+  /// Đoạn/cụm API chỉ ra (có thể trùng với originalText).
+  final String location;
 
   const GrammarError({
     required this.issue,
     required this.correction,
     required this.type,
     required this.explanation,
+    this.location = '',
   });
 
   factory GrammarError.fromJson(Map<String, dynamic> json) {
     return GrammarError(
-      issue: json['issue'] ?? '',
-      correction: json['correction'] ?? '',
-      type: json['type'] ?? '',
-      explanation: json['explanation'] ?? '',
+      issue: json['issue']?.toString() ?? '',
+      correction: json['correction']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+      explanation: json['explanation']?.toString() ?? '',
+      location: json['location']?.toString() ?? '',
     );
   }
 }
