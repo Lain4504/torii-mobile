@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 
@@ -30,12 +29,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: theme.colorScheme.onSurface, size: 20),
           onPressed: () => context.go('/login'),
         ),
       ),
@@ -53,7 +52,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       'Torii Nihongo',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
+                        color: theme.colorScheme.primary,
                         letterSpacing: 0.4,
                       ),
                     ),
@@ -70,7 +69,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Text(
                     'Bắt đầu hành trình chinh phục tiếng Nhật',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.grey700,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -78,6 +77,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   // Form fields
                   _buildLabel('Họ và tên (full name)'),
               _buildTextField(
+                theme,
                 controller: _fullNameController,
                 hint: 'Nhập họ và tên đầy đủ của bạn',
                 icon: Icons.person_outline,
@@ -85,6 +85,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               
                   _buildLabel('Email'),
                   _buildTextField(
+                theme,
                 controller: _emailController,
                 hint: 'Nhập email của bạn',
                 icon: Icons.email_outlined,
@@ -92,6 +93,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                   _buildLabel('Mật khẩu'),
                   _buildTextField(
+                theme,
                 controller: _passwordController,
                 hint: 'Nhập mật khẩu', 
                 icon: Icons.lock_outline, 
@@ -102,6 +104,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                   _buildLabel('Xác nhận mật khẩu'),
                   _buildTextField(
+                theme,
                 controller: _confirmPasswordController,
                 hint: 'Nhập lại mật khẩu', 
                 icon: Icons.lock_reset_outlined, 
@@ -123,7 +126,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               _agreeToTerms = val ?? false;
                             });
                           },
-                          activeColor: AppColors.primary,
+                          activeColor: theme.colorScheme.primary,
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           shape: RoundedRectangleBorder(
@@ -217,20 +220,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(authState?.error ?? 'Đăng ký thất bại. Vui lòng thử lại.'),
-                                  backgroundColor: AppColors.error,
+                                  backgroundColor: theme.colorScheme.error,
                                 ),
                               );
                             }
                           }
                         },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
-                      ),
                       child: Text(
                         _isLoading ? 'Đang xử lý...' : 'Tạo tài khoản',
                         style: const TextStyle(
@@ -244,18 +247,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      const Expanded(
-                        child: Divider(color: AppColors.grey300),
+                      Expanded(
+                        child: Divider(color: theme.colorScheme.outlineVariant),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Text(
                           'hoặc',
-                          style: TextStyle(color: AppColors.textTertiary),
+                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ),
-                      const Expanded(
-                        child: Divider(color: AppColors.grey300),
+                      Expanded(
+                        child: Divider(color: theme.colorScheme.outlineVariant),
                       ),
                     ],
                   ),
@@ -280,7 +283,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(authState!.error!),
-                            backgroundColor: AppColors.error,
+                            backgroundColor: theme.colorScheme.error,
                           ),
                         );
                       }
@@ -310,7 +313,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(authState!.error!),
-                            backgroundColor: AppColors.error,
+                            backgroundColor: theme.colorScheme.error,
                           ),
                         );
                       }
@@ -325,10 +328,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         onTap: () {
                           context.go('/login');
                         },
-                        child: const Text(
+                        child: Text(
                           'Đăng nhập',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -352,7 +355,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildTextField(
+    ThemeData theme, {
     required TextEditingController controller,
     required String hint,
     required IconData icon,
@@ -383,15 +387,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.grey300),
+          borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.grey300),
+          borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary),
+          borderSide: BorderSide(color: theme.colorScheme.primary),
         ),
       ),
     );
@@ -404,9 +408,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     required VoidCallback onPressed,
     Color? iconColor,
   }) {
-    assert(icon != null || leading != null);
+    final theme = Theme.of(ref.context);
     final Widget prefix = leading ??
-        Icon(icon!, color: iconColor ?? AppColors.textPrimary, size: 22);
+        Icon(icon!, color: iconColor ?? theme.colorScheme.onSurface, size: 22);
     return SizedBox(
       width: double.infinity,
       height: 46,
@@ -415,14 +419,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         icon: prefix,
         label: Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
         ),
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.grey300),
+          side: BorderSide(color: theme.colorScheme.outlineVariant),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

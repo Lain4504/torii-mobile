@@ -97,18 +97,19 @@ class _BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        color: theme.colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: isDark ? AppColors.textPrimaryDark.withValues(alpha: 0.05) : AppColors.textPrimary.withValues(alpha: 0.05),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withValues(alpha: 0.05),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -214,9 +215,10 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final color = isSelected
-        ? AppColors.primary
-        : (isDark ? AppColors.textTertiary : AppColors.textSecondary);
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurfaceVariant;
 
     return InkWell(
       onTap: onTap,

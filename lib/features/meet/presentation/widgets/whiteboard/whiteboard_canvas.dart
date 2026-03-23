@@ -44,6 +44,8 @@ class WhiteboardCanvas extends ConsumerWidget {
           elementsJson: elementsJson,
           appState: appState,
           panOffset: panOffset,
+          gridColor: Theme.of(context).dividerColor.withOpacity(0.2),
+          defaultStrokeColor: Theme.of(context).colorScheme.onSurface,
         ),
         size: Size.infinite,
       ),
@@ -56,11 +58,15 @@ class WhiteboardElementsPainter extends CustomPainter {
     required this.elementsJson,
     required this.appState,
     required this.panOffset,
+    required this.gridColor,
+    required this.defaultStrokeColor,
   });
 
   final String elementsJson;
   final Map<String, dynamic>? appState;
   final Offset panOffset;
+  final Color gridColor;
+  final Color defaultStrokeColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -135,7 +141,7 @@ class WhiteboardElementsPainter extends CustomPainter {
   void _drawGrid(Canvas canvas, Size size) {
     // grid background
     final paint = Paint()
-      ..color = AppColors.grey300.withOpacity(0.2)
+      ..color = gridColor
       ..strokeWidth = 1;
 
     const gridSize = 40.0;
@@ -282,7 +288,7 @@ class WhiteboardElementsPainter extends CustomPainter {
       e['strokeColor']?.toString() ??
           e['stroke']?.toString() ??
           e['color']?.toString(),
-      fallback: AppColors.textPrimary,
+      fallback: defaultStrokeColor,
     );
     final fillColor = _parseColor(
       e['backgroundColor']?.toString() ??

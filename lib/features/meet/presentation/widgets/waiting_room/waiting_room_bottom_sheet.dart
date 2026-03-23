@@ -253,7 +253,7 @@ class _WaitingParticipantItemState extends ConsumerState<_WaitingParticipantItem
               children: [
                 IconButton(
                   icon: const Icon(Icons.check_circle),
-                  color: AppColors.success,
+                  color: Colors.green,
                   onPressed: () => _approve(context),
                 ),
                 IconButton(

@@ -84,7 +84,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   context: context,
                   useRootNavigator: true,
                   isScrollControlled: true,
-                  backgroundColor: AppColors.background,
+                  backgroundColor: theme.colorScheme.surface,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                   ),
@@ -98,7 +98,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -114,16 +114,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         borderRadius: BorderRadius.circular(999),
                         child: CircleAvatar(
                           radius: 22,
-                          backgroundColor: AppColors.grey200,
+                          backgroundColor: theme.colorScheme.outlineVariant,
                           backgroundImage: (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty)
                               ? NetworkImage(user.avatarUrl!)
                               : null,
                           child: (user?.avatarUrl == null || user!.avatarUrl!.isEmpty)
                               ? Text(
                                   (displayName.isNotEmpty ? displayName.characters.first : 'T').toUpperCase(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary,
+                                    color: theme.colorScheme.onSurface,
                                   ),
                                 )
                               : null,
@@ -150,7 +150,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       context: context,
                                       useRootNavigator: true,
                                       isScrollControlled: true,
-                                      backgroundColor: AppColors.background,
+                                      backgroundColor: theme.colorScheme.surface,
                                       shape: const RoundedRectangleBorder(
                                         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                                       ),
@@ -174,18 +174,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                             : streakAsync.when(
                                                 data: (s) => Text(
                                                   '${s?.currentStreak ?? 0}',
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w800,
-                                                    color: AppColors.textSecondary,
+                                                    color: theme.colorScheme.onSurfaceVariant,
                                                   ),
                                                 ),
-                                                loading: () => const Text(
+                                                loading: () => Text(
                                                   '…',
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w800,
-                                                    color: AppColors.textTertiary,
+                                                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                                                   ),
                                                 ),
                                                 error: (_, __) => const SizedBox.shrink(),
@@ -218,9 +218,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: AppColors.error,
+                                        color: theme.colorScheme.error,
                                         borderRadius: BorderRadius.circular(999),
-                                        border: Border.all(color: AppColors.background, width: 2),
+                                        border: Border.all(color: theme.colorScheme.surface, width: 2),
                                       ),
                                       constraints: const BoxConstraints(minWidth: 18),
                                       child: Text(
@@ -313,11 +313,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 data: (paginated) {
                   final items = paginated.data.take(8).toList();
                   if (items.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: Text(
                         'Chưa có bài viết',
-                        style: TextStyle(color: AppColors.textTertiary),
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                       ),
                     );
                   }
@@ -340,11 +340,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   padding: EdgeInsets.symmetric(vertical: 32),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (error, _) => const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                error: (error, _) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Text(
                     'Không tải được blog',
-                    style: TextStyle(color: AppColors.textTertiary, fontSize: 13),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 13),
                   ),
                 ),
               ),
@@ -357,10 +357,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _emptyCourseHint(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: TextButton(
         onPressed: () => context.push('/discovery'),
-        child: const Text('Khám phá khóa học', style: TextStyle(color: AppColors.primary)),
+        child: Text('Khám phá khóa học', style: TextStyle(color: theme.colorScheme.primary)),
       ),
     );
   }
@@ -377,12 +378,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey300),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: AppColors.textPrimary.withOpacity(0.04),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -400,7 +401,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary, height: 1.35),
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), height: 1.35),
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -409,8 +410,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: ElevatedButton(
                 onPressed: () => context.push('/login'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textOnPrimary,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
@@ -435,7 +436,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w800,
               letterSpacing: 0.2,
-              color: AppColors.textSecondary,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           if (onMore != null)
@@ -446,7 +447,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 minimumSize: const Size(0, 32),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('Xem thêm', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+              child: Text('Xem thêm', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
             ),
         ],
       ),
@@ -454,16 +455,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildCourseCard(EnrollmentModel e) {
+    final theme = Theme.of(context);
     final progress = e.progress ?? 0.0;
     return Container(
       width: 280,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey300),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withValues(alpha: 0.05),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -481,7 +483,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
                 height: 100,
-                color: AppColors.grey200,
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                 child: const Icon(Icons.school),
               ),
             ),
@@ -498,8 +500,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     Expanded(
                       child: LinearProgressIndicator(
                         value: progress.clamp(0.0, 1.0),
-                        backgroundColor: AppColors.grey200,
-                        valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                         minHeight: 6,
                         borderRadius: BorderRadius.circular(3),
                       ),
@@ -514,7 +516,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: TextButton(
                     onPressed: () {},
                     style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0), minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                    child: const Text('Tiếp tục học', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: Text('Tiếp tục học', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                 ),
               ],
@@ -655,7 +657,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         : (rawContent.length > 100 ? '${rawContent.substring(0, 100)}…' : rawContent);
 
     return Material(
-      color: AppColors.surface,
+      color: theme.colorScheme.surface,
       elevation: 0,
       borderRadius: BorderRadius.circular(18),
       clipBehavior: Clip.antiAlias,
@@ -671,13 +673,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       blog.coverImageUrl!,
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => ColoredBox(
-                        color: AppColors.grey200,
-                        child: Icon(Icons.article_rounded, color: AppColors.primary.withValues(alpha: 0.45), size: 40),
+                        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        child: Icon(Icons.article_rounded, color: theme.colorScheme.primary.withValues(alpha: 0.45), size: 40),
                       ),
                     )
                   : ColoredBox(
-                      color: AppColors.primary.withValues(alpha: 0.08),
-                      child: const Icon(Icons.article_rounded, color: AppColors.primary, size: 40),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                      child: Icon(Icons.article_rounded, color: theme.colorScheme.primary, size: 40),
                     ),
             ),
             Expanded(
@@ -701,7 +703,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Text(
                         preview,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textTertiary,
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           height: 1.35,
                         ),
                         maxLines: 2,
@@ -710,12 +712,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     Row(
                       children: [
-                        Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textTertiary.withValues(alpha: 0.85)),
+                        Icon(Icons.calendar_today_outlined, size: 12, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                         const SizedBox(width: 4),
                         Text(
                           blog.formattedDate,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.textTertiary,
+                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w600,
                           ),
                         ),

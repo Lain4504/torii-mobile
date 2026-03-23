@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 /// OTP 6 số — layout nhóm ô liền nhau (giống [InputOTPGroup] trên web-learner),
@@ -58,9 +57,9 @@ class _EmailVerificationScreenState
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.input, width: 1),
+          border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
         ),
         clipBehavior: Clip.antiAlias,
         child: Row(
@@ -72,11 +71,11 @@ class _EmailVerificationScreenState
                 decoration: BoxDecoration(
                   border: Border(
                     right: i < 5
-                        ? const BorderSide(color: AppColors.input, width: 1)
+                        ? BorderSide(color: theme.colorScheme.outlineVariant, width: 1)
                         : BorderSide.none,
                   ),
                   color: isActive
-                      ? AppColors.primary.withValues(alpha: 0.08)
+                      ? theme.colorScheme.primary.withValues(alpha: 0.08)
                       : Colors.transparent,
                 ),
                 child: SizedBox(
@@ -91,7 +90,7 @@ class _EmailVerificationScreenState
                           letterSpacing: 0.5,
                           height: 1.1,
                           fontFeatures: const [FontFeature.tabularFigures()],
-                          color: AppColors.textPrimary,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       if (isActive && char.isEmpty)
@@ -99,7 +98,7 @@ class _EmailVerificationScreenState
                           width: 2,
                           height: 22,
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                             borderRadius: BorderRadius.circular(1),
                           ),
                         ),
@@ -210,7 +209,7 @@ class _EmailVerificationScreenState
       messenger.showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: AppColors.error,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -221,14 +220,14 @@ class _EmailVerificationScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new,
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
             size: 20,
           ),
           onPressed: () {
@@ -254,7 +253,7 @@ class _EmailVerificationScreenState
                       'Torii Nihongo',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
+                        color: theme.colorScheme.primary,
                         letterSpacing: 0.4,
                       ),
                     ),
@@ -268,21 +267,21 @@ class _EmailVerificationScreenState
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Chúng tôi đã gửi mã 6 chữ số đến email của bạn.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textTertiary,
+                    Text(
+                      'Chúng tôi đã gửi mã 6 chữ số đến email của bạn.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
                   if (widget.email != null && widget.email!.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
                       widget.email!,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -293,7 +292,7 @@ class _EmailVerificationScreenState
                       'Mã xác minh (6 chữ số)',
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -310,18 +309,19 @@ class _EmailVerificationScreenState
                     child: ElevatedButton(
                       onPressed: _submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Xác minh',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.onPrimary,
                         ),
                       ),
                     ),
@@ -333,7 +333,7 @@ class _EmailVerificationScreenState
                       Text(
                         'Chưa nhận được mã? ',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textTertiary,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       TextButton(
@@ -366,10 +366,10 @@ class _EmailVerificationScreenState
                             ),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           'Gửi lại mã',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -381,7 +381,7 @@ class _EmailVerificationScreenState
                     'Kiểm tra hộp thư spam nếu bạn chưa nhận được email.',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.textTertiary,
+                      color: theme.colorScheme.onSurfaceVariant,
                       fontSize: 12,
                     ),
                   ),

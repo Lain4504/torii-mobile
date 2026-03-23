@@ -311,7 +311,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
             Text(
               state.isFinished ? 'Đã kết thúc' : 'Sensei đang hội thoại...',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: state.isFinished ? AppColors.success : AppColors.accent,
+                color: state.isFinished ? Colors.green : theme.colorScheme.primary,
               ),
             ),
           ],
@@ -348,7 +348,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
               child: Text(
                 'KẾT THÚC',
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: AppColors.success,
+                  color: theme.colorScheme.primary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -365,12 +365,12 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+                          Icon(Icons.error_outline, color: theme.colorScheme.error, size: 48),
                           const SizedBox(height: 16),
                           Text(
                             'Lỗi kết nối hoặc máy chủ phản hồi chậm.\nChi tiết: ${state.error}',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: AppColors.textSecondary),
+                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
@@ -378,8 +378,8 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                             icon: const Icon(Icons.refresh),
                             label: const Text('Thử lại'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: AppColors.textOnPrimary,
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
                             ),
                           ),
                         ],
@@ -409,6 +409,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   }
 
   Widget _buildMessageBubble(RoleplayMessage msg) {
+    final theme = Theme.of(context);
     final isAI = msg.role == ChatMessageRole.assistant;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -419,16 +420,16 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: msg.isFeedback 
-                  ? AppColors.success.withOpacity(0.1) 
-                  : (isAI ? AppColors.grey200 : AppColors.primary),
+                  ? theme.colorScheme.primary.withOpacity(0.1) 
+                  : (isAI ? theme.colorScheme.surfaceContainerHighest : theme.colorScheme.primary),
               borderRadius: BorderRadius.circular(20).copyWith(
                 bottomLeft: isAI ? const Radius.circular(0) : const Radius.circular(20),
                 bottomRight: isAI ? const Radius.circular(20) : const Radius.circular(0),
               ),
-              border: msg.isFeedback ? Border.all(color: AppColors.success.withOpacity(0.4)) : null,
+              border: msg.isFeedback ? Border.all(color: theme.colorScheme.primary.withOpacity(0.4)) : null,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.textPrimary.withOpacity(0.05),
+                  color: theme.colorScheme.onSurface.withOpacity(0.05),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
@@ -441,16 +442,16 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                     ? MarkdownBody(
                         data: msg.content,
                         styleSheet: MarkdownStyleSheet(
-                          p: const TextStyle(
-                            color: AppColors.textPrimary,
+                          p: TextStyle(
+                            color: theme.colorScheme.onSurface,
                             fontSize: 14.5,
                           ),
                         ),
                       )
                     : Text(
                         msg.content,
-                        style: const TextStyle(
-                          color: AppColors.textOnPrimary,
+                        style: TextStyle(
+                          color: theme.colorScheme.onPrimary,
                           fontSize: 14.5,
                         ),
                       ),
@@ -461,7 +462,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                       child: Text(
                         msg.romaji!,
                         style: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: theme.colorScheme.onSurfaceVariant,
                           fontSize: 11.5,
                           fontStyle: FontStyle.italic,
                         ),
@@ -473,7 +474,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                       child: Text(
                         msg.english!,
                         style: TextStyle(
-                          color: AppColors.textTertiary,
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           fontSize: 11.5,
                         ),
                       ),
@@ -488,6 +489,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   }
 
   Widget _buildTypingIndicator() {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -495,14 +497,14 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.grey200,
+              color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const SizedBox(
+            child: SizedBox(
               width: 40,
               child: LinearProgressIndicator(
                 backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.grey300),
+                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.outlineVariant),
               ),
             ),
           ),
@@ -512,27 +514,28 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   }
 
   Widget _buildErrorBubble(String error, dynamic notifier) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16, top: 8),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.error.withOpacity(0.1),
+          color: theme.colorScheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.error.withOpacity(0.5)),
+          border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 18),
-                SizedBox(width: 8),
-                Text('Lỗi kết nối', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error, size: 18),
+                const SizedBox(width: 8),
+                Text('Lỗi kết nối', style: TextStyle(color: theme.colorScheme.error, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 4),
-            Text(error, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            Text(error, style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
@@ -549,8 +552,8 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                 style: TextButton.styleFrom(
                   minimumSize: Size.zero,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  backgroundColor: AppColors.error.withOpacity(0.1),
-                  foregroundColor: AppColors.error,
+                  backgroundColor: theme.colorScheme.error.withValues(alpha: 0.1),
+                  foregroundColor: theme.colorScheme.error,
                 ),
                 child: const Text('Đã hiểu'),
               ),
@@ -562,6 +565,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   }
 
   Widget _buildInputBar(RoleplayState state, dynamic notifier) {
+    final theme = Theme.of(context);
     if (state.isFinished) {
       return Container(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
@@ -571,11 +575,12 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
           child: ElevatedButton(
             onPressed: () => context.pop(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 0,
             ),
-            child: const Text('QUAY LẠI', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.textOnPrimary)),
+            child: const Text('QUAY LẠI', style: TextStyle(fontWeight: FontWeight.w800)),
           ),
         ),
       );
@@ -584,10 +589,10 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.05),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -614,7 +619,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                     },
               child: IconButton(
                 icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-                color: _isListening ? AppColors.error : AppColors.textSecondary,
+                color: _isListening ? theme.colorScheme.error : theme.colorScheme.onSurfaceVariant,
                 onPressed: state.isLoading
                     ? null
                     : () async {
@@ -631,29 +636,30 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
               ),
             ),
             if (_isListening)
-              const Padding(
-                padding: EdgeInsets.only(right: 8.0),
-                child: VoiceWaveAnimation(isListening: true, color: AppColors.error),
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: VoiceWaveAnimation(isListening: true, color: theme.colorScheme.error),
               ),
             Expanded(
               child: TextField(
                 controller: _messageController,
                 decoration: InputDecoration(
                   hintText: _holdToTalkActive ? 'Đang nghe… thả tay để gửi' : 'Nhập câu trả lời...',
+                  hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.grey300),
+                    borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.grey300),
+                    borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.primary),
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
                   ),
                   filled: true,
-                  fillColor: AppColors.surface,
+                  fillColor: theme.colorScheme.surface,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
@@ -677,8 +683,8 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.zero,
                   elevation: 0,
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textOnPrimary,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   shape: const CircleBorder(),
                 ),
                 child: const Icon(Icons.send, size: 18),

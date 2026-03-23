@@ -6,8 +6,7 @@ import '../../../../core/constants/app_design_system.dart';
 import '../../models/sensei_model.dart';
 import '../../providers/sensei_providers.dart';
 
-/// Nền body giống [StudySetMatchScreen].
-const _kSenseiGameBg = Color(0xFFF0F4F8);
+/// Nền body giống [StudySetMatchScreen]. Removed fixed color for theme support.
 
 class SenseiTranslatePage extends ConsumerStatefulWidget {
   const SenseiTranslatePage({super.key});
@@ -61,14 +60,14 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
     _handleTranslate();
   }
 
-  static BoxDecoration _cardDecoration({Color? borderColor}) {
+  static BoxDecoration _cardDecoration(ThemeData theme, {Color? borderColor}) {
     return BoxDecoration(
-      color: AppColors.surface,
+      color: theme.colorScheme.surface,
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: borderColor ?? AppColors.grey300),
+      border: Border.all(color: borderColor ?? theme.colorScheme.outlineVariant),
       boxShadow: [
         BoxShadow(
-          color: AppColors.textPrimary.withValues(alpha: 0.04),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
           blurRadius: 12,
           offset: const Offset(0, 4),
         ),
@@ -83,10 +82,10 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: _kSenseiGameBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () {
             if (context.canPop()) context.pop();
           },
@@ -95,8 +94,8 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
           'AI Dịch thuật',
           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
         ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
       ),
       body: SafeArea(
@@ -107,16 +106,16 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: _cardDecoration(),
+                decoration: _cardDecoration(theme),
                 child: Row(
                   children: [
-                    Icon(Icons.translate_rounded, size: 20, color: AppColors.primary.withValues(alpha: 0.9)),
+                    Icon(Icons.translate_rounded, size: 20, color: theme.colorScheme.primary.withValues(alpha: 0.9)),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Chọn ngôn ngữ nguồn và đích, nhập câu rồi bấm Dịch.',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                           height: 1.3,
                         ),
@@ -128,7 +127,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: _cardDecoration(),
+                decoration: _cardDecoration(theme),
                 child: Row(
                   children: [
                     Expanded(
@@ -138,7 +137,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.swap_horiz_rounded, color: AppColors.primary.withValues(alpha: 0.95)),
+                      icon: Icon(Icons.swap_horiz_rounded, color: theme.colorScheme.primary.withValues(alpha: 0.95)),
                       onPressed: _swapLanguages,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -154,7 +153,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
               ),
               const SizedBox(height: 10),
               Container(
-                decoration: _cardDecoration(),
+                decoration: _cardDecoration(theme),
                 clipBehavior: Clip.antiAlias,
                 child: Column(
                   children: [
@@ -167,19 +166,19 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                         style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, height: 1.35),
                         decoration: InputDecoration(
                           hintText: 'Nhập văn bản cần dịch…',
-                          hintStyle: TextStyle(color: AppColors.textTertiary.withValues(alpha: 0.85)),
+                          hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                           border: InputBorder.none,
                           isDense: true,
                         ),
                       ),
                     ),
-                    Divider(height: 1, thickness: 1, color: AppColors.grey300.withValues(alpha: 0.9)),
+                    Divider(height: 1, thickness: 1, color: theme.colorScheme.outlineVariant),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(6, 6, 10, 10),
                       child: Row(
                         children: [
                           IconButton(
-                            icon: Icon(Icons.volume_up_rounded, size: 22, color: AppColors.textSecondary.withValues(alpha: 0.85)),
+                            icon: Icon(Icons.volume_up_rounded, size: 22, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.85)),
                             onPressed: () {},
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -187,7 +186,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                           if (_textController.text.isNotEmpty)
                             IconButton(
                               icon: const Icon(Icons.close_rounded, size: 22),
-                              color: AppColors.textTertiary,
+                              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                               onPressed: () => setState(() => _textController.clear()),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -198,16 +197,16 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                             child: ElevatedButton.icon(
                               onPressed: translatorState.isLoading ? null : _handleTranslate,
                               icon: translatorState.isLoading
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 18,
                                       height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textOnPrimary),
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.onPrimary),
                                     )
                                   : const Icon(Icons.translate_rounded, size: 18),
                               label: const Text('Dịch', style: TextStyle(fontWeight: FontWeight.w900)),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: AppColors.textOnPrimary,
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -226,12 +225,12 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.22)),
+                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.22)),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.06),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.06),
                         blurRadius: 14,
                         offset: const Offset(0, 4),
                       ),
@@ -246,7 +245,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                             width: 4,
                             height: 16,
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
+                              color: theme.colorScheme.primary,
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -255,7 +254,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                             'Bản dịch',
                             style: theme.textTheme.labelLarge?.copyWith(
                               fontWeight: FontWeight.w900,
-                              color: AppColors.primary,
+                              color: theme.colorScheme.primary,
                             ),
                           ),
                         ],
@@ -270,7 +269,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.copy_rounded, size: 22),
-                            color: AppColors.textSecondary,
+                            color: theme.colorScheme.onSurfaceVariant,
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: translatorState.translation!.translatedText));
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -281,7 +280,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
                           ),
                           IconButton(
-                            icon: Icon(Icons.volume_up_rounded, size: 22, color: AppColors.textSecondary.withValues(alpha: 0.85)),
+                            icon: Icon(Icons.volume_up_rounded, size: 22, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.85)),
                             onPressed: () {},
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -298,12 +297,12 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.success.withValues(alpha: 0.35)),
+                      border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.35)),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.success.withValues(alpha: 0.05),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.05),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -324,7 +323,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                               Text(
                                 'Kiểm tra lỗi và gợi ý cách dùng từ tự nhiên hơn.',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textTertiary,
+                                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                                   height: 1.35,
                                 ),
                               ),
@@ -337,18 +336,18 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                           child: ElevatedButton(
                             onPressed: grammarState.isLoading ? null : _handleGrammarCheck,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.success,
-                              foregroundColor: AppColors.textOnPrimary,
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
                               elevation: 0,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                               padding: const EdgeInsets.symmetric(horizontal: 14),
                             ),
                             child: grammarState.isLoading
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
-                                      color: AppColors.textOnPrimary,
+                                      color: theme.colorScheme.onPrimary,
                                       strokeWidth: 2,
                                     ),
                                   )
@@ -377,6 +376,7 @@ class _LanguageDrop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return DropdownButton<String>(
       value: value,
       isExpanded: true,
@@ -387,8 +387,8 @@ class _LanguageDrop extends StatelessWidget {
       ],
       onChanged: onChanged,
       underline: const SizedBox.shrink(),
-      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.textPrimary),
-      icon: Icon(Icons.expand_more_rounded, color: AppColors.textTertiary.withValues(alpha: 0.9)),
+      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: theme.colorScheme.onSurface),
+      icon: Icon(Icons.expand_more_rounded, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
     );
   }
 }
@@ -405,12 +405,12 @@ class _GrammarResultView extends StatelessWidget {
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey300),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withValues(alpha: 0.04),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -426,13 +426,13 @@ class _GrammarResultView extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: response.isCorrect ? AppColors.success : AppColors.error,
+                    color: response.isCorrect ? theme.colorScheme.primary : theme.colorScheme.error,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     response.isCorrect ? 'CHÍNH XÁC' : 'CẦN LƯU Ý',
-                    style: const TextStyle(
-                      color: AppColors.textOnPrimary,
+                    style: TextStyle(
+                      color: theme.colorScheme.onPrimary,
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.3,
@@ -453,17 +453,17 @@ class _GrammarResultView extends StatelessWidget {
           _ResultBox(
             title: 'Câu gốc',
             text: response.originalText?.toString() ?? '',
-            color: AppColors.background,
+            color: theme.scaffoldBackgroundColor,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Icon(Icons.expand_more_rounded, size: 22, color: AppColors.textTertiary.withValues(alpha: 0.7)),
+            child: Icon(Icons.expand_more_rounded, size: 22, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
           ),
           _ResultBox(
             title: 'Đề xuất',
             text: response.correctedText?.toString() ?? '',
-            color: AppColors.primary.withValues(alpha: 0.07),
-            textColor: AppColors.primary,
+            color: theme.colorScheme.primary.withValues(alpha: 0.07),
+            textColor: theme.colorScheme.primary,
           ),
           if (response.errors.isNotEmpty) ...[
             const SizedBox(height: 14),
@@ -489,16 +489,16 @@ class _GrammarResultView extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.background,
+                    color: theme.scaffoldBackgroundColor,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Text(
                     t,
                     style: theme.textTheme.bodySmall?.copyWith(
                       height: 1.4,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -521,13 +521,14 @@ class _ResultBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,7 +539,7 @@ class _ResultBox extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.4,
-              color: AppColors.grey700.withValues(alpha: 0.9),
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 6),
@@ -548,7 +549,7 @@ class _ResultBox extends StatelessWidget {
               fontSize: 15,
               fontWeight: FontWeight.w700,
               height: 1.4,
-              color: textColor ?? AppColors.textPrimary,
+              color: textColor ?? theme.colorScheme.onSurface,
             ),
           ),
         ],
@@ -575,8 +576,8 @@ class _ErrorItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border.all(color: AppColors.grey300),
+        color: theme.scaffoldBackgroundColor,
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -588,14 +589,14 @@ class _ErrorItem extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.45)),
+                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.45)),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     type.toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 9,
-                      color: AppColors.primary,
+                      color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.2,
                     ),
@@ -607,7 +608,7 @@ class _ErrorItem extends StatelessWidget {
                   child: Text(
                     'Vị trí: $location',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: AppColors.textTertiary,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w700,
                     ),
                     maxLines: 2,
@@ -621,7 +622,7 @@ class _ErrorItem extends StatelessWidget {
             'Vấn đề',
             style: theme.textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w900,
-              color: AppColors.textTertiary,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
               letterSpacing: 0.2,
             ),
           ),
@@ -630,8 +631,8 @@ class _ErrorItem extends StatelessWidget {
             issue.isEmpty ? '—' : issue,
             style: theme.textTheme.bodyMedium?.copyWith(
               decoration: issue.isEmpty ? null : TextDecoration.lineThrough,
-              decorationColor: AppColors.textTertiary,
-              color: AppColors.textSecondary,
+              decorationColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
               height: 1.4,
             ),
@@ -639,13 +640,13 @@ class _ErrorItem extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              Icon(Icons.south_rounded, size: 18, color: AppColors.primary.withValues(alpha: 0.75)),
+              Icon(Icons.south_rounded, size: 18, color: theme.colorScheme.primary.withValues(alpha: 0.75)),
               const SizedBox(width: 6),
               Text(
                 'Gợi ý sửa',
                 style: theme.textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.w900,
-                  color: AppColors.primary,
+                  color: theme.colorScheme.primary,
                 ),
               ),
             ],
@@ -654,20 +655,20 @@ class _ErrorItem extends StatelessWidget {
           Text(
             correction.isEmpty ? '—' : correction,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.primary,
+              color: theme.colorScheme.primary,
               fontWeight: FontWeight.w800,
               height: 1.4,
             ),
           ),
           if (explanation.isNotEmpty) ...[
             const SizedBox(height: 10),
-            Divider(height: 1, color: AppColors.grey300.withValues(alpha: 0.8)),
+            Divider(height: 1, color: theme.colorScheme.outlineVariant),
             const SizedBox(height: 10),
             Text(
               explanation,
               style: theme.textTheme.bodySmall?.copyWith(
                 fontStyle: FontStyle.italic,
-                color: AppColors.textSecondary,
+                color: theme.colorScheme.onSurfaceVariant,
                 height: 1.45,
               ),
             ),

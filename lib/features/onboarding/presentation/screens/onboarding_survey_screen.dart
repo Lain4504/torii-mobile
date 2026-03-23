@@ -118,10 +118,11 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final progress = (_currentPage + 1) / _pages.length;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -133,8 +134,8 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                 children: [
                   LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                     borderRadius: BorderRadius.circular(10),
                     minHeight: 8,
                   ),
@@ -148,10 +149,10 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             minimumSize: Size.zero,
                           ),
-                          child: const Text(
+                          child: Text(
                             'Bỏ qua',
                             style: TextStyle(
-                              color: AppColors.textTertiary,
+                              color: theme.colorScheme.onSurfaceVariant,
                               fontWeight: AppTypography.semiBold,
                               fontSize: 12,
                             ),
@@ -186,10 +187,10 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Quay lại',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
+                            color: theme.colorScheme.onSurfaceVariant,
                             fontWeight: AppTypography.semiBold,
                           ),
                         ),
@@ -207,8 +208,8 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                         ? null 
                         : (_currentPage == _pages.length - 1 ? _submit : _nextPage),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
                       ),
@@ -234,8 +235,9 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     required String title,
     required String subtitle,
     required Widget content,
-    Color iconColor = AppColors.primary,
+    Color? iconColor,
   }) {
+    final theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -244,19 +246,19 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
+              color: (iconColor ?? theme.colorScheme.primary).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(icon, size: 36, color: iconColor),
+            child: Icon(icon, size: 36, color: iconColor ?? theme.colorScheme.primary),
           ),
           const SizedBox(height: 24),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: AppTypography.bold,
-              color: AppColors.textPrimary,
+              color: theme.colorScheme.onSurface,
               letterSpacing: -0.5,
             ),
           ),
@@ -264,8 +266,8 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
           Text(
             subtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant,
               fontSize: 15,
               height: 1.5,
             ),
@@ -279,6 +281,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   }
 
   Widget _buildWelcomeStep() {
+    final theme = Theme.of(context);
     return _buildStepContainer(
       icon: Icons.auto_awesome,
       title: 'Chào mừng đến với Torii Nihongo',
@@ -287,19 +290,19 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
       content: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppColors.primarySurface,
+          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Column(
+        child: Column(
           children: [
-            Icon(Icons.rocket_launch, size: 48, color: AppColors.primary),
-            SizedBox(height: 16),
+            Icon(Icons.rocket_launch, size: 48, color: theme.colorScheme.primary),
+            const SizedBox(height: 16),
             Text(
               'Tiếng Nhật là một hành trình thú vị. Chúng tôi sẽ đồng hành cùng bạn trên mọi chặng đường.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontStyle: FontStyle.italic,
-                color: AppColors.primaryDark,
+                color: theme.colorScheme.onPrimaryContainer,
                 height: 1.6,
               ),
             ),
@@ -336,6 +339,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   }
 
   Widget _buildLevelStep() {
+    final theme = Theme.of(context);
     return _buildStepContainer(
       icon: Icons.school,
       title: 'Trình độ hiện tại',
@@ -362,7 +366,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
+              color: theme.colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(16),
             ),
             child: CheckboxListTile(
@@ -370,7 +374,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
               onChanged: (val) => setState(() => _wantsPlacementTest = val ?? false),
               title: const Text('Làm bài kiểm tra đầu vào', style: TextStyle(fontWeight: AppTypography.semiBold, fontSize: 14)),
               subtitle: const Text('Khuyên dùng nếu bạn đã từng học', style: TextStyle(fontSize: 12)),
-              activeColor: AppColors.primary,
+              activeColor: theme.colorScheme.primary,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12),
               controlAffinity: ListTileControlAffinity.leading,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -380,6 +384,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
       ),
     );
   }
+
 
   Widget _buildTargetStep() {
     return _buildStepContainer(
@@ -430,6 +435,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   Widget _buildJLPTDateStep() {
     final years = ['2026', '2027', '2028', '2029'];
     final months = ['Tháng 7', 'Tháng 12'];
+    final theme = Theme.of(context);
 
     return _buildStepContainer(
       icon: Icons.calendar_today,
@@ -438,11 +444,11 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
       iconColor: Colors.red,
       content: Column(
         children: [
-          const Text(
+          Text(
             'Chọn năm và tháng',
             style: TextStyle(
               fontWeight: AppTypography.semiBold,
-              color: AppColors.textSecondary,
+              color: theme.colorScheme.onSurface,
               fontSize: 14,
             ),
           ),
@@ -454,7 +460,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Năm', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                    Text('Năm', style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 8),
                     _buildMiniSelector(
                       value: _selectedJlptYear!,
@@ -475,7 +481,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Tháng', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                    Text('Tháng', style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 8),
                     _buildMiniSelector(
                       value: _selectedJlptMonth!,
@@ -513,27 +519,28 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     required List<String> items,
     required ValueChanged<String> onChanged,
   }) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey200, width: 1),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+          icon: Icon(Icons.keyboard_arrow_down, color: theme.colorScheme.onSurfaceVariant),
           items: items.map((String item) {
             return DropdownMenuItem<String>(
               value: item,
               child: Text(
                 item,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: AppTypography.medium,
-                  color: AppColors.textPrimary,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             );
@@ -545,6 +552,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
   }
 
   Widget _buildFinalStep() {
+    final theme = Theme.of(context);
     return _buildStepContainer(
       icon: Icons.auto_awesome,
       title: 'Đã sẵn sàng!',
@@ -557,11 +565,15 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
             height: 180,
             width: double.infinity,
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              gradient: LinearGradient(
+                colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 )
@@ -572,12 +584,12 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
             ),
           ),
           const SizedBox(height: 40),
-          const Text(
+          Text(
             'Lộ trình của bạn đã được tối ưu hóa. Hãy bắt đầu chinh phục tiếng Nhật ngay thôi!',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              color: theme.colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
           ),
@@ -592,6 +604,7 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
     required VoidCallback onTap,
     bool fullWidth = false,
   }) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -599,15 +612,15 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
         width: fullWidth ? double.infinity : null,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primarySurface : Colors.white,
+          color: isSelected ? theme.colorScheme.primaryContainer : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.card),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.grey200.withValues(alpha: 0.5),
+            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
             width: isSelected ? 2 : 1.5,
           ),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: theme.colorScheme.primary.withValues(alpha: 0.08),
               blurRadius: 10,
               offset: const Offset(0, 4),
             )
@@ -624,13 +637,13 @@ class _OnboardingSurveyScreenState extends ConsumerState<OnboardingSurveyScreen>
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: isSelected ? AppTypography.bold : AppTypography.semiBold,
-                  color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+                  color: isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurface,
                 ),
               ),
             ),
             if (isSelected) ...[
               const SizedBox(width: 8),
-              const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+              Icon(Icons.check_circle, color: theme.colorScheme.primary, size: 20),
             ],
           ],
         ),

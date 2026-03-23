@@ -224,7 +224,7 @@ final senseiMenuItems = [
     title: 'AI Chatbot',
     description: 'Hỏi đáp & giải thích mọi thắc mắc',
     icon: Icons.chat_bubble_outline_rounded,
-    color: AppColors.primary,
+    color: Colors.blue,
     route: '/sensei/chat',
   ),
   const SenseiMenuItem(
@@ -239,14 +239,14 @@ final senseiMenuItems = [
     title: 'AI Dịch thuật',
     description: 'Dịch và giải thích ngữ cảnh',
     icon: Icons.translate_rounded,
-    color: AppColors.success,
+    color: Colors.green,
     route: '/sensei/translate',
   ),
   const SenseiMenuItem(
     title: 'AI Voice',
     description: 'Nói chuyện trực tiếp với AI',
     icon: Icons.mic_rounded,
-    color: AppColors.detail,
+    color: Colors.teal,
     route: '/sensei/voice',
   ),
 ];

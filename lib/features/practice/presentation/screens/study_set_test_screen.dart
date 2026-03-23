@@ -102,14 +102,14 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text('Trắc nghiệm', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         actions: [
           IconButton(
@@ -125,11 +125,11 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Center(child: Text('Lỗi: ${snap.error}', style: const TextStyle(color: AppColors.error)));
+            return Center(child: Text('Lỗi: ${snap.error}', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error)));
           }
           final questions = snap.data ?? [];
           if (questions.isEmpty) {
-            return const Center(child: Text('Không tạo được bài test', style: TextStyle(color: AppColors.textTertiary)));
+            return Center(child: Text('Không tạo được bài test', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)));
           }
           if (_index >= questions.length) {
             final score = ((_correct / questions.length) * 100).toInt();
@@ -143,17 +143,17 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.10),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.10),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.flag_rounded, color: AppColors.primary, size: 38),
+                      child: Icon(Icons.flag_rounded, color: theme.colorScheme.primary, size: 38),
                     ),
                     const SizedBox(height: 14),
                     Text('Hoàn thành', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
                     const SizedBox(height: 6),
                     Text(
                       'Đúng $_correct/${questions.length} • $score%',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w700),
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 16),
                     SizedBox(
@@ -166,8 +166,8 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                           _lastSpokenIndex = -1;
                         }),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.textOnPrimary,
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
@@ -195,16 +195,16 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         type == 'true_false' ? 'Đúng / Sai' : 'Chọn đáp án',
-                        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary, fontWeight: FontWeight.w800),
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -215,7 +215,7 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                       if (type == 'true_false')
                         Text(
                           'Định nghĩa: ${(q['displayedAnswer'] ?? '').toString()}',
-                          style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                         ),
                     ],
                   ),
@@ -238,8 +238,8 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                                     correctAnswer: correctAnswer,
                                   ),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.textPrimary,
-                            side: const BorderSide(color: AppColors.grey300),
+                            foregroundColor: theme.colorScheme.onSurface,
+                            side: BorderSide(color: theme.colorScheme.outlineVariant),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           ),
                           child: Text(text, style: const TextStyle(fontWeight: FontWeight.w800)),
@@ -258,8 +258,8 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                                 ? null
                                 : () => _onAnswerTrueFalse(questions: questions, choseTrue: true),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.success,
-                              side: BorderSide(color: AppColors.success.withValues(alpha: 0.5)),
+                              foregroundColor: Colors.green,
+                              side: BorderSide(color: Colors.green.withValues(alpha: 0.5)),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             child: const Text('Đúng', style: TextStyle(fontWeight: FontWeight.w900)),
@@ -275,8 +275,8 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
                                 ? null
                                 : () => _onAnswerTrueFalse(questions: questions, choseTrue: false),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.error,
-                              side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
+                              foregroundColor: theme.colorScheme.error,
+                              side: BorderSide(color: theme.colorScheme.error.withValues(alpha: 0.5)),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             child: const Text('Sai', style: TextStyle(fontWeight: FontWeight.w900)),
@@ -303,14 +303,15 @@ class _TopProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final ratio = total == 0 ? 0.0 : current / total;
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('$current/$total', style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.textSecondary)),
-            Text('Đúng: $correct', style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.textSecondary)),
+            Text('$current/$total', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900, color: theme.colorScheme.onSurfaceVariant)),
+            Text('Đúng: $correct', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900, color: theme.colorScheme.onSurfaceVariant)),
           ],
         ),
         const SizedBox(height: 8),
@@ -319,8 +320,8 @@ class _TopProgress extends StatelessWidget {
           child: LinearProgressIndicator(
             value: ratio.clamp(0.0, 1.0),
             minHeight: 10,
-            backgroundColor: AppColors.grey200,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+            backgroundColor: theme.colorScheme.outlineVariant,
+            valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
           ),
         ),
       ],

@@ -52,10 +52,10 @@ class ChatMessageItem extends StatelessWidget {
               backgroundColor: Theme.of(context).colorScheme.primary,
               child: Text(
                 _getInitials(message.senderName),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textOnPrimary,
+                  color: Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
             )
@@ -102,7 +102,7 @@ class ChatMessageItem extends StatelessWidget {
                         message.message,
                         style: TextStyle(
                           color: isMe
-                              ? AppColors.textOnPrimary
+                              ? Theme.of(context).colorScheme.onPrimary
                               : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 14,
                         ),
@@ -113,7 +113,7 @@ class ChatMessageItem extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         color: isMe 
-                          ? AppColors.textOnPrimary.withOpacity(0.7)
+                          ? Theme.of(context).colorScheme.onPrimary.withOpacity(0.7)
                           : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
                       ),
                     ),
@@ -189,7 +189,7 @@ class ChatMessageItem extends StatelessWidget {
 
   Widget _buildPollResultContent(BuildContext context, _PollResultMessage poll) {
     final textColor = isMe
-        ? AppColors.textOnPrimary
+        ? Theme.of(context).colorScheme.onPrimary
         : Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Column(

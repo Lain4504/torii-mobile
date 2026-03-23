@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
+// Removed unused import
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/study_set_models.dart';
 
@@ -97,17 +97,17 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
     final cardsAsync = ref.watch(studyCardsProvider(widget.setId));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Flashcard',
           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         actions: [
           IconButton(
@@ -119,13 +119,13 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
       ),
       body: cardsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: Text('Lỗi: $e', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error))),
         data: (cards) {
           if (cards.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'Không có thẻ để luyện tập.',
-                style: TextStyle(color: AppColors.textTertiary),
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
             );
           }
@@ -153,7 +153,7 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
                 Text(
                   'Vuốt ngang để đổi thẻ • Chạm thẻ để lật',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.textTertiary,
+                    color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -192,8 +192,8 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
                                     child: OutlinedButton(
                                       onPressed: _busy ? null : () => _review(cards[_index], 0, cards.length),
                                       style: OutlinedButton.styleFrom(
-                                        foregroundColor: AppColors.error,
-                                        side: BorderSide(color: AppColors.error.withValues(alpha: 0.55)),
+                                        foregroundColor: theme.colorScheme.error,
+                                        side: BorderSide(color: theme.colorScheme.error.withValues(alpha: 0.55)),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                       ),
                                       child: const Text('Chưa nhớ', style: TextStyle(fontWeight: FontWeight.w900)),
@@ -207,8 +207,8 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
                                     child: ElevatedButton(
                                       onPressed: _busy ? null : () => _review(cards[_index], 1, cards.length),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.success,
-                                        foregroundColor: AppColors.textOnPrimary,
+                                        backgroundColor: const Color(0xFF3BB25E), // success green
+                                        foregroundColor: Colors.white,
                                         elevation: 0,
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                       ),
@@ -314,11 +314,11 @@ class _FlipFlashcardState extends State<_FlipFlashcard> with SingleTickerProvide
                     ..setEntry(3, 2, 0.0012)
                     ..rotateY(angle),
                   child: angle < math.pi / 2
-                      ? _CardFace(label: 'Thuật ngữ', labelColor: AppColors.primary, child: _buildFront(theme))
+                      ? _CardFace(label: 'Thuật ngữ', labelColor: theme.colorScheme.primary, child: _buildFront(theme))
                       : Transform(
                           alignment: Alignment.center,
                           transform: Matrix4.identity()..rotateY(math.pi),
-                          child: _CardFace(label: 'Nghĩa', labelColor: AppColors.success, child: _buildBack(theme)),
+                          child: _CardFace(label: 'Nghĩa', labelColor: Colors.green, child: _buildBack(theme)),
                         ),
                 ),
               ),
@@ -349,14 +349,14 @@ class _FlipFlashcardState extends State<_FlipFlashcard> with SingleTickerProvide
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: theme.colorScheme.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(
               hint,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
+                color: theme.colorScheme.onSurfaceVariant,
                 height: 1.35,
               ),
             ),
@@ -366,12 +366,12 @@ class _FlipFlashcardState extends State<_FlipFlashcard> with SingleTickerProvide
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.flip_rounded, size: 18, color: AppColors.textTertiary.withValues(alpha: 0.9)),
+            Icon(Icons.flip_rounded, size: 18, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.9)),
             const SizedBox(width: 8),
             Text(
               'Chạm để lật thẻ',
               style: theme.textTheme.labelMedium?.copyWith(
-                color: AppColors.textTertiary,
+                color: theme.colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -398,8 +398,8 @@ class _FlipFlashcardState extends State<_FlipFlashcard> with SingleTickerProvide
         IconButton(
           onPressed: () => widget.onSpeak(widget.card.definition),
           style: IconButton.styleFrom(
-            backgroundColor: AppColors.success.withValues(alpha: 0.15),
-            foregroundColor: AppColors.success,
+            backgroundColor: Colors.green.withValues(alpha: 0.15),
+            foregroundColor: Colors.green,
           ),
           icon: const Icon(Icons.volume_up_rounded, size: 22),
         ),
@@ -426,9 +426,9 @@ class _CardFace extends StatelessWidget {
       width: double.infinity,
       height: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.grey300, width: 1),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -479,6 +479,7 @@ class _ProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final ratio = total == 0 ? 0.0 : current / total;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,11 +489,11 @@ class _ProgressBar extends StatelessWidget {
           children: [
             Text(
               '$current/$total',
-              style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textSecondary),
+              style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, color: theme.colorScheme.onSurfaceVariant),
             ),
             Text(
               '${(ratio * 100).toInt()}%',
-              style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textSecondary),
+              style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, color: theme.colorScheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -502,8 +503,8 @@ class _ProgressBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: ratio.clamp(0.0, 1.0),
             minHeight: 10,
-            backgroundColor: AppColors.grey200,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+            backgroundColor: theme.colorScheme.outlineVariant,
+            valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
           ),
         ),
       ],
@@ -528,10 +529,10 @@ class _DoneView extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.success.withValues(alpha: 0.12),
+                color: Colors.green.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 40),
+              child: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 40),
             ),
             const SizedBox(height: 14),
             Text(
@@ -542,7 +543,7 @@ class _DoneView extends StatelessWidget {
             Text(
               'Tốt lắm. Tiếp tục duy trì streak mỗi ngày nhé.',
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary, height: 1.35),
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, height: 1.35),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -550,8 +551,8 @@ class _DoneView extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onRestart,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textOnPrimary,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),

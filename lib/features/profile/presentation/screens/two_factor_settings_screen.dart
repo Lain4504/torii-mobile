@@ -165,10 +165,10 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -178,7 +178,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: SafeArea(
@@ -193,14 +193,14 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                   padding: const EdgeInsets.all(10),
                   margin: const EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.background,
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: theme.dividerColor),
                   ),
                   child: Text(
                     _statusText!,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -210,12 +210,12 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.grey300),
+                  border: Border.all(color: theme.dividerColor),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.textPrimary.withOpacity(0.04),
+                      color: theme.colorScheme.onSurface.withOpacity(0.04),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -240,7 +240,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                             Text(
                               'Thêm lớp bảo mật bổ sung cho tài khoản',
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: AppColors.textTertiary,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -248,14 +248,14 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: _isEnabled ? AppColors.primary.withOpacity(0.08) : AppColors.grey200,
+                            color: _isEnabled ? theme.colorScheme.primary.withOpacity(0.08) : theme.dividerColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
                             _isEnabled ? 'Đã bật' : 'Đã tắt',
                             style: theme.textTheme.bodySmall?.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: _isEnabled ? AppColors.primary : AppColors.textSecondary,
+                              color: _isEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -292,14 +292,14 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.06),
+                          color: theme.colorScheme.primary.withOpacity(0.06),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.primary.withOpacity(0.25)),
+                          border: Border.all(color: theme.colorScheme.primary.withOpacity(0.25)),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.shield_outlined, color: AppColors.primary, size: 18),
+                            Icon(Icons.shield_outlined, color: theme.colorScheme.primary, size: 18),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -315,7 +315,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                                   Text(
                                     'Xác thực hai yếu tố thêm một lớp bảo mật bằng cách yêu cầu mã từ điện thoại của bạn cùng với mật khẩu.',
                                     style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppColors.textTertiary,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                       height: 1.35,
                                     ),
                                   ),
@@ -332,14 +332,14 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.05),
+                          color: theme.colorScheme.error.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.error.withOpacity(0.25)),
+                          border: Border.all(color: theme.colorScheme.error.withOpacity(0.25)),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 18),
+                            Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error, size: 18),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -355,7 +355,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                                   Text(
                                     'Bạn chỉ còn $_backupCodesRemaining mã dự phòng. Hãy cân nhắc tạo bộ mã mới.',
                                     style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppColors.textTertiary,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                       height: 1.35,
                                     ),
                                   ),
@@ -380,8 +380,8 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                                         _showEnableDrawer(context);
                                       },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: AppColors.textOnPrimary,
+                                  backgroundColor: theme.colorScheme.primary,
+                                  foregroundColor: theme.colorScheme.onPrimary,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -404,8 +404,8 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                               child: OutlinedButton(
                                 onPressed: _loading ? null : _regenBackupCodes,
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.primary,
-                                  side: const BorderSide(color: AppColors.primary),
+                                  foregroundColor: theme.colorScheme.primary,
+                                  side: BorderSide(color: theme.colorScheme.primary),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -431,8 +431,8 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                                         _showDisableDrawer(context);
                                       },
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.error,
-                                  side: BorderSide(color: AppColors.error.withOpacity(0.6)),
+                                  foregroundColor: theme.colorScheme.error,
+                                  side: BorderSide(color: theme.colorScheme.error.withOpacity(0.6)),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -458,9 +458,9 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                 width: double.infinity,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.grey300),
+                  border: Border.all(color: theme.dividerColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,7 +473,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                     Text(
                       'Sử dụng khi bạn mất điện thoại hoặc không truy cập được app 2FA.',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textTertiary,
+                        color: theme.colorScheme.onSurfaceVariant,
                         height: 1.35,
                       ),
                     ),
@@ -487,9 +487,9 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                               (c) => Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: AppColors.background,
+                                  color: theme.colorScheme.surfaceContainer,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.grey300),
+                                  border: Border.all(color: theme.dividerColor),
                                 ),
                                 child: Text(
                                   c,
@@ -508,7 +508,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                       Text(
                         'Chưa có backup codes. Hãy bật 2FA hoặc tạo lại mã để nhận danh sách mã dự phòng.',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textTertiary,
+                          color: theme.colorScheme.onSurfaceVariant,
                           height: 1.35,
                         ),
                       ),
@@ -519,8 +519,8 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                       child: OutlinedButton(
                         onPressed: _loading ? null : _regenBackupCodes,
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: const BorderSide(color: AppColors.primary),
+                          foregroundColor: theme.colorScheme.primary,
+                          side: BorderSide(color: theme.colorScheme.primary),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         child: const Text(
@@ -559,6 +559,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
           ),
           child: StatefulBuilder(
             builder: (context, setSheetState) {
+              final theme = Theme.of(context);
               Future<void> startSetupInSheet() async {
                 setSheetState(() {});
                 await _startSetup();
@@ -582,7 +583,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.grey300,
+                        color: theme.dividerColor,
                         borderRadius: BorderRadius.circular(999),
                       ),
                     ),
@@ -597,7 +598,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                   Text(
                     'Thiết lập 2FA bằng ứng dụng Authenticator để bảo vệ tài khoản tốt hơn.',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.textTertiary,
+                      color: theme.colorScheme.onSurfaceVariant,
                       height: 1.35,
                     ),
                   ),
@@ -612,7 +613,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                     '2. Quét bằng Google Authenticator / 1Password / v.v.\n'
                     '3. Nhập mã 6 số hiển thị trên app để hoàn tất bật 2FA.',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.textTertiary,
+                      color: theme.colorScheme.onSurfaceVariant,
                       height: 1.4,
                     ),
                   ),
@@ -622,20 +623,20 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                       width: double.infinity,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: AppColors.background,
+                        color: theme.colorScheme.surfaceContainer,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.grey300),
+                        border: Border.all(color: theme.dividerColor),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (_secret != null) ...[
-                            const Text(
+                            Text(
                               'Secret',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -646,12 +647,12 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                             const SizedBox(height: 6),
                           ],
                           if (_otpauthUrl != null) ...[
-                            const Text(
+                            Text(
                               'otpauth URL',
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary,
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -685,8 +686,8 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                           child: OutlinedButton(
                             onPressed: _loading ? null : startSetupInSheet,
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
+                              foregroundColor: theme.colorScheme.primary,
+                              side: BorderSide(color: theme.colorScheme.primary),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -705,8 +706,8 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                           child: ElevatedButton(
                             onPressed: _loading ? null : enableInSheet,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: AppColors.textOnPrimary,
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
                               elevation: 0,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
@@ -739,6 +740,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
+        final theme = Theme.of(ctx);
         return Padding(
           padding: EdgeInsets.only(
             left: 16,
@@ -756,7 +758,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.grey300,
+                    color: theme.dividerColor,
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
@@ -771,7 +773,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
               Text(
                 'Nhập mã 2FA hiện tại từ ứng dụng Authenticator để xác nhận tắt bảo mật hai bước.',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textTertiary,
+                  color: theme.colorScheme.onSurfaceVariant,
                   height: 1.35,
                 ),
               ),
@@ -801,8 +803,8 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                           if (mounted) Navigator.of(ctx).pop();
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                    foregroundColor: AppColors.textOnPrimary,
+                    backgroundColor: theme.colorScheme.error,
+                    foregroundColor: theme.colorScheme.onError,
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -838,9 +840,9 @@ class _StatusItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: theme.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.grey300),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -850,7 +852,7 @@ class _StatusItem extends StatelessWidget {
             style: theme.textTheme.bodySmall?.copyWith(
               fontSize: 10,
               fontWeight: FontWeight.w800,
-              color: AppColors.textTertiary,
+              color: theme.colorScheme.onSurfaceVariant,
               letterSpacing: 0.6,
             ),
           ),

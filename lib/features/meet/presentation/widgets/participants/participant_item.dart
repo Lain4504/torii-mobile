@@ -51,10 +51,10 @@ class ParticipantItem extends ConsumerWidget {
           backgroundColor: Theme.of(context).colorScheme.primary,
           child: Text(
             _getInitials(participant.name),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.textOnPrimary,
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
           ),
         ),
@@ -321,8 +321,8 @@ class ParticipantItem extends ConsumerWidget {
         PopupMenuItem(
           value: 'remove',
           child: ListTile(
-            leading: const Icon(Icons.person_remove, color: AppColors.error),
-            title: const Text('Remove', style: TextStyle(color: AppColors.error)),
+            leading: Icon(Icons.person_remove, color: Theme.of(context).colorScheme.error),
+            title: Text('Remove', style: TextStyle(color: Theme.of(context).colorScheme.error)),
             contentPadding: EdgeInsets.zero,
           ),
         ),

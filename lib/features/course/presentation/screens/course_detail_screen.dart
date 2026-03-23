@@ -24,26 +24,26 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: detailAsync.when(
         data: (detail) {
           if (detail == null) {
             return const Center(child: Text('Không tìm thấy khóa học'));
           }
-          return _buildContent(context, theme, detail);
+          return _buildContent(context, detail);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
       ),
     );
   }
 
   Widget _buildContent(
     BuildContext context,
-    ThemeData theme,
     CourseOfferingDetailModel detail, [
     WidgetRef? ref,
   ]) {
+    final theme = Theme.of(context);
     final course = detail.offering;
     final disp = course.learnerOfferingDisplay(liveClasses: detail.siblingClasses);
     final priceStr = '${course.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
@@ -58,23 +58,23 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
             SliverAppBar(
               expandedHeight: 250,
               pinned: true,
-              backgroundColor: AppColors.primary,
+              backgroundColor: theme.colorScheme.primary,
               flexibleSpace: FlexibleSpaceBar(
                 background: Image.network(
                   course.thumbnailUrl ?? 'https://picsum.photos/seed/course_detail/800/600',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: AppColors.grey200, child: const Icon(Icons.school, size: 64)),
+                  errorBuilder: (_, __, ___) => Container(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3), child: const Icon(Icons.school, size: 64)),
                 ),
               ),
               leading: Padding(
                 padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundColor: AppColors.surface,
+                  backgroundColor: theme.colorScheme.surface,
                   child: IconButton(
                     padding: EdgeInsets.zero,
                     iconSize: 18,
-                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                    icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
@@ -100,7 +100,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                       Text(
                         disp.liveContextLine!,
                         style: TextStyle(
-                          color: AppColors.grey700,
+                          color: theme.colorScheme.onSurfaceVariant,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -110,7 +110,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                       const SizedBox(height: 6),
                       Text(
                         'Tên gói bán: ${disp.learnerMarketingSubtitle}',
-                        style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.35),
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 13, height: 1.35),
                       ),
                     ],
                     const SizedBox(height: 16),
@@ -123,7 +123,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                           priceStr,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: AppTypography.bold,
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ],
@@ -132,11 +132,11 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          const Icon(Icons.person_outline, size: 16, color: AppColors.textTertiary),
+                          Icon(Icons.person_outline, size: 16, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                           const SizedBox(width: 6),
                           Text(
                             'Giảng viên: ${detail.instructorName}',
-                            style: TextStyle(color: AppColors.grey700, fontSize: 13, fontWeight: FontWeight.w600),
+                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -169,7 +169,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                     if (detail.modules.isEmpty)
                       Text(
                         'Chương trình học đang được cập nhật.',
-                        style: TextStyle(color: AppColors.grey700, height: 1.5),
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), height: 1.5),
                       )
                     else
                       Column(
@@ -182,7 +182,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                       Text(
                         'Chọn lớp học (Batch) của giảng viên bạn yêu thích',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: AppColors.primary,
+                          color: theme.colorScheme.primary,
                           fontWeight: AppTypography.bold,
                           letterSpacing: 0.1,
                           fontSize: 14,
@@ -195,10 +195,10 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 10),
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primary.withOpacity(0.05) : AppColors.surface,
+                              color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.05) : theme.colorScheme.surface,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
                                 width: isSelected ? 2 : 1,
                               ),
                             ),
@@ -224,13 +224,13 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                                           ),
                                           Text(
                                             'Giảng viên: ${c.instructorName ?? "Đang cập nhật"} • Mã lớp: ${c.code}',
-                                            style: TextStyle(color: AppColors.grey700, fontSize: 11),
+                                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 11),
                                           ),
                                         ],
                                       ),
                                     ),
                                     if (isSelected)
-                                      const Icon(Icons.check_circle, color: AppColors.primary, size: 24),
+                                      Icon(Icons.check_circle, color: theme.colorScheme.primary, size: 24),
                                   ],
                                 ),
                               ),
@@ -252,8 +252,8 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
           child: Container(
             padding: EdgeInsets.fromLTRB(24, 16, 24, bottomSafePadding),
             decoration: BoxDecoration(
-              color: AppColors.surface,
-              boxShadow: [BoxShadow(color: AppColors.textPrimary.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+              color: theme.colorScheme.surface,
+              boxShadow: [BoxShadow(color: theme.colorScheme.onSurface.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -274,8 +274,8 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                         context.push('/checkout/${course.id}$extra');
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -299,7 +299,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                     'Bạn đã mua khóa học này? Đăng nhập để học ngay trong mục "Khóa học của tôi".',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.grey700,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       height: 1.4,
                     ),
                   ),
@@ -315,12 +315,12 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
   Widget _buildInfoItem(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.grey700),
+        Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
         const SizedBox(width: 4),
         Text(
           text,
           style: TextStyle(
-            color: AppColors.grey700,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontSize: 12,
             fontWeight: AppTypography.semiBold,
           ),
@@ -333,9 +333,9 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: ExpansionTile(
         initiallyExpanded: module.orderIndex == 1 || module.orderIndex == 0,
@@ -350,7 +350,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
         ),
         subtitle: Text(
           '${module.lessons.length} bài học',
-          style: TextStyle(color: AppColors.grey700, fontSize: 12),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 12),
         ),
         children: module.lessons.isEmpty
             ? [
@@ -358,7 +358,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
                     'Chưa có bài học trong module này.',
-                    style: TextStyle(color: AppColors.grey700, fontSize: 13),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 13),
                   ),
                 )
               ]
@@ -368,7 +368,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Row(
                       children: [
-                        const Icon(Icons.play_circle_outline, size: 18, color: AppColors.textTertiary),
+                        Icon(Icons.play_circle_outline, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(

@@ -24,16 +24,16 @@ class MeetingHeader extends ConsumerWidget {
     final isRtmpBroadcasting = ref.watch(
       sessionProvider.select((s) => s.isActiveRtmpBroadcasting),
     );
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
 
     return Container(
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        color: theme.colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.05),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
             width: 1,
           ),
         ),
@@ -51,10 +51,9 @@ class MeetingHeader extends ConsumerWidget {
                     Flexible(
                       child: Text(
                         roomMetadata?.roomTitle ?? 'Meeting',
-                        style: TextStyle(
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                           letterSpacing: -0.2,
                         ),
                         maxLines: 1,
@@ -65,7 +64,7 @@ class MeetingHeader extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Row(
@@ -73,15 +72,15 @@ class MeetingHeader extends ConsumerWidget {
                           Icon(
                             Icons.people_outline,
                             size: 12,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.grey700,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '$participantCount',
-                            style: TextStyle(
+                            style: theme.textTheme.bodySmall?.copyWith(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.textPrimaryDark : AppColors.grey700,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -92,9 +91,9 @@ class MeetingHeader extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   'Torii Meet • Secure Connection',
-                  style: TextStyle(
+                  style: theme.textTheme.bodySmall?.copyWith(
                     fontSize: 11,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textTertiary,
+                    color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -107,7 +106,7 @@ class MeetingHeader extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.05),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -115,16 +114,14 @@ class MeetingHeader extends ConsumerWidget {
                   if (isRecording)
                     _StatusIndicator(
                       label: 'REC',
-                      color: AppColors.error,
-                      isDark: isDark,
+                      color: theme.colorScheme.error,
                     ),
                   if (isRecording && isRtmpBroadcasting)
                     const SizedBox(width: 4),
                   if (isRtmpBroadcasting)
                     _StatusIndicator(
                       label: 'LIVE',
-                      color: AppColors.accent,
-                      isDark: isDark,
+                      color: theme.colorScheme.secondary,
                     ),
                 ],
               ),
@@ -138,12 +135,10 @@ class MeetingHeader extends ConsumerWidget {
 class _StatusIndicator extends StatelessWidget {
   final String label;
   final Color color;
-  final bool isDark;
 
   const _StatusIndicator({
     required this.label,
     required this.color,
-    required this.isDark,
   });
 
   @override
@@ -151,9 +146,9 @@ class _StatusIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -166,7 +161,7 @@ class _StatusIndicator extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.5),
+                  color: color.withValues(alpha: 0.5),
                   blurRadius: 4,
                 ),
               ],

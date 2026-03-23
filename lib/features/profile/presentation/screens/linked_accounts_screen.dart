@@ -99,17 +99,17 @@ class _LinkedAccountsScreenState extends ConsumerState<LinkedAccountsScreen> {
     final linkedGoogle = _providers.contains('google');
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Liên kết tài khoản',
           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.2),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: _loading
@@ -120,9 +120,9 @@ class _LinkedAccountsScreenState extends ConsumerState<LinkedAccountsScreen> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,9 +132,9 @@ class _LinkedAccountsScreenState extends ConsumerState<LinkedAccountsScreen> {
                         style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
+                      Text(
                         'Bạn có thể liên kết tài khoản để đăng nhập bằng nhiều phương thức.',
-                        style: TextStyle(color: AppColors.textTertiary, height: 1.35),
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, height: 1.35),
                       ),
                       const SizedBox(height: 12),
                       _ProviderRow(
@@ -177,9 +177,9 @@ class _ProviderRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: theme.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.grey300),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
@@ -187,7 +187,7 @@ class _ProviderRow extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.10),
+              color: theme.colorScheme.primary.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Center(
@@ -205,7 +205,7 @@ class _ProviderRow extends StatelessWidget {
               children: [
                 Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary)),
+                Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -216,8 +216,8 @@ class _ProviderRow extends StatelessWidget {
                 ? OutlinedButton(
                     onPressed: busy ? null : onUnlink,
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.error,
-                      side: BorderSide(color: AppColors.error.withOpacity(0.35)),
+                      foregroundColor: theme.colorScheme.error,
+                      side: BorderSide(color: theme.colorScheme.error.withValues(alpha: 0.35)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: Text(busy ? '...' : 'Hủy', style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -225,8 +225,8 @@ class _ProviderRow extends StatelessWidget {
                 : ElevatedButton(
                     onPressed: busy ? null : onLink,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.textOnPrimary,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),

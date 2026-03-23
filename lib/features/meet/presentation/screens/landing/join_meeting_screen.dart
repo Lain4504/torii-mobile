@@ -51,18 +51,20 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
       return const SizedBox.shrink();
     }
 
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => _goHome(context),
         ),
         title: Text(
           'Tham gia cuộc họp',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.2,
               ),
@@ -78,11 +80,16 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.primary.withValues(alpha: 0.8),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.22),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.22),
                       blurRadius: 14,
                       offset: const Offset(0, 8),
                     ),
@@ -94,12 +101,12 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: AppColors.textOnPrimary.withOpacity(0.2),
+                        color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.video_call_rounded,
-                        color: AppColors.textOnPrimary,
+                        color: theme.colorScheme.onPrimary,
                         size: 20,
                       ),
                     ),
@@ -107,8 +114,8 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                     Expanded(
                       child: Text(
                         'Sẵn sàng vào phòng học trực tuyến',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: AppColors.textOnPrimary,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                              color: theme.colorScheme.onPrimary,
                               fontWeight: FontWeight.w800,
                             ),
                       ),
@@ -133,14 +140,14 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: theme.colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.grey300.withOpacity(0.9)),
+                        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.9)),
                       ),
                       child: Text(
                         welcomeMsg,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
                               height: 1.35,
                             ),
                         textAlign: TextAlign.center,
@@ -153,12 +160,12 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
               if (_loadingMessage == null) ...[
                 Container(
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.textPrimary.withOpacity(0.04),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -177,12 +184,12 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
 
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.grey300),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.textPrimary.withOpacity(0.04),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),

@@ -16,23 +16,23 @@ class OrderListScreen extends ConsumerWidget {
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         appBar: AppBar(
           title: Text(
             'Đơn hàng của tôi',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: AppColors.textPrimary,
+              color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w800,
             ),
           ),
-          backgroundColor: AppColors.surface,
+          backgroundColor: theme.colorScheme.surface,
           elevation: 0,
-          leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
+          leading: IconButton(icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
           bottom: TabBar(
             isScrollable: true,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textTertiary,
-            indicatorColor: AppColors.primary,
+            labelColor: theme.colorScheme.primary,
+            unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+            indicatorColor: theme.colorScheme.primary,
             tabs: const [
               Tab(text: 'Tất cả'),
               Tab(text: 'Đã thanh toán'),
@@ -57,7 +57,7 @@ class OrderListScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
+          error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
         ),
       ),
     );
@@ -73,16 +73,17 @@ class OrderListScreen extends ConsumerWidget {
   }
 
   Widget _buildOrderCard(BuildContext context, OrderModel order) {
+    final theme = Theme.of(context);
     final isPaid = order.status.toUpperCase() == 'PAID';
     final amountStr = '${order.amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.grey200),
-        boxShadow: [BoxShadow(color: AppColors.textPrimary.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+        border: Border.all(color: theme.dividerColor),
+        boxShadow: [BoxShadow(color: theme.colorScheme.onSurface.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,10 +95,10 @@ class OrderListScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: (isPaid ? AppColors.success : AppColors.grey200).withOpacity(0.1),
+                  color: (isPaid ? Colors.green : theme.dividerColor).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(order.statusLabel, style: TextStyle(color: isPaid ? AppColors.success : AppColors.textTertiary, fontSize: 11, fontWeight: FontWeight.bold)),
+                child: Text(order.statusLabel, style: TextStyle(color: isPaid ? Colors.green : theme.colorScheme.onSurfaceVariant, fontSize: 11, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -111,7 +112,7 @@ class OrderListScreen extends ConsumerWidget {
                   width: 60,
                   height: 60,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(width: 60, height: 60, color: AppColors.grey200, child: const Icon(Icons.shopping_bag)),
+                  errorBuilder: (_, __, ___) => Container(width: 60, height: 60, color: theme.dividerColor, child: const Icon(Icons.shopping_bag)),
                 ),
               ),
               const SizedBox(width: 16),
@@ -121,7 +122,7 @@ class OrderListScreen extends ConsumerWidget {
                   children: [
                     Text(order.courseName ?? 'Đơn hàng', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
-                    Text('Ngày mua: ${order.formattedDate}', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
+                    Text('Ngày mua: ${order.formattedDate}', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
                   ],
                 ),
               ),
@@ -131,11 +132,11 @@ class OrderListScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(amountStr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary)),
+              Text(amountStr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
               OutlinedButton(
                 onPressed: () => context.push('/order-detail/${order.id}'),
                 style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                child: const Text('Xem chi tiết', style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
+                child: Text('Xem chi tiết', style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 13)),
               ),
             ],
           ),

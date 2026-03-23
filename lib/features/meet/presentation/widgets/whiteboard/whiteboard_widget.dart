@@ -22,7 +22,7 @@ class WhiteboardWidget extends ConsumerWidget {
     }
 
     return Container(
-      color: AppColors.surface,
+      color: Theme.of(context).colorScheme.surface,
       child: Stack(
         children: [
           // Canvas
@@ -41,8 +41,8 @@ class WhiteboardWidget extends ConsumerWidget {
               },
               icon: const Icon(Icons.close),
               style: IconButton.styleFrom(
-                backgroundColor: AppColors.textPrimary.withOpacity(0.12),
-                foregroundColor: AppColors.textPrimary,
+                backgroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),

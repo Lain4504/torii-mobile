@@ -10,7 +10,7 @@ class SenseiDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'AI Sensei',
@@ -20,8 +20,8 @@ class SenseiDashboardPage extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -29,13 +29,13 @@ class SenseiDashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSpecialCard(),
+            _buildSpecialCard(theme),
             const SizedBox(height: 18),
             Text(
               'Tính năng',
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: AppColors.textSecondary,
+                color: theme.colorScheme.onSurfaceVariant,
                 letterSpacing: 0.2,
               ),
             ),
@@ -53,20 +53,23 @@ class SenseiDashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSpecialCard() {
+  Widget _buildSpecialCard(ThemeData theme) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryLight],
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary,
+            theme.colorScheme.primary.withValues(alpha: 0.8),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: theme.colorScheme.primary.withValues(alpha: 0.3),
             blurRadius: 14,
             offset: const Offset(0, 10),
           ),
@@ -78,16 +81,16 @@ class SenseiDashboardPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.textOnPrimary.withOpacity(0.2),
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.auto_awesome, color: AppColors.textOnPrimary, size: 18),
+            child: Icon(Icons.auto_awesome, color: theme.colorScheme.onPrimary, size: 18),
           ),
           const SizedBox(height: 10),
-          const Text(
+          Text(
             'Học tập cùng Sensei AI',
             style: TextStyle(
-              color: AppColors.textOnPrimary,
+              color: theme.colorScheme.onPrimary,
               fontSize: 18,
               fontWeight: FontWeight.w800,
             ),
@@ -96,7 +99,7 @@ class SenseiDashboardPage extends StatelessWidget {
           Text(
             'Người bạn đồng hành thông minh giúp bạn chinh phục tiếng Nhật mỗi ngày.',
             style: TextStyle(
-              color: AppColors.textOnPrimary.withOpacity(0.9),
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
               fontSize: 12.5,
               height: 1.35,
             ),
@@ -117,12 +120,12 @@ class _MenuCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200.withOpacity(0.8)),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.04),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -160,17 +163,17 @@ class _MenuCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       item.description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.textTertiary,
-                        height: 1.2,
-                      ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          height: 1.2,
+                        ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: AppColors.textTertiary.withOpacity(0.7), size: 18),
+              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), size: 18),
             ],
           ),
         ),

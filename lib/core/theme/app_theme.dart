@@ -273,6 +273,7 @@ class AppTheme {
       outlineVariant: AppColors.grey700,
     ),
     
+    
     scaffoldBackgroundColor: AppColors.backgroundDark,
     
     // App Bar Theme
@@ -286,6 +287,7 @@ class AppTheme {
         fontSize: AppTypography.fontSizeLg,
         fontWeight: AppTypography.semiBold,
         color: AppColors.textPrimaryDark,
+        letterSpacing: AppTypography.letterSpacingTight,
         fontFamily: _fontFamily,
       ),
       iconTheme: IconThemeData(
@@ -298,18 +300,77 @@ class AppTheme {
     cardTheme: CardThemeData(
       color: AppColors.surfaceDark,
       elevation: 0,
+      shadowColor: AppColors.backgroundDark,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.card),
-        side: const BorderSide(color: AppColors.grey300, width: 1),
+        side: const BorderSide(color: AppColors.borderDark, width: 1),
       ),
+      margin: EdgeInsets.zero,
     ),
  
+    // Input Decoration Theme
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: AppColors.surfaceVariantDark,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: 8,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        borderSide: const BorderSide(color: AppColors.borderDark, width: 1.2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        borderSide: const BorderSide(color: AppColors.borderDark, width: 1.2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.6),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        borderSide: const BorderSide(color: AppColors.error, width: 1.2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadius.input),
+        borderSide: const BorderSide(color: AppColors.error, width: 1.6),
+      ),
+      hintStyle: const TextStyle(
+        color: AppColors.textSecondaryDark,
+        fontSize: AppTypography.fontSizeSm,
+        fontWeight: AppTypography.regular,
+      ),
+    ),
+
     // Elevated Button Theme
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primaryLight,
         foregroundColor: AppColors.backgroundDark,
         elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.button),
+        ),
+        textStyle: const TextStyle(
+          fontSize: AppTypography.fontSizeSm,
+          fontWeight: AppTypography.bold,
+          letterSpacing: AppTypography.letterSpacingNormal,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: 8,
+        ),
+        minimumSize: const Size(0, 44),
+      ),
+    ),
+
+    // Outlined Button Theme
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.primaryLight,
+        side: BorderSide(color: AppColors.primaryLight.withValues(alpha: 0.3), width: 2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.button),
         ),
@@ -318,7 +379,48 @@ class AppTheme {
           vertical: 8,
         ),
         minimumSize: const Size(0, 44),
+        textStyle: const TextStyle(
+          fontSize: AppTypography.fontSizeSm,
+          fontWeight: AppTypography.semiBold,
+        ),
       ),
+    ),
+
+    // Navigation Bar Theme
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: AppColors.backgroundDark.withValues(alpha: 0.94),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: AppColors.primaryDark.withValues(alpha: 0.3),
+      height: 80,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const TextStyle(
+            color: AppColors.primaryLight,
+            fontWeight: AppTypography.semiBold,
+            fontSize: 12,
+          );
+        }
+        return const TextStyle(
+          color: AppColors.textSecondaryDark,
+          fontSize: 12,
+          fontWeight: AppTypography.medium,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const IconThemeData(
+            color: AppColors.primaryLight,
+            size: AppIconSize.md,
+          );
+        }
+        return const IconThemeData(
+          color: AppColors.textSecondaryDark,
+          size: AppIconSize.md,
+        );
+      }),
     ),
  
     // Text Theme
@@ -330,9 +432,28 @@ class AppTheme {
         letterSpacing: AppTypography.letterSpacingTight,
         height: 1.1,
       ),
+      displayMedium: TextStyle(
+        fontSize: AppTypography.fontSize4xl,
+        fontWeight: AppTypography.bold,
+        color: AppColors.textPrimaryDark,
+        letterSpacing: AppTypography.letterSpacingTight,
+        height: 1.1,
+      ),
+      headlineLarge: TextStyle(
+        fontSize: AppTypography.fontSize3xl,
+        fontWeight: AppTypography.extraBold,
+        color: AppColors.textPrimaryDark,
+        letterSpacing: AppTypography.letterSpacingTight,
+      ),
       headlineMedium: TextStyle(
         fontSize: AppTypography.fontSize2xl,
         fontWeight: AppTypography.bold,
+        color: AppColors.textPrimaryDark,
+        letterSpacing: AppTypography.letterSpacingTight,
+      ),
+      titleLarge: TextStyle(
+        fontSize: AppTypography.fontSizeXl,
+        fontWeight: AppTypography.semiBold,
         color: AppColors.textPrimaryDark,
       ),
       bodyLarge: TextStyle(

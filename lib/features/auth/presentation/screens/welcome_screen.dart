@@ -83,7 +83,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -100,10 +100,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       minimumSize: const Size(0, 0),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Bỏ qua',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -143,10 +143,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                         Text(
                           page.title,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 24,
+                          style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
+                            color: theme.colorScheme.onSurface,
                             letterSpacing: -0.5,
                           ),
                         ),
@@ -154,9 +153,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                         Text(
                           page.description,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.grey700,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                             height: 1.6,
                           ),
                         ),
@@ -186,8 +184,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                         width: isActive ? 20 : 8,
                         decoration: BoxDecoration(
                           color: isActive
-                              ? AppColors.primary
-                              : AppColors.grey300,
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.outlineVariant,
                           borderRadius: BorderRadius.circular(999),
                         ),
                       );
@@ -215,10 +213,10 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                         context.go('/login');
                       }
                     },
-                    child: const Text(
+                    child: Text(
                       'Tôi đã có tài khoản',
-                      style: TextStyle(
-                        color: AppColors.primary,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

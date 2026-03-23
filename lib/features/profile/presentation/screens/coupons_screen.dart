@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 
 class CouponsScreen extends ConsumerWidget {
@@ -12,10 +11,10 @@ class CouponsScreen extends ConsumerWidget {
     final repo = ref.watch(gamificationRepositoryProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -25,7 +24,7 @@ class CouponsScreen extends ConsumerWidget {
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
@@ -38,17 +37,17 @@ class CouponsScreen extends ConsumerWidget {
             return Center(
               child: Text(
                 'Lỗi: ${snapshot.error}',
-                style: const TextStyle(color: AppColors.error),
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
               ),
             );
           }
           final coupons = snapshot.data ?? [];
           if (coupons.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'Bạn chưa có mã giảm giá nào.\nHãy tham gia các sự kiện hoặc đổi quà để nhận mã.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textTertiary),
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
             );
           }
@@ -71,12 +70,12 @@ class CouponsScreen extends ConsumerWidget {
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.grey300),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.textPrimary.withOpacity(0.03),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -88,10 +87,10 @@ class CouponsScreen extends ConsumerWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.08),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Icon(Icons.local_offer_rounded, color: AppColors.primary),
+                      child: Icon(Icons.local_offer_rounded, color: theme.colorScheme.primary),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -112,7 +111,7 @@ class CouponsScreen extends ConsumerWidget {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: AppColors.textTertiary,
+                                color: theme.colorScheme.onSurfaceVariant,
                                 height: 1.35,
                               ),
                             ),
@@ -121,7 +120,7 @@ class CouponsScreen extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               'Hết hạn: $expiredText',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                              style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ],

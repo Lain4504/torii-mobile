@@ -81,10 +81,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final dobLabel = _dob == null ? 'Chọn ngày sinh' : '${_dob!.day.toString().padLeft(2, '0')}/${_dob!.month.toString().padLeft(2, '0')}/${_dob!.year}';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -94,7 +94,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: SafeArea(
@@ -117,16 +117,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.grey300),
+                      border: Border.all(color: theme.colorScheme.outlineVariant),
                     ),
                     child: Row(
                       children: [
-                        const CircleAvatar(
+                        CircleAvatar(
                           radius: 24,
-                          backgroundColor: AppColors.primaryLight,
-                          child: Icon(Icons.person, color: AppColors.primary),
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          child: Icon(Icons.person, color: theme.colorScheme.primary),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -136,14 +136,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               Text(
                                 user?.email ?? '',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textTertiary,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Cập nhật tên hiển thị để bạn bè và giảng viên dễ nhận ra bạn hơn.',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -157,9 +157,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.grey300),
+                      border: Border.all(color: theme.colorScheme.outlineVariant),
                     ),
                     child: Form(
                       key: _formKey,
@@ -234,7 +234,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               child: Text(
                                 dobLabel,
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: _dob == null ? AppColors.textTertiary : AppColors.textPrimary,
+                                  color: _dob == null ? theme.colorScheme.onSurfaceVariant : theme.colorScheme.onSurface,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -259,20 +259,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             child: ElevatedButton(
                               onPressed: _saving ? null : _save,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: AppColors.textOnPrimary,
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: theme.colorScheme.onPrimary,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                               ),
                               child: _saving
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 18,
                                       height: 18,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.textOnPrimary),
+                                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
                                       ),
                                     )
                                   : const Text(

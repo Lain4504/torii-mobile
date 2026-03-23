@@ -16,16 +16,16 @@ class CourseDiscoveryScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Khám phá khóa học',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: Column(
@@ -34,9 +34,9 @@ class CourseDiscoveryScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
             child: Row(
               children: [
-                _buildFilterChip(selectedLevel != null ? 'Cấp độ: $selectedLevel' : 'Cấp độ', Icons.keyboard_arrow_down),
+                _buildFilterChip(context, selectedLevel != null ? 'Cấp độ: $selectedLevel' : 'Cấp độ', Icons.keyboard_arrow_down),
                 const SizedBox(width: 12),
-                _buildFilterChip('Loại bài học', Icons.keyboard_arrow_down),
+                _buildFilterChip(context, 'Loại bài học', Icons.keyboard_arrow_down),
               ],
             ),
           ),
@@ -54,7 +54,7 @@ class CourseDiscoveryScreen extends ConsumerWidget {
                     );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
+              error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
             ),
           ),
         ],
@@ -81,19 +81,19 @@ class CourseDiscoveryScreen extends ConsumerWidget {
     }).toList();
   }
 
-  Widget _buildFilterChip(String label, IconData icon) {
+  Widget _buildFilterChip(BuildContext context, String label, IconData icon) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.grey200,
+        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
           Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
           const SizedBox(width: 4),
-          Icon(icon, size: 18, color: AppColors.grey700),
+          Icon(icon, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
         ],
       ),
     );
@@ -105,10 +105,10 @@ class CourseDiscoveryScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: AppColors.textPrimary.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Column(
@@ -123,7 +123,7 @@ class CourseDiscoveryScreen extends ConsumerWidget {
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(height: 160, color: AppColors.grey200, child: const Icon(Icons.school, size: 48)),
+                  errorBuilder: (_, __, ___) => Container(height: 160, color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3), child: const Icon(Icons.school, size: 48)),
                 ),
               ),
               Positioned(
@@ -131,8 +131,8 @@ class CourseDiscoveryScreen extends ConsumerWidget {
                 left: 12,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(12)),
-                  child: Text(course.mode, style: const TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
+                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, borderRadius: BorderRadius.circular(12)),
+                  child: Text(course.mode, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
               ),
             ],
@@ -152,7 +152,7 @@ class CourseDiscoveryScreen extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     disp.liveContextLine!,
-                    style: TextStyle(fontSize: 12, color: AppColors.grey700, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -161,7 +161,7 @@ class CourseDiscoveryScreen extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Gói: ${disp.learnerMarketingSubtitle}',
-                    style: TextStyle(fontSize: 12, color: AppColors.grey700),
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -169,16 +169,16 @@ class CourseDiscoveryScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.play_circle_outline, size: 16, color: AppColors.grey700),
+                    Icon(Icons.play_circle_outline, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     const SizedBox(width: 4),
-                    Text('Khóa học ${course.mode}', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
+                    Text('Khóa học ${course.mode}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
                   ],
                 ),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(priceStr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    Text(priceStr, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                     ElevatedButton(
                       onPressed: () {
                         final mode = course.mode.toUpperCase();
@@ -189,8 +189,8 @@ class CourseDiscoveryScreen extends ConsumerWidget {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,

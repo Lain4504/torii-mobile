@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
@@ -25,14 +24,14 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       // Giữ AppShellBar/bottom nav luôn hiện vì route này nằm trong shell branch profile
       extendBody: true,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: theme.colorScheme.onSurface, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -63,7 +62,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   Text(
                     'Vì lý do bảo mật, hãy nhập mật khẩu hiện tại và mật khẩu mới của bạn.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.grey700,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -71,6 +70,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   const Text('Mật khẩu hiện tại', style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   _buildPasswordField(
+                    theme,
                     controller: _currentCtrl,
                     hintText: 'Nhập mật khẩu hiện tại',
                     obscure: _obscureCurrent,
@@ -81,6 +81,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   const Text('Mật khẩu mới', style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   _buildPasswordField(
+                    theme,
                     controller: _newCtrl,
                     hintText: 'Tối thiểu 8 ký tự',
                     obscure: _obscureNew,
@@ -91,6 +92,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   const Text('Nhập lại mật khẩu mới', style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   _buildPasswordField(
+                    theme,
                     controller: _confirmCtrl,
                     hintText: 'Nhập lại để xác nhận',
                     obscure: _obscureConfirm,
@@ -104,8 +106,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleChangePassword,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -123,10 +125,10 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => context.push('/forgot-password'),
-                    child: const Text(
+                    child: Text(
                       'Quên mật khẩu hiện tại?',
                       style: TextStyle(
-                        color: AppColors.primary,
+                        color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -140,7 +142,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     );
   }
 
-  Widget _buildPasswordField({
+  Widget _buildPasswordField(
+    ThemeData theme, {
     required TextEditingController controller,
     required String hintText,
     required bool obscure,
@@ -163,15 +166,15 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.grey300),
+          borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.grey300),
+          borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary),
+          borderSide: BorderSide(color: theme.colorScheme.primary),
         ),
       ),
     );
