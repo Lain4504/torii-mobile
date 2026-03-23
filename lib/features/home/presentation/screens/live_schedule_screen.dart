@@ -979,7 +979,9 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
       color: Colors.transparent,
       shadowColor: Colors.black.withValues(alpha: 0.2),
       child: Container(
-        padding: EdgeInsets.fromLTRB(16, 14, 16, 14 + MediaQuery.paddingOf(context).bottom),
+        // Tránh cộng thêm bottom padding lần 2 (màn đã được bọc SafeArea).
+        // Nếu giữ padding bottom quá lớn, panel sẽ bị đẩy lên xa `AppShellBottom`.
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,

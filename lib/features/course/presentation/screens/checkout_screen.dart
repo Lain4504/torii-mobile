@@ -7,18 +7,17 @@ import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/checkout_models.dart';
-import 'package:torii_app/data/models/live_offering_detail_model.dart';
-import 'package:torii_app/data/utils/learner_offering_display.dart';
+import 'package:torii_app/data/models/class_catalog_model.dart';
+import 'package:torii_app/data/models/live_product_detail_model.dart';
 
+/// Thanh toán theo **classId** — backend resolve `catalogOfferingId` trong chi tiết lớp.
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
     super.key,
-    required this.offeringId,
-    this.classId,
+    required this.classId,
   });
 
-  final String offeringId;
-  final String? classId; // LIVE optional initial selection
+  final String classId;
 
   @override
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -28,17 +27,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final TextEditingController _couponController = TextEditingController();
   Timer? _couponDebounce;
 
-  String? _selectedClassId;
   OrderPreviewModel? _preview;
   bool _previewing = false;
   bool _processing = false;
   String? _previewError;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedClassId = widget.classId;
-  }
+  bool _scheduledInitialPreview = false;
 
   @override
   void dispose() {
@@ -47,11 +40,104 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
+  void _schedulePreview(ClassCatalogDetailModel detail) {
+    _couponDebounce?.cancel();
+    _couponDebounce = Timer(const Duration(milliseconds: 450), () => _previewNow(detail));
+  }
+
+  Future<void> _previewNow(ClassCatalogDetailModel detail) async {
+    final pid = detail.catalogProductId;
+    if (pid.isEmpty) {
+      setState(() {
+        _preview = null;
+        _previewError = 'Thiếu gói bán (catalogProductId).';
+      });
+      return;
+    }
+
+    final isLive = detail.isLive;
+    if (isLive) {
+      final lc = detail.liveClass;
+      if (lc != null && lc.isLiveCapacityFull) {
+        setState(() {
+          _preview = null;
+          _previewError = 'Lớp đã đầy. Không thể thanh toán.';
+        });
+        return;
+      }
+    }
+
+    setState(() {
+      _previewing = true;
+      _previewError = null;
+    });
+
+    try {
+      final repo = ref.read(academyRepositoryProvider);
+      final result = await repo.previewOrder(
+        productId: pid,
+        classId: isLive ? widget.classId : null,
+        couponCode: _couponController.text,
+      );
+      if (!mounted) return;
+      setState(() => _preview = result);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _previewError = e.toString());
+    } finally {
+      if (!mounted) return;
+      setState(() => _previewing = false);
+    }
+  }
+
+  Future<void> _handleCheckout(ClassCatalogDetailModel detail) async {
+    final pid = detail.catalogProductId;
+    if (pid.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thiếu thông tin gói bán.')));
+      return;
+    }
+    final isLive = detail.isLive;
+    if (isLive) {
+      final lc = detail.liveClass;
+      if (lc != null && lc.isLiveCapacityFull) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lớp đã đầy.')));
+        return;
+      }
+    }
+
+    setState(() => _processing = true);
+    try {
+      final repo = ref.read(academyRepositoryProvider);
+      final result = await repo.checkoutOrder(
+        productId: pid,
+        classId: isLive ? widget.classId : null,
+        paymentMethod: 'PAYOS',
+        couponCode: _couponController.text,
+      );
+
+      final paymentUrl = result.paymentUrl;
+      final orderCode = result.orderCode;
+
+      if (paymentUrl == null || paymentUrl.isEmpty || orderCode == null || orderCode.isEmpty) {
+        throw Exception('Không nhận được paymentUrl hoặc orderCode.');
+      }
+
+      if (!mounted) return;
+      context.push('/payment', extra: <String, dynamic>{'paymentUrl': paymentUrl, 'orderCode': orderCode});
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Thanh toán thất bại: $e')));
+    } finally {
+      if (!mounted) return;
+      setState(() => _processing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final offeringAsync = ref.watch(liveOfferingDetailProvider(widget.offeringId));
+    final detailAsync = ref.watch(classCatalogDetailProvider(widget.classId));
     final theme = Theme.of(context);
-    const bottomNavBarHeight = 64.0; // matches AppShell bottom bar
+    const bottomNavBarHeight = 64.0;
     final bottomInset = MediaQuery.of(context).padding.bottom;
     final bottomSafePadding = bottomNavBarHeight + bottomInset + 12;
 
@@ -69,21 +155,28 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: offeringAsync.when(
+      body: detailAsync.when(
         data: (detail) {
-          if (detail == null) return const Center(child: Text('Không tìm thấy khóa học'));
-          final offering = detail.offering;
-          final isLive = offering.mode.toUpperCase() == 'LIVE';
-          final disp = offering.learnerOfferingDisplay(liveClasses: detail.classes);
+          if (detail == null) return const Center(child: Text('Không tìm thấy lớp học'));
 
-          final classes = detail.classes.where((c) => c.isLive).toList();
-          final selectedClass = isLive && _selectedClassId != null ? classes.where((c) => c.id == _selectedClassId).cast<LiveClassModel?>().firstOrNull : null;
-          final canPayLive = !isLive || (selectedClass != null && !selectedClass.isLiveCapacityFull);
+          if (!_scheduledInitialPreview) {
+            _scheduledInitialPreview = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _previewNow(detail);
+            });
+          }
+
+          final isLive = detail.isLive;
+          final live = detail.liveClass;
+          final canPayLive = !isLive || (live != null && !live.isLiveCapacityFull);
+          final title = detail.item.name.isNotEmpty
+              ? detail.item.name
+              : (detail.item.profileTitle ?? 'Khóa học');
+          final thumb = detail.item.thumbnailUrl;
 
           return Stack(
             children: [
@@ -91,45 +184,28 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 padding: EdgeInsets.fromLTRB(16, 12, 16, bottomSafePadding + 96),
                 children: [
                   _CourseSummaryCard(
-                    displayTitle: disp.learnerDisplayTitle,
-                    liveContextLine: disp.liveContextLine,
-                    marketingPackageLine: disp.learnerMarketingSubtitle != null
-                        ? 'Gói: ${disp.learnerMarketingSubtitle}'
-                        : null,
-                    thumbnailUrl: offering.thumbnailUrl,
-                    mode: offering.mode,
-                    price: offering.displayPrice,
-                    selectedClass: selectedClass,
+                    displayTitle: title,
+                    liveContextLine: null,
+                    marketingPackageLine: null,
+                    thumbnailUrl: thumb,
+                    mode: detail.item.mode,
+                    price: detail.displayPrice,
+                    selectedClass: live,
                   ),
                   const SizedBox(height: 16),
-                  if (isLive) ...[
+                  if (isLive && live != null) ...[
                     Text(
-                      'Chọn lớp học',
+                      'Lớp đăng ký',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: AppTypography.bold,
                         letterSpacing: 0.1,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    if (classes.isEmpty)
-                      Text('Chưa có lớp LIVE khả dụng.', style: TextStyle(color: AppColors.grey700))
-                    else
-                      Column(
-                        children: classes
-                            .map(
-                              (c) => _LiveClassRadioTile(
-                                klass: c,
-                                selected: _selectedClassId == c.id,
-                                onTap: c.isLiveCapacityFull
-                                    ? null
-                                    : () {
-                                        setState(() => _selectedClassId = c.id);
-                                        _schedulePreview(detail);
-                                      },
-                              ),
-                            )
-                            .toList(),
-                      ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${live.name.isNotEmpty ? live.name : live.code} • ${live.code}',
+                      style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.4),
+                    ),
                     const SizedBox(height: 16),
                   ],
                   Text(
@@ -148,24 +224,18 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           decoration: InputDecoration(
                             hintText: 'Nhập mã (nếu có)',
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide:
-                                  const BorderSide(color: AppColors.grey300),
+                              borderSide: const BorderSide(color: AppColors.grey300),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide:
-                                  const BorderSide(color: AppColors.grey300),
+                              borderSide: const BorderSide(color: AppColors.grey300),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide:
-                                  const BorderSide(color: AppColors.primary),
+                              borderSide: const BorderSide(color: AppColors.primary),
                             ),
                           ),
                           onChanged: (_) => _schedulePreview(detail),
@@ -175,10 +245,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       OutlinedButton(
                         onPressed: _previewing ? null : () => _previewNow(detail),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                           side: const BorderSide(color: AppColors.borderLight),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -190,7 +257,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ),
                   const SizedBox(height: 16),
                   _OrderTotalsCard(
-                    basePrice: offering.displayPrice,
+                    basePrice: detail.displayPrice,
                     preview: _preview,
                     previewing: _previewing,
                     errorText: _previewError,
@@ -240,99 +307,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
       ),
     );
-  }
-
-  void _schedulePreview(LiveOfferingDetailModel detail) {
-    _couponDebounce?.cancel();
-    _couponDebounce = Timer(const Duration(milliseconds: 450), () => _previewNow(detail));
-  }
-
-  Future<void> _previewNow(LiveOfferingDetailModel detail) async {
-    final offering = detail.offering;
-    final isLive = offering.mode.toUpperCase() == 'LIVE';
-    if (isLive && (_selectedClassId == null || _selectedClassId!.isEmpty)) {
-      setState(() {
-        _preview = null;
-        _previewError = 'Vui lòng chọn lớp LIVE để xem tổng tiền.';
-      });
-      return;
-    }
-
-    if (isLive && _selectedClassId != null) {
-      final picked = detail.classes.where((c) => c.id == _selectedClassId).firstOrNull;
-      if (picked != null && picked.isLiveCapacityFull) {
-        setState(() {
-          _preview = null;
-          _previewError = 'Lớp đã đủ học viên, không thể thanh toán.';
-        });
-        return;
-      }
-    }
-
-    setState(() {
-      _previewing = true;
-      _previewError = null;
-    });
-
-    try {
-      final repo = ref.read(academyRepositoryProvider);
-      final result = await repo.previewOrder(
-        offeringId: widget.offeringId,
-        classId: _selectedClassId,
-        couponCode: _couponController.text,
-      );
-      if (!mounted) return;
-      setState(() => _preview = result);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _previewError = e.toString());
-    } finally {
-      if (!mounted) return;
-      setState(() => _previewing = false);
-    }
-  }
-
-  Future<void> _handleCheckout(LiveOfferingDetailModel detail) async {
-    final offering = detail.offering;
-    final isLive = offering.mode.toUpperCase() == 'LIVE';
-    if (isLive && (_selectedClassId == null || _selectedClassId!.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng chọn một lớp LIVE để thanh toán.')));
-      return;
-    }
-    if (isLive && _selectedClassId != null) {
-      final picked = detail.classes.where((c) => c.id == _selectedClassId).firstOrNull;
-      if (picked != null && picked.isLiveCapacityFull) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lớp đã đủ học viên, không thể thanh toán.')));
-        return;
-      }
-    }
-
-    setState(() => _processing = true);
-    try {
-      final repo = ref.read(academyRepositoryProvider);
-      final result = await repo.checkoutOrder(
-        offeringId: widget.offeringId,
-        classId: _selectedClassId,
-        paymentMethod: 'PAYOS',
-        couponCode: _couponController.text,
-      );
-
-      final paymentUrl = result.paymentUrl;
-      final orderCode = result.orderCode;
-
-      if (paymentUrl == null || paymentUrl.isEmpty || orderCode == null || orderCode.isEmpty) {
-        throw Exception('Không nhận được paymentUrl hoặc orderCode.');
-      }
-
-      if (!mounted) return;
-      context.push('/payment', extra: <String, dynamic>{'paymentUrl': paymentUrl, 'orderCode': orderCode});
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Thanh toán thất bại: $e')));
-    } finally {
-      if (!mounted) return;
-      setState(() => _processing = false);
-    }
   }
 }
 
@@ -548,109 +522,3 @@ class _OrderTotalsCard extends StatelessWidget {
     );
   }
 }
-
-class _LiveClassRadioTile extends StatelessWidget {
-  const _LiveClassRadioTile({
-    required this.klass,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final LiveClassModel klass;
-  final bool selected;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final full = klass.isLiveCapacityFull;
-    final borderColor = full
-        ? AppColors.grey300
-        : (selected ? AppColors.primary : AppColors.borderLight);
-    final bgColor = full
-        ? AppColors.grey200.withOpacity(0.35)
-        : (selected ? AppColors.primary.withOpacity(0.04) : AppColors.surface);
-    final title = klass.name.isNotEmpty ? klass.name : (klass.code.isNotEmpty ? klass.code : 'Lớp học');
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: borderColor),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 22,
-              height: 22,
-              margin: const EdgeInsets.only(top: 2),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: selected && !full ? AppColors.primary : AppColors.grey700, width: 2),
-              ),
-              child: selected && !full
-                  ? Center(child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)))
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      color: full ? AppColors.grey700 : AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (klass.code.isNotEmpty && klass.name.isNotEmpty)
-                    Text('Mã lớp: ${klass.code}', style: TextStyle(color: AppColors.grey700, fontSize: 12, fontWeight: FontWeight.w600)),
-                  if ((klass.instructorName ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Text('GV: ${klass.instructorName}', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
-                  ],
-                  if (klass.liveCapacitySubtitle != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      klass.liveCapacitySubtitle!,
-                      style: TextStyle(
-                        color: full ? AppColors.error : AppColors.grey700,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (full)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: AppColors.error.withOpacity(0.12), borderRadius: BorderRadius.circular(999)),
-                child: const Text('Đã đầy', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w800, fontSize: 10)),
-              )
-            else if (klass.isEnrollableNow)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(999)),
-                child: const Text('Mở đăng ký', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 10)),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-extension<T> on Iterable<T> {
-  T? get firstOrNull => isEmpty ? null : first;
-}
-

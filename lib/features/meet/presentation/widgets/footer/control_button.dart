@@ -6,6 +6,7 @@ class ControlButton extends StatelessWidget {
   final String label;
   final bool isActive;
   final VoidCallback onTap;
+  final int badgeCount;
   final Color? activeColor;
   final bool isDanger;
 
@@ -15,6 +16,7 @@ class ControlButton extends StatelessWidget {
     required this.label,
     required this.isActive,
     required this.onTap,
+    this.badgeCount = 0,
     this.activeColor,
     this.isDanger = false,
   });
@@ -67,12 +69,44 @@ class ControlButton extends StatelessWidget {
                     ]
                   : null,
             ),
-            child: Icon(
-              icon,
-              color: isActive 
-                  ? AppColors.textOnPrimary 
-                  : baseFg,
-              size: isMobile ? 21 : 23,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: isActive
+                      ? AppColors.textOnPrimary
+                      : baseFg,
+                  size: isMobile ? 21 : 23,
+                ),
+                if (badgeCount > 0)
+                  Positioned(
+                    top: isMobile ? -2 : -3,
+                    right: isMobile ? -2 : -3,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Center(
+                        child: Text(
+                          badgeCount > 99 ? '99+' : '$badgeCount',
+                          style: const TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

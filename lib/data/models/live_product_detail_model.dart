@@ -108,16 +108,16 @@ class LiveClassModel {
   }
 }
 
-class LiveOfferingDetailModel {
-  final CourseOfferingModel offering;
+class LiveProductDetailModel {
+  final AcademyProductModel product;
   final List<LiveClassModel> classes;
 
-  const LiveOfferingDetailModel({
-    required this.offering,
+  const LiveProductDetailModel({
+    required this.product,
     required this.classes,
   });
 
-  factory LiveOfferingDetailModel.fromJson(Map<String, dynamic> json) {
+  factory LiveProductDetailModel.fromJson(Map<String, dynamic> json) {
     final rawClasses = json['siblingClasses'] ?? json['classes'];
     final List<dynamic> list = rawClasses is List ? rawClasses : const [];
 
@@ -140,8 +140,8 @@ class LiveOfferingDetailModel {
         .where((c) => c.id.isNotEmpty)
         .toList();
 
-    return LiveOfferingDetailModel(
-      offering: CourseOfferingModel.fromJson(json),
+    return LiveProductDetailModel(
+      product: AcademyProductModel.fromJson(json),
       classes: classes,
     );
   }
