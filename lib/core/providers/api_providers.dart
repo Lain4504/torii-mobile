@@ -188,7 +188,7 @@ final streakProvider = FutureProvider<StreakModel?>((ref) async {
   return repo.getStreak();
 });
 
-// ---------- Live schedules (enrollments LIVE + /api/academy/live-sessions, parity web-learner) ----------
+// ---------- Live schedules: GET /api/academy/live-sessions/me (parity web-learner) ----------
 final liveSchedulesProvider = FutureProvider<List<LiveScheduleModel>>((ref) async {
   if (!_authenticatedAcademyUser(ref)) {
     return const <LiveScheduleModel>[];

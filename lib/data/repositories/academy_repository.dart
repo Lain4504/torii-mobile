@@ -9,7 +9,7 @@ import '../models/study_set_models.dart';
 import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 
-/// Academy API: course offerings (public), enrollments/me, orders/my, live-sessions (lịch học viên)
+/// Academy API: course offerings (public), enrollments/me, orders/my, live-sessions/me (lịch học viên)
 class AcademyRepository {
   const AcademyRepository(this._dio);
 
@@ -239,19 +239,12 @@ class AcademyRepository {
   static const int _schedulePastWeeks = 2;
   static const int _scheduleFutureWeeks = 12;
 
-  /// Gom buổi học từ các lớp LIVE đã đăng ký: GET enrollments/me + GET /api/academy/live-sessions theo từng classId.
+  /// Lịch buổi LIVE của user: `GET /api/academy/live-sessions/me` (cùng backend với web-learner, kèm điểm danh).
   Future<List<LiveScheduleModel>> getLiveSchedules({
     String? startDate,
     String? endDate,
   }) async {
     try {
-      final enrollments = await getMyEnrollments(page: 1, limit: 100, status: 'ACTIVE');
-      final liveEnrollments = enrollments.data.where((e) {
-        final m = (e.mode ?? '').toUpperCase();
-        return m == 'LIVE';
-      }).toList();
-      if (liveEnrollments.isEmpty) return [];
-
       final now = DateTime.now();
       final from = startDate != null
           ? DateTime.tryParse(startDate) ?? now.subtract(Duration(days: _schedulePastWeeks * 7))
@@ -262,28 +255,20 @@ class AcademyRepository {
       final fromStr = _formatYmd(from);
       final toStr = _formatYmd(to);
 
-      final buckets = await Future.wait(
-        liveEnrollments.map((e) async {
-          try {
-            final raw = await _fetchLiveSessionRows(e.classId, fromStr, toStr);
-            return raw
-                .map(
-                  (row) => _liveScheduleFromSessionRow(
-                    row,
-                    classId: e.classId,
-                    courseTitle: e.courseTitle,
-                    instructorName: e.instructorName,
-                    courseThumbnail: e.thumbnailUrl,
-                  ),
-                )
-                .toList();
-          } catch (_) {
-            return <LiveScheduleModel>[];
-          }
-        }),
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/live-sessions/me',
+        queryParameters: <String, dynamic>{
+          'from': fromStr,
+          'to': toStr,
+        },
       );
-
-      final merged = buckets.expand((x) => x).toList()
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) return [];
+      final items = api.data!['items'] as List<dynamic>? ?? [];
+      final merged = items
+          .map((e) => _liveScheduleFromSessionRow(Map<String, dynamic>.from(e as Map)))
+          .where((m) => m.id.isNotEmpty)
+          .toList()
         ..sort((a, b) {
           final as = a.startAt;
           final bs = b.startAt;
@@ -328,25 +313,6 @@ class AcademyRepository {
         '${local.day.toString().padLeft(2, '0')}';
   }
 
-  Future<List<Map<String, dynamic>>> _fetchLiveSessionRows(
-    String classId,
-    String from,
-    String to,
-  ) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/api/academy/live-sessions',
-      queryParameters: <String, dynamic>{
-        'classId': classId,
-        'from': from,
-        'to': to,
-      },
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return [];
-    final items = api.data!['items'] as List<dynamic>? ?? [];
-    return items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-  }
-
   int _parseHHmmToMinutes(String time) {
     final parts = time.split(':');
     final h = int.tryParse(parts.isNotEmpty ? parts[0] : '0') ?? 0;
@@ -367,14 +333,9 @@ class AcademyRepository {
     return DateTime(y, mo, d, h, mi);
   }
 
-  LiveScheduleModel _liveScheduleFromSessionRow(
-    Map<String, dynamic> json, {
-    required String classId,
-    String? courseTitle,
-    String? instructorName,
-    String? courseThumbnail,
-  }) {
+  LiveScheduleModel _liveScheduleFromSessionRow(Map<String, dynamic> json) {
     final id = (json['id'] ?? '').toString();
+    final classId = json['classId']?.toString();
     final sessionDate = json['sessionDate']?.toString() ?? '';
     final startTime = json['startTime']?.toString() ?? '00:00';
     final endTime = json['endTime']?.toString() ?? '00:00';
@@ -392,6 +353,10 @@ class AcademyRepository {
     final note = json['note']?.toString().trim();
     final title = (note != null && note.isNotEmpty) ? note : 'Buổi học trực tuyến';
     final roomId = json['roomId']?.toString();
+    final courseTitle = json['courseTitle']?.toString();
+    final courseThumbnail = json['courseThumbnail']?.toString();
+    final rawAtt = json['attendanceStatus'];
+    final attendanceStatus = rawAtt == null ? null : rawAtt.toString();
 
     return LiveScheduleModel(
       id: id,
@@ -399,9 +364,10 @@ class AcademyRepository {
       title: title,
       startAt: startAt,
       endAt: endAt,
-      instructorName: instructorName,
+      instructorName: null,
       courseTitle: courseTitle,
       courseThumbnail: courseThumbnail,
+      attendanceStatus: attendanceStatus,
       status: null,
       meetingUrl: null,
       roomId: roomId,

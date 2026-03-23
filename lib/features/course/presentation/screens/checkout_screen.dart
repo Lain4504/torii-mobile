@@ -83,6 +83,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
           final classes = detail.classes.where((c) => c.isLive).toList();
           final selectedClass = isLive && _selectedClassId != null ? classes.where((c) => c.id == _selectedClassId).cast<LiveClassModel?>().firstOrNull : null;
+          final canPayLive = !isLive || (selectedClass != null && !selectedClass.isLiveCapacityFull);
 
           return Stack(
             children: [
@@ -119,10 +120,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               (c) => _LiveClassRadioTile(
                                 klass: c,
                                 selected: _selectedClassId == c.id,
-                                onTap: () {
-                                  setState(() => _selectedClassId = c.id);
-                                  _schedulePreview(detail);
-                                },
+                                onTap: c.isLiveCapacityFull
+                                    ? null
+                                    : () {
+                                        setState(() => _selectedClassId = c.id);
+                                        _schedulePreview(detail);
+                                      },
                               ),
                             )
                             .toList(),
@@ -207,7 +210,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _processing
+                      onPressed: _processing || !canPayLive
                           ? null
                           : () => _handleCheckout(detail),
                       style: ElevatedButton.styleFrom(
@@ -255,6 +258,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       return;
     }
 
+    if (isLive && _selectedClassId != null) {
+      final picked = detail.classes.where((c) => c.id == _selectedClassId).firstOrNull;
+      if (picked != null && picked.isLiveCapacityFull) {
+        setState(() {
+          _preview = null;
+          _previewError = 'Lớp đã đủ học viên, không thể thanh toán.';
+        });
+        return;
+      }
+    }
+
     setState(() {
       _previewing = true;
       _previewError = null;
@@ -284,6 +298,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (isLive && (_selectedClassId == null || _selectedClassId!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng chọn một lớp LIVE để thanh toán.')));
       return;
+    }
+    if (isLive && _selectedClassId != null) {
+      final picked = detail.classes.where((c) => c.id == _selectedClassId).firstOrNull;
+      if (picked != null && picked.isLiveCapacityFull) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lớp đã đủ học viên, không thể thanh toán.')));
+        return;
+      }
     }
 
     setState(() => _processing = true);
@@ -430,6 +451,17 @@ class _CourseSummaryCard extends StatelessWidget {
                     'Lớp: ${selectedClass!.code.isNotEmpty ? selectedClass!.code : selectedClass!.name}',
                     style: TextStyle(color: AppColors.grey700, fontSize: 12, fontWeight: FontWeight.w600),
                   ),
+                  if (selectedClass!.liveCapacitySubtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      selectedClass!.liveCapacitySubtitle!,
+                      style: TextStyle(
+                        color: selectedClass!.isLiveCapacityFull ? AppColors.error : AppColors.grey700,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ],
               ],
             ),
@@ -526,12 +558,17 @@ class _LiveClassRadioTile extends StatelessWidget {
 
   final LiveClassModel klass;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = selected ? AppColors.primary : AppColors.borderLight;
-    final bgColor = selected ? AppColors.primary.withOpacity(0.04) : AppColors.surface;
+    final full = klass.isLiveCapacityFull;
+    final borderColor = full
+        ? AppColors.grey300
+        : (selected ? AppColors.primary : AppColors.borderLight);
+    final bgColor = full
+        ? AppColors.grey200.withOpacity(0.35)
+        : (selected ? AppColors.primary.withOpacity(0.04) : AppColors.surface);
     final title = klass.name.isNotEmpty ? klass.name : (klass.code.isNotEmpty ? klass.code : 'Lớp học');
 
     return InkWell(
@@ -554,9 +591,9 @@ class _LiveClassRadioTile extends StatelessWidget {
               margin: const EdgeInsets.only(top: 2),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: selected ? AppColors.primary : AppColors.grey700, width: 2),
+                border: Border.all(color: selected && !full ? AppColors.primary : AppColors.grey700, width: 2),
               ),
-              child: selected
+              child: selected && !full
                   ? Center(child: Container(width: 10, height: 10, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)))
                   : null,
             ),
@@ -565,7 +602,14 @@ class _LiveClassRadioTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      color: full ? AppColors.grey700 : AppColors.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   if (klass.code.isNotEmpty && klass.name.isNotEmpty)
                     Text('Mã lớp: ${klass.code}', style: TextStyle(color: AppColors.grey700, fontSize: 12, fontWeight: FontWeight.w600)),
@@ -573,10 +617,27 @@ class _LiveClassRadioTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text('GV: ${klass.instructorName}', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
                   ],
+                  if (klass.liveCapacitySubtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      klass.liveCapacitySubtitle!,
+                      style: TextStyle(
+                        color: full ? AppColors.error : AppColors.grey700,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            if (klass.isEnrollableNow)
+            if (full)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: AppColors.error.withOpacity(0.12), borderRadius: BorderRadius.circular(999)),
+                child: const Text('Đã đầy', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w800, fontSize: 10)),
+              )
+            else if (klass.isEnrollableNow)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(999)),

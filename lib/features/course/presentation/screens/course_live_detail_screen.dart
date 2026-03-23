@@ -40,6 +40,11 @@ class _CourseLiveDetailScreenState extends ConsumerState<CourseLiveDetailScreen>
     final offering = detail.offering;
     final disp = offering.learnerOfferingDisplay(liveClasses: detail.classes);
     final classes = detail.classes.where((c) => c.isLive).toList();
+    final selectedMatch = _selectedClassId != null
+        ? classes.where((c) => c.id == _selectedClassId)
+        : const Iterable<LiveClassModel>.empty();
+    final selected = selectedMatch.isEmpty ? null : selectedMatch.first;
+    final canContinue = selected != null && !selected.isLiveCapacityFull;
     final priceStr =
         '${offering.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (m) => '${m[1]}.')}đ';
 
@@ -128,7 +133,7 @@ class _CourseLiveDetailScreenState extends ConsumerState<CourseLiveDetailScreen>
                               (c) => _LiveClassTile(
                                 klass: c,
                                 selected: _selectedClassId == c.id,
-                                onTap: () => setState(() => _selectedClassId = c.id),
+                                onTap: c.isLiveCapacityFull ? null : () => setState(() => _selectedClassId = c.id),
                               ),
                             )
                             .toList(),
@@ -160,7 +165,7 @@ class _CourseLiveDetailScreenState extends ConsumerState<CourseLiveDetailScreen>
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _selectedClassId == null
+                    onPressed: !canContinue
                         ? null
                         : () {
                             final classId = _selectedClassId!;
@@ -171,7 +176,11 @@ class _CourseLiveDetailScreenState extends ConsumerState<CourseLiveDetailScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _selectedClassId == null ? 'Vui lòng chọn một lớp để tiếp tục.' : 'Bạn có thể đổi lớp trước khi thanh toán.',
+                  _selectedClassId == null
+                      ? 'Vui lòng chọn một lớp để tiếp tục.'
+                      : (selected != null && selected.isLiveCapacityFull)
+                          ? 'Lớp này đã đủ học viên. Vui lòng chọn lớp khác.'
+                          : 'Bạn có thể đổi lớp trước khi thanh toán.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 11, color: AppColors.grey700, height: 1.4),
                 ),
@@ -193,12 +202,17 @@ class _LiveClassTile extends StatelessWidget {
 
   final LiveClassModel klass;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = selected ? AppColors.primary : AppColors.grey200;
-    final bgColor = selected ? AppColors.primary.withOpacity(0.04) : AppColors.surface;
+    final full = klass.isLiveCapacityFull;
+    final borderColor = full
+        ? AppColors.grey300
+        : (selected ? AppColors.primary : AppColors.grey200);
+    final bgColor = full
+        ? AppColors.grey200.withOpacity(0.35)
+        : (selected ? AppColors.primary.withOpacity(0.04) : AppColors.surface);
 
     String? dateLine;
     if (klass.openingDate != null || klass.closingDate != null) {
@@ -224,7 +238,7 @@ class _LiveClassTile extends StatelessWidget {
     ];
 
     return InkWell(
-      onTap: onTap,
+      onTap: full ? null : onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -243,9 +257,9 @@ class _LiveClassTile extends StatelessWidget {
               margin: const EdgeInsets.only(top: 2),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: selected ? AppColors.primary : AppColors.grey700, width: 2),
+                border: Border.all(color: selected && !full ? AppColors.primary : AppColors.grey700, width: 2),
               ),
-              child: selected
+              child: selected && !full
                   ? Center(
                       child: Container(
                         width: 10,
@@ -271,7 +285,19 @@ class _LiveClassTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      if (klass.isEnrollableNow)
+                      if (full)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.error.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Text(
+                            'Đã đầy',
+                            style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w800, fontSize: 10),
+                          ),
+                        )
+                      else if (klass.isEnrollableNow)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
@@ -288,6 +314,17 @@ class _LiveClassTile extends StatelessWidget {
                   if (klass.code.isNotEmpty && klass.name.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text('Mã lớp: ${klass.code}', style: TextStyle(color: AppColors.grey700, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ],
+                  if (klass.liveCapacitySubtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      klass.liveCapacitySubtitle!,
+                      style: TextStyle(
+                        color: full ? AppColors.error : AppColors.grey700,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                   if (subtitleLines.isNotEmpty) ...[
                     const SizedBox(height: 6),

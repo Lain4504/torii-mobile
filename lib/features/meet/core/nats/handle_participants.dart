@@ -18,6 +18,7 @@ import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/session_provider.dart';
+import 'package:torii_app/features/meet/core/notification_sound_service.dart';
 import 'connect_nats.dart';
 
 class HandleParticipants {
@@ -155,6 +156,14 @@ class HandleParticipants {
       return;
     }
     
+    // Capture previous hand state before update (to detect rising edge only).
+    final prevParticipant =
+        ref?.read(participantProvider).participants[userInfo.userId];
+    final wasRaised =
+        (prevParticipant?.metadata.raisedHand ?? false) ||
+        (prevParticipant?.metadata.isHandRaised ?? false);
+    final isNowRaised = metadata.raisedHand || metadata.isHandRaised;
+
     // Update remote participant
     // Dispatch to participant provider
     ref?.read(participantProvider.notifier).updateParticipant(
@@ -165,8 +174,8 @@ class HandleParticipants {
       },
     );
     
-    // Handle raise hand updates
-    if (metadata.raisedHand) {
+    // Handle raise-hand transition (false -> true), supports both metadata fields.
+    if (!wasRaised && isNowRaised) {
       _handleRaiseHand(displayName);
     }
     
@@ -177,24 +186,27 @@ class HandleParticipants {
   
   /// Handle raise hand event
   void _handleRaiseHand(String name) {
-    // Only show notification if user is admin
-    if (!connectNats.isAdmin) {
-      return;
+    _playNotificationIfEnabled();
+
+    // Keep toast text for admins (same behavior as before).
+    if (connectNats.isAdmin) {
+      ref?.read(roomSettingsProvider.notifier).addUserNotification(
+        UserNotification(
+          message: '$name đã giơ tay',
+          typeOption: 'info',
+        ),
+      );
     }
-    
-    // Show notification
-    ref?.read(roomSettingsProvider.notifier).addUserNotification(
-      UserNotification(
-        message: '$name đã giơ tay',
-        typeOption: 'info',
-      ),
-    );
-    
-    // Update raise hand state
-    ref?.read(bottomIconsProvider.notifier).updateIsActiveRaisehand(true);
     
     if (kDebugMode) {
       print('HandleParticipants: $name raised hand');
+    }
+  }
+
+  void _playNotificationIfEnabled() {
+    final enabled = ref?.read(roomSettingsProvider).playAudioNotification ?? false;
+    if (enabled) {
+      NotificationSoundService.instance.play();
     }
   }
   
