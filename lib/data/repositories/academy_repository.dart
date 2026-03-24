@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../models/academy_models.dart';
 import '../models/class_catalog_model.dart';
 import '../models/checkout_models.dart';
+import '../models/jlpt_mock_models.dart';
 import '../models/live_schedule_model.dart';
 import '../models/live_session_join_result.dart';
 import '../models/study_set_models.dart';
@@ -35,29 +36,34 @@ class AcademyRepository {
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return [];
     final items = api.data!['items'] as List<dynamic>? ?? [];
-    return items
-        .map((e) => ClassCatalogItemModel.fromJson(Map<String, dynamic>.from(e as Map)))
-        .toList();
+    return items.map((e) {
+      final raw = Map<String, dynamic>.from(e as Map);
+      raw['mode'] = mode.toUpperCase();
+      return ClassCatalogItemModel.fromJson(raw);
+    }).toList();
   }
 
-  /// GET /api/academy/live-classes/public/:id
-  Future<ClassCatalogDetailModel?> getPublicClassCatalogById(String id) async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/live-classes/public/$id');
+  /// GET /api/academy/live-classes/public/:id?mode=LIVE|VOD
+  Future<ClassCatalogDetailModel?> getPublicClassCatalogById(
+    String id, {
+    required String mode,
+  }) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/live-classes/public/$id',
+      queryParameters: <String, dynamic>{'mode': mode},
+    );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return null;
-    final raw = api.data!;
-    final item = raw['item'] ?? raw['data'] ?? raw;
-    if (item is Map<String, dynamic>) {
-      return ClassCatalogDetailModel.fromJson(item);
-    }
-    if (item is Map) {
-      return ClassCatalogDetailModel.fromJson(item.cast<String, dynamic>());
-    }
-    return null;
+    final item = api.data!['item'];
+    if (item is! Map) return null;
+    return ClassCatalogDetailModel.fromJson(Map<String, dynamic>.from(item));
   }
 
   /// Product details (VOD/LIVE) for curriculum / lesson (enrollment has `productId`/`offeringId`).
-  Future<AcademyProductModel?> getPublicProductById(String id, {String mode = 'LIVE'}) async {
+  Future<AcademyProductModel?> getPublicProductById(
+    String id, {
+    String mode = 'LIVE',
+  }) async {
     final path = mode.toUpperCase() == 'LIVE'
         ? '/api/academy/cohorts/public/$id'
         : '/api/academy/vod-packages/public/$id';
@@ -113,13 +119,17 @@ class AcademyRepository {
     }
 
     return PaginatedResponse<EnrollmentModel>(
-      data: items.map((e) => EnrollmentModel.fromJson(e as Map<String, dynamic>)).toList(),
+      data: items
+          .map((e) => EnrollmentModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
       total: total,
-      page: (inner is Map<String, dynamic>
+      page:
+          (inner is Map<String, dynamic>
               ? (inner['page'] as num?)?.toInt()
               : (body['page'] as num?)?.toInt()) ??
           1,
-      limit: (inner is Map<String, dynamic>
+      limit:
+          (inner is Map<String, dynamic>
               ? (inner['limit'] as num?)?.toInt()
               : (body['limit'] as num?)?.toInt()) ??
           limit,
@@ -153,35 +163,55 @@ class AcademyRepository {
     int total;
     int totalPages;
     if (inner is Map<String, dynamic>) {
-      data = inner['data'] as List<dynamic>? ?? inner['items'] as List<dynamic>? ?? [];
+      data =
+          inner['data'] as List<dynamic>? ??
+          inner['items'] as List<dynamic>? ??
+          [];
       total = (inner['total'] as num?)?.toInt() ?? data.length;
       totalPages = (inner['totalPages'] as num?)?.toInt() ?? 1;
     } else {
-      data = body['data'] as List<dynamic>? ?? body['items'] as List<dynamic>? ?? [];
+      data =
+          body['data'] as List<dynamic>? ??
+          body['items'] as List<dynamic>? ??
+          [];
       total = (body['total'] as num?)?.toInt() ?? data.length;
       totalPages = (body['totalPages'] as num?)?.toInt() ?? 1;
     }
     return PaginatedResponse<OrderModel>(
-      data: data.map((e) => OrderModel.fromJson(e as Map<String, dynamic>)).toList(),
+      data: data
+          .map((e) => OrderModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
       total: total,
-      page: (body['page'] as num?)?.toInt() ?? (inner is Map ? (inner['page'] as num?)?.toInt() : null) ?? 1,
-      limit: (body['limit'] as num?)?.toInt() ?? (inner is Map ? (inner['limit'] as num?)?.toInt() : null) ?? limit,
+      page:
+          (body['page'] as num?)?.toInt() ??
+          (inner is Map ? (inner['page'] as num?)?.toInt() : null) ??
+          1,
+      limit:
+          (body['limit'] as num?)?.toInt() ??
+          (inner is Map ? (inner['limit'] as num?)?.toInt() : null) ??
+          limit,
       totalPages: totalPages,
     );
   }
 
   /// GET /api/academy/orders/my/:id
   Future<OrderModel?> getMyOrderById(String id) async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/orders/my/$id');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/orders/my/$id',
+    );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return null;
     final item = api.data!['item'];
-    return item != null ? OrderModel.fromJson(item as Map<String, dynamic>) : null;
+    return item != null
+        ? OrderModel.fromJson(item as Map<String, dynamic>)
+        : null;
   }
 
   /// GET /api/academy/orders/by-code/:orderCode
   Future<OrderModel?> getMyOrderByCode(String orderCode) async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/orders/by-code/$orderCode');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/orders/by-code/$orderCode',
+    );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return null;
     final raw = api.data;
@@ -199,8 +229,10 @@ class AcademyRepository {
       '/api/academy/orders/preview',
       data: <String, dynamic>{
         'productIds': [productId],
-        if (classId != null && classId.isNotEmpty) 'classIdByProduct': {productId: classId},
-        if (couponCode != null && couponCode.trim().isNotEmpty) 'couponCode': couponCode.trim(),
+        if (classId != null && classId.isNotEmpty)
+          'classIdByProduct': {productId: classId},
+        if (couponCode != null && couponCode.trim().isNotEmpty)
+          'couponCode': couponCode.trim(),
       },
     );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
@@ -223,9 +255,11 @@ class AcademyRepository {
       '/api/academy/orders/checkout',
       data: <String, dynamic>{
         'productIds': [productId],
-        if (classId != null && classId.isNotEmpty) 'classIdByProduct': {productId: classId},
+        if (classId != null && classId.isNotEmpty)
+          'classIdByProduct': {productId: classId},
         'paymentMethod': paymentMethod,
-        if (couponCode != null && couponCode.trim().isNotEmpty) 'couponCode': couponCode.trim(),
+        if (couponCode != null && couponCode.trim().isNotEmpty)
+          'couponCode': couponCode.trim(),
         if (metadata != null) 'metadata': metadata,
       },
     );
@@ -237,8 +271,12 @@ class AcademyRepository {
   }
 
   /// GET /api/academy/orders/by-code/:orderCode (fulfillment summary for current user)
-  Future<OrderFulfillmentSummaryModel?> getOrderFulfillmentByCode(String orderCode) async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/orders/by-code/$orderCode');
+  Future<OrderFulfillmentSummaryModel?> getOrderFulfillmentByCode(
+    String orderCode,
+  ) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/orders/by-code/$orderCode',
+    );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return null;
     final raw = api.data!;
@@ -257,36 +295,42 @@ class AcademyRepository {
     try {
       final now = DateTime.now();
       final from = startDate != null
-          ? DateTime.tryParse(startDate) ?? now.subtract(Duration(days: _schedulePastWeeks * 7))
+          ? DateTime.tryParse(startDate) ??
+                now.subtract(Duration(days: _schedulePastWeeks * 7))
           : now.subtract(Duration(days: _schedulePastWeeks * 7));
       final to = endDate != null
-          ? DateTime.tryParse(endDate) ?? now.add(Duration(days: _scheduleFutureWeeks * 7))
+          ? DateTime.tryParse(endDate) ??
+                now.add(Duration(days: _scheduleFutureWeeks * 7))
           : now.add(Duration(days: _scheduleFutureWeeks * 7));
       final fromStr = _formatYmd(from);
       final toStr = _formatYmd(to);
 
       final response = await _dio.get<Map<String, dynamic>>(
         '/api/academy/live-sessions/me',
-        queryParameters: <String, dynamic>{
-          'from': fromStr,
-          'to': toStr,
-        },
+        queryParameters: <String, dynamic>{'from': fromStr, 'to': toStr},
       );
-      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(
+        response.data ?? {},
+      );
       if (!api.success || api.data == null) return [];
       final items = api.data!['items'] as List<dynamic>? ?? [];
-      final merged = items
-          .map((e) => _liveScheduleFromSessionRow(Map<String, dynamic>.from(e as Map)))
-          .where((m) => m.id.isNotEmpty)
-          .toList()
-        ..sort((a, b) {
-          final as = a.startAt;
-          final bs = b.startAt;
-          if (as == null && bs == null) return 0;
-          if (as == null) return 1;
-          if (bs == null) return -1;
-          return as.compareTo(bs);
-        });
+      final merged =
+          items
+              .map(
+                (e) => _liveScheduleFromSessionRow(
+                  Map<String, dynamic>.from(e as Map),
+                ),
+              )
+              .where((m) => m.id.isNotEmpty)
+              .toList()
+            ..sort((a, b) {
+              final as = a.startAt;
+              final bs = b.startAt;
+              if (as == null && bs == null) return 0;
+              if (as == null) return 1;
+              if (bs == null) return -1;
+              return as.compareTo(bs);
+            });
       return merged;
     } catch (_) {
       return [];
@@ -294,7 +338,9 @@ class AcademyRepository {
   }
 
   /// POST /api/live-sessions/:sessionId/join/student
-  Future<LiveSessionJoinResult?> joinLiveSessionAsStudent(String sessionId) async {
+  Future<LiveSessionJoinResult?> joinLiveSessionAsStudent(
+    String sessionId,
+  ) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         '/api/live-sessions/$sessionId/join/student',
@@ -330,7 +376,10 @@ class AcademyRepository {
     return h * 60 + m;
   }
 
-  DateTime? _combineSessionDateAndMinutes(String sessionDateRaw, int minutesOfDay) {
+  DateTime? _combineSessionDateAndMinutes(
+    String sessionDateRaw,
+    int minutesOfDay,
+  ) {
     final dateStr = sessionDateRaw.toString().split('T').first;
     final ymd = dateStr.split('-');
     if (ymd.length != 3) return null;
@@ -361,7 +410,9 @@ class AcademyRepository {
         : 90;
 
     final note = json['note']?.toString().trim();
-    final title = (note != null && note.isNotEmpty) ? note : 'Buổi học trực tuyến';
+    final title = (note != null && note.isNotEmpty)
+        ? note
+        : 'Buổi học trực tuyến';
     final roomId = json['roomId']?.toString();
     final courseTitle = json['courseTitle']?.toString();
     final courseThumbnail = json['courseThumbnail']?.toString();
@@ -388,16 +439,22 @@ class AcademyRepository {
   // ---------- Study sets ----------
   /// GET /api/academy/study-sets
   Future<List<StudySetModel>> getStudySets() async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/study-sets');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/study-sets',
+    );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return [];
     final items = api.data!['items'] as List<dynamic>? ?? [];
-    return items.map((e) => StudySetModel.fromJson(e as Map<String, dynamic>)).toList();
+    return items
+        .map((e) => StudySetModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// GET /api/academy/study-sets/:id
   Future<Map<String, dynamic>?> getStudySetById(String id) async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/study-sets/$id');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/study-sets/$id',
+    );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return null;
     return api.data!;
@@ -405,15 +462,22 @@ class AcademyRepository {
 
   /// GET /api/academy/study-sets/:id/study
   Future<List<SetCardModel>> getStudyCards(String setId) async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/study-sets/$setId/study');
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/study-sets/$setId/study',
+    );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return [];
     final items = api.data!['items'] as List<dynamic>? ?? [];
-    return items.map((e) => SetCardModel.fromJson(e as Map<String, dynamic>)).toList();
+    return items
+        .map((e) => SetCardModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// POST /api/academy/set-cards/:id/review - body { quality: 0|1 }
-  Future<SetCardModel?> reviewStudyCard(String cardId, {required int quality}) async {
+  Future<SetCardModel?> reviewStudyCard(
+    String cardId, {
+    required int quality,
+  }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/api/academy/set-cards/$cardId/review',
       data: <String, dynamic>{'quality': quality},
@@ -442,7 +506,8 @@ class AcademyRepository {
     if (!api.success || api.data == null) return null;
     final item = api.data!['item'];
     if (item is Map<String, dynamic>) return StudySetModel.fromJson(item);
-    if (item is Map) return StudySetModel.fromJson(item.cast<String, dynamic>());
+    if (item is Map)
+      return StudySetModel.fromJson(item.cast<String, dynamic>());
     return null;
   }
 
@@ -497,7 +562,9 @@ class AcademyRepository {
 
   /// DELETE /api/academy/set-cards/:id
   Future<bool> deleteStudySetCard({required String cardId}) async {
-    final response = await _dio.delete<Map<String, dynamic>>('/api/academy/set-cards/$cardId');
+    final response = await _dio.delete<Map<String, dynamic>>(
+      '/api/academy/set-cards/$cardId',
+    );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return false;
     final result = api.data!['result'];
@@ -517,12 +584,11 @@ class AcademyRepository {
     try {
       final response = await _dio.patch<Map<String, dynamic>>(
         '/api/academy/study-sets/$setId',
-        data: <String, dynamic>{
-          'title': title,
-          'description': description,
-        },
+        data: <String, dynamic>{'title': title, 'description': description},
       );
-      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(
+        response.data ?? {},
+      );
       return api.success == true;
     } catch (_) {
       return false;
@@ -530,7 +596,10 @@ class AcademyRepository {
   }
 
   /// GET /api/academy/study-sets/:id/study-modes/test
-  Future<List<Map<String, dynamic>>> getStudySetTestQuiz(String setId, {int count = 20}) async {
+  Future<List<Map<String, dynamic>>> getStudySetTestQuiz(
+    String setId, {
+    int count = 20,
+  }) async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/api/academy/study-sets/$setId/study-modes/test',
       queryParameters: <String, dynamic>{'count': count},
@@ -542,7 +611,10 @@ class AcademyRepository {
   }
 
   /// GET /api/academy/study-sets/:id/study-modes/match
-  Future<List<Map<String, dynamic>>> getStudySetMatchGame(String setId, {int count = 6}) async {
+  Future<List<Map<String, dynamic>>> getStudySetMatchGame(
+    String setId, {
+    int count = 6,
+  }) async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/api/academy/study-sets/$setId/study-modes/match',
       queryParameters: <String, dynamic>{'count': count},
@@ -557,7 +629,9 @@ class AcademyRepository {
   /// API trả `{ modules: [{ lessons: [{ id, isCompleted }] }] }` — không có `lessons` phẳng.
   Future<List<String>> getCompletedLessonIds(String classId) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>('/api/academy/live-classes/$classId/progress');
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/live-classes/$classId/progress',
+      );
       final body = response.data ?? {};
       final data = body['data'] ?? body;
       if (data is! Map) return [];
@@ -601,10 +675,159 @@ class AcademyRepository {
       final response = await _dio.post<Map<String, dynamic>>(
         '/api/academy/live-classes/$classId/lessons/$lessonId/complete',
       );
-      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(
+        response.data ?? {},
+      );
       return api.success == true;
     } catch (_) {
       return false;
     }
+  }
+
+  // ---------- JLPT mock ----------
+  Future<List<JlptMockTemplateItemModel>> getJlptMockTemplates({
+    String? levelCode,
+  }) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/jlpt-mock/templates',
+      queryParameters: <String, dynamic>{
+        if (levelCode != null && levelCode.isNotEmpty) 'levelCode': levelCode,
+      },
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return [];
+    final items = api.data!['items'] as List<dynamic>? ?? const [];
+    return items
+        .map(
+          (e) => JlptMockTemplateItemModel.fromJson(
+            (e as Map).cast<String, dynamic>(),
+          ),
+        )
+        .toList();
+  }
+
+  Future<JlptMockTemplateModel?> getJlptMockTemplateById(
+    String templateId,
+  ) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/jlpt-mock/templates/$templateId',
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return null;
+    final item = api.data!['item'];
+    if (item is! Map) return null;
+    return JlptMockTemplateModel.fromJson(item.cast<String, dynamic>());
+  }
+
+  Future<JlptMockAttemptStartModel?> startJlptAttempt({
+    required String templateId,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/academy/jlpt-mock/attempts/start',
+      data: <String, dynamic>{'templateId': templateId},
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return null;
+    final item = api.data!['item'];
+    if (item is! Map) return null;
+    return JlptMockAttemptStartModel.fromJson(item.cast<String, dynamic>());
+  }
+
+  Future<bool> saveJlptAnswers({
+    required String attemptId,
+    required List<Map<String, dynamic>> answers,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/academy/jlpt-mock/attempts/save-answers',
+      data: <String, dynamic>{'attemptId': attemptId, 'answers': answers},
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    return api.success == true;
+  }
+
+  Future<JlptMockNextSectionModel?> nextJlptSection({
+    required String attemptId,
+    required int currentSectionOrder,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/academy/jlpt-mock/attempts/next-section',
+      data: <String, dynamic>{
+        'attemptId': attemptId,
+        'currentSectionOrder': currentSectionOrder,
+      },
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return null;
+    final item = api.data!['item'];
+    if (item is! Map) return null;
+    return JlptMockNextSectionModel.fromJson(item.cast<String, dynamic>());
+  }
+
+  Future<bool> submitJlptAttempt({required String attemptId}) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/academy/jlpt-mock/attempts/submit',
+      data: <String, dynamic>{'attemptId': attemptId},
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    return api.success == true;
+  }
+
+  Future<List<Map<String, dynamic>>> getJlptAttemptAnswers(
+    String attemptId,
+  ) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/jlpt-mock/attempts/$attemptId/answers',
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return [];
+    final items = api.data!['items'] as List<dynamic>? ?? const [];
+    return items.map((e) => (e as Map).cast<String, dynamic>()).toList();
+  }
+
+  Future<List<JlptMockAttemptHistoryItemModel>> getJlptAttemptHistory() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/jlpt-mock/attempts/history',
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return [];
+    final items = api.data!['items'] as List<dynamic>? ?? const [];
+    return items
+        .map(
+          (e) => JlptMockAttemptHistoryItemModel.fromJson(
+            (e as Map).cast<String, dynamic>(),
+          ),
+        )
+        .toList();
+  }
+
+  Future<JlptMockAttemptResultModel?> getJlptAttemptResult(
+    String attemptId,
+  ) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/jlpt-mock/attempts/$attemptId',
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return null;
+    final item = api.data!['item'];
+    if (item is! Map) return null;
+    return JlptMockAttemptResultModel.fromJson(item.cast<String, dynamic>());
+  }
+
+  Future<String?> getStorageSignedUrl({
+    required String fileId,
+    int? expiresIn,
+  }) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/storage/signed-url',
+      queryParameters: <String, dynamic>{
+        'fileId': fileId,
+        if (expiresIn != null) 'expiresIn': expiresIn,
+      },
+    );
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) return null;
+    final signedUrl = api.data!['signedUrl']?.toString();
+    if (signedUrl == null || signedUrl.isEmpty) return null;
+    return signedUrl;
   }
 }

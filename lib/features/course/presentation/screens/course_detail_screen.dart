@@ -13,7 +13,7 @@ class CourseDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final detailAsync = ref.watch(classCatalogDetailProvider(courseId));
+    final detailAsync = ref.watch(classCatalogVodDetailProvider(courseId));
     final theme = Theme.of(context);
     const bottomNavBarHeight = 64.0;
     final bottomInset = MediaQuery.of(context).padding.bottom;
@@ -27,12 +27,19 @@ class CourseDetailScreen extends ConsumerWidget {
             return const Center(child: Text('Không tìm thấy khóa học'));
           }
           if (detail.isLive) {
-            return const Center(child: Text('Đây là lớp LIVE — dùng màn hình chi tiết LIVE.'));
+            return const Center(
+              child: Text('Đây là lớp LIVE — dùng màn hình chi tiết LIVE.'),
+            );
           }
           return _buildVod(context, theme, detail, bottomSafePadding);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(
+          child: Text(
+            'Lỗi: $e',
+            style: const TextStyle(color: AppColors.error),
+          ),
+        ),
       ),
     );
   }
@@ -46,8 +53,11 @@ class CourseDetailScreen extends ConsumerWidget {
     final item = detail.item;
     final priceStr =
         '${detail.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
-    final thumb = item.thumbnailUrl ?? 'https://picsum.photos/seed/course_detail/800/600';
-    final title = item.name.isNotEmpty ? item.name : (item.profileTitle ?? 'Khóa học');
+    final thumb =
+        item.thumbnailUrl ?? 'https://picsum.photos/seed/course_detail/800/600';
+    final title = item.name.isNotEmpty
+        ? item.name
+        : (item.profileTitle ?? 'Khóa học');
     final desc = _stripHtml(detail.descriptionHtml ?? '');
 
     return Stack(
@@ -62,7 +72,12 @@ class CourseDetailScreen extends ConsumerWidget {
                 background: Image.network(
                   thumb,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3), child: const Icon(Icons.school, size: 64)),
+                  errorBuilder: (_, __, ___) => Container(
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.3,
+                    ),
+                    child: const Icon(Icons.school, size: 64),
+                  ),
                 ),
               ),
               leading: Padding(
@@ -73,7 +88,10 @@ class CourseDetailScreen extends ConsumerWidget {
                   child: IconButton(
                     padding: EdgeInsets.zero,
                     iconSize: 18,
-                    icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: theme.colorScheme.onSurface,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
@@ -102,7 +120,11 @@ class CourseDetailScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildInfoItem(Icons.video_library_outlined, 'VOD'),
+                          _buildInfoItem(
+                            context,
+                            Icons.video_library_outlined,
+                            'VOD',
+                          ),
                           Text(
                             priceStr,
                             style: theme.textTheme.titleMedium?.copyWith(
@@ -116,12 +138,20 @@ class CourseDetailScreen extends ConsumerWidget {
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            const Icon(Icons.person_outline, size: 16, color: AppColors.textTertiary),
+                            const Icon(
+                              Icons.person_outline,
+                              size: 16,
+                              color: AppColors.textTertiary,
+                            ),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
                                 'Giảng viên: ${item.instructor!['displayName']}',
-                                style: const TextStyle(color: AppColors.grey700, fontSize: 13, fontWeight: FontWeight.w600),
+                                style: const TextStyle(
+                                  color: AppColors.grey700,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
@@ -155,10 +185,15 @@ class CourseDetailScreen extends ConsumerWidget {
                       if (detail.modules.isEmpty)
                         Text(
                           'Chương trình học đang được cập nhật.',
-                          style: TextStyle(color: AppColors.grey700, height: 1.5),
+                          style: TextStyle(
+                            color: AppColors.grey700,
+                            height: 1.5,
+                          ),
                         )
                       else
-                        ...detail.modules.map((m) => _buildModuleExpansion(m)),
+                        ...detail.modules.map(
+                          (m) => _buildModuleExpansion(context, m),
+                        ),
                       SizedBox(height: bottomSafePadding + 100),
                     ],
                   ),
@@ -173,7 +208,13 @@ class CourseDetailScreen extends ConsumerWidget {
             padding: EdgeInsets.fromLTRB(24, 16, 24, bottomSafePadding),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              boxShadow: [BoxShadow(color: theme.colorScheme.onSurface.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
+              boxShadow: [
+                BoxShadow(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -183,7 +224,8 @@ class CourseDetailScreen extends ConsumerWidget {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => context.push('/checkout/$courseId'),
+                      onPressed: () =>
+                          context.push('/checkout/$courseId?mode=VOD'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.primary,
                         foregroundColor: theme.colorScheme.onPrimary,
@@ -210,7 +252,9 @@ class CourseDetailScreen extends ConsumerWidget {
                     'Bạn đã mua khóa học này? Đăng nhập để học ngay trong mục "Khóa học của tôi".',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
                       height: 1.4,
                     ),
                   ),
@@ -223,10 +267,16 @@ class CourseDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String text) {
+  Widget _buildInfoItem(BuildContext context, IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+        Icon(
+          icon,
+          size: 16,
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+        ),
         const SizedBox(width: 4),
         Text(
           text,
@@ -240,7 +290,7 @@ class CourseDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildModuleExpansion(Map<String, dynamic> mod) {
+  Widget _buildModuleExpansion(BuildContext context, Map<String, dynamic> mod) {
     final title = mod['title']?.toString() ?? 'Chương';
     final lessons = mod['lessons'];
     final list = lessons is List ? lessons : const [];
@@ -254,14 +304,23 @@ class CourseDetailScreen extends ConsumerWidget {
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-        subtitle: Text('${list.length} bài học', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+        ),
+        subtitle: Text(
+          '${list.length} bài học',
+          style: TextStyle(color: AppColors.grey700, fontSize: 12),
+        ),
         children: list.isEmpty
             ? [
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text('Chưa có bài học.', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
-                )
+                  child: Text(
+                    'Chưa có bài học.',
+                    style: TextStyle(color: AppColors.grey700, fontSize: 13),
+                  ),
+                ),
               ]
             : list.map<Widget>((l) {
                 final lm = Map<String, dynamic>.from(l as Map);
@@ -270,9 +329,21 @@ class CourseDetailScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Row(
                     children: [
-                      const Icon(Icons.play_circle_outline, size: 18, color: AppColors.textTertiary),
+                      const Icon(
+                        Icons.play_circle_outline,
+                        size: 18,
+                        color: AppColors.textTertiary,
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: Text(lt, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+                      Expanded(
+                        child: Text(
+                          lt,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -282,6 +353,9 @@ class CourseDetailScreen extends ConsumerWidget {
   }
 
   String _stripHtml(String h) {
-    return h.replaceAll(RegExp(r'<[^>]*>'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+    return h
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 }

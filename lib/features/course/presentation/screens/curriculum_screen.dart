@@ -9,19 +9,25 @@ class CurriculumScreen extends ConsumerWidget {
   const CurriculumScreen({
     super.key,
     required this.classId,
+    this.mode = 'VOD',
     this.progressDisabled = false,
   });
 
   final String classId;
+  final String mode;
+
   /// Khi `true`, không tính tiến độ + không mở khóa theo thứ tự.
   final bool progressDisabled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final detailAsync = ref.watch(classCatalogDetailProvider(classId));
+    final detailAsync = mode == 'LIVE'
+        ? ref.watch(classCatalogLiveDetailProvider(classId))
+        : ref.watch(classCatalogVodDetailProvider(classId));
     final useProgress = !progressDisabled && classId.isNotEmpty;
     final completedIds = useProgress
-        ? (ref.watch(classCompletedLessonIdsProvider(classId)).value ?? const [])
+        ? (ref.watch(classCompletedLessonIdsProvider(classId)).value ??
+              const [])
         : const <String>[];
     final completed = completedIds.toSet();
     final theme = Theme.of(context);
@@ -46,8 +52,10 @@ class CurriculumScreen extends ConsumerWidget {
       body: detailAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: Text('Lỗi tải chương trình học: $e',
-              style: const TextStyle(color: AppColors.error)),
+          child: Text(
+            'Lỗi tải chương trình học: $e',
+            style: const TextStyle(color: AppColors.error),
+          ),
         ),
         data: (detail) {
           if (detail == null) {
@@ -76,7 +84,9 @@ class CurriculumScreen extends ConsumerWidget {
               children: [
                 _buildCourseHeaderCard(
                   theme: theme,
-                  title: detail.item.name.isNotEmpty ? detail.item.name : (detail.item.profileTitle ?? ''),
+                  title: detail.item.name.isNotEmpty
+                      ? detail.item.name
+                      : (detail.item.profileTitle ?? ''),
                   code: detail.item.code,
                   descriptionHtml: detail.descriptionHtml,
                   totalLessons: totalLessons,
@@ -94,7 +104,8 @@ class CurriculumScreen extends ConsumerWidget {
                       module.title,
                       module.lessons.map((lesson) {
                         final idx = lessonIndexById[lesson.id] ?? -1;
-                        final hasNext = idx >= 0 && idx + 1 < lessonOrder.length;
+                        final hasNext =
+                            idx >= 0 && idx + 1 < lessonOrder.length;
                         final nextL = hasNext ? lessonOrder[idx + 1] : null;
 
                         final unlocked = _effectiveLessonUnlocked(
@@ -104,25 +115,34 @@ class CurriculumScreen extends ConsumerWidget {
                           useProgress: useProgress,
                         );
                         final done =
-                            useProgress && _isTrackableKind(lesson) && completed.contains(lesson.id);
+                            useProgress &&
+                            _isTrackableKind(lesson) &&
+                            completed.contains(lesson.id);
 
                         final status = !unlocked
                             ? 'Đã khóa'
                             : (done ? 'Hoàn thành' : 'Chưa học');
                         final statusColor = !unlocked
                             ? AppColors.textTertiary
-                            : (done ? AppColors.success : AppColors.textTertiary);
+                            : (done
+                                  ? AppColors.success
+                                  : AppColors.textTertiary);
 
                         return _buildLessonItem(
                           context,
-                          title: lesson.title.isNotEmpty ? lesson.title : 'Bài học',
+                          title: lesson.title.isNotEmpty
+                              ? lesson.title
+                              : 'Bài học',
                           duration: _labelByType(lesson.type),
-                          icon: unlocked ? _iconByType(lesson.type) : Icons.lock_outline_rounded,
+                          icon: unlocked
+                              ? _iconByType(lesson.type)
+                              : Icons.lock_outline_rounded,
                           status: status,
                           statusColor: statusColor,
                           locked: !unlocked,
                           lesson: _lessonPayload(
                             classId: classId,
+                            mode: mode,
                             progressDisabled: progressDisabled,
                             lesson: lesson,
                             nextLesson: nextL,
@@ -175,7 +195,11 @@ class CurriculumScreen extends ConsumerWidget {
             const SizedBox(height: 6),
             Text(
               'Mã lớp: $code',
-              style: TextStyle(color: AppColors.grey700, fontSize: 12, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: AppColors.grey700,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
           const SizedBox(height: 8),
@@ -189,7 +213,11 @@ class CurriculumScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.menu_book_outlined, size: 16, color: AppColors.grey700),
+              Icon(
+                Icons.menu_book_outlined,
+                size: 16,
+                color: AppColors.grey700,
+              ),
               const SizedBox(width: 4),
               Text(
                 '$totalLessons bài học • $totalModules module',
@@ -218,9 +246,15 @@ class CurriculumScreen extends ConsumerWidget {
       ),
       margin: const EdgeInsets.only(bottom: 16),
       child: ExpansionTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         initiallyExpanded: true,
-        childrenPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        childrenPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
         children: lessons,
       ),
     );
@@ -243,7 +277,9 @@ class CurriculumScreen extends ConsumerWidget {
         onTap: locked
             ? () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Hoàn thành bài trước để mở khóa bài này.')),
+                  const SnackBar(
+                    content: Text('Hoàn thành bài trước để mở khóa bài này.'),
+                  ),
                 );
               }
             : () => context.push('/lesson', extra: lesson),
@@ -255,9 +291,15 @@ class CurriculumScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 4),
-                  Text(duration, style: TextStyle(color: AppColors.grey700, fontSize: 13)),
+                  Text(
+                    duration,
+                    style: TextStyle(color: AppColors.grey700, fontSize: 13),
+                  ),
                 ],
               ),
             ),
@@ -269,11 +311,18 @@ class CurriculumScreen extends ConsumerWidget {
               ),
               child: Text(
                 status,
-                style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(width: 6),
-            Icon(locked ? Icons.lock_outline : Icons.chevron_right, color: AppColors.textTertiary),
+            Icon(
+              locked ? Icons.lock_outline : Icons.chevron_right,
+              color: AppColors.textTertiary,
+            ),
           ],
         ),
       ),
@@ -301,12 +350,14 @@ bool _effectiveLessonUnlocked({
 
 Map<String, dynamic> _lessonPayload({
   required String classId,
+  required String mode,
   required CurriculumLessonModel lesson,
   CurriculumLessonModel? nextLesson,
   bool progressDisabled = false,
 }) {
   return <String, dynamic>{
     if (classId.isNotEmpty) 'classId': classId,
+    if (mode.isNotEmpty) 'mode': mode,
     if (progressDisabled) 'progressDisabled': true,
     'id': lesson.id,
     'title': lesson.title,
@@ -319,6 +370,7 @@ Map<String, dynamic> _lessonPayload({
     if (nextLesson != null)
       'nextLesson': <String, dynamic>{
         if (classId.isNotEmpty) 'classId': classId,
+        if (mode.isNotEmpty) 'mode': mode,
         if (progressDisabled) 'progressDisabled': true,
         'id': nextLesson.id,
         'title': nextLesson.title,
@@ -326,14 +378,18 @@ Map<String, dynamic> _lessonPayload({
         'videoUrl': nextLesson.videoUrl,
         'article': <String, dynamic>{
           'title': nextLesson.title,
-          'content': nextLesson.content ?? 'Nội dung bài học đang được cập nhật.',
+          'content':
+              nextLesson.content ?? 'Nội dung bài học đang được cập nhật.',
         },
       },
   };
 }
 
 String _stripHtml(String h) {
-  return h.replaceAll(RegExp(r'<[^>]*>'), ' ').replaceAll(RegExp(r'\\s+'), ' ').trim();
+  return h
+      .replaceAll(RegExp(r'<[^>]*>'), ' ')
+      .replaceAll(RegExp(r'\\s+'), ' ')
+      .trim();
 }
 
 IconData _iconByType(String type) {

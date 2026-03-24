@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/repositories/blog_repository.dart';
 import '../../data/repositories/academy_repository.dart';
 import '../../data/repositories/notification_repository.dart';
-import '../../data/repositories/gamification_repository.dart' show GamificationRepository, LeaderboardData;
+import '../../data/repositories/gamification_repository.dart'
+    show GamificationRepository, LeaderboardData;
 import '../../data/repositories/comment_repository.dart';
 import '../../data/models/blog_model.dart';
 import '../../data/models/academy_models.dart';
@@ -58,17 +59,25 @@ final gamificationRepositoryProvider = Provider<GamificationRepository>((ref) {
 });
 
 // ---------- Blog data ----------
-final blogListProvider = FutureProvider<PaginatedResponse<BlogModel>>((ref) async {
+final blogListProvider = FutureProvider<PaginatedResponse<BlogModel>>((
+  ref,
+) async {
   final repo = ref.watch(blogRepositoryProvider);
   return repo.getBlogs(page: 1, limit: 20);
 });
 
-final blogDetailBySlugProvider = FutureProvider.family<BlogModel?, String>((ref, slug) async {
+final blogDetailBySlugProvider = FutureProvider.family<BlogModel?, String>((
+  ref,
+  slug,
+) async {
   final repo = ref.watch(blogRepositoryProvider);
   return repo.getBlogBySlug(slug);
 });
 
-final blogDetailByIdProvider = FutureProvider.family<BlogModel?, String>((ref, id) async {
+final blogDetailByIdProvider = FutureProvider.family<BlogModel?, String>((
+  ref,
+  id,
+) async {
   final repo = ref.watch(blogRepositoryProvider);
   return repo.getBlogById(id);
 });
@@ -80,72 +89,89 @@ String _catalogMonthYYYYMM() {
 }
 
 /// LIVE — kỳ trong tháng hiện tại (backend filter theo `month`).
-final classCatalogLiveProvider =
-    FutureProvider.autoDispose.family<List<ClassCatalogItemModel>, String?>((ref, level) async {
-  final repo = ref.watch(academyRepositoryProvider);
-  return repo.getPublicClassCatalog(
-    mode: 'LIVE',
-    level: level,
-    month: _catalogMonthYYYYMM(),
-  );
-});
+final classCatalogLiveProvider = FutureProvider.autoDispose
+    .family<List<ClassCatalogItemModel>, String?>((ref, level) async {
+      final repo = ref.watch(academyRepositoryProvider);
+      return repo.getPublicClassCatalog(
+        mode: 'LIVE',
+        level: level,
+        month: _catalogMonthYYYYMM(),
+      );
+    });
 
-final classCatalogVodProvider =
-    FutureProvider.autoDispose.family<List<ClassCatalogItemModel>, String?>((ref, level) async {
-  final repo = ref.watch(academyRepositoryProvider);
-  return repo.getPublicClassCatalog(mode: 'VOD', level: level);
-});
+final classCatalogVodProvider = FutureProvider.autoDispose
+    .family<List<ClassCatalogItemModel>, String?>((ref, level) async {
+      final repo = ref.watch(academyRepositoryProvider);
+      return repo.getPublicClassCatalog(mode: 'VOD', level: level);
+    });
 
-final classCatalogDetailProvider =
-    FutureProvider.autoDispose.family<ClassCatalogDetailModel?, String>((ref, classId) async {
-  final repo = ref.watch(academyRepositoryProvider);
-  return repo.getPublicClassCatalogById(classId);
-});
+final classCatalogLiveDetailProvider = FutureProvider.autoDispose
+    .family<ClassCatalogDetailModel?, String>((ref, classId) async {
+      final repo = ref.watch(academyRepositoryProvider);
+      return repo.getPublicClassCatalogById(classId, mode: 'LIVE');
+    });
 
-final myEnrollmentsProvider = FutureProvider<PaginatedResponse<EnrollmentModel>>((ref) async {
-  if (!_personalizedApisAllowed(ref)) {
-    return const PaginatedResponse<EnrollmentModel>(
-      data: [],
-      total: 0,
-      page: 1,
-      limit: 50,
-      totalPages: 1,
-    );
-  }
-  final repo = ref.watch(academyRepositoryProvider);
-  return repo.getMyEnrollments(limit: 50);
-});
+final classCatalogVodDetailProvider = FutureProvider.autoDispose
+    .family<ClassCatalogDetailModel?, String>((ref, classId) async {
+      final repo = ref.watch(academyRepositoryProvider);
+      return repo.getPublicClassCatalogById(classId, mode: 'VOD');
+    });
+
+final myEnrollmentsProvider =
+    FutureProvider<PaginatedResponse<EnrollmentModel>>((ref) async {
+      if (!_personalizedApisAllowed(ref)) {
+        return const PaginatedResponse<EnrollmentModel>(
+          data: [],
+          total: 0,
+          page: 1,
+          limit: 50,
+          totalPages: 1,
+        );
+      }
+      final repo = ref.watch(academyRepositoryProvider);
+      return repo.getMyEnrollments(limit: 50);
+    });
 
 /// Tiến độ bài học theo lớp (`lessonId` đã hoàn thành) — cần `classId` từ enrollment.
-final classCompletedLessonIdsProvider =
-    FutureProvider.autoDispose.family<List<String>, String>((ref, classId) async {
-  if (!_personalizedApisAllowed(ref) || classId.isEmpty) {
-    return const [];
-  }
-  final repo = ref.watch(academyRepositoryProvider);
-  return repo.getCompletedLessonIds(classId);
-});
+final classCompletedLessonIdsProvider = FutureProvider.autoDispose
+    .family<List<String>, String>((ref, classId) async {
+      if (!_personalizedApisAllowed(ref) || classId.isEmpty) {
+        return const [];
+      }
+      final repo = ref.watch(academyRepositoryProvider);
+      return repo.getCompletedLessonIds(classId);
+    });
 
-final myOrdersProvider = FutureProvider<PaginatedResponse<OrderModel>>((ref) async {
+final myOrdersProvider = FutureProvider<PaginatedResponse<OrderModel>>((
+  ref,
+) async {
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getMyOrders(limit: 50);
 });
 
-final orderDetailProvider = FutureProvider.family<OrderModel?, String>((ref, id) async {
+final orderDetailProvider = FutureProvider.family<OrderModel?, String>((
+  ref,
+  id,
+) async {
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getMyOrderById(id);
 });
 
-final orderFulfillmentByCodeProvider = FutureProvider.family<OrderFulfillmentSummaryModel?, String>((ref, orderCode) async {
-  final repo = ref.watch(academyRepositoryProvider);
-  return repo.getOrderFulfillmentByCode(orderCode);
-});
+final orderFulfillmentByCodeProvider =
+    FutureProvider.family<OrderFulfillmentSummaryModel?, String>((
+      ref,
+      orderCode,
+    ) async {
+      final repo = ref.watch(academyRepositoryProvider);
+      return repo.getOrderFulfillmentByCode(orderCode);
+    });
 
 // ---------- Notifications ----------
-final notificationsListProvider = FutureProvider<PaginatedResponse<NotificationModel>>((ref) async {
-  final repo = ref.watch(notificationRepositoryProvider);
-  return repo.getNotifications(page: 1, limit: 50);
-});
+final notificationsListProvider =
+    FutureProvider<PaginatedResponse<NotificationModel>>((ref) async {
+      final repo = ref.watch(notificationRepositoryProvider);
+      return repo.getNotifications(page: 1, limit: 50);
+    });
 
 final notificationsUnreadCountProvider = FutureProvider<int>((ref) async {
   if (!_personalizedApisAllowed(ref)) {
@@ -156,7 +182,9 @@ final notificationsUnreadCountProvider = FutureProvider<int>((ref) async {
 });
 
 // ---------- Gamification ----------
-final gamificationProfileProvider = FutureProvider<GamificationProfileModel?>((ref) async {
+final gamificationProfileProvider = FutureProvider<GamificationProfileModel?>((
+  ref,
+) async {
   final repo = ref.watch(gamificationRepositoryProvider);
   return repo.getProfile();
 });
@@ -166,10 +194,12 @@ final leaderboardProvider = FutureProvider<LeaderboardData?>((ref) async {
   return repo.getLeaderboard(type: 'global');
 });
 
-final gamificationAchievementsProvider = FutureProvider<List<AchievementModel>>((ref) async {
-  final repo = ref.watch(gamificationRepositoryProvider);
-  return repo.getAchievements();
-});
+final gamificationAchievementsProvider = FutureProvider<List<AchievementModel>>(
+  (ref) async {
+    final repo = ref.watch(gamificationRepositoryProvider);
+    return repo.getAchievements();
+  },
+);
 
 final streakProvider = FutureProvider<StreakModel?>((ref) async {
   if (!_personalizedApisAllowed(ref)) {
@@ -180,7 +210,9 @@ final streakProvider = FutureProvider<StreakModel?>((ref) async {
 });
 
 // ---------- Live schedules: GET /api/academy/live-sessions/me (parity web-learner) ----------
-final liveSchedulesProvider = FutureProvider<List<LiveScheduleModel>>((ref) async {
+final liveSchedulesProvider = FutureProvider<List<LiveScheduleModel>>((
+  ref,
+) async {
   if (!_authenticatedAcademyUser(ref)) {
     return const <LiveScheduleModel>[];
   }
@@ -194,12 +226,16 @@ final studySetsProvider = FutureProvider<List<StudySetModel>>((ref) async {
   return repo.getStudySets();
 });
 
-final studySetDetailProvider = FutureProvider.family<Map<String, dynamic>?, String>((ref, id) async {
-  final repo = ref.watch(academyRepositoryProvider);
-  return repo.getStudySetById(id);
-});
+final studySetDetailProvider =
+    FutureProvider.family<Map<String, dynamic>?, String>((ref, id) async {
+      final repo = ref.watch(academyRepositoryProvider);
+      return repo.getStudySetById(id);
+    });
 
-final studyCardsProvider = FutureProvider.family<List<SetCardModel>, String>((ref, setId) async {
+final studyCardsProvider = FutureProvider.family<List<SetCardModel>, String>((
+  ref,
+  setId,
+) async {
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getStudyCards(setId);
 });

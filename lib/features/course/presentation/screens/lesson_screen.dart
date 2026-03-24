@@ -18,7 +18,8 @@ class LessonScreen extends ConsumerStatefulWidget {
   ConsumerState<LessonScreen> createState() => _LessonScreenState();
 }
 
-class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerProviderStateMixin {
+class _LessonScreenState extends ConsumerState<LessonScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   VideoPlayerController? _videoController;
   ChewieController? _chewieController;
@@ -147,7 +148,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
     if (classId.isEmpty || lessonId.isEmpty) {
       if (!silent && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Thiếu thông tin lớp học để lưu tiến độ.')),
+          const SnackBar(
+            content: Text('Thiếu thông tin lớp học để lưu tiến độ.'),
+          ),
         );
       }
       return;
@@ -162,7 +165,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
       return;
     }
     final repo = ref.read(academyRepositoryProvider);
-    final ok = await repo.completeClassLesson(classId: classId, lessonId: lessonId);
+    final ok = await repo.completeClassLesson(
+      classId: classId,
+      lessonId: lessonId,
+    );
     if (!mounted) return;
     if (ok) {
       ref.invalidate(classCompletedLessonIdsProvider(classId));
@@ -180,7 +186,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
       }
     } else if (!silent) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không thể cập nhật tiến độ. Thử lại sau.')),
+        const SnackBar(
+          content: Text('Không thể cập nhật tiến độ. Thử lại sau.'),
+        ),
       );
     }
   }
@@ -206,7 +214,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
           builder: (ctx, scrollController) {
             return Material(
               color: AppColors.surface,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
               clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
@@ -214,7 +224,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                   Container(
                     width: 40,
                     height: 4,
-                    decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(999)),
+                    decoration: BoxDecoration(
+                      color: AppColors.grey300,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
@@ -223,115 +236,223 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                         Expanded(
                           child: Text(
                             'Chương trình học',
-                            style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                            style: Theme.of(ctx).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close_rounded),
-                          onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
+                          onPressed: () =>
+                              Navigator.of(ctx, rootNavigator: true).pop(),
                         ),
                       ],
                     ),
                   ),
                   const Divider(height: 1),
                   Expanded(
-                    child: ref.watch(classCatalogDetailProvider(classId)).when(
-                          loading: () => const Center(child: CircularProgressIndicator()),
-                          error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
-                          data: (detail) {
-                            if (detail == null) {
-                              return const Center(child: Text('Không có dữ liệu lộ trình'));
-                            }
-                            final useProgress = !progressDisabled && classId.isNotEmpty;
-                            final modules = detail.modules
-                                .map((m) => CurriculumModuleModel.fromJson(m))
-                                .toList();
-                            final completedIds = useProgress
-                                ? (ref.watch(classCompletedLessonIdsProvider(classId)).value ?? const [])
-                                : const <String>[];
-                            final completed = completedIds.toSet();
-                            final lessonOrder = <CurriculumLessonModel>[
-                              for (final m in modules) ...m.lessons,
-                            ];
-                            final lessonIndexById = <String, int>{
-                              for (int i = 0; i < lessonOrder.length; i++) lessonOrder[i].id: i,
-                            };
-                            final trackableOrdered = lessonOrder.where(_syllabusIsTrackable).toList();
-
-                            return ListView(
-                              controller: scrollController,
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                              children: [
-                                for (final module in modules)
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: Theme(
-                                      data: Theme.of(ctx).copyWith(dividerColor: Colors.transparent),
-                                      child: ExpansionTile(
-                                        tilePadding: EdgeInsets.zero,
-                                        initiallyExpanded: true,
-                                        title: Text(module.title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                                        children: module.lessons.map((cl) {
-                                          final idx = lessonIndexById[cl.id] ?? -1;
-                                          final hasNext = idx >= 0 && idx + 1 < lessonOrder.length;
-                                          final nextL = hasNext ? lessonOrder[idx + 1] : null;
-                                          final unlocked = _syllabusEffectiveUnlocked(
-                                            lesson: cl,
-                                            trackableOrdered: trackableOrdered,
-                                            completed: completed,
-                                            useProgress: useProgress,
-                                          );
-                                          final done = useProgress && _syllabusIsTrackable(cl) && completed.contains(cl.id);
-                                          final isCurrent = cl.id == currentLessonId;
-                                          return ListTile(
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                                            leading: Icon(
-                                              unlocked ? _syllabusIconForType(cl.type) : Icons.lock_outline_rounded,
-                                              color: isCurrent ? AppColors.primary : AppColors.textTertiary,
-                                              size: 22,
-                                            ),
-                                            title: Text(
-                                              cl.title.isNotEmpty ? cl.title : 'Bài học',
-                                              style: TextStyle(
-                                                fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w600,
-                                                color: isCurrent ? AppColors.primary : AppColors.textPrimary,
-                                              ),
-                                            ),
-                                            subtitle: Text(
-                                              unlocked
-                                                  ? (done ? 'Đã hoàn thành' : (isCurrent ? 'Đang xem' : _syllabusLabelForType(cl.type)))
-                                                  : 'Đã khóa',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: done ? AppColors.success : AppColors.textTertiary,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                            onTap: () {
-                                              if (!unlocked) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  const SnackBar(content: Text('Hoàn thành bài trước để mở khóa.')),
-                                                );
-                                                return;
-                                              }
-                                              final payload = _syllabusLessonPayload(
-                                                classId: classId.isNotEmpty ? classId : null,
-                                                progressDisabled: progressDisabled,
-                                                lesson: cl,
-                                                nextLesson: nextL,
-                                              );
-                                              Navigator.of(ctx, rootNavigator: true).pop();
-                                              context.pushReplacement('/lesson', extra: payload);
-                                            },
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ),
+                    child:
+                        ((lesson['mode'] ?? 'VOD').toString().toUpperCase() ==
+                                    'LIVE'
+                                ? ref.watch(
+                                    classCatalogLiveDetailProvider(classId),
+                                  )
+                                : ref.watch(
+                                    classCatalogVodDetailProvider(classId),
+                                  ))
+                            .when(
+                              loading: () => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              error: (e, _) => Center(
+                                child: Text(
+                                  'Lỗi: $e',
+                                  style: const TextStyle(
+                                    color: AppColors.error,
                                   ),
-                              ],
-                            );
-                          },
-                        ),
+                                ),
+                              ),
+                              data: (detail) {
+                                if (detail == null) {
+                                  return const Center(
+                                    child: Text('Không có dữ liệu lộ trình'),
+                                  );
+                                }
+                                final useProgress =
+                                    !progressDisabled && classId.isNotEmpty;
+                                final modules = detail.modules
+                                    .map(
+                                      (m) => CurriculumModuleModel.fromJson(m),
+                                    )
+                                    .toList();
+                                final completedIds = useProgress
+                                    ? (ref
+                                              .watch(
+                                                classCompletedLessonIdsProvider(
+                                                  classId,
+                                                ),
+                                              )
+                                              .value ??
+                                          const [])
+                                    : const <String>[];
+                                final completed = completedIds.toSet();
+                                final lessonOrder = <CurriculumLessonModel>[
+                                  for (final m in modules) ...m.lessons,
+                                ];
+                                final lessonIndexById = <String, int>{
+                                  for (int i = 0; i < lessonOrder.length; i++)
+                                    lessonOrder[i].id: i,
+                                };
+                                final trackableOrdered = lessonOrder
+                                    .where(_syllabusIsTrackable)
+                                    .toList();
+
+                                return ListView(
+                                  controller: scrollController,
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    8,
+                                    16,
+                                    24,
+                                  ),
+                                  children: [
+                                    for (final module in modules)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
+                                        child: Theme(
+                                          data: Theme.of(ctx).copyWith(
+                                            dividerColor: Colors.transparent,
+                                          ),
+                                          child: ExpansionTile(
+                                            tilePadding: EdgeInsets.zero,
+                                            initiallyExpanded: true,
+                                            title: Text(
+                                              module.title,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w800,
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                            children: module.lessons.map((cl) {
+                                              final idx =
+                                                  lessonIndexById[cl.id] ?? -1;
+                                              final hasNext =
+                                                  idx >= 0 &&
+                                                  idx + 1 < lessonOrder.length;
+                                              final nextL = hasNext
+                                                  ? lessonOrder[idx + 1]
+                                                  : null;
+                                              final unlocked =
+                                                  _syllabusEffectiveUnlocked(
+                                                    lesson: cl,
+                                                    trackableOrdered:
+                                                        trackableOrdered,
+                                                    completed: completed,
+                                                    useProgress: useProgress,
+                                                  );
+                                              final done =
+                                                  useProgress &&
+                                                  _syllabusIsTrackable(cl) &&
+                                                  completed.contains(cl.id);
+                                              final isCurrent =
+                                                  cl.id == currentLessonId;
+                                              return ListTile(
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 4,
+                                                      vertical: 0,
+                                                    ),
+                                                leading: Icon(
+                                                  unlocked
+                                                      ? _syllabusIconForType(
+                                                          cl.type,
+                                                        )
+                                                      : Icons
+                                                            .lock_outline_rounded,
+                                                  color: isCurrent
+                                                      ? AppColors.primary
+                                                      : AppColors.textTertiary,
+                                                  size: 22,
+                                                ),
+                                                title: Text(
+                                                  cl.title.isNotEmpty
+                                                      ? cl.title
+                                                      : 'Bài học',
+                                                  style: TextStyle(
+                                                    fontWeight: isCurrent
+                                                        ? FontWeight.w900
+                                                        : FontWeight.w600,
+                                                    color: isCurrent
+                                                        ? AppColors.primary
+                                                        : AppColors.textPrimary,
+                                                  ),
+                                                ),
+                                                subtitle: Text(
+                                                  unlocked
+                                                      ? (done
+                                                            ? 'Đã hoàn thành'
+                                                            : (isCurrent
+                                                                  ? 'Đang xem'
+                                                                  : _syllabusLabelForType(
+                                                                      cl.type,
+                                                                    )))
+                                                      : 'Đã khóa',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: done
+                                                        ? AppColors.success
+                                                        : AppColors
+                                                              .textTertiary,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                                onTap: () {
+                                                  if (!unlocked) {
+                                                    ScaffoldMessenger.of(
+                                                      context,
+                                                    ).showSnackBar(
+                                                      const SnackBar(
+                                                        content: Text(
+                                                          'Hoàn thành bài trước để mở khóa.',
+                                                        ),
+                                                      ),
+                                                    );
+                                                    return;
+                                                  }
+                                                  final payload =
+                                                      _syllabusLessonPayload(
+                                                        classId:
+                                                            classId.isNotEmpty
+                                                            ? classId
+                                                            : null,
+                                                        mode:
+                                                            (lesson['mode'] ??
+                                                                    'VOD')
+                                                                .toString(),
+                                                        progressDisabled:
+                                                            progressDisabled,
+                                                        lesson: cl,
+                                                        nextLesson: nextL,
+                                                      );
+                                                  Navigator.of(
+                                                    ctx,
+                                                    rootNavigator: true,
+                                                  ).pop();
+                                                  context.pushReplacement(
+                                                    '/lesson',
+                                                    extra: payload,
+                                                  );
+                                                },
+                                              );
+                                            }).toList(),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
+                            ),
                   ),
                 ],
               ),
@@ -378,7 +499,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
         actions: [
           IconButton(
             tooltip: 'Mục lục — chương trình học',
-            icon: const Icon(Icons.list_alt_outlined, color: AppColors.textPrimary),
+            icon: const Icon(
+              Icons.list_alt_outlined,
+              color: AppColors.textPrimary,
+            ),
             onPressed: classId.isEmpty ? null : _openSyllabusSheet,
           ),
         ],
@@ -420,7 +544,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildContentTab(type: typeRaw, article: article, videoUrl: videoUrl),
+                _buildContentTab(
+                  type: typeRaw,
+                  article: article,
+                  videoUrl: videoUrl,
+                ),
                 _buildPlaceholderTab('Tài liệu sẽ được cập nhật'),
                 _buildDiscussionTab(),
               ],
@@ -429,34 +557,56 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
 
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: AppColors.surface, border: Border(top: BorderSide(color: AppColors.grey200))),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              border: Border(top: BorderSide(color: AppColors.grey200)),
+            ),
             child: progressDisabled
                 ? SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: nextLesson == null
                           ? null
-                          : () => context.pushReplacement('/lesson', extra: nextLesson),
+                          : () => context.pushReplacement(
+                              '/lesson',
+                              extra: nextLesson,
+                            ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.textOnPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         elevation: 0,
                       ),
-                      child: const Text('Bài tiếp theo', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Bài tiếp theo',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   )
                 : Row(
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: classId.isEmpty || !_isTrackableType(typeRaw) ? null : () => _markComplete(),
+                          onPressed:
+                              classId.isEmpty || !_isTrackableType(typeRaw)
+                              ? null
+                              : () => _markComplete(),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                          child: const Text('Đánh dấu hoàn thành', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'Đánh dấu hoàn thành',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -464,15 +614,23 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                         child: ElevatedButton(
                           onPressed: nextLesson == null
                               ? null
-                              : () => context.pushReplacement('/lesson', extra: nextLesson),
+                              : () => context.pushReplacement(
+                                  '/lesson',
+                                  extra: nextLesson,
+                                ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: AppColors.textOnPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             elevation: 0,
                           ),
-                          child: const Text('Bài tiếp theo', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'Bài tiếp theo',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ],
@@ -504,7 +662,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                   Image.network(
                     thumbnailUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => ColoredBox(color: AppColors.grey200),
+                    errorBuilder: (_, __, ___) =>
+                        ColoredBox(color: AppColors.grey200),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -522,7 +681,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                     left: 12,
                     bottom: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.95),
                         borderRadius: BorderRadius.circular(10),
@@ -530,7 +692,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.menu_book_rounded, size: 16, color: AppColors.primary),
+                          Icon(
+                            Icons.menu_book_rounded,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: 6),
                           const Text(
                             'Bài đọc',
@@ -569,7 +735,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                       color: AppColors.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 28),
+                    child: const Icon(
+                      Icons.menu_book_rounded,
+                      color: AppColors.primary,
+                      size: 28,
+                    ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -577,7 +747,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(8),
@@ -638,11 +811,19 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.schedule_rounded, size: 16, color: AppColors.textTertiary),
+                      Icon(
+                        Icons.schedule_rounded,
+                        size: 16,
+                        color: AppColors.textTertiary,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         duration,
-                        style: const TextStyle(fontSize: 12, color: AppColors.textTertiary, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textTertiary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -661,12 +842,15 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
       width: double.infinity,
       color: Colors.black,
       child: AspectRatio(
-        aspectRatio: (_videoController != null && _videoController!.value.isInitialized)
+        aspectRatio:
+            (_videoController != null && _videoController!.value.isInitialized)
             ? _videoController!.value.aspectRatio
             : 16 / 9,
         child: chewie != null
             ? Chewie(controller: chewie)
-            : const Center(child: CircularProgressIndicator(color: Colors.white)),
+            : const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
       ),
     );
   }
@@ -679,7 +863,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
     required String duration,
     required String? videoUrl,
   }) {
-    final heroTitle = subtitle.isNotEmpty ? subtitle : (type == 'article' ? 'Bài đọc' : 'Video bài học');
+    final heroTitle = subtitle.isNotEmpty
+        ? subtitle
+        : (type == 'article' ? 'Bài đọc' : 'Video bài học');
     final meta = [
       if (duration.isNotEmpty) duration,
       if (type.isNotEmpty) type.toUpperCase(),
@@ -700,7 +886,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                   Image.network(
                     thumbnailUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(color: AppColors.grey200),
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: AppColors.grey200),
                   )
                 else
                   Container(color: AppColors.grey200),
@@ -711,15 +898,24 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.16),
                           borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: Colors.white.withOpacity(0.18)),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.18),
+                          ),
                         ),
                         child: Text(
                           heroTitle,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       const Spacer(),
@@ -727,13 +923,22 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                         title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16, height: 1.2),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          height: 1.2,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       if (meta.isNotEmpty)
                         Text(
                           meta,
-                          style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.85),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                     ],
                   ),
@@ -742,9 +947,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                   right: 14,
                   bottom: 14,
                   child: _PrimaryPillButton(
-                    icon: type == 'article' ? Icons.menu_book_rounded : Icons.play_arrow_rounded,
+                    icon: type == 'article'
+                        ? Icons.menu_book_rounded
+                        : Icons.play_arrow_rounded,
                     label: type == 'article' ? 'Đọc ngay' : 'Xem ngay',
-                    enabled: type == 'article' || (videoUrl != null && videoUrl.isNotEmpty),
+                    enabled:
+                        type == 'article' ||
+                        (videoUrl != null && videoUrl.isNotEmpty),
                     onPressed: () {
                       if (!mounted) return;
                       _tabController.animateTo(0);
@@ -792,7 +1001,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
               children: [
                 Text(
                   articleTitle,
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, height: 1.3),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                    height: 1.3,
+                  ),
                 ),
                 const SizedBox(height: 14),
                 if (content.trim().isNotEmpty)
@@ -800,7 +1013,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                 else
                   Text(
                     'Nội dung bài đọc đang được cập nhật.',
-                    style: TextStyle(height: 1.75, color: AppColors.textPrimary, fontSize: 15),
+                    style: TextStyle(
+                      height: 1.75,
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                    ),
                   ),
               ],
             ),
@@ -811,12 +1028,18 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.15),
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.touch_app_rounded, size: 20, color: AppColors.primary.withValues(alpha: 0.9)),
+                Icon(
+                  Icons.touch_app_rounded,
+                  size: 20,
+                  color: AppColors.primary.withValues(alpha: 0.9),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -837,13 +1060,18 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
     }
 
     if (typeUpper == 'QUIZ') {
-      return _buildPlaceholderTab('Bài quiz chưa được tích hợp trong bản demo này.');
+      return _buildPlaceholderTab(
+        'Bài quiz chưa được tích hợp trong bản demo này.',
+      );
     }
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Text('Mô tả & hướng dẫn', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        const Text(
+          'Mô tả & hướng dẫn',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 10),
         Text(
           videoUrl != null && videoUrl.isNotEmpty
@@ -875,7 +1103,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.grey200),
         boxShadow: [
-          BoxShadow(color: AppColors.textPrimary.withOpacity(0.04), blurRadius: 14, offset: const Offset(0, 6)),
+          BoxShadow(
+            color: AppColors.textPrimary.withOpacity(0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
         ],
       ),
       child: Column(
@@ -900,14 +1132,21 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
             child: Icon(Icons.circle, size: 6, color: AppColors.primary),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Text(text, style: TextStyle(height: 1.6, color: AppColors.textPrimary))),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(height: 1.6, color: AppColors.textPrimary),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildPlaceholderTab(String text) {
-    return Center(child: Text(text, style: TextStyle(color: AppColors.textTertiary)));
+    return Center(
+      child: Text(text, style: TextStyle(color: AppColors.textTertiary)),
+    );
   }
 
   Future<void> _refreshDiscussionIfPossible() async {
@@ -915,7 +1154,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
     if (lessonId.isEmpty) return;
 
     final authState = ref.read(authStateProvider).valueOrNull;
-    if (authState == null || !authState.isAuthenticated || authState.user == null) {
+    if (authState == null ||
+        !authState.isAuthenticated ||
+        authState.user == null) {
       // Not logged in: keep discussions hidden.
       return;
     }
@@ -927,7 +1168,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
 
     try {
       final repo = ref.read(commentRepositoryProvider);
-      final topics = await repo.getDiscussionTopics(classId: lessonId, page: 1, limit: 100);
+      final topics = await repo.getDiscussionTopics(
+        classId: lessonId,
+        page: 1,
+        limit: 100,
+      );
       setState(() {
         _topics = topics;
         _discussionLoading = false;
@@ -952,12 +1197,14 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
     final userId = authState?.user?.id;
     if (userId == null) return;
 
-    await ref.read(commentRepositoryProvider).createTopic(
-      classId: lessonId,
-      userId: userId,
-      title: title,
-      content: content,
-    );
+    await ref
+        .read(commentRepositoryProvider)
+        .createTopic(
+          classId: lessonId,
+          userId: userId,
+          title: title,
+          content: content,
+        );
 
     await _refreshDiscussionIfPossible();
   }
@@ -973,12 +1220,14 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
     final userId = authState?.user?.id;
     if (userId == null) return;
 
-    await ref.read(commentRepositoryProvider).replyToTopic(
-      classId: lessonId,
-      userId: userId,
-      parentId: topicId,
-      content: content,
-    );
+    await ref
+        .read(commentRepositoryProvider)
+        .replyToTopic(
+          classId: lessonId,
+          userId: userId,
+          parentId: topicId,
+          content: content,
+        );
 
     setState(() {
       _replyDrafts[topicId] = '';
@@ -989,17 +1238,26 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
   Widget _buildDiscussionTab() {
     final lessonId = (widget.lesson?['id'] ?? '').toString();
     final authState = ref.watch(authStateProvider).valueOrNull;
-    final isAuthed = authState != null && authState.isAuthenticated && authState.user != null;
+    final isAuthed =
+        authState != null &&
+        authState.isAuthenticated &&
+        authState.user != null;
 
     if (lessonId.isEmpty) {
       return Center(
-        child: Text('Thiếu lessonId để tải thảo luận.', style: TextStyle(color: AppColors.textTertiary)),
+        child: Text(
+          'Thiếu lessonId để tải thảo luận.',
+          style: TextStyle(color: AppColors.textTertiary),
+        ),
       );
     }
 
     if (!isAuthed) {
       return Center(
-        child: Text('Đăng nhập để xem và trả lời thảo luận.', style: TextStyle(color: AppColors.textTertiary)),
+        child: Text(
+          'Đăng nhập để xem và trả lời thảo luận.',
+          style: TextStyle(color: AppColors.textTertiary),
+        ),
       );
     }
 
@@ -1023,14 +1281,24 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
-              child: Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-                  const Icon(Icons.message_outlined, size: 52, color: AppColors.textTertiary),
+              const Icon(
+                Icons.message_outlined,
+                size: 52,
+                color: AppColors.textTertiary,
+              ),
               const SizedBox(height: 12),
-              const Text('Chưa có thảo luận nào', style: TextStyle(fontWeight: FontWeight.w800)),
+              const Text(
+                'Chưa có thảo luận nào',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 8),
-              const Text('Hãy đặt câu hỏi để nhận phản hồi từ lecture/staff.', textAlign: TextAlign.center),
+              const Text(
+                'Hãy đặt câu hỏi để nhận phản hồi từ lecture/staff.',
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () async {
@@ -1048,11 +1316,15 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                             children: [
                               TextField(
                                 controller: titleCtrl,
-                                decoration: const InputDecoration(labelText: 'Tiêu đề'),
+                                decoration: const InputDecoration(
+                                  labelText: 'Tiêu đề',
+                                ),
                               ),
                               TextField(
                                 controller: contentCtrl,
-                                decoration: const InputDecoration(labelText: 'Nội dung'),
+                                decoration: const InputDecoration(
+                                  labelText: 'Nội dung',
+                                ),
                                 minLines: 3,
                                 maxLines: 6,
                               ),
@@ -1060,7 +1332,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                           ),
                         ),
                         actions: [
-                          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Hủy')),
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            child: const Text('Hủy'),
+                          ),
                           TextButton(
                             onPressed: () {
                               title = titleCtrl.text;
@@ -1075,7 +1350,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                   );
 
                   if (title.trim().isEmpty || content.trim().isEmpty) return;
-                  await _createTopic(title: title.trim(), content: content.trim());
+                  await _createTopic(
+                    title: title.trim(),
+                    content: content.trim(),
+                  );
                 },
                 child: const Text('Đặt câu hỏi'),
               ),
@@ -1113,33 +1391,53 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                         Expanded(
                           child: Text(
                             topicTitle,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                         if (topic.status == 'ANSWERED')
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.success.withOpacity(0.12),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: const Text(
                               'Đã trả lời',
-                              style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.success),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.success,
+                              ),
                             ),
                           ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(topic.content, style: TextStyle(color: AppColors.textPrimary.withOpacity(0.85))),
+                  Text(
+                    topic.content,
+                    style: TextStyle(
+                      color: AppColors.textPrimary.withOpacity(0.85),
+                    ),
+                  ),
 
                   if (expanded) ...[
                     const SizedBox(height: 12),
                     if ((topic.replies.isEmpty))
-                      Text('Chưa có phản hồi nào.', style: TextStyle(color: AppColors.textTertiary)),
+                      Text(
+                        'Chưa có phản hồi nào.',
+                        style: TextStyle(color: AppColors.textTertiary),
+                      ),
                     if (topic.replies.isNotEmpty) ...[
-                      const Text('Phản hồi', style: TextStyle(fontWeight: FontWeight.w800)),
+                      const Text(
+                        'Phản hồi',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
                       const SizedBox(height: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1150,10 +1448,15 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                     ],
 
                     const SizedBox(height: 12),
-                    const Text('Trả lời', style: TextStyle(fontWeight: FontWeight.w800)),
+                    const Text(
+                      'Trả lời',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
                     const SizedBox(height: 8),
                     TextField(
-                      controller: TextEditingController(text: _replyDrafts[topic.id] ?? ''),
+                      controller: TextEditingController(
+                        text: _replyDrafts[topic.id] ?? '',
+                      ),
                       onChanged: (v) {
                         _replyDrafts[topic.id] = v;
                       },
@@ -1172,7 +1475,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                           onPressed: () async {
                             final text = (_replyDrafts[topic.id] ?? '').trim();
                             if (text.isEmpty) return;
-                            await _replyToTopic(topicId: topic.id, content: text);
+                            await _replyToTopic(
+                              topicId: topic.id,
+                              content: text,
+                            );
                           },
                           child: const Text('Gửi trả lời'),
                         ),
@@ -1211,19 +1517,32 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 6),
-                Text(comment.content, style: TextStyle(color: AppColors.textPrimary.withOpacity(0.85))),
+                Text(
+                  comment.content,
+                  style: TextStyle(
+                    color: AppColors.textPrimary.withOpacity(0.85),
+                  ),
+                ),
               ],
             ),
           ),
           if (children.isNotEmpty && depth < 2)
-            ...children.map((c) => _renderComment(c, depth: depth + 1)).toList(),
+            ...children
+                .map((c) => _renderComment(c, depth: depth + 1))
+                .toList(),
         ],
       ),
     );
   }
 
   String topicTitleFrom(String content) {
-    return content.split('\n').firstWhere((e) => e.trim().isNotEmpty, orElse: () => 'Không có tiêu đề').trim();
+    return content
+        .split('\n')
+        .firstWhere(
+          (e) => e.trim().isNotEmpty,
+          orElse: () => 'Không có tiêu đề',
+        )
+        .trim();
   }
 }
 
@@ -1249,10 +1568,12 @@ Map<String, dynamic> _syllabusLessonPayload({
   required CurriculumLessonModel lesson,
   CurriculumLessonModel? nextLesson,
   String? classId,
+  String? mode,
   bool progressDisabled = false,
 }) {
   return <String, dynamic>{
     if (classId != null && classId.isNotEmpty) 'classId': classId,
+    if (mode != null && mode.isNotEmpty) 'mode': mode,
     if (progressDisabled) 'progressDisabled': true,
     'id': lesson.id,
     'title': lesson.title,
@@ -1265,6 +1586,7 @@ Map<String, dynamic> _syllabusLessonPayload({
     if (nextLesson != null)
       'nextLesson': <String, dynamic>{
         if (classId != null && classId.isNotEmpty) 'classId': classId,
+        if (mode != null && mode.isNotEmpty) 'mode': mode,
         if (progressDisabled) 'progressDisabled': true,
         'id': nextLesson.id,
         'title': nextLesson.title,
@@ -1272,7 +1594,8 @@ Map<String, dynamic> _syllabusLessonPayload({
         'videoUrl': nextLesson.videoUrl,
         'article': <String, dynamic>{
           'title': nextLesson.title,
-          'content': nextLesson.content ?? 'Nội dung bài học đang được cập nhật.',
+          'content':
+              nextLesson.content ?? 'Nội dung bài học đang được cập nhật.',
         },
       },
   };
@@ -1330,7 +1653,11 @@ class _PrimaryPillButton extends StatelessWidget {
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(999),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 10, offset: const Offset(0, 6)),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 10,
+                offset: const Offset(0, 6),
+              ),
             ],
           ),
           child: Row(
@@ -1338,7 +1665,13 @@ class _PrimaryPillButton extends StatelessWidget {
             children: [
               Icon(icon, color: AppColors.textOnPrimary, size: 18),
               const SizedBox(width: 8),
-              Text(label, style: const TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.w800)),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ],
           ),
         ),

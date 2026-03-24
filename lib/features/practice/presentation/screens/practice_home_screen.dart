@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 
 class PracticeHomeScreen extends StatelessWidget {
   const PracticeHomeScreen({super.key});
@@ -50,7 +49,10 @@ class PracticeHomeScreen extends StatelessWidget {
                       color: theme.colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(Icons.style_rounded, color: theme.colorScheme.primary),
+                    child: Icon(
+                      Icons.style_rounded,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -65,16 +67,22 @@ class PracticeHomeScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Study sets + flashcards, quản lý và luyện tập từ vựng',
+                          'Quản lý bộ thẻ, chỉnh sửa thẻ và chọn chế độ học giống web',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
                             height: 1.35,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                  Icon(
+                    Icons.chevron_right,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.7,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -82,7 +90,7 @@ class PracticeHomeScreen extends StatelessWidget {
           const SizedBox(height: 12),
           InkWell(
             onTap: () {
-              // TODO: thi thử JLPT — màn hình / dữ liệu sẽ bổ sung sau
+              context.push('/jlpt-mock');
             },
             borderRadius: BorderRadius.circular(16),
             child: Container(
@@ -108,7 +116,10 @@ class PracticeHomeScreen extends StatelessWidget {
                       color: theme.colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(Icons.edit_note_rounded, color: theme.colorScheme.primary),
+                    child: Icon(
+                      Icons.edit_note_rounded,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -125,14 +136,20 @@ class PracticeHomeScreen extends StatelessWidget {
                         Text(
                           'Luyện đề theo cấp độ',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
                             height: 1.35,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                  Icon(
+                    Icons.chevron_right,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.7,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -142,4 +159,3 @@ class PracticeHomeScreen extends StatelessWidget {
     );
   }
 }
-

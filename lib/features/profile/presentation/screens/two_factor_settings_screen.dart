@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/services/auth/auth_service.dart';
 
@@ -8,10 +7,12 @@ class TwoFactorSettingsScreen extends ConsumerStatefulWidget {
   const TwoFactorSettingsScreen({super.key});
 
   @override
-  ConsumerState<TwoFactorSettingsScreen> createState() => _TwoFactorSettingsScreenState();
+  ConsumerState<TwoFactorSettingsScreen> createState() =>
+      _TwoFactorSettingsScreenState();
 }
 
-class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScreen> {
+class _TwoFactorSettingsScreenState
+    extends ConsumerState<TwoFactorSettingsScreen> {
   bool _loading = false;
   // Mô tả trạng thái chi tiết, phục vụ hiển thị và debug
   String? _statusText;
@@ -39,9 +40,15 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
         _backupCodesRemaining = data['backupCodesRemaining'] as int?;
         final enabledAtRaw = data['enabledAt'];
         final lastUsedAtRaw = data['lastUsedAt'];
-        _enabledAt = enabledAtRaw is String ? DateTime.tryParse(enabledAtRaw) : null;
-        _lastUsedAt = lastUsedAtRaw is String ? DateTime.tryParse(lastUsedAtRaw) : null;
-        _statusText = enabled ? 'Đã bật xác thực hai yếu tố' : 'Chưa bật xác thực hai yếu tố';
+        _enabledAt = enabledAtRaw is String
+            ? DateTime.tryParse(enabledAtRaw)
+            : null;
+        _lastUsedAt = lastUsedAtRaw is String
+            ? DateTime.tryParse(lastUsedAtRaw)
+            : null;
+        _statusText = enabled
+            ? 'Đã bật xác thực hai yếu tố'
+            : 'Chưa bật xác thực hai yếu tố';
       });
     } catch (e) {
       setState(() {
@@ -70,7 +77,9 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi tạo secret: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi tạo secret: $e')));
       }
     } finally {
       setState(() {
@@ -90,12 +99,16 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
         _backupCodes = res.data;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã bật 2FA thành công')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đã bật 2FA thành công')));
       }
       await _loadStatus();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Bật 2FA thất bại: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Bật 2FA thất bại: $e')));
       }
     } finally {
       setState(() {
@@ -112,12 +125,16 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
       final service = ref.read(authServiceProvider);
       await service.disableTOTP(code);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã tắt 2FA')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đã tắt 2FA')));
       }
       await _loadStatus();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Tắt 2FA thất bại: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Tắt 2FA thất bại: $e')));
       }
     } finally {
       setState(() {
@@ -137,11 +154,15 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
         _backupCodes = res.data;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã tạo lại backup codes')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã tạo lại backup codes')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi tạo lại backup codes: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi tạo lại backup codes: $e')));
       }
     } finally {
       setState(() {
@@ -168,7 +189,11 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            size: 20,
+            color: theme.colorScheme.onSurface,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -225,37 +250,46 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Xác thực hai yếu tố',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Xac thuc hai yeu to',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Thêm lớp bảo mật bổ sung cho tài khoản',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                              const SizedBox(height: 4),
+                              Text(
+                                'Them lop bao mat bo sung cho tai khoan',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: _isEnabled ? theme.colorScheme.primary.withOpacity(0.08) : theme.dividerColor.withOpacity(0.1),
+                            color: _isEnabled
+                                ? theme.colorScheme.primary.withOpacity(0.08)
+                                : theme.dividerColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
-                            _isEnabled ? 'Đã bật' : 'Đã tắt',
+                            _isEnabled ? 'Da bat' : 'Da tat',
                             style: theme.textTheme.bodySmall?.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: _isEnabled ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                              color: _isEnabled
+                                  ? theme.colorScheme.primary
+                                  : theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -269,11 +303,15 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                         children: [
                           _StatusItem(
                             label: 'Phương thức',
-                            value: (_method == 'totp' || _method == null) ? 'Ứng dụng xác thực' : 'Không xác định',
+                            value: (_method == 'totp' || _method == null)
+                                ? 'Ứng dụng xác thực'
+                                : 'Không xác định',
                           ),
                           _StatusItem(
                             label: 'Mã dự phòng',
-                            value: _backupCodesRemaining != null ? 'Còn $_backupCodesRemaining mã' : 'Không có dữ liệu',
+                            value: _backupCodesRemaining != null
+                                ? 'Còn $_backupCodesRemaining mã'
+                                : 'Không có dữ liệu',
                           ),
                           if (_enabledAt != null)
                             _StatusItem(
@@ -294,12 +332,18 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                         decoration: BoxDecoration(
                           color: theme.colorScheme.primary.withOpacity(0.06),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: theme.colorScheme.primary.withOpacity(0.25)),
+                          border: Border.all(
+                            color: theme.colorScheme.primary.withOpacity(0.25),
+                          ),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.shield_outlined, color: theme.colorScheme.primary, size: 18),
+                            Icon(
+                              Icons.shield_outlined,
+                              color: theme.colorScheme.primary,
+                              size: 18,
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -326,7 +370,9 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                         ),
                       ),
                     ],
-                        if (_isEnabled && _backupCodesRemaining != null && _backupCodesRemaining! < 3) ...[
+                    if (_isEnabled &&
+                        _backupCodesRemaining != null &&
+                        _backupCodesRemaining! < 3) ...[
                       const SizedBox(height: 12),
                       Container(
                         width: double.infinity,
@@ -334,12 +380,18 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                         decoration: BoxDecoration(
                           color: theme.colorScheme.error.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: theme.colorScheme.error.withOpacity(0.25)),
+                          border: Border.all(
+                            color: theme.colorScheme.error.withOpacity(0.25),
+                          ),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error, size: 18),
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: theme.colorScheme.error,
+                              size: 18,
+                            ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -388,7 +440,7 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                                   ),
                                 ),
                                 child: const Text(
-                                  'Bật xác thực hai yếu tố',
+                                  'Bat 2FA',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 13,
@@ -405,7 +457,9 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                                 onPressed: _loading ? null : _regenBackupCodes,
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: theme.colorScheme.primary,
-                                  side: BorderSide(color: theme.colorScheme.primary),
+                                  side: BorderSide(
+                                    color: theme.colorScheme.primary,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -432,7 +486,11 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                                       },
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: theme.colorScheme.error,
-                                  side: BorderSide(color: theme.colorScheme.error.withOpacity(0.6)),
+                                  side: BorderSide(
+                                    color: theme.colorScheme.error.withOpacity(
+                                      0.6,
+                                    ),
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -467,7 +525,9 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                   children: [
                     Text(
                       'Backup codes',
-                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -485,7 +545,10 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                         children: _backupCodes!
                             .map(
                               (c) => Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: theme.colorScheme.surfaceContainer,
                                   borderRadius: BorderRadius.circular(12),
@@ -521,11 +584,16 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                         style: OutlinedButton.styleFrom(
                           foregroundColor: theme.colorScheme.primary,
                           side: BorderSide(color: theme.colorScheme.primary),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: const Text(
                           'Tạo lại backup codes',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
@@ -540,7 +608,6 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
   }
 
   Future<void> _showEnableDrawer(BuildContext context) async {
-    final theme = Theme.of(context);
     final codeController = TextEditingController();
 
     await showModalBottomSheet<void>(
@@ -570,7 +637,8 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                 final code = codeController.text.trim();
                 if (code.isEmpty) return;
                 await _enable(code);
-                if (mounted) Navigator.of(ctx).pop();
+                if (!ctx.mounted) return;
+                Navigator.of(ctx).pop();
               }
 
               return Column(
@@ -605,7 +673,9 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                   const SizedBox(height: 12),
                   Text(
                     'Hướng dẫn',
-                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
@@ -687,14 +757,19 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                             onPressed: _loading ? null : startSetupInSheet,
                             style: OutlinedButton.styleFrom(
                               foregroundColor: theme.colorScheme.primary,
-                              side: BorderSide(color: theme.colorScheme.primary),
+                              side: BorderSide(
+                                color: theme.colorScheme.primary,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             child: const Text(
                               'Tạo secret',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -709,11 +784,16 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                               backgroundColor: theme.colorScheme.primary,
                               foregroundColor: theme.colorScheme.onPrimary,
                               elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                             child: const Text(
                               'Bật 2FA',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
@@ -730,7 +810,6 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
   }
 
   Future<void> _showDisableDrawer(BuildContext context) async {
-    final theme = Theme.of(context);
     final codeController = TextEditingController();
 
     await showModalBottomSheet<void>(
@@ -800,20 +879,20 @@ class _TwoFactorSettingsScreenState extends ConsumerState<TwoFactorSettingsScree
                           final code = codeController.text.trim();
                           if (code.isEmpty) return;
                           await _disable(code);
-                          if (mounted) Navigator.of(ctx).pop();
+                          if (!ctx.mounted) return;
+                          Navigator.of(ctx).pop();
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.error,
                     foregroundColor: theme.colorScheme.onError,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text(
                     'Xác nhận tắt 2FA',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                   ),
                 ),
               ),
@@ -829,10 +908,7 @@ class _StatusItem extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatusItem({
-    required this.label,
-    required this.value,
-  });
+  const _StatusItem({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -868,4 +944,3 @@ class _StatusItem extends StatelessWidget {
     );
   }
 }
-

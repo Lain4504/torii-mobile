@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
 
   @override
-  ConsumerState<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  ConsumerState<ChangePasswordScreen> createState() =>
+      _ChangePasswordScreenState();
 }
 
 class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
@@ -31,7 +31,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: theme.colorScheme.onSurface, size: 20),
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: theme.colorScheme.onSurface,
+            size: 20,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -51,34 +55,57 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Cập nhật mật khẩu',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Vì lý do bảo mật, hãy nhập mật khẩu hiện tại và mật khẩu mới của bạn.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.lock_reset_rounded,
+                          color: theme.colorScheme.primary,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Bạn đang đổi mật khẩu cho tài khoản hiện tại.',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  const Text('Mật khẩu hiện tại', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Mật khẩu hiện tại',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   _buildPasswordField(
                     theme,
                     controller: _currentCtrl,
                     hintText: 'Nhập mật khẩu hiện tại',
                     obscure: _obscureCurrent,
-                    onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                    onToggle: () =>
+                        setState(() => _obscureCurrent = !_obscureCurrent),
                   ),
                   const SizedBox(height: 18),
 
-                  const Text('Mật khẩu mới', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Mật khẩu mới',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   _buildPasswordField(
                     theme,
@@ -89,14 +116,18 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  const Text('Nhập lại mật khẩu mới', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Nhập lại mật khẩu mới',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   _buildPasswordField(
                     theme,
                     controller: _confirmCtrl,
                     hintText: 'Nhập lại để xác nhận',
                     obscure: _obscureConfirm,
-                    onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                    onToggle: () =>
+                        setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
                   const SizedBox(height: 24),
 
@@ -114,22 +145,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                         ),
                       ),
                       child: Text(
-                        _isLoading ? 'Đang cập nhật...' : 'Lưu mật khẩu mới',
+                        _isLoading ? 'Dang cap nhat...' : 'Doi mat khau',
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => context.push('/forgot-password'),
-                    child: Text(
-                      'Quên mật khẩu hiện tại?',
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -156,7 +176,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         hintText: hintText,
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
-          icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+          icon: Icon(
+            obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          ),
           onPressed: onToggle,
         ),
         isDense: true,
@@ -221,7 +243,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đổi mật khẩu thất bại, vui lòng thử lại')),
+          const SnackBar(
+            content: Text('Đổi mật khẩu thất bại, vui lòng thử lại'),
+          ),
         );
       }
     } catch (_) {
@@ -233,4 +257,3 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     }
   }
 }
-

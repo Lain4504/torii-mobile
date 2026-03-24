@@ -56,23 +56,35 @@ class LiveClassModel {
 
   factory LiveClassModel.fromJson(Map<String, dynamic> json) {
     final instructor = json['instructor'];
-    final instructorMap = instructor is Map ? instructor.cast<String, dynamic>() : null;
+    final instructorMap = instructor is Map
+        ? instructor.cast<String, dynamic>()
+        : null;
     final displayName = instructorMap?['displayName'] as String?;
     final avatarUrl = instructorMap?['avatarUrl'] as String?;
+    final cohort = json['cohort'];
+    final cohortMap = cohort is Map ? cohort.cast<String, dynamic>() : null;
 
-    final term = json['term'];
-    final termMap = term is Map ? term.cast<String, dynamic>() : null;
-
-    final openingDate = _tryParseDateTime(json['openingDate'] ?? termMap?['openingDate']);
-    final closingDate = _tryParseDateTime(json['closingDate'] ?? termMap?['closingDate']);
-    final enrollmentOpenAt = _tryParseDateTime(json['enrollmentOpenAt'] ?? termMap?['enrollmentOpenAt']);
-    final enrollmentCloseAt = _tryParseDateTime(json['enrollmentCloseAt'] ?? termMap?['enrollmentCloseAt']);
+    final openingDate = _tryParseDateTime(cohortMap?['startDate']);
+    final closingDate = _tryParseDateTime(cohortMap?['endDate']);
+    final enrollmentOpenAt = _tryParseDateTime(cohortMap?['enrollmentOpenAt']);
+    final enrollmentCloseAt = _tryParseDateTime(
+      cohortMap?['enrollmentCloseAt'],
+    );
+    final maxStudents = (json['maxStudents'] as num?)?.toInt();
+    final activeEnrollmentCount =
+        ((json['_count'] as Map?)?['enrollments'] as num?)?.toInt() ?? 0;
+    final isFull = maxStudents != null
+        ? activeEnrollmentCount >= maxStudents
+        : false;
+    final spotsLeft = maxStudents != null
+        ? (maxStudents - activeEnrollmentCount).clamp(0, maxStudents)
+        : null;
 
     return LiveClassModel(
       id: (json['id'] as String?) ?? '',
       code: (json['code'] as String?) ?? '',
-      name: (json['name'] as String?) ?? (json['title'] as String?) ?? '',
-      mode: (json['mode'] as String?) ?? 'LIVE',
+      name: (json['name'] as String?) ?? '',
+      mode: 'LIVE',
       status: json['status'] as String?,
       openingDate: openingDate,
       closingDate: closingDate,
@@ -80,7 +92,12 @@ class LiveClassModel {
       enrollmentCloseAt: enrollmentCloseAt,
       instructorName: displayName,
       instructorAvatarUrl: avatarUrl,
-      liveEnrollment: LiveEnrollmentSummary.tryParse(json['liveEnrollment']),
+      liveEnrollment: LiveEnrollmentSummary(
+        activeEnrollmentCount: activeEnrollmentCount,
+        maxStudents: maxStudents,
+        spotsLeft: spotsLeft,
+        isFull: isFull,
+      ),
     );
   }
 
@@ -103,8 +120,10 @@ class LiveClassModel {
   bool get isEnrollableNow {
     final now = DateTime.now();
     if (enrollmentOpenAt == null || enrollmentCloseAt == null) return false;
-    return (now.isAtSameMomentAs(enrollmentOpenAt!) || now.isAfter(enrollmentOpenAt!)) &&
-        (now.isAtSameMomentAs(enrollmentCloseAt!) || now.isBefore(enrollmentCloseAt!));
+    return (now.isAtSameMomentAs(enrollmentOpenAt!) ||
+            now.isAfter(enrollmentOpenAt!)) &&
+        (now.isAtSameMomentAs(enrollmentCloseAt!) ||
+            now.isBefore(enrollmentCloseAt!));
   }
 }
 
@@ -112,10 +131,7 @@ class LiveProductDetailModel {
   final AcademyProductModel product;
   final List<LiveClassModel> classes;
 
-  const LiveProductDetailModel({
-    required this.product,
-    required this.classes,
-  });
+  const LiveProductDetailModel({required this.product, required this.classes});
 
   factory LiveProductDetailModel.fromJson(Map<String, dynamic> json) {
     final rawClasses = json['siblingClasses'] ?? json['classes'];
@@ -125,13 +141,15 @@ class LiveProductDetailModel {
         .map((entry) {
           if (entry is Map<String, dynamic>) {
             final klass = entry['class'];
-            if (klass is Map<String, dynamic>) return LiveClassModel.fromJson(klass);
+            if (klass is Map<String, dynamic>)
+              return LiveClassModel.fromJson(klass);
             return LiveClassModel.fromJson(entry);
           }
           if (entry is Map) {
             final entryMap = entry.cast<String, dynamic>();
             final klass = entryMap['class'];
-            if (klass is Map) return LiveClassModel.fromJson(klass.cast<String, dynamic>());
+            if (klass is Map)
+              return LiveClassModel.fromJson(klass.cast<String, dynamic>());
             return LiveClassModel.fromJson(entryMap);
           }
           return null;
@@ -152,4 +170,3 @@ DateTime? _tryParseDateTime(dynamic value) {
   if (value is DateTime) return value;
   return DateTime.tryParse(value.toString());
 }
-

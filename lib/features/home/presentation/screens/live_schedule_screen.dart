@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 
@@ -20,7 +21,10 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
   DateTime _currentWeekStart = _startOfWeekMonday(DateTime.now());
   bool _upcomingPanelAnimated = false;
   String? _joiningSessionId;
-  final List<GlobalKey> _dayRowKeys = List<GlobalKey>.generate(7, (_) => GlobalKey());
+  final List<GlobalKey> _dayRowKeys = List<GlobalKey>.generate(
+    7,
+    (_) => GlobalKey(),
+  );
 
   @override
   void initState() {
@@ -67,7 +71,11 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
   }
 
   List<LiveScheduleModel> _sessionsInWeek(List<LiveScheduleModel> all) {
-    final ws = DateTime(_currentWeekStart.year, _currentWeekStart.month, _currentWeekStart.day);
+    final ws = DateTime(
+      _currentWeekStart.year,
+      _currentWeekStart.month,
+      _currentWeekStart.day,
+    );
     final we = ws.add(const Duration(days: 7));
     return all.where((s) {
       final t = s.startAt;
@@ -165,7 +173,9 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
       ),
       builder: (ctx) {
         final joinAllowed = session.canAttemptJoin;
-        final title = (session.title ?? '').trim().isNotEmpty ? session.title! : (session.courseTitle ?? 'Buổi học');
+        final title = (session.title ?? '').trim().isNotEmpty
+            ? session.title!
+            : (session.courseTitle ?? 'Buổi học');
         final timeLine = session.startAt != null && session.endAt != null
             ? '${DateFormat('dd/MM/yyyy').format(session.startAt!)} · ${DateFormat('HH:mm').format(session.startAt!)} – ${DateFormat('HH:mm').format(session.endAt!)}'
             : session.timeRange;
@@ -175,7 +185,10 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
             left: 16,
             right: 16,
             top: 12,
-            bottom: MediaQuery.viewInsetsOf(ctx).bottom + MediaQuery.paddingOf(ctx).bottom + 16,
+            bottom:
+                MediaQuery.viewInsetsOf(ctx).bottom +
+                MediaQuery.paddingOf(ctx).bottom +
+                16,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -194,19 +207,27 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
               ),
               Text(
                 'Tham gia buổi live?',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 title,
-                style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w800),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               if (timeLine.isNotEmpty) ...[
                 const SizedBox(height: 6),
-                  Text(
-                    timeLine,
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                Text(
+                  timeLine,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.7,
+                    ),
                   ),
+                ),
               ],
               if ((session.courseTitle ?? '').trim().isNotEmpty &&
                   (session.title ?? '').trim().isNotEmpty &&
@@ -214,17 +235,24 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Khóa: ${session.courseTitle}',
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
               if (!joinAllowed) ...[
                 const SizedBox(height: 10),
-                  Text(
-                    'Chưa tới giờ mở phòng. Bạn sẽ vào được trước buổi học vài chục phút.',
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), height: 1.35),
+                Text(
+                  'Chưa tới giờ mở phòng. Bạn sẽ vào được trước buổi học vài chục phút.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.7,
+                    ),
+                    height: 1.35,
                   ),
+                ),
               ],
               const SizedBox(height: 16),
               Row(
@@ -233,13 +261,21 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                     child: SizedBox(
                       height: 44,
                       child: OutlinedButton(
-                        onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
+                        onPressed: () =>
+                            Navigator.of(ctx, rootNavigator: true).pop(),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: theme.colorScheme.onSurfaceVariant,
-                          side: BorderSide(color: theme.colorScheme.outlineVariant),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          side: BorderSide(
+                            color: theme.colorScheme.outlineVariant,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
-                        child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
+                        child: const Text(
+                          'Hủy',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
                       ),
                     ),
                   ),
@@ -258,10 +294,14 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                           backgroundColor: theme.colorScheme.primary,
                           foregroundColor: theme.colorScheme.onPrimary,
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                         child: Text(
-                          _joiningSessionId == session.id ? 'Đang mở…' : 'Tham gia',
+                          _joiningSessionId == session.id
+                              ? 'Đang mở…'
+                              : 'Tham gia',
                           style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
                       ),
@@ -300,7 +340,8 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     );
     final featured = _pickFeaturedUpcoming(allSessions);
     final now = DateTime.now();
-    final shouldShowUpcomingPanel = featured?.shouldPromptUpcomingPanel(now) ?? false;
+    final shouldShowUpcomingPanel =
+        featured?.shouldPromptUpcomingPanel(now) ?? false;
     final panelSession = shouldShowUpcomingPanel ? featured : null;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -335,7 +376,12 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                   _buildHeader(context, isDark, primaryColor, () {
                     ref.invalidate(liveSchedulesProvider);
                   }),
-                  _buildNavigation(context, dateRangeText, primaryColor, isDark),
+                  _buildNavigation(
+                    context,
+                    dateRangeText,
+                    primaryColor,
+                    isDark,
+                  ),
                   Expanded(
                     child: Stack(
                       clipBehavior: Clip.none,
@@ -355,12 +401,18 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                           child: AnimatedSlide(
                             duration: const Duration(milliseconds: 420),
                             curve: Curves.easeOutCubic,
-                            offset: shouldShowUpcomingPanel && _upcomingPanelAnimated
+                            offset:
+                                shouldShowUpcomingPanel &&
+                                    _upcomingPanelAnimated
                                 ? Offset.zero
                                 : const Offset(0, 1),
                             child: AnimatedOpacity(
                               duration: const Duration(milliseconds: 320),
-                              opacity: shouldShowUpcomingPanel && _upcomingPanelAnimated ? 1 : 0,
+                              opacity:
+                                  shouldShowUpcomingPanel &&
+                                      _upcomingPanelAnimated
+                                  ? 1
+                                  : 0,
                               child: panelSession != null
                                   ? _buildUpcomingSection(
                                       context,
@@ -384,7 +436,6 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     );
   }
 
-
   /// Header đồng bộ phong cách web-learner `dashboard/schedule`: tiêu đề + Meet + làm mới lịch.
   Widget _buildHeader(
     BuildContext context,
@@ -401,9 +452,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-          ),
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
       ),
       child: Column(
@@ -441,7 +490,11 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                   IconButton(
                     tooltip: 'Tải lại lịch',
                     onPressed: onRefreshSchedule,
-                    icon: Icon(Icons.refresh_rounded, color: primaryColor, size: 22),
+                    icon: Icon(
+                      Icons.refresh_rounded,
+                      color: primaryColor,
+                      size: 22,
+                    ),
                     style: IconButton.styleFrom(
                       padding: const EdgeInsets.all(6),
                       visualDensity: VisualDensity.compact,
@@ -450,14 +503,20 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                   TextButton(
                     onPressed: () => context.push('/meet'),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       foregroundColor: primaryColor,
                     ),
                     child: const Text(
                       'Vào Meet',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ],
@@ -469,15 +528,18 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     );
   }
 
-  Widget _buildNavigation(BuildContext context, String dateRange, Color primaryColor, bool isDark) {
+  Widget _buildNavigation(
+    BuildContext context,
+    String dateRange,
+    Color primaryColor,
+    bool isDark,
+  ) {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.85),
         border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-          ),
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -488,7 +550,9 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
             icon: const Icon(Icons.chevron_left_rounded, size: 22),
             color: theme.colorScheme.onSurfaceVariant,
             style: IconButton.styleFrom(
-              backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+              backgroundColor: theme.colorScheme.outlineVariant.withValues(
+                alpha: 0.3,
+              ),
               padding: const EdgeInsets.all(6),
             ),
           ),
@@ -497,7 +561,11 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.calendar_month_rounded, size: 16, color: primaryColor),
+                  Icon(
+                    Icons.calendar_month_rounded,
+                    size: 16,
+                    color: primaryColor,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     dateRange,
@@ -520,7 +588,11 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
             ),
             child: const Text(
               'HIỆN TẠI',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.6),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.6,
+              ),
             ),
           ),
           IconButton(
@@ -528,7 +600,9 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
             icon: const Icon(Icons.chevron_right_rounded, size: 22),
             color: theme.colorScheme.onSurfaceVariant,
             style: IconButton.styleFrom(
-              backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+              backgroundColor: theme.colorScheme.outlineVariant.withValues(
+                alpha: 0.3,
+              ),
               padding: const EdgeInsets.all(6),
             ),
           ),
@@ -537,15 +611,21 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     );
   }
 
-  List<LiveScheduleModel> _sessionsForDay(List<LiveScheduleModel> weekList, DateTime day) {
+  List<LiveScheduleModel> _sessionsForDay(
+    List<LiveScheduleModel> weekList,
+    DateTime day,
+  ) {
     final d = DateTime(day.year, day.month, day.day);
-    final list = weekList.where((s) {
-      final t = s.startAt;
-      if (t == null) return false;
-      final sd = DateTime(t.year, t.month, t.day);
-      return sd == d;
-    }).toList()
-      ..sort((a, b) => (a.startAt ?? DateTime(0)).compareTo(b.startAt ?? DateTime(0)));
+    final list =
+        weekList.where((s) {
+          final t = s.startAt;
+          if (t == null) return false;
+          final sd = DateTime(t.year, t.month, t.day);
+          return sd == d;
+        }).toList()..sort(
+          (a, b) =>
+              (a.startAt ?? DateTime(0)).compareTo(b.startAt ?? DateTime(0)),
+        );
     return list;
   }
 
@@ -565,18 +645,16 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
       data: (_) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildWeekDayStrip(
-            primaryColor,
-            isDark,
-            weekList,
-            todayStr,
-          ),
+          _buildWeekDayStrip(primaryColor, isDark, weekList, todayStr),
           Expanded(
             child: ListView.separated(
               controller: _weekListScrollController,
-              padding: EdgeInsets.only(bottom: bottomInset + (weekList.isEmpty ? 24 : 120)),
+              padding: EdgeInsets.only(
+                bottom: bottomInset + (weekList.isEmpty ? 24 : 120),
+              ),
               itemCount: 7,
-              separatorBuilder: (context, _) => Divider(height: 1, thickness: 1, color: dividerColor),
+              separatorBuilder: (context, _) =>
+                  Divider(height: 1, thickness: 1, color: dividerColor),
               itemBuilder: (context, dayIndex) {
                 final day = _currentWeekStart.add(Duration(days: dayIndex));
                 final daySessions = _sessionsForDay(weekList, day);
@@ -585,9 +663,14 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
 
                 return Material(
                   key: _dayRowKeys[dayIndex],
-                  color: isToday ? primaryColor.withValues(alpha: 0.06) : Colors.transparent,
+                  color: isToday
+                      ? primaryColor.withValues(alpha: 0.06)
+                      : Colors.transparent,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -598,19 +681,20 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                             children: [
                               Text(
                                 DateFormat('dd/MM').format(day),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  color: theme.colorScheme.onSurface,
+                                ),
                               ),
                               Text(
                                 dayLabels[dayIndex],
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                                  ),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.onSurfaceVariant
+                                      .withValues(alpha: 0.7),
+                                ),
                               ),
                             ],
                           ),
@@ -618,11 +702,17 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                         Expanded(
                           child: daySessions.isEmpty
                               ? Container(
-                                  constraints: const BoxConstraints(minHeight: 48),
+                                  constraints: const BoxConstraints(
+                                    minHeight: 48,
+                                  ),
                                   alignment: Alignment.centerLeft,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                                    color: theme.colorScheme.outlineVariant
+                                        .withValues(alpha: 0.3),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
@@ -630,16 +720,22 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
-                                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                      color: theme.colorScheme.onSurfaceVariant
+                                          .withValues(alpha: 0.7),
                                     ),
                                   ),
                                 )
                               : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     for (var i = 0; i < daySessions.length; i++)
                                       Padding(
-                                        padding: EdgeInsets.only(bottom: i < daySessions.length - 1 ? 8 : 0),
+                                        padding: EdgeInsets.only(
+                                          bottom: i < daySessions.length - 1
+                                              ? 8
+                                              : 0,
+                                        ),
                                         child: _buildCompactSessionCard(
                                           daySessions[i],
                                           primaryColor: primaryColor,
@@ -684,9 +780,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.9),
         border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-          ),
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
         ),
       ),
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
@@ -705,15 +799,30 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   width: 48,
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: isToday ? primaryColor : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    color: isToday
+                        ? primaryColor
+                        : theme.colorScheme.outlineVariant.withValues(
+                            alpha: 0.3,
+                          ),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isToday ? primaryColor : theme.colorScheme.outlineVariant,
+                      color: isToday
+                          ? primaryColor
+                          : theme.colorScheme.outlineVariant,
                     ),
                     boxShadow: isToday
-                        ? [BoxShadow(color: primaryColor.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2))]
+                        ? [
+                            BoxShadow(
+                              color: primaryColor.withValues(alpha: 0.25),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
                         : null,
                   ),
                   child: Column(
@@ -724,18 +833,24 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
-                          color: isToday ? Colors.white.withValues(alpha: 0.95) : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          color: isToday
+                              ? Colors.white.withValues(alpha: 0.95)
+                              : theme.colorScheme.onSurfaceVariant.withValues(
+                                  alpha: 0.7,
+                                ),
                         ),
                       ),
                       const SizedBox(height: 2),
-                        Text(
-                          '${day.day}',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            color: isToday ? Colors.white : theme.colorScheme.onSurface,
-                          ),
+                      Text(
+                        '${day.day}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: isToday
+                              ? Colors.white
+                              : theme.colorScheme.onSurface,
                         ),
+                      ),
                       if (has)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
@@ -743,7 +858,9 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                             width: 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: isToday ? Colors.white : const Color(0xFF3B82F6),
+                              color: isToday
+                                  ? Colors.white
+                                  : const Color(0xFF3B82F6),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -781,172 +898,231 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
         onTap: () => _showJoinConfirmSheet(e),
         borderRadius: BorderRadius.circular(12),
         child: Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isLive
-              ? theme.colorScheme.error.withValues(alpha: 0.45)
-              : isEnded
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isLive
+                  ? theme.colorScheme.error.withValues(alpha: 0.45)
+                  : isEnded
                   ? theme.colorScheme.outlineVariant
                   : theme.colorScheme.outlineVariant.withValues(alpha: 0.85),
-        ),
-      ),
-      padding: const EdgeInsets.all(10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: Column(
-              children: [
-                Text(timeTop, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 4),
-                Container(
-                  width: 2,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(1),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(timeBot, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
-              ],
             ),
           ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Column(
                   children: [
-                    if (isLive)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.error.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'LIVE',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: theme.colorScheme.error),
-                        ),
-                      )
-                    else if (!isEnded && start != null && start.isAfter(now))
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Sắp tới',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      )
-                    else if (isEnded)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Đã xong',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: theme.colorScheme.onSurfaceVariant),
-                        ),
+                    Text(
+                      timeTop,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
                       ),
-                    if (isEnded)
-                      Container(
-                        constraints: const BoxConstraints(maxWidth: 160),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.muted.withValues(alpha: 0.85),
-                          borderRadius: BorderRadius.circular(20),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      width: 2,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.outlineVariant.withValues(
+                          alpha: 0.9,
                         ),
-                        child: Text(
-                          _attendanceBadgeLabel(e.attendanceStatus),
-                          style: TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        borderRadius: BorderRadius.circular(1),
                       ),
-                    if (e.canAttemptJoin)
-                      TextButton(
-                        onPressed: _joiningSessionId != null
-                            ? null
-                            : () => _showJoinConfirmSheet(e),
-                        style: TextButton.styleFrom(
-                          foregroundColor: primaryColor,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          backgroundColor: primaryColor.withValues(alpha: 0.12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        ),
-                        child: _joiningSessionId == e.id
-                            ? const SizedBox(
-                                width: 14,
-                                height: 14,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text(
-                                isLive ? 'Vào lớp' : 'Vào phòng',
-                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
-                              ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      timeBot,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
                       ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  (e.title ?? '').trim().isNotEmpty ? e.title! : (e.courseTitle ?? 'Buổi học'),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    height: 1.25,
-                    color: isLive ? theme.colorScheme.error : accentGreen,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if ((e.courseTitle ?? '').trim().isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Khóa: ${e.courseTitle}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: theme.colorScheme.onSurfaceVariant,
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (isLive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.error.withValues(
+                                alpha: 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'LIVE',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: theme.colorScheme.error,
+                              ),
+                            ),
+                          )
+                        else if (!isEnded &&
+                            start != null &&
+                            start.isAfter(now))
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Sắp tới',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          )
+                        else if (isEnded)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.outlineVariant
+                                  .withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Đã xong',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        if (isEnded)
+                          Container(
+                            constraints: const BoxConstraints(maxWidth: 160),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.muted.withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _attendanceBadgeLabel(e.attendanceStatus),
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? AppColors.textTertiary
+                                    : AppColors.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        if (e.canAttemptJoin)
+                          TextButton(
+                            onPressed: _joiningSessionId != null
+                                ? null
+                                : () => _showJoinConfirmSheet(e),
+                            style: TextButton.styleFrom(
+                              foregroundColor: primaryColor,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              backgroundColor: primaryColor.withValues(
+                                alpha: 0.12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            child: _joiningSessionId == e.id
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    isLive ? 'Vào lớp' : 'Vào phòng',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                          ),
+                      ],
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-                if ((e.instructorName ?? '').trim().isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    e.instructorName!,
-                    style: TextStyle(fontSize: 10, color: theme.colorScheme.onSurfaceVariant),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
-            ),
+                    const SizedBox(height: 6),
+                    Text(
+                      (e.title ?? '').trim().isNotEmpty
+                          ? e.title!
+                          : (e.courseTitle ?? 'Buổi học'),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        height: 1.25,
+                        color: isLive ? theme.colorScheme.error : accentGreen,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if ((e.courseTitle ?? '').trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Khóa: ${e.courseTitle}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if ((e.instructorName ?? '').trim().isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        e.instructorName!,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
         ),
       ),
     );
@@ -959,7 +1135,9 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     bool isDark,
   ) {
     final theme = Theme.of(context);
-    final title = (e.title ?? '').trim().isNotEmpty ? e.title! : (e.courseTitle ?? 'Buổi học live');
+    final title = (e.title ?? '').trim().isNotEmpty
+        ? e.title!
+        : (e.courseTitle ?? 'Buổi học live');
     final subtitle = e.startAt != null && e.endAt != null
         ? '${_weekdayVi(e.startAt!)} ${DateFormat('dd/MM').format(e.startAt!)} · ${e.timeRange}'
         : (e.timeRange.isNotEmpty ? e.timeRange : 'Sắp diễn ra');
@@ -969,8 +1147,8 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     final joinLabel = state == LiveScheduleUiState.live
         ? 'VÀO LỚP NGAY'
         : state == LiveScheduleUiState.joinable
-            ? 'VÀO PHÒNG HỌC'
-            : 'ĐẾN GIỜ SẼ MỞ PHÒNG';
+        ? 'VÀO PHÒNG HỌC'
+        : 'ĐẾN GIỜ SẼ MỞ PHÒNG';
 
     return Material(
       elevation: 12,
@@ -985,13 +1163,17 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isDark
-                ? [theme.colorScheme.surface, theme.colorScheme.surface.withValues(alpha: 0.8)]
-                : [theme.colorScheme.surface, theme.colorScheme.outlineVariant.withValues(alpha: 0.45)],
+                ? [
+                    theme.colorScheme.surface,
+                    theme.colorScheme.surface.withValues(alpha: 0.8),
+                  ]
+                : [
+                    theme.colorScheme.surface,
+                    theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
+                  ],
           ),
           border: Border(
-            top: BorderSide(
-              color: theme.colorScheme.outlineVariant,
-            ),
+            top: BorderSide(color: theme.colorScheme.outlineVariant),
           ),
         ),
         child: Column(
@@ -1041,7 +1223,8 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                         ? Image.network(
                             thumb,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => _placeholderThumb(primaryColor),
+                            errorBuilder: (_, _, _) =>
+                                _placeholderThumb(primaryColor),
                           )
                         : _placeholderThumb(primaryColor),
                   ),
@@ -1059,17 +1242,29 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
-                    : const Icon(Icons.play_circle_fill_rounded, color: Colors.white),
+                    : const Icon(
+                        Icons.play_circle_fill_rounded,
+                        color: Colors.white,
+                      ),
                 label: Text(
                   _joiningSessionId == e.id ? 'Đang mở…' : joinLabel,
-                  style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: 0.8, color: Colors.white),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                    color: Colors.white,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryColor,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
@@ -1082,7 +1277,10 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
   Widget _placeholderThumb(Color primaryColor) {
     return ColoredBox(
       color: primaryColor.withValues(alpha: 0.15),
-      child: Icon(Icons.school_rounded, color: primaryColor.withValues(alpha: 0.8)),
+      child: Icon(
+        Icons.school_rounded,
+        color: primaryColor.withValues(alpha: 0.8),
+      ),
     );
   }
 }
