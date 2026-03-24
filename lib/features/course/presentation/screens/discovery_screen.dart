@@ -17,6 +17,7 @@ class CourseDiscoveryScreen extends ConsumerStatefulWidget {
 class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen> {
   static const List<String> _levels = ['Tất cả', 'N5', 'N4', 'N3', 'N2', 'N1'];
   String _selectedLevel = 'Tất cả';
+  String? _lastUrlLevel;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +25,15 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen> {
     final urlLevel = (rawLevel == null || rawLevel.trim().isEmpty)
         ? null
         : rawLevel.trim().toUpperCase();
+    if (urlLevel != _lastUrlLevel) {
+      _lastUrlLevel = urlLevel;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final nextLevel = _levels.contains(urlLevel) ? urlLevel! : 'Tất cả';
+        if (_selectedLevel == nextLevel) return;
+        setState(() => _selectedLevel = nextLevel);
+      });
+    }
     final effectiveLevel = _selectedLevel == 'Tất cả'
         ? urlLevel
         : _selectedLevel;
@@ -51,6 +61,7 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen> {
         elevation: 0,
       ),
       body: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
           Text(
@@ -118,7 +129,7 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen> {
       data: (list) {
         final sorted = isLive ? _sortLiveUpcoming(list) : list;
         if (sorted.isEmpty) {
-          return const Center(child: Text('Chưa có lớp phù hợp'));
+          return _buildEmptySectionCard(context, isLive: isLive);
         }
         return ListView.builder(
           shrinkWrap: true,
@@ -130,7 +141,76 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen> {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(
-        child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error)),
+        child: _buildEmptySectionCard(
+          context,
+          isLive: isLive,
+          message: 'Không tải được dữ liệu. Hãy thử lại sau.',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptySectionCard(
+    BuildContext context, {
+    required bool isLive,
+    String? message,
+  }) {
+    final theme = Theme.of(context);
+    final title = isLive
+        ? 'Chưa có lớp LIVE phù hợp'
+        : 'Chưa có khóa VOD phù hợp';
+    final desc =
+        message ??
+        'Bạn có thể đổi bộ lọc trình độ hoặc quay lại sau để xem thêm nội dung mới.';
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              isLive ? Icons.live_tv_rounded : Icons.ondemand_video_rounded,
+              color: theme.colorScheme.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  desc,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

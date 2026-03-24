@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/class_catalog_model.dart';
 
@@ -14,10 +12,11 @@ class CourseLiveDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final detailAsync = ref.watch(classCatalogLiveDetailProvider(classId));
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: detailAsync.when(
         data: (detail) {
           if (detail == null) {
@@ -27,13 +26,17 @@ class CourseLiveDetailScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error)),
+          child: Text(
+            'Lỗi: $e',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildContent(BuildContext context, ClassCatalogDetailModel detail) {
+    final theme = Theme.of(context);
     final item = detail.item;
     final priceStr =
         '${detail.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
@@ -52,13 +55,13 @@ class CourseLiveDetailScreen extends ConsumerWidget {
             SliverAppBar(
               expandedHeight: 250,
               pinned: true,
-              backgroundColor: AppColors.primary,
+              backgroundColor: theme.colorScheme.surface,
               flexibleSpace: FlexibleSpaceBar(
                 background: Image.network(
                   thumb,
                   fit: BoxFit.cover,
                   errorBuilder: (_, error, stackTrace) => Container(
-                    color: AppColors.grey200,
+                    color: theme.colorScheme.surfaceContainerHighest,
                     child: const Icon(Icons.school, size: 64),
                   ),
                 ),
@@ -67,13 +70,13 @@ class CourseLiveDetailScreen extends ConsumerWidget {
                 padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundColor: AppColors.surface,
+                  backgroundColor: theme.colorScheme.surface,
                   child: IconButton(
                     padding: EdgeInsets.zero,
                     iconSize: 18,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_back,
-                      color: AppColors.textPrimary,
+                      color: theme.colorScheme.onSurface,
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
@@ -94,24 +97,28 @@ class CourseLiveDetailScreen extends ConsumerWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.error.withValues(alpha: 0.08),
+                            color: theme.colorScheme.error.withValues(
+                              alpha: 0.08,
+                            ),
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
-                              color: AppColors.error.withValues(alpha: 0.2),
+                              color: theme.colorScheme.error.withValues(
+                                alpha: 0.2,
+                              ),
                             ),
                           ),
-                          child: const Row(
+                          child: Row(
                             children: [
                               Icon(
                                 Icons.videocam_outlined,
                                 size: 14,
-                                color: AppColors.error,
+                                color: theme.colorScheme.error,
                               ),
                               SizedBox(width: 6),
                               Text(
                                 'LIVE',
                                 style: TextStyle(
-                                  color: AppColors.error,
+                                  color: theme.colorScheme.error,
                                   fontWeight: FontWeight.w800,
                                   fontSize: 12,
                                 ),
@@ -131,10 +138,10 @@ class CourseLiveDetailScreen extends ConsumerWidget {
                         const Spacer(),
                         Text(
                           priceStr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ],
@@ -152,14 +159,17 @@ class CourseLiveDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Mã lớp: ${item.code}',
-                      style: TextStyle(color: AppColors.grey700, fontSize: 13),
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
                     ),
                     if (opening != null) ...[
                       const SizedBox(height: 8),
                       Text(
                         'Khai giảng: ${DateFormat('dd/MM/yyyy').format(opening)}',
                         style: TextStyle(
-                          color: AppColors.grey700,
+                          color: theme.colorScheme.onSurfaceVariant,
                           fontSize: 14,
                         ),
                       ),
@@ -170,70 +180,218 @@ class CourseLiveDetailScreen extends ConsumerWidget {
                         live!.liveCapacitySubtitle!,
                         style: TextStyle(
                           color: live.isLiveCapacityFull
-                              ? AppColors.error
-                              : AppColors.grey700,
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                         ),
+                      ),
+                    ],
+                    if (item.instructor != null &&
+                        item.instructor!.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _SectionTitle(title: 'Giảng viên', theme: theme),
+                      const SizedBox(height: 8),
+                      _LecturerCard(
+                        lecturer: item.instructor!,
+                        theme: theme,
+                        classId: classId,
                       ),
                     ],
                     const SizedBox(height: 12),
                     if ((detail.descriptionHtml ?? '').isNotEmpty) ...[
                       Text(
                         _stripHtml(detail.descriptionHtml!),
-                        style: const TextStyle(
+                        style: TextStyle(
                           height: 1.55,
-                          color: AppColors.textPrimary,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 16),
                     ],
                     const Divider(height: 40),
-                    const Text(
-                      'Lịch & nội dung',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    _SectionTitle(title: 'Lịch live', theme: theme),
                     const SizedBox(height: 10),
                     if (item.liveSchedules.isEmpty)
                       Text(
                         'Khung giờ học sẽ được cập nhật.',
-                        style: TextStyle(color: AppColors.grey700),
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       )
                     else
                       ...item.liveSchedules.map((s) {
                         final m = Map<String, dynamic>.from(s as Map);
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Text(
-                            'Thứ ${(m['weekday'] as num?)?.toInt() ?? '?'} • ${m['startTime']}-${m['endTime']}',
-                            style: TextStyle(
-                              color: AppColors.grey700,
-                              fontSize: 13,
+                        final weekday = (m['weekday'] as num?)?.toInt();
+                        final startTime = (m['startTime'] ?? '--:--')
+                            .toString();
+                        final endTime = (m['endTime'] ?? '--:--').toString();
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: theme.colorScheme.outlineVariant,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.03,
+                                ),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary.withValues(
+                                    alpha: 0.12,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  Icons.calendar_month_rounded,
+                                  size: 20,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Thu ${weekday ?? '?'}',
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '$startTime - $endTime',
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       }),
                     if (detail.modules.isNotEmpty) ...[
                       const SizedBox(height: 16),
-                      const Text(
-                        'Chương trình (tham khảo)',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      _SectionTitle(title: 'Syllabus', theme: theme),
                       const SizedBox(height: 8),
-                      ...detail.modules.map(
-                        (mod) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Text(
-                            '• ${mod['title'] ?? 'Chương'}',
-                            style: const TextStyle(fontSize: 13),
+                      ...detail.modules.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final mod = entry.value;
+                        final lessons = mod['lessons'];
+                        final lessonCount = lessons is List
+                            ? lessons.length
+                            : 0;
+                        final lessonItems = (lessons is List)
+                            ? lessons
+                                  .whereType<Map>()
+                                  .map((e) => Map<String, dynamic>.from(e))
+                                  .toList()
+                            : const <Map<String, dynamic>>[];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: theme.colorScheme.outlineVariant,
+                            ),
                           ),
-                        ),
-                      ),
+                          child: ExpansionTile(
+                            tilePadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 2,
+                            ),
+                            childrenPadding: const EdgeInsets.only(
+                              left: 12,
+                              right: 12,
+                              bottom: 10,
+                            ),
+                            title: Text(
+                              mod['title']?.toString().trim().isNotEmpty == true
+                                  ? mod['title'].toString()
+                                  : 'Chuong ${idx + 1}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            subtitle: Text('$lessonCount bai hoc'),
+                            children: lessonItems.isEmpty
+                                ? [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'Chua co danh sach bai hoc',
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ),
+                                  ]
+                                : lessonItems.asMap().entries.map((lEntry) {
+                                    final lIndex = lEntry.key;
+                                    final lesson = lEntry.value;
+                                    final title =
+                                        (lesson['title'] ??
+                                                lesson['name'] ??
+                                                lesson['lessonTitle'] ??
+                                                'Bai hoc ${lIndex + 1}')
+                                            .toString();
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            child: Text(
+                                              '${lIndex + 1}.',
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              title,
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(height: 1.35),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                          ),
+                        );
+                      }),
                     ],
                     const SizedBox(height: 110),
                   ],
@@ -247,10 +405,10 @@ class CourseLiveDetailScreen extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: theme.colorScheme.surface,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.textPrimary.withValues(alpha: 0.05),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
                 ),
@@ -281,7 +439,7 @@ class CourseLiveDetailScreen extends ConsumerWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.grey700,
+                    color: theme.colorScheme.onSurfaceVariant,
                     height: 1.4,
                   ),
                 ),
@@ -298,5 +456,103 @@ class CourseLiveDetailScreen extends ConsumerWidget {
         .replaceAll(RegExp(r'<[^>]*>'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title, required this.theme});
+
+  final String title;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+    );
+  }
+}
+
+class _LecturerCard extends StatelessWidget {
+  const _LecturerCard({
+    required this.lecturer,
+    required this.theme,
+    required this.classId,
+  });
+
+  final Map<String, dynamic> lecturer;
+  final ThemeData theme;
+  final String classId;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = (lecturer['name'] ?? lecturer['fullName'] ?? 'Giang vien')
+        .toString();
+    final avatarUrl = lecturer['avatarUrl']?.toString();
+    final subtitle = (lecturer['title'] ?? lecturer['email'] ?? '').toString();
+    return InkWell(
+      onTap: () =>
+          context.push('/course-live/$classId/lecturer', extra: lecturer),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: theme.colorScheme.outlineVariant,
+              backgroundImage: (avatarUrl != null && avatarUrl.isNotEmpty)
+                  ? NetworkImage(avatarUrl)
+                  : null,
+              child: (avatarUrl == null || avatarUrl.isEmpty)
+                  ? Text(
+                      name.isNotEmpty
+                          ? name.characters.first.toUpperCase()
+                          : 'G',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

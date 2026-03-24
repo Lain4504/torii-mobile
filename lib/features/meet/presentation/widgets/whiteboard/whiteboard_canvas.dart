@@ -27,9 +27,7 @@ class WhiteboardCanvas extends ConsumerWidget {
     final appState = ref.watch(
       whiteboardProvider.select((s) => s.whiteboardAppState),
     );
-    final panOffset = ref.watch(
-      whiteboardProvider.select((s) => s.panOffset),
-    );
+    final panOffset = ref.watch(whiteboardProvider.select((s) => s.panOffset));
     final localZoomFactor = ref.watch(
       whiteboardProvider.select((s) => s.localZoomFactor),
     );
@@ -52,12 +50,18 @@ class WhiteboardCanvas extends ConsumerWidget {
             : localZoomFactor;
 
         if (nextLocalZoomFactor != localZoomFactor) {
-          ref.read(whiteboardProvider.notifier).setLocalZoomFactor(nextLocalZoomFactor);
+          ref
+              .read(whiteboardProvider.notifier)
+              .setLocalZoomFactor(nextLocalZoomFactor);
         }
 
         // Keep panning working together with pinch.
-        final z = remoteZoomFinite ? (remoteZoom * nextLocalZoomFactor) : nextLocalZoomFactor;
-        ref.read(whiteboardProvider.notifier).updatePanOffset(
+        final z = remoteZoomFinite
+            ? (remoteZoom * nextLocalZoomFactor)
+            : nextLocalZoomFactor;
+        ref
+            .read(whiteboardProvider.notifier)
+            .updatePanOffset(
               details.focalPointDelta / (z.isFinite && z > 0 ? z : 1.0),
             );
       },
@@ -90,6 +94,8 @@ class WhiteboardElementsPainter extends CustomPainter {
   final Map<String, dynamic>? appState;
   final Offset panOffset;
   final double localZoomFactor;
+  static const Color gridColor = Color(0x12000000);
+  static const Color defaultStrokeColor = AppColors.textPrimary;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -102,9 +108,9 @@ class WhiteboardElementsPainter extends CustomPainter {
     if (decoded == null) return;
     if (decoded.isEmpty) return;
 
-    final elements = decoded
-        .whereType<Map<String, dynamic>>()
-        .toList(growable: false);
+    final elements = decoded.whereType<Map<String, dynamic>>().toList(
+      growable: false,
+    );
     if (elements.isEmpty) return;
 
     canvas.save();
@@ -117,19 +123,25 @@ class WhiteboardElementsPainter extends CustomPainter {
 
     // When receiver canvas size differs from sender, Excalidraw adjusts scroll
     // so both users are centered on the same scene coordinates.
-    final adjustedScrollX = (remoteZoom.isFinite && remoteZoom > 0 && senderWidth.isFinite)
+    final adjustedScrollX =
+        (remoteZoom.isFinite && remoteZoom > 0 && senderWidth.isFinite)
         ? scrollX + (size.width - senderWidth) / (2 * remoteZoom)
         : scrollX;
-    final adjustedScrollY = (remoteZoom.isFinite && remoteZoom > 0 && senderHeight.isFinite)
+    final adjustedScrollY =
+        (remoteZoom.isFinite && remoteZoom > 0 && senderHeight.isFinite)
         ? scrollY + (size.height - senderHeight) / (2 * remoteZoom)
         : scrollY;
 
-    final effectiveZoom =
-        (remoteZoom.isFinite && remoteZoom > 0) ? remoteZoom * localZoomFactor : localZoomFactor;
+    final effectiveZoom = (remoteZoom.isFinite && remoteZoom > 0)
+        ? remoteZoom * localZoomFactor
+        : localZoomFactor;
 
     // Excalidraw-like viewport transform:
     // screen = scene * zoom + (center + scroll) + localPan
-    if (effectiveZoom.isFinite && effectiveZoom > 0 && adjustedScrollX.isFinite && adjustedScrollY.isFinite) {
+    if (effectiveZoom.isFinite &&
+        effectiveZoom > 0 &&
+        adjustedScrollX.isFinite &&
+        adjustedScrollY.isFinite) {
       canvas.translate(
         size.width / 2 + adjustedScrollX + panOffset.dx,
         size.height / 2 + adjustedScrollY + panOffset.dy,
@@ -182,7 +194,7 @@ class WhiteboardElementsPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     const gridSize = 40.0;
-    
+
     // Draw vertical lines
     for (double x = 0; x < size.width; x += gridSize) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
@@ -260,7 +272,8 @@ class WhiteboardElementsPainter extends CustomPainter {
       }
     }
 
-    if (minX == null || minY == null || maxX == null || maxY == null) return null;
+    if (minX == null || minY == null || maxX == null || maxY == null)
+      return null;
     return (minX, minY, maxX, maxY);
   }
 
@@ -274,10 +287,7 @@ class WhiteboardElementsPainter extends CustomPainter {
       final w = _toDouble(e['width']);
       final h = _toDouble(e['height']);
       if (_allFinite([x, y, w, h]) && w > 0 && h > 0) {
-        return [
-          Offset(x, y),
-          Offset(x + w, y + h),
-        ];
+        return [Offset(x, y), Offset(x + w, y + h)];
       }
     }
 
@@ -494,12 +504,20 @@ class WhiteboardElementsPainter extends CustomPainter {
     // ex: "rgb(255, 0, 0)" or "rgba(255, 0, 0, 0.5)" (best-effort)
     final rgbMatch = RegExp(r'rgba?\\(([^)]+)\\)').firstMatch(s);
     if (rgbMatch != null) {
-      final parts = (rgbMatch.group(1) ?? '').split(',').map((p) => p.trim()).toList();
+      final parts = (rgbMatch.group(1) ?? '')
+          .split(',')
+          .map((p) => p.trim())
+          .toList();
       if (parts.length >= 3) {
         final r = int.tryParse(parts[0]) ?? 0;
         final g = int.tryParse(parts[1]) ?? 0;
         final b = int.tryParse(parts[2]) ?? 0;
-        return Color.fromARGB(255, r.clamp(0, 255), g.clamp(0, 255), b.clamp(0, 255));
+        return Color.fromARGB(
+          255,
+          r.clamp(0, 255),
+          g.clamp(0, 255),
+          b.clamp(0, 255),
+        );
       }
     }
 

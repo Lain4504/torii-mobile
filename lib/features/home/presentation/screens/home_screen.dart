@@ -41,10 +41,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isAuthLoading = authAsync.isLoading;
     final user = authValue?.user;
     final loadPersonalized = isLoggedIn && user?.isOnboarded == true;
-    final displayName = isAuthLoading ? 'Đang tải...' : (user?.displayName ?? 'Bạn');
-    final enrollmentsAsync = loadPersonalized ? ref.watch(myEnrollmentsProvider) : null;
+    final displayName = isAuthLoading
+        ? 'Đang tải...'
+        : (user?.displayName ?? 'Bạn');
+    final enrollmentsAsync = loadPersonalized
+        ? ref.watch(myEnrollmentsProvider)
+        : null;
     final blogListAsync = ref.watch(blogListProvider);
-    final unreadCountAsync = loadPersonalized ? ref.watch(notificationsUnreadCountProvider) : null;
+    final unreadCountAsync = loadPersonalized
+        ? ref.watch(notificationsUnreadCountProvider)
+        : null;
     final streakAsync = loadPersonalized ? ref.watch(streakProvider) : null;
 
     if (loadPersonalized) {
@@ -68,7 +74,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           final activeDates = <String>{
             ...streak.recentActiveDates,
-            if ((streak.lastActiveDate ?? '').isNotEmpty) streak.lastActiveDate!,
+            if ((streak.lastActiveDate ?? '').isNotEmpty)
+              streak.lastActiveDate!,
           };
 
           await showDialog<void>(
@@ -86,7 +93,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   isScrollControlled: true,
                   backgroundColor: theme.colorScheme.surface,
                   shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                   ),
                   builder: (_) => const StreakCalendarSheet(),
                 );
@@ -115,12 +124,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         child: CircleAvatar(
                           radius: 22,
                           backgroundColor: theme.colorScheme.outlineVariant,
-                          backgroundImage: (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty)
+                          backgroundImage:
+                              (user?.avatarUrl != null &&
+                                  user!.avatarUrl!.isNotEmpty)
                               ? NetworkImage(user.avatarUrl!)
                               : null,
-                          child: (user?.avatarUrl == null || user!.avatarUrl!.isEmpty)
+                          child:
+                              (user?.avatarUrl == null ||
+                                  user!.avatarUrl!.isEmpty)
                               ? Text(
-                                  (displayName.isNotEmpty ? displayName.characters.first : 'T').toUpperCase(),
+                                  (displayName.isNotEmpty
+                                          ? displayName.characters.first
+                                          : 'T')
+                                      .toUpperCase(),
                                   style: TextStyle(
                                     fontWeight: FontWeight.w800,
                                     color: theme.colorScheme.onSurface,
@@ -137,7 +153,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         children: [
                           Text(
                             displayName,
-                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -150,11 +168,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       context: context,
                                       useRootNavigator: true,
                                       isScrollControlled: true,
-                                      backgroundColor: theme.colorScheme.surface,
+                                      backgroundColor:
+                                          theme.colorScheme.surface,
                                       shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(20),
+                                        ),
                                       ),
-                                      builder: (_) => const StreakCalendarSheet(),
+                                      builder: (_) =>
+                                          const StreakCalendarSheet(),
                                     );
                                   },
                                   borderRadius: BorderRadius.circular(999),
@@ -177,7 +199,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w800,
-                                                    color: theme.colorScheme.onSurfaceVariant,
+                                                    color: theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
                                                   ),
                                                 ),
                                                 loading: () => Text(
@@ -185,10 +209,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                   style: TextStyle(
                                                     fontSize: 12,
                                                     fontWeight: FontWeight.w800,
-                                                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                                    color: theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant
+                                                        .withValues(alpha: 0.7),
                                                   ),
                                                 ),
-                                                error: (_, __) => const SizedBox.shrink(),
+                                                error: (_, __) =>
+                                                    const SizedBox.shrink(),
                                               ),
                                       ],
                                     ),
@@ -205,24 +233,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         icon: Stack(
                           clipBehavior: Clip.none,
                           children: [
-                            const Icon(Icons.notifications_none_rounded, size: 26),
+                            const Icon(
+                              Icons.notifications_none_rounded,
+                              size: 26,
+                            ),
                             if (unreadCountAsync != null)
                               unreadCountAsync.when(
                                 data: (count) {
-                                  if (count <= 0) return const SizedBox.shrink();
+                                  if (count <= 0)
+                                    return const SizedBox.shrink();
 
                                   final label = count > 99 ? '99+' : '$count';
                                   return Positioned(
                                     top: -4,
                                     right: -6,
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: theme.colorScheme.error,
-                                        borderRadius: BorderRadius.circular(999),
-                                        border: Border.all(color: theme.colorScheme.surface, width: 2),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        border: Border.all(
+                                          color: theme.colorScheme.surface,
+                                          width: 2,
+                                        ),
                                       ),
-                                      constraints: const BoxConstraints(minWidth: 18),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 18,
+                                      ),
                                       child: Text(
                                         label,
                                         textAlign: TextAlign.center,
@@ -262,7 +304,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         width: 32,
                         height: 32,
                         child: Center(
-                          child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
                         ),
                       ),
                   ],
@@ -284,40 +330,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             scrollDirection: Axis.horizontal,
                             itemCount: list.length,
-                            separatorBuilder: (context, _) => const SizedBox(width: 12),
-                            itemBuilder: (context, index) => _buildCourseCard(list[index]),
+                            separatorBuilder: (context, _) =>
+                                const SizedBox(width: 12),
+                            itemBuilder: (context, index) =>
+                                _buildCourseCard(list[index]),
                           );
                         },
-                        loading: () => const Center(child: CircularProgressIndicator()),
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
                         error: (error, _) => _emptyCourseHint(context),
                       )
                     : _loginRequiredHint(
                         context,
                         title: 'Đăng nhập để xem khóa học của bạn',
-                        subtitle: 'Bạn sẽ thấy tiến độ, bài học đang học và lộ trình của mình.',
+                        subtitle:
+                            'Bạn sẽ thấy tiến độ, bài học đang học và lộ trình của mình.',
                       ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              _buildSectionHeader(context, 'Cấp độ JLPT', () => context.push('/discovery')),
+              _buildSectionHeader(
+                context,
+                'Cấp độ JLPT',
+                () => context.push('/discovery'),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: _buildJlptLevelStrip(context),
               ),
               const SizedBox(height: 28),
-              _buildSectionHeader(
-                context,
-                'Blog',
-                () => context.push('/blog'),
-              ),
+              _buildSectionHeader(context, 'Blog', () => context.push('/blog')),
               blogListAsync.when(
                 data: (paginated) {
                   final items = paginated.data.take(8).toList();
                   if (items.isEmpty) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       child: Text(
                         'Chưa có bài viết',
-                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
                       ),
                     );
                   }
@@ -341,10 +398,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Center(child: CircularProgressIndicator()),
                 ),
                 error: (error, _) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Text(
                     'Không tải được blog',
-                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 13),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ),
@@ -361,7 +426,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Center(
       child: TextButton(
         onPressed: () => context.push('/discovery'),
-        child: Text('Khám phá khóa học', style: TextStyle(color: theme.colorScheme.primary)),
+        child: Text(
+          'Khám phá khóa học',
+          style: TextStyle(color: theme.colorScheme.primary),
+        ),
       ),
     );
   }
@@ -395,13 +463,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), height: 1.35),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.7,
+                ),
+                height: 1.35,
+              ),
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -413,9 +488,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: theme.colorScheme.onPrimary,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                child: const Text('Đăng nhập ngay', style: TextStyle(fontWeight: FontWeight.w800)),
+                child: const Text(
+                  'Đăng nhập ngay',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
               ),
             ),
           ],
@@ -424,7 +504,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, VoidCallback? onMore) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title,
+    VoidCallback? onMore,
+  ) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -447,7 +531,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 minimumSize: const Size(0, 32),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: Text('Xem thêm', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
+              child: Text(
+                'Xem thêm',
+                style: TextStyle(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
         ],
       ),
@@ -468,14 +558,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadius.xl),
+            ),
             child: Image.network(
               e.thumbnailUrl ?? 'https://picsum.photos/seed/jp1/400/200',
               height: 100,
@@ -493,21 +585,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(e.courseTitle ?? 'Khóa học', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(
+                  e.courseTitle ?? 'Khóa học',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: LinearProgressIndicator(
                         value: progress.clamp(0.0, 1.0),
-                        backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                        backgroundColor: theme.colorScheme.outlineVariant
+                            .withValues(alpha: 0.3),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          theme.colorScheme.primary,
+                        ),
                         minHeight: 6,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text('${(progress * 100).toInt()}%', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text(
+                      '${(progress * 100).toInt()}%',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -515,8 +624,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {},
-                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0), minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                    child: Text('Tiếp tục học', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 0,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'Tiếp tục học',
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -553,93 +676,96 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               height: 104,
               width: 108,
               child: InkWell(
-              onTap: () => context.go('/discovery?level=$level'),
-              borderRadius: BorderRadius.circular(20),
-              child: Ink(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: g,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: g[1].withValues(alpha: 0.35),
-                      blurRadius: 14,
-                      offset: const Offset(0, 8),
+                onTap: () => context.push('/discovery?level=$level'),
+                borderRadius: BorderRadius.circular(20),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    gradient: LinearGradient(
+                      colors: g,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -6,
-                      top: -4,
-                      child: Icon(
-                        Icons.school_rounded,
-                        size: 52,
-                        color: Colors.white.withValues(alpha: 0.14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: g[1].withValues(alpha: 0.35),
+                        blurRadius: 14,
+                        offset: const Offset(0, 8),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.22),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'JLPT',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.6,
-                                color: Colors.white.withValues(alpha: 0.95),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -6,
+                        top: -4,
+                        child: Icon(
+                          Icons.school_rounded,
+                          size: 52,
+                          color: Colors.white.withValues(alpha: 0.14),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
                               ),
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                level,
-                                style: const TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w900,
-                                  height: 1,
-                                  color: Colors.white,
-                                  letterSpacing: -0.5,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.22),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'JLPT',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.6,
+                                  color: Colors.white.withValues(alpha: 0.95),
                                 ),
                               ),
-                              Icon(
-                                Icons.arrow_forward_rounded,
-                                size: 20,
-                                color: Colors.white.withValues(alpha: 0.9),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            'Khóa học',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(alpha: 0.88),
                             ),
-                          ),
-                        ],
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  level,
+                                  style: const TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1,
+                                    color: Colors.white,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 20,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'Khóa học',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.88),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
             ),
           );
         },
@@ -654,7 +780,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final rawContent = blog.content.trim();
     final preview = excerpt.isNotEmpty
         ? excerpt
-        : (rawContent.length > 100 ? '${rawContent.substring(0, 100)}…' : rawContent);
+        : (rawContent.length > 100
+              ? '${rawContent.substring(0, 100)}…'
+              : rawContent);
 
     return Material(
       color: theme.colorScheme.surface,
@@ -668,18 +796,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             Expanded(
               flex: 3,
-              child: blog.coverImageUrl != null && blog.coverImageUrl!.isNotEmpty
+              child:
+                  blog.coverImageUrl != null && blog.coverImageUrl!.isNotEmpty
                   ? Image.network(
                       blog.coverImageUrl!,
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => ColoredBox(
-                        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                        child: Icon(Icons.article_rounded, color: theme.colorScheme.primary.withValues(alpha: 0.45), size: 40),
+                        color: theme.colorScheme.outlineVariant.withValues(
+                          alpha: 0.3,
+                        ),
+                        child: Icon(
+                          Icons.article_rounded,
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.45,
+                          ),
+                          size: 40,
+                        ),
                       ),
                     )
                   : ColoredBox(
                       color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                      child: Icon(Icons.article_rounded, color: theme.colorScheme.primary, size: 40),
+                      child: Icon(
+                        Icons.article_rounded,
+                        color: theme.colorScheme.primary,
+                        size: 40,
+                      ),
                     ),
             ),
             Expanded(
@@ -703,7 +844,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Text(
                         preview,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          color: theme.colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.7,
+                          ),
                           height: 1.35,
                         ),
                         maxLines: 2,
@@ -712,12 +855,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     Row(
                       children: [
-                        Icon(Icons.calendar_today_outlined, size: 12, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 12,
+                          color: theme.colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           blog.formattedDate,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
                             fontWeight: FontWeight.w600,
                           ),
                         ),

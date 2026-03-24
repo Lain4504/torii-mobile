@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/checkout_models.dart';
 import 'package:torii_app/data/models/class_catalog_model.dart';
@@ -157,27 +156,26 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ? ref.watch(classCatalogLiveDetailProvider(widget.classId))
         : ref.watch(classCatalogVodDetailProvider(widget.classId));
     final theme = Theme.of(context);
-    const bottomNavBarHeight = 64.0;
     final bottomInset = MediaQuery.of(context).padding.bottom;
-    final bottomSafePadding = bottomNavBarHeight + bottomInset + 12;
+    final bottomSafePadding = bottomInset + 12;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Thanh toán',
           style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: AppTypography.bold,
-            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+            color: theme.colorScheme.onSurface,
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new,
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -233,7 +231,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     Text(
                       'Lớp đăng ký',
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: AppTypography.bold,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 0.1,
                       ),
                     ),
@@ -241,7 +239,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     Text(
                       '${live.name.isNotEmpty ? live.name : live.code} • ${live.code}',
                       style: TextStyle(
-                        color: AppColors.grey700,
+                        color: theme.colorScheme.onSurfaceVariant,
                         fontSize: 13,
                         height: 1.4,
                       ),
@@ -254,10 +252,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.errorLight,
+                        color: theme.colorScheme.errorContainer.withValues(
+                          alpha: 0.4,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.error.withValues(alpha: 0.3),
+                          color: theme.colorScheme.error.withValues(alpha: 0.3),
                         ),
                       ),
                       child: const Text(
@@ -269,7 +269,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   Text(
                     'Mã giảm giá',
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: AppTypography.bold,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 0.1,
                     ),
                   ),
@@ -288,20 +288,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(
-                                color: AppColors.grey300,
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.outlineVariant,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(
-                                color: AppColors.grey300,
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.outlineVariant,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(
-                                color: AppColors.primary,
+                              borderSide: BorderSide(
+                                color: theme.colorScheme.primary,
                               ),
                             ),
                           ),
@@ -318,7 +318,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             horizontal: 16,
                             vertical: 14,
                           ),
-                          side: const BorderSide(color: AppColors.borderLight),
+                          side: BorderSide(
+                            color: theme.colorScheme.outlineVariant,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -344,10 +346,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 child: Container(
                   padding: EdgeInsets.fromLTRB(16, 12, 16, bottomSafePadding),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.colorScheme.surface,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.textPrimary.withValues(alpha: 0.05),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.05,
+                        ),
                         blurRadius: 12,
                         offset: const Offset(0, -6),
                       ),
@@ -360,8 +364,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           ? null
                           : () => _handleCheckout(detail),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -384,7 +388,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error)),
+          child: Text(
+            'Lỗi: $e',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
         ),
       ),
     );
@@ -420,9 +427,9 @@ class _CourseSummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
@@ -436,7 +443,7 @@ class _CourseSummaryCard extends StatelessWidget {
               errorBuilder: (_, error, stackTrace) => Container(
                 width: 84,
                 height: 84,
-                color: AppColors.grey200,
+                color: theme.colorScheme.surfaceContainerHighest,
                 child: const Icon(Icons.school),
               ),
             ),
@@ -455,14 +462,16 @@ class _CourseSummaryCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: isLive
-                            ? AppColors.error.withValues(alpha: 0.08)
-                            : AppColors.primary.withValues(alpha: 0.08),
+                            ? theme.colorScheme.error.withValues(alpha: 0.08)
+                            : theme.colorScheme.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
                         isLive ? 'LIVE' : 'VOD',
                         style: TextStyle(
-                          color: isLive ? AppColors.error : AppColors.primary,
+                          color: isLive
+                              ? theme.colorScheme.error
+                              : theme.colorScheme.primary,
                           fontWeight: FontWeight.w800,
                           fontSize: 11,
                         ),
@@ -472,8 +481,8 @@ class _CourseSummaryCard extends StatelessWidget {
                     Text(
                       priceStr,
                       style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: AppTypography.bold,
-                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ],
@@ -482,7 +491,7 @@ class _CourseSummaryCard extends StatelessWidget {
                 Text(
                   displayTitle,
                   style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: AppTypography.extraBold,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: 0.1,
                   ),
                   maxLines: 2,
@@ -493,7 +502,7 @@ class _CourseSummaryCard extends StatelessWidget {
                   Text(
                     liveContextLine!,
                     style: TextStyle(
-                      color: AppColors.grey700,
+                      color: theme.colorScheme.onSurfaceVariant,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -505,7 +514,10 @@ class _CourseSummaryCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     marketingPackageLine!,
-                    style: TextStyle(color: AppColors.grey700, fontSize: 11),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -515,7 +527,7 @@ class _CourseSummaryCard extends StatelessWidget {
                   Text(
                     'Lớp: ${selectedClass!.code.isNotEmpty ? selectedClass!.code : selectedClass!.name}',
                     style: TextStyle(
-                      color: AppColors.grey700,
+                      color: theme.colorScheme.onSurfaceVariant,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -526,8 +538,8 @@ class _CourseSummaryCard extends StatelessWidget {
                       selectedClass!.liveCapacitySubtitle!,
                       style: TextStyle(
                         color: selectedClass!.isLiveCapacityFull
-                            ? AppColors.error
-                            : AppColors.grey700,
+                            ? theme.colorScheme.error
+                            : theme.colorScheme.onSurfaceVariant,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -569,9 +581,9 @@ class _OrderTotalsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -579,20 +591,21 @@ class _OrderTotalsCard extends StatelessWidget {
           Text(
             'Chi tiết đơn hàng',
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: AppTypography.bold,
+              fontWeight: FontWeight.w700,
               letterSpacing: 0.1,
             ),
           ),
           const SizedBox(height: 10),
-          _row('Tạm tính', fmt(sub)),
+          _row(context, 'Tạm tính', fmt(sub)),
           if (discount > 0)
             _row(
+              context,
               'Giảm giá',
               '-${fmt(discount)}',
-              valueColor: AppColors.success,
+              valueColor: Colors.green,
             ),
           const Divider(height: 24),
-          _row('Tổng cộng', fmt(total), isTotal: true),
+          _row(context, 'Tổng cộng', fmt(total), isTotal: true),
           if (previewing) ...[
             const SizedBox(height: 10),
             Row(
@@ -605,7 +618,10 @@ class _OrderTotalsCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   'Đang tính lại...',
-                  style: TextStyle(color: AppColors.grey700, fontSize: 12),
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -615,7 +631,7 @@ class _OrderTotalsCard extends StatelessWidget {
             Text(
               errorText!,
               style: TextStyle(
-                color: AppColors.error,
+                color: theme.colorScheme.error,
                 fontSize: 12,
                 height: 1.4,
               ),
@@ -627,11 +643,13 @@ class _OrderTotalsCard extends StatelessWidget {
   }
 
   Widget _row(
+    BuildContext context,
     String label,
     String value, {
     bool isTotal = false,
     Color? valueColor,
   }) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -640,7 +658,7 @@ class _OrderTotalsCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: AppColors.grey700,
+              color: theme.colorScheme.onSurfaceVariant,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
             ),
           ),
@@ -649,7 +667,7 @@ class _OrderTotalsCard extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: isTotal ? 18 : 14,
-              color: valueColor ?? AppColors.textPrimary,
+              color: valueColor ?? theme.colorScheme.onSurface,
             ),
           ),
         ],

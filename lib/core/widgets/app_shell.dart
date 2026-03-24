@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../constants/app_design_system.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/auth/models/auth_state.dart';
 
@@ -19,28 +18,42 @@ bool _isSettingsHubSubRoute(String path) {
       path.startsWith('/order-detail/');
 }
 
+bool _isCourseFullscreenRoute(String path) {
+  return path.startsWith('/course-live/') ||
+      path.startsWith('/checkout/') ||
+      path.startsWith('/payment') ||
+      path.startsWith('/payment-result/');
+}
+
 /// App Shell - Main Layout Wrapper
-/// 
+///
 /// Contains the curved bottom navigation with centered FAB (Home).
 /// Adapts navigation items based on authentication state.
 class AppShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
   final GoRouterState state;
 
-  const AppShell({super.key, required this.navigationShell, required this.state});
+  const AppShell({
+    super.key,
+    required this.navigationShell,
+    required this.state,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncAuth = ref.watch(authStateProvider);
-    final isAuthenticated = asyncAuth.asData?.value.status == AuthStatus.authenticated;
-    
+    final isAuthenticated =
+        asyncAuth.asData?.value.status == AuthStatus.authenticated;
+
     // Hide bottom bar only when user is inside an active meeting room (not on shell routes)
     final currentPath = state.uri.path;
-    final isOnMeetRoute = currentPath.startsWith('/meet') || currentPath.startsWith('/meeting');
+    final isOnMeetRoute =
+        currentPath.startsWith('/meet') || currentPath.startsWith('/meeting');
     // Lesson: full-screen learning experience, hide bottom nav
     final isOnLessonRoute = currentPath.startsWith('/lesson');
 
     final hideBottomNavForSettingsFlow = _isSettingsHubSubRoute(currentPath);
+    final hideBottomNavForCourseFlow = _isCourseFullscreenRoute(currentPath);
 
     // Sensei: keep bottom bar only on dashboard (/sensei). Hide on sub-pages.
     final isSenseiRoute = currentPath.startsWith('/sensei');
@@ -48,7 +61,8 @@ class AppShell extends ConsumerWidget {
     final hideBottomNavForSensei = isSenseiRoute && !isSenseiDashboard;
 
     // Flashcard/Test/Match: full-screen để nút bên dưới không bị bottom bar che.
-    final isOnStudySetsReview = RegExp(r'/study-sets/[^/]+/review$').hasMatch(currentPath) ||
+    final isOnStudySetsReview =
+        RegExp(r'/study-sets/[^/]+/review$').hasMatch(currentPath) ||
         RegExp(r'/study-sets/[^/]+/test$').hasMatch(currentPath) ||
         RegExp(r'/study-sets/[^/]+/match$').hasMatch(currentPath);
 
@@ -57,10 +71,12 @@ class AppShell extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     // Hide bottom bar for Meet, Sensei sub-pages, settings hub subtree, lesson, flashcard/test/match
-    final shouldHideBottomNav = isOnMeetRoute ||
+    final shouldHideBottomNav =
+        isOnMeetRoute ||
         hideBottomNavForSensei ||
         isOnLessonRoute ||
         hideBottomNavForSettingsFlow ||
+        hideBottomNavForCourseFlow ||
         isOnStudySetsReview;
 
     return Scaffold(
@@ -68,14 +84,14 @@ class AppShell extends ConsumerWidget {
       extendBody: true,
       body: navigationShell,
       bottomNavigationBar: shouldHideBottomNav
-        ? null 
-        : _BottomNavBar(
-            navigationShell: navigationShell,
-            activeIndex: activeIndex,
-            onTap: (path) => context.go(path),
-            isDark: isDark,
-            isAuthenticated: isAuthenticated,
-          ),
+          ? null
+          : _BottomNavBar(
+              navigationShell: navigationShell,
+              activeIndex: activeIndex,
+              onTap: (path) => context.go(path),
+              isDark: isDark,
+              isAuthenticated: isAuthenticated,
+            ),
     );
   }
 }
@@ -229,11 +245,7 @@ class _NavBarItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              color: color,
-              size: 24,
-            ),
+            Icon(isSelected ? activeIcon : icon, color: color, size: 24),
             const SizedBox(height: 4),
             Text(
               label,

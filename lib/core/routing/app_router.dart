@@ -20,6 +20,7 @@ import '../../features/course/presentation/screens/payment_result_screen.dart';
 import '../../features/course/presentation/screens/my_courses_screen.dart';
 import '../../features/course/presentation/screens/curriculum_screen.dart';
 import '../../features/course/presentation/screens/enrolled_live_course_screen.dart';
+import '../../features/course/presentation/screens/lecturer_detail_screen.dart';
 import '../../features/course/presentation/screens/lesson_screen.dart';
 import '../../features/blog/presentation/screens/blog_list_screen.dart';
 import '../../features/blog/presentation/screens/blog_detail_screen.dart';
@@ -266,6 +267,26 @@ final routerProvider = Provider<GoRouter>((ref) {
                   return LessonScreen(
                     lesson: (extra is Map<String, dynamic>) ? extra : null,
                   );
+                },
+              ),
+              GoRoute(
+                path: '/lecturer-detail',
+                builder: (context, state) {
+                  final extra = state.extra;
+                  final lecturer = (extra is Map<String, dynamic>)
+                      ? extra
+                      : const <String, dynamic>{};
+                  return LecturerDetailScreen(lecturer: lecturer);
+                },
+              ),
+              GoRoute(
+                path: '/course-live/:id/lecturer',
+                builder: (context, state) {
+                  final extra = state.extra;
+                  final lecturer = (extra is Map<String, dynamic>)
+                      ? extra
+                      : const <String, dynamic>{};
+                  return LecturerDetailScreen(lecturer: lecturer);
                 },
               ),
             ],
