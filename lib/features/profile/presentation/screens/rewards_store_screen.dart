@@ -13,10 +13,10 @@ class RewardsStoreScreen extends ConsumerWidget {
     final repo = ref.watch(gamificationRepositoryProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -26,29 +26,30 @@ class RewardsStoreScreen extends ConsumerWidget {
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
         data: (profile) {
           return FutureBuilder<List<Map<String, dynamic>>>(
             future: repo.getAvailableRewards(),
             builder: (context, snapshot) {
+              final theme = Theme.of(context);
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
-                return Center(child: Text('Lỗi: ${snapshot.error}', style: const TextStyle(color: AppColors.error)));
+                return Center(child: Text('Lỗi: ${snapshot.error}', style: TextStyle(color: theme.colorScheme.error)));
               }
               final rewards = snapshot.data ?? [];
               if (rewards.isEmpty) {
-                return const Center(
+                return Center(
                   child: Text(
                     'Chưa có quà tặng nào khả dụng.\nHãy tiếp tục học để tích điểm nhé!',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textTertiary),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 );
               }
@@ -60,17 +61,18 @@ class RewardsStoreScreen extends ConsumerWidget {
                 itemCount: rewards.length + 1,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, index) {
+                  final theme = Theme.of(context);
                   if (index == 0) {
                     return Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: theme.colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.grey300),
+                        border: Border.all(color: theme.dividerColor),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.stars_rounded, color: AppColors.primary),
+                          Icon(Icons.stars_rounded, color: theme.colorScheme.primary),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
@@ -94,12 +96,12 @@ class RewardsStoreScreen extends ConsumerWidget {
                   return Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.grey300),
+                      border: Border.all(color: theme.dividerColor),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.textPrimary.withOpacity(0.03),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -111,10 +113,10 @@ class RewardsStoreScreen extends ConsumerWidget {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.08),
+                            color: theme.colorScheme.primary.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Icon(Icons.card_giftcard_rounded, color: AppColors.primary),
+                          child: Icon(Icons.card_giftcard_rounded, color: theme.colorScheme.primary),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -134,7 +136,7 @@ class RewardsStoreScreen extends ConsumerWidget {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: AppColors.textTertiary,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                     height: 1.35,
                                   ),
                                 ),
@@ -148,10 +150,10 @@ class RewardsStoreScreen extends ConsumerWidget {
                           children: [
                             Text(
                               '${cost.toInt()} điểm',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12.5,
-                                color: AppColors.primary,
+                                color: theme.colorScheme.primary,
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -177,8 +179,8 @@ class RewardsStoreScreen extends ConsumerWidget {
                                       }
                                     : null,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: AppColors.textOnPrimary,
+                                  backgroundColor: theme.colorScheme.primary,
+                                  foregroundColor: theme.colorScheme.onPrimary,
                                   elevation: 0,
                                   padding: const EdgeInsets.symmetric(horizontal: 12),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

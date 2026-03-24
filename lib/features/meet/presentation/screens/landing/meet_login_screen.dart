@@ -83,9 +83,9 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
           widget.onLoginSuccess(token);
         } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Không nhận được token từ server'),
-              backgroundColor: AppColors.error,
+            SnackBar(
+              content: const Text('Thiếu thông tin phòng từ server'),
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -94,8 +94,8 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Lỗi: ${e.toString()}'),
-            backgroundColor: AppColors.error,
+            content: Text('Lỗi: ${e.toString()}'), // Assuming 'res.msg' is not available here, using original error message
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -118,10 +118,10 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => _goHome(context),
@@ -146,11 +146,16 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary,
+                        theme.colorScheme.primary.withValues(alpha: 0.8),
+                      ],
+                    ),
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.22),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.22),
                         blurRadius: 14,
                         offset: const Offset(0, 8),
                       ),
@@ -162,12 +167,12 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: AppColors.textOnPrimary.withOpacity(0.2),
+                          color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.video_chat_rounded,
-                          color: AppColors.textOnPrimary,
+                          color: theme.colorScheme.onPrimary,
                           size: 20,
                         ),
                       ),
@@ -176,7 +181,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                         child: Text(
                           'Vào phòng họp Torii Meet',
                           style: theme.textTheme.titleSmall?.copyWith(
-                                color: AppColors.textOnPrimary,
+                                color: theme.colorScheme.onPrimary,
                                 fontWeight: FontWeight.w800,
                               ),
                         ),
@@ -191,10 +196,10 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.08),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Icon(Icons.video_chat_rounded, color: AppColors.primary, size: 22),
+                      child: Icon(Icons.video_chat_rounded, color: theme.colorScheme.primary, size: 22),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -208,7 +213,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                           const SizedBox(height: 2),
                           Text(
                             'Nhập thông tin để nhận mã tham gia.',
-                            style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -221,12 +226,12 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                 Container(
                   constraints: const BoxConstraints(maxWidth: 460),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.textPrimary.withOpacity(0.04),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
                         blurRadius: 12,
                         offset: const Offset(0, 6),
                       ),
@@ -293,19 +298,19 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                               onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: theme.colorScheme.primary,
-                                foregroundColor: AppColors.textOnPrimary,
+                                foregroundColor: theme.colorScheme.onPrimary,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
                               child: _isLoading
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 24,
                                       height: 24,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 3,
-                                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.textOnPrimary),
+                                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
                                       ),
                                     )
                                   : const Text(
@@ -324,7 +329,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                             child: Text(
                               'Đặt lại chi tiết',
                               style: TextStyle(
-                                color: AppColors.textTertiary,
+                                color: theme.colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -352,7 +357,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.grey300),
+                side: BorderSide(color: theme.colorScheme.outlineVariant),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
             ),
@@ -384,12 +389,13 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     required ValueChanged<String?> onChanged,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.textPrimaryDark.withOpacity(0.05) : AppColors.textPrimary.withOpacity(0.02),
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08)),
+        border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.08)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -416,22 +422,23 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     String? Function(String?)? validator,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       validator: validator,
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+        prefixIcon: Icon(icon, size: 20, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
         hintText: hint,
         filled: true,
-        fillColor: isDark ? AppColors.textPrimaryDark.withOpacity(0.05) : AppColors.textPrimary.withOpacity(0.02),
+        fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08)),
+          borderSide: BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.08)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary).withOpacity(0.08)),
+          borderSide: BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.08)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

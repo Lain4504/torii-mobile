@@ -16,21 +16,21 @@ class MyCoursesScreen extends ConsumerWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
           title: Text(
             'Khóa học của tôi',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: AppColors.textPrimary,
+              color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w800,
             ),
           ),
-          backgroundColor: AppColors.surface,
+          backgroundColor: theme.colorScheme.surface,
           elevation: 0,
           bottom: TabBar(
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textTertiary,
-            indicatorColor: AppColors.primary,
+            labelColor: theme.colorScheme.primary,
+            unselectedLabelColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+            indicatorColor: theme.colorScheme.primary,
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold),
             tabs: const [
@@ -52,7 +52,7 @@ class MyCoursesScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
+          error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
         ),
       ),
     );
@@ -71,10 +71,10 @@ class MyCoursesScreen extends ConsumerWidget {
         return Container(
           margin: const EdgeInsets.only(bottom: 24),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: AppColors.textPrimary.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5)),
+              BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 5)),
             ],
           ),
           child: Column(
@@ -87,7 +87,7 @@ class MyCoursesScreen extends ConsumerWidget {
                   height: 140,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(height: 140, color: AppColors.grey200, child: const Icon(Icons.school, size: 48)),
+                  errorBuilder: (_, __, ___) => Container(height: 140, color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3), child: const Icon(Icons.school, size: 48)),
                 ),
               ),
               Padding(
@@ -102,8 +102,8 @@ class MyCoursesScreen extends ConsumerWidget {
                         Expanded(
                           child: LinearProgressIndicator(
                             value: isCompleted ? 1.0 : progress.clamp(0.0, 1.0),
-                            backgroundColor: AppColors.grey200,
-                            valueColor: AlwaysStoppedAnimation<Color>(isCompleted ? AppColors.success : AppColors.primary),
+                            backgroundColor: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                            valueColor: AlwaysStoppedAnimation<Color>(isCompleted ? AppColors.success : Theme.of(context).colorScheme.primary),
                             minHeight: 8,
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -111,7 +111,7 @@ class MyCoursesScreen extends ConsumerWidget {
                         const SizedBox(width: 12),
                         Text(
                           '${(progress * 100).toInt()}%',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isCompleted ? AppColors.success : AppColors.textPrimary),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isCompleted ? AppColors.success : Theme.of(context).colorScheme.onSurface),
                         ),
                       ],
                     ),
@@ -134,8 +134,8 @@ class MyCoursesScreen extends ConsumerWidget {
                                 }
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isCompleted ? AppColors.grey200 : AppColors.primary,
-                          foregroundColor: isCompleted ? AppColors.textPrimary : AppColors.textOnPrimary,
+                          backgroundColor: isCompleted ? Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3) : Theme.of(context).colorScheme.primary,
+                          foregroundColor: isCompleted ? Theme.of(context).colorScheme.onSurfaceVariant : Theme.of(context).colorScheme.onPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),

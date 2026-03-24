@@ -74,12 +74,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: theme.colorScheme.onSurface, size: 20),
           onPressed: () => context.go('/'),
         ),
       ),
@@ -97,7 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       'Torii Nihongo',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
+                        color: theme.colorScheme.primary,
                         letterSpacing: 0.4,
                       ),
                     ),
@@ -114,7 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(
                     'Tiếp tục hành trình học tiếng Nhật của bạn',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.grey700,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -122,7 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     'Email',
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -140,17 +140,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide:
-                            const BorderSide(color: AppColors.grey300),
+                            BorderSide(color: theme.colorScheme.outlineVariant),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide:
-                            const BorderSide(color: AppColors.grey300),
+                            BorderSide(color: theme.colorScheme.outlineVariant),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide:
-                            const BorderSide(color: AppColors.primary),
+                            BorderSide(color: theme.colorScheme.primary),
                       ),
                     ),
                   ),
@@ -159,7 +159,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     'Mật khẩu',
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -174,7 +174,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
-                          color: AppColors.textTertiary,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                         onPressed: () {
                           setState(() {
@@ -190,17 +190,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide:
-                            const BorderSide(color: AppColors.grey300),
+                            BorderSide(color: theme.colorScheme.outlineVariant),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide:
-                            const BorderSide(color: AppColors.grey300),
+                            BorderSide(color: theme.colorScheme.outlineVariant),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide:
-                            const BorderSide(color: AppColors.primary),
+                            BorderSide(color: theme.colorScheme.primary),
                       ),
                     ),
                   ),
@@ -220,7 +220,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   _rememberMe = val ?? false;
                                 });
                               },
-                              activeColor: AppColors.primary,
+                              activeColor: theme.colorScheme.primary,
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               shape: RoundedRectangleBorder(
@@ -244,10 +244,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           minimumSize: const Size(0, 32),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
+                        child: Text(
                           'Quên mật khẩu?',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -300,8 +300,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -319,20 +319,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      const Expanded(
-                        child: Divider(color: AppColors.grey300),
+                      Expanded(
+                        child: Divider(color: theme.colorScheme.outlineVariant),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12.0),
                         child: Text(
                           'Hoặc',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.textTertiary,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ),
-                      const Expanded(
-                        child: Divider(color: AppColors.grey300),
+                      Expanded(
+                        child: Divider(color: theme.colorScheme.outlineVariant),
                       ),
                     ],
                   ),
@@ -358,7 +358,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(authState!.error!),
-                            backgroundColor: AppColors.error,
+                            backgroundColor: theme.colorScheme.error,
                           ),
                         );
                       }
@@ -387,7 +387,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(authState!.error!),
-                            backgroundColor: AppColors.error,
+                            backgroundColor: theme.colorScheme.error,
                           ),
                         );
                       }
@@ -405,10 +405,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onTap: () {
                           context.go('/register');
                         },
-                        child: const Text(
+                        child: Text(
                           'Đăng ký ngay',
                           style: TextStyle(
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -433,8 +433,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     Color? iconColor,
   }) {
     assert(icon != null || leading != null);
+    final theme = Theme.of(context);
     final Widget prefix = leading ??
-        Icon(icon!, color: iconColor ?? AppColors.textPrimary, size: 22);
+        Icon(icon!, color: iconColor ?? theme.colorScheme.onSurface, size: 22);
     return SizedBox(
       width: double.infinity,
       height: 46,
@@ -443,18 +444,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         icon: prefix,
         label: Text(
           label,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
         ),
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.grey300),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+        side: BorderSide(color: theme.colorScheme.outlineVariant),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
+      ),
       ),
     );
   }

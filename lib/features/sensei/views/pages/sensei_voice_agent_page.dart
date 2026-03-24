@@ -56,11 +56,11 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
     final voiceNotifier = ref.read(voiceAgentProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('AI Voice Sensei'),
         backgroundColor: Colors.transparent,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
@@ -86,22 +86,22 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                           padding: const EdgeInsets.all(16),
                           margin: const EdgeInsets.only(bottom: 24),
                           decoration: BoxDecoration(
-                            color: AppColors.error.withOpacity(0.1),
+                            color: theme.colorScheme.error.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                            border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.3)),
                           ),
                           child: Text(
                             'Lỗi kết nối: ${voiceState.error}',
-                            style: const TextStyle(color: AppColors.error, fontSize: 13),
+                            style: TextStyle(color: theme.colorScheme.error, fontSize: 13),
                             textAlign: TextAlign.center,
                           ),
                         ),
                       const Spacer(),
-                      _buildCentralAvatar(voiceState),
+                      _buildCentralAvatar(voiceState, theme),
                       const SizedBox(height: 60),
                       _buildStatusText(voiceState, theme),
                       const Spacer(),
-                      _buildControlPanel(voiceState, voiceNotifier),
+                      _buildControlPanel(voiceState, voiceNotifier, theme),
                     ],
                   ),
                 ),
@@ -113,7 +113,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
     );
   }
 
-  Widget _buildCentralAvatar(VoiceAgentState state) {
+  Widget _buildCentralAvatar(VoiceAgentState state, ThemeData theme) {
     final isConnected = state.isConnected && !state.isReconnecting;
     final isSpeaking = state.isAgentSpeaking;
     
@@ -132,18 +132,18 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isConnected 
-                  ? AppColors.primary.withOpacity(0.05 + 0.15 * speakingFactor) 
-                  : AppColors.surface,
+                  ? theme.colorScheme.primary.withValues(alpha: 0.05 + 0.15 * speakingFactor) 
+                  : theme.colorScheme.surface,
               border: Border.all(
                 color: isConnected 
-                    ? Color.lerp(AppColors.primary.withOpacity(0.5), AppColors.primary, speakingFactor)!
-                    : AppColors.grey200,
+                    ? Color.lerp(theme.colorScheme.primary.withValues(alpha: 0.5), theme.colorScheme.primary, speakingFactor)!
+                    : theme.colorScheme.outlineVariant,
                 width: 4 + 2 * speakingFactor,
               ),
               boxShadow: [
                 if (isConnected && speakingFactor > 0.01)
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3 * speakingFactor),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3 * speakingFactor),
                     blurRadius: 30 * speakingFactor,
                     spreadRadius: 10 * speakingFactor,
                   )
@@ -155,7 +155,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                 Icon(
                   Icons.support_agent_rounded,
                   size: 90,
-                  color: isConnected ? AppColors.primary : AppColors.textTertiary,
+                  color: isConnected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                 ),
                 if (speakingFactor > 0.01)
                   Positioned(
@@ -163,7 +163,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                     right: 40,
                     child: Opacity(
                       opacity: speakingFactor.clamp(0.0, 1.0),
-                      child: const Icon(Icons.volume_up_rounded, color: AppColors.primary, size: 24),
+                      child: Icon(Icons.volume_up_rounded, color: theme.colorScheme.primary, size: 24),
                     ),
                   )
               ],
@@ -177,20 +177,20 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
   Widget _buildStatusText(VoiceAgentState state, ThemeData theme) {
     String status = 'Đang khởi tạo...';
     String subStatus = '';
-    Color color = AppColors.textPrimary;
+    Color color = theme.colorScheme.onSurface;
 
     if (state.error != null) {
       status = 'Lỗi kết nối';
-      color = AppColors.error;
+      color = theme.colorScheme.error;
     } else if (state.isReconnecting) {
       status = 'Đang kết nối lại...';
-      color = AppColors.primary;
+      color = theme.colorScheme.primary;
     } else if (!state.isConnected) {
       status = 'Đang kết nối...';
-      color = AppColors.textSecondary;
+      color = theme.colorScheme.onSurfaceVariant;
     } else {
       status = 'Đã kết nối';
-      color = AppColors.success;
+      color = theme.colorScheme.primary; // Or green if available
       subStatus = 'Hãy thử giao tiếp bằng tiếng Nhật nhé';
     }
 
@@ -216,7 +216,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
             const SizedBox(height: 8),
             Text(
               subStatus,
-              style: const TextStyle(color: AppColors.textTertiary, fontSize: 15),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 15),
               textAlign: TextAlign.center,
             ),
           ]
@@ -225,7 +225,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
     );
   }
 
-  Widget _buildVisualizer(VoiceAgentState state) {
+  Widget _buildVisualizer(VoiceAgentState state, ThemeData theme) {
     if (!state.isConnected) return const SizedBox(height: 40);
 
     return TweenAnimationBuilder<double>(
@@ -257,8 +257,8 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                     duration: const Duration(milliseconds: 300),
                     decoration: BoxDecoration(
                       color: state.isAgentSpeaking 
-                          ? AppColors.primary 
-                          : (state.isUserSpeaking ? AppColors.success : AppColors.grey300),
+                          ? theme.colorScheme.primary 
+                          : (state.isUserSpeaking ? Colors.green : theme.colorScheme.outlineVariant),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -271,22 +271,23 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
     );
   }
 
-  Widget _buildControlPanel(VoiceAgentState state, VoiceAgentNotifier notifier) {
+  Widget _buildControlPanel(VoiceAgentState state, VoiceAgentNotifier notifier, ThemeData theme) {
     if (!state.isConnected) {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
           onPressed: state.isConnecting ? null : () => notifier.connect('japanese_tutor'),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
           child: state.isConnecting
-              ? const SizedBox(
+              ? SizedBox(
                   width: 24,
                   height: 24,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                  child: CircularProgressIndicator(color: theme.colorScheme.onPrimary, strokeWidth: 2),
                 )
               : const Text(
                   'Bắt đầu cuộc gọi',
@@ -309,12 +310,12 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: state.isMicOn ? AppColors.surface : AppColors.mutedForeground.withOpacity(0.1),
+                  color: state.isMicOn ? theme.colorScheme.surface : theme.colorScheme.onSurface.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
-                  border: state.isMicOn ? Border.all(color: AppColors.grey200) : null,
+                  border: state.isMicOn ? Border.all(color: theme.colorScheme.outlineVariant) : null,
                   boxShadow: state.isMicOn ? [
                     BoxShadow(
-                      color: AppColors.textPrimary.withOpacity(0.05),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     )
@@ -322,7 +323,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                 ),
                 child: Icon(
                   state.isMicOn ? Icons.mic_rounded : Icons.mic_off_rounded,
-                  color: state.isMicOn ? AppColors.textPrimary : AppColors.textTertiary,
+                  color: state.isMicOn ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                   size: 32,
                 ),
               ),
@@ -330,7 +331,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
             const SizedBox(height: 8),
             Text(
               state.isMicOn ? 'Tắt Mic' : 'Mở Mic',
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
             )
           ],
         ),
@@ -347,27 +348,27 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.destructive,
+                  color: theme.colorScheme.error,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.destructive.withOpacity(0.3),
+                      color: theme.colorScheme.error.withValues(alpha: 0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     )
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.call_end_rounded,
-                  color: Colors.white,
+                  color: theme.colorScheme.onError,
                   size: 36,
                 ),
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Kết thúc',
-              style: TextStyle(fontSize: 13, color: AppColors.destructive, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 13, color: theme.colorScheme.error, fontWeight: FontWeight.w600),
             )
           ],
         ),

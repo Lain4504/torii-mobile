@@ -18,11 +18,11 @@ class WhiteboardToolbar extends ConsumerWidget {
       width: 48,
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -70,11 +70,11 @@ class WhiteboardToolbar extends ConsumerWidget {
             icon: Icons.cleaning_services,
             tool: 'eraser',
             isActive: activeTool == 'eraser',
-            color: AppColors.error,
+            color: Theme.of(context).colorScheme.error,
           ),
           const SizedBox(height: 8),
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: AppColors.error),
+            icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
             onPressed: () {
               // TODO: Clear whiteboard
             },
@@ -97,7 +97,7 @@ class WhiteboardToolbar extends ConsumerWidget {
       icon: Icon(icon),
       color: isActive 
         ? Theme.of(context).colorScheme.primary 
-        : (color ?? AppColors.grey700),
+        : (color ?? Theme.of(context).colorScheme.onSurfaceVariant),
       style: IconButton.styleFrom(
         backgroundColor: isActive 
           ? Theme.of(context).colorScheme.primary.withOpacity(0.1) 

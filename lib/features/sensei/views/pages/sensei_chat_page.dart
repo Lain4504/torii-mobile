@@ -43,7 +43,7 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Column(
           children: [
@@ -53,13 +53,13 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
             ),
             Text(
               'Hỏi đáp thông minh',
-              style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
             ),
           ],
         ),
         centerTitle: true,
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
         actions: const [],
       ),
@@ -98,6 +98,7 @@ class _ChatBubble extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final isAssistant = message.role == ChatMessageRole.assistant;
 
     return Padding(
@@ -116,31 +117,31 @@ class _ChatBubble extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isAssistant ? AppColors.textOnPrimary : AppColors.primary,
+                    color: isAssistant ? theme.colorScheme.surface : theme.colorScheme.primary,
                     borderRadius: BorderRadius.circular(16).copyWith(
                       topLeft: isAssistant ? const Radius.circular(4) : null,
                       bottomRight: !isAssistant ? const Radius.circular(4) : null,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.textPrimary.withOpacity(0.04),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: message.isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.primary),
                         )
                       : isAssistant
                           ? MarkdownBody(
                               data: message.content,
                               styleSheet: MarkdownStyleSheet(
                                 p: TextStyle(
-                                  color: AppColors.textPrimary,
+                                  color: theme.colorScheme.onSurface,
                                   fontSize: 14.5,
                                   height: 1.4,
                                 ),
@@ -148,8 +149,8 @@ class _ChatBubble extends ConsumerWidget {
                             )
                           : Text(
                               message.content,
-                              style: const TextStyle(
-                                color: AppColors.textOnPrimary,
+                              style: TextStyle(
+                                color: theme.colorScheme.onPrimary,
                                 fontSize: 14.5,
                                 height: 1.4,
                               ),
@@ -161,9 +162,9 @@ class _ChatBubble extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: message.suggestions!.map((s) => ActionChip(
-                      label: Text(s, style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
-                      backgroundColor: AppColors.primarySurface,
-                      side: const BorderSide(color: AppColors.primaryLight),
+                      label: Text(s, style: TextStyle(fontSize: 12, color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
+                      backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                      side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.2)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                       onPressed: () {
@@ -177,10 +178,10 @@ class _ChatBubble extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           if (!isAssistant)
-            const CircleAvatar(
+            CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.secondary,
-              child: Icon(Icons.person, size: 16, color: AppColors.textOnPrimary),
+              backgroundColor: theme.colorScheme.secondary,
+              child: Icon(Icons.person, size: 16, color: theme.colorScheme.onSecondary),
             ),
         ],
       ),
@@ -191,16 +192,17 @@ class _ChatBubble extends ConsumerWidget {
 class _SenseiAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: theme.colorScheme.primary.withOpacity(0.1),
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
       ),
-      child: const Center(
-        child: Icon(Icons.auto_awesome, size: 16, color: AppColors.primary),
+      child: Center(
+        child: Icon(Icons.auto_awesome, size: 16, color: theme.colorScheme.primary),
       ),
     );
   }
@@ -214,11 +216,12 @@ class _ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.borderLight)),
+        color: theme.colorScheme.surface,
+        border: Border(top: BorderSide(color: theme.colorScheme.outlineVariant)),
       ),
       child: SafeArea(
         child: Row(
@@ -232,18 +235,18 @@ class _ChatInput extends StatelessWidget {
                   hintText: 'Nhập câu hỏi tại đây...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.grey300),
+                    borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.grey300),
+                    borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: AppColors.primary),
+                    borderSide: BorderSide(color: theme.colorScheme.primary),
                   ),
                   filled: true,
-                  fillColor: AppColors.surface,
+                  fillColor: theme.colorScheme.surface,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
@@ -257,8 +260,8 @@ class _ChatInput extends StatelessWidget {
                 onPressed: onSend,
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.zero,
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.textOnPrimary,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   shape: const CircleBorder(),
                   elevation: 0,
                 ),
@@ -283,10 +286,10 @@ class _EmptyChatView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.05),
+            color: theme.colorScheme.primary.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.chat_bubble_outline, size: 28, color: AppColors.primary),
+          child: Icon(Icons.chat_bubble_outline, size: 28, color: theme.colorScheme.primary),
         ),
         const SizedBox(height: 14),
         Text(
@@ -298,7 +301,7 @@ class _EmptyChatView extends StatelessWidget {
           'Tôi là Sensei. Bạn có thắc mắc gì về Nhật ngữ không? Hãy hỏi tôi bất cứ điều gì nhé!',
           textAlign: TextAlign.center,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: AppColors.textTertiary,
+            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
             height: 1.35,
           ),
         ),
@@ -337,10 +340,11 @@ class _Chip extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     return ActionChip(
       label: Text(label, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
-      backgroundColor: AppColors.surface,
-      side: const BorderSide(color: AppColors.borderLight),
+      backgroundColor: theme.colorScheme.surface,
+      side: BorderSide(color: theme.colorScheme.outlineVariant),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       onPressed: () {
         ref.read(senseiChatProvider.notifier).sendMessage(label);

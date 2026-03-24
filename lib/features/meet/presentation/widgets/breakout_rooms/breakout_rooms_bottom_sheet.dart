@@ -184,6 +184,7 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final participants = ref.watch(participantProvider).allParticipants;
     final currentUserId = ref.watch(sessionProvider.select((s) => s.currentUser?.userId));
     final breakoutRoomIsActive = ref.watch(
@@ -211,7 +212,7 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Theme.of(context).dividerColor.withOpacity(0.35),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(999),
             ),
           ),
@@ -221,7 +222,7 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -272,12 +273,12 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.error.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         _errorMessage!,
-                        style: const TextStyle(color: AppColors.error),
+                        style: TextStyle(color: Theme.of(context).colorScheme.error),
                       ),
                     ),
                   if (_successMessage != null)
@@ -285,12 +286,12 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
                       padding: const EdgeInsets.all(12),
                       margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.1),
+                        color: Colors.green.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         _successMessage!,
-                        style: const TextStyle(color: AppColors.success),
+                        style: const TextStyle(color: Colors.green),
                       ),
                     ),
 
@@ -422,16 +423,16 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
               child: ElevatedButton.icon(
                 onPressed: _isLoading ? null : _createBreakoutRooms,
                 icon: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(color: theme.colorScheme.onPrimary, strokeWidth: 2),
                       )
                     : const Icon(Icons.add),
                 label: Text(_isLoading ? 'Creating...' : 'Start Breakout Rooms'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: AppColors.textOnPrimary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -446,6 +447,7 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
   }
 
   Widget _buildActiveRoomsView() {
+    final theme = Theme.of(context);
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: BoxDecoration(
@@ -459,7 +461,7 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Theme.of(context).dividerColor.withOpacity(0.35),
+              color: theme.dividerColor.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(999),
             ),
           ),
@@ -525,7 +527,7 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
                         icon: const Icon(Icons.stop),
                         label: const Text('End All Rooms'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.error,
+                          foregroundColor: Theme.of(context).colorScheme.error,
                         ),
                       ),
                     ),
@@ -541,11 +543,11 @@ class _BreakoutRoomsBottomSheetState extends ConsumerState<BreakoutRoomsBottomSh
                     trailing: room.started
                         ? const Chip(
                             label: Text('Started'),
-                            backgroundColor: AppColors.success,
+                            backgroundColor: Colors.green,
                           )
-                        : const Chip(
-                            label: Text('Not Started'),
-                            backgroundColor: AppColors.grey300,
+                        : Chip(
+                            label: const Text('Not Started'),
+                            backgroundColor: Theme.of(context).disabledColor.withOpacity(0.1),
                           ),
                   ),
                 );

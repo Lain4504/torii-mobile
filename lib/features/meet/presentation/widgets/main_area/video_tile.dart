@@ -43,18 +43,18 @@ class VideoTile extends ConsumerWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariantDark,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isSpeaking
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.8)
-              : AppColors.textPrimaryDark.withOpacity(0.2),
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.8)
+              : Theme.of(context).colorScheme.outlineVariant,
           width: isSpeaking ? 3 : 1,
         ),
         boxShadow: isSpeaking
             ? [
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                   blurRadius: 12,
                   spreadRadius: 2,
                 ),
@@ -126,7 +126,7 @@ class VideoTile extends ConsumerWidget {
 
   Widget _buildAvatarPlaceholder(BuildContext context) {
     return Container(
-      color: AppColors.surfaceDark,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Center(
         child: Container(
           width: isSmall ? 48 : 96,
@@ -178,12 +178,12 @@ class VideoTile extends ConsumerWidget {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.textPrimary.withOpacity(isSpeaking ? 0.52 : 0.4),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isSpeaking ? 0.52 : 0.4),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSpeaking
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.55)
-                    : AppColors.textOnPrimary.withOpacity(0.1),
+                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.55)
+                    : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
                 width: isSpeaking ? 1.2 : 0.5,
               ),
             ),
@@ -191,10 +191,10 @@ class VideoTile extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (isRaisedHand) ...[
-                  const Icon(
+                   Icon(
                     Icons.back_hand_rounded,
                     size: 14,
-                    color: AppColors.accent,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(width: 6),
                 ],
@@ -203,16 +203,16 @@ class VideoTile extends ConsumerWidget {
                   size: 14,
                   color: isMicOn
                       ? Theme.of(context).colorScheme.primary
-                      : AppColors.error,
+                      : Theme.of(context).colorScheme.error,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textOnPrimary,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       letterSpacing: 0.2,
                     ),
                     maxLines: 1,
@@ -241,7 +241,7 @@ class VideoTile extends ConsumerWidget {
                           size: 15,
                           color: isPinned
                               ? Theme.of(context).colorScheme.primary
-                              : AppColors.textOnPrimary.withOpacity(0.85),
+                              : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.85),
                         ),
                       ),
                     ),
@@ -288,19 +288,19 @@ class VideoTile extends ConsumerWidget {
 
     switch (quality) {
       case ConnectionQuality.excellent:
-        color = AppColors.accent;
+        color = Theme.of(context).colorScheme.primary;
         bars = 3;
         break;
       case ConnectionQuality.good:
-        color = AppColors.accent;
+        color = Theme.of(context).colorScheme.primary;
         bars = 2;
         break;
       case ConnectionQuality.poor:
-        color = AppColors.error;
+        color = Theme.of(context).colorScheme.error;
         bars = 1;
         break;
       default:
-        color = AppColors.textOnPrimary.withOpacity(0.24);
+        color = Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.24);
         bars = 0;
     }
 
@@ -314,7 +314,7 @@ class VideoTile extends ConsumerWidget {
           decoration: BoxDecoration(
             color: index < bars
                 ? color
-                : AppColors.textOnPrimary.withOpacity(0.1),
+                : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(1),
           ),
         );

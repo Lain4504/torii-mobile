@@ -23,18 +23,14 @@ class ControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isMobile = MediaQuery.of(context).size.width < 768;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final baseBg = isDark
-        ? AppColors.textPrimaryDark.withOpacity(0.10)
-        : AppColors.textPrimary.withOpacity(0.06);
-    final baseFg = isDark
-        ? AppColors.textPrimaryDark.withOpacity(0.9)
-        : AppColors.textPrimary.withOpacity(0.75);
+    final baseBg = theme.colorScheme.onSurface.withValues(alpha: 0.08);
+    final baseFg = theme.colorScheme.onSurface.withValues(alpha: 0.7);
     final activeBg = isDanger
-        ? AppColors.error
-        : (activeColor ?? Theme.of(context).colorScheme.primary);
+        ? theme.colorScheme.error
+        : (activeColor ?? theme.colorScheme.primary);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -53,16 +49,14 @@ class ControlButton extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(
                 color: isActive
-                    ? activeBg.withOpacity(0.35)
-                    : (isDark
-                        ? AppColors.borderDark.withOpacity(0.9)
-                        : AppColors.grey300.withOpacity(0.9)),
+                    ? activeBg.withValues(alpha: 0.35)
+                    : theme.colorScheme.outlineVariant,
                 width: 1.2,
               ),
               boxShadow: (isActive || isDanger)
                   ? [
                       BoxShadow(
-                        color: activeBg.withOpacity(0.24),
+                        color: activeBg.withValues(alpha: 0.24),
                         blurRadius: 10,
                         offset: const Offset(0, 3),
                       ),
@@ -114,10 +108,10 @@ class ControlButton extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             label,
-            style: TextStyle(
+            style: theme.textTheme.bodySmall?.copyWith(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: isDark ? AppColors.textPrimaryDark : AppColors.grey700,
+              color: theme.colorScheme.onSurfaceVariant,
               letterSpacing: 0.2,
             ),
           ),

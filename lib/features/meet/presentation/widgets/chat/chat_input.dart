@@ -158,7 +158,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.05),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
             offset: const Offset(0, -2),
             blurRadius: 10,
           ),
@@ -203,7 +203,7 @@ class _ChatInputState extends ConsumerState<ChatInput> {
               backgroundColor: _canSend 
                 ? Theme.of(context).colorScheme.primary 
                 : Theme.of(context).disabledColor.withOpacity(0.1),
-              foregroundColor: AppColors.textOnPrimary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
           ),
         ],

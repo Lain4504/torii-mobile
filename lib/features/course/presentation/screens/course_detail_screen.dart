@@ -20,7 +20,7 @@ class CourseDetailScreen extends ConsumerWidget {
     final bottomSafePadding = bottomNavBarHeight + bottomInset + 12;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: detailAsync.when(
         data: (detail) {
           if (detail == null) {
@@ -57,23 +57,23 @@ class CourseDetailScreen extends ConsumerWidget {
             SliverAppBar(
               expandedHeight: 250,
               pinned: true,
-              backgroundColor: AppColors.primary,
+              backgroundColor: theme.colorScheme.primary,
               flexibleSpace: FlexibleSpaceBar(
                 background: Image.network(
                   thumb,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: AppColors.grey200, child: const Icon(Icons.school, size: 64)),
+                  errorBuilder: (_, __, ___) => Container(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3), child: const Icon(Icons.school, size: 64)),
                 ),
               ),
               leading: Padding(
                 padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
                 child: CircleAvatar(
                   radius: 18,
-                  backgroundColor: AppColors.surface,
+                  backgroundColor: theme.colorScheme.surface,
                   child: IconButton(
                     padding: EdgeInsets.zero,
                     iconSize: 18,
-                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                    icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
@@ -172,8 +172,8 @@ class CourseDetailScreen extends ConsumerWidget {
           child: Container(
             padding: EdgeInsets.fromLTRB(24, 16, 24, bottomSafePadding),
             decoration: BoxDecoration(
-              color: AppColors.surface,
-              boxShadow: [BoxShadow(color: AppColors.textPrimary.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+              color: theme.colorScheme.surface,
+              boxShadow: [BoxShadow(color: theme.colorScheme.onSurface.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -185,8 +185,8 @@ class CourseDetailScreen extends ConsumerWidget {
                     child: ElevatedButton(
                       onPressed: () => context.push('/checkout/$courseId'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -210,7 +210,7 @@ class CourseDetailScreen extends ConsumerWidget {
                     'Bạn đã mua khóa học này? Đăng nhập để học ngay trong mục "Khóa học của tôi".',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.grey700,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       height: 1.4,
                     ),
                   ),
@@ -226,7 +226,7 @@ class CourseDetailScreen extends ConsumerWidget {
   Widget _buildInfoItem(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.grey700),
+        Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
         const SizedBox(width: 4),
         Text(
           text,
@@ -247,9 +247,9 @@ class CourseDetailScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),

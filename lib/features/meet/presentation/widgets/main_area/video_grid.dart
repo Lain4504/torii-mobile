@@ -17,6 +17,7 @@ class VideoGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     // Source of truth for who should appear on grid is NATS participant list.
     // LiveKit participant is attached when available to render video/audio state.
     final participantInfos = ref.watch(allParticipantsProvider);
@@ -114,6 +115,7 @@ class VideoGrid extends ConsumerWidget {
     List<_TileData> participants,
     _ScreenShareFocus? focusedScreenShare,
   ) {
+    final theme = Theme.of(context);
     final screenSharing = ref.watch(
       sessionProvider.select((s) => s.screenSharing),
     );
@@ -124,7 +126,7 @@ class VideoGrid extends ConsumerWidget {
         Expanded(
           flex: 3,
           child: Container(
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
             child: focusedScreenShare?.track != null
                 ? VideoTrackRenderer(
                     focusedScreenShare!.track!,
@@ -133,7 +135,7 @@ class VideoGrid extends ConsumerWidget {
                 : Center(
                     child: Text(
                       'Screen Share by ${focusedScreenShare?.sharedBy ?? screenSharing.sharedBy}',
-                      style: const TextStyle(color: AppColors.textOnPrimary),
+                      style: TextStyle(color: theme.colorScheme.onPrimary),
                     ),
                   ),
           ),
@@ -143,11 +145,11 @@ class VideoGrid extends ConsumerWidget {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            color: AppColors.surfaceDark,
+            color: theme.colorScheme.surfaceContainer,
             child: Text(
               'Đang chia sẻ màn hình: ${focusedScreenShare.sharedBy}',
-              style: const TextStyle(
-                color: AppColors.textOnPrimary,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
@@ -183,11 +185,12 @@ class VideoGrid extends ConsumerWidget {
   }
 
   Widget _buildGridLayout(BuildContext context, List<_TileData> participants) {
+    final theme = Theme.of(context);
     if (participants.isEmpty) {
       return Center(
         child: Text(
           'Waiting for participants...',
-          style: TextStyle(color: AppColors.textOnPrimary.withOpacity(0.7)),
+          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
         ),
       );
     }
@@ -235,6 +238,7 @@ class VideoGrid extends ConsumerWidget {
     _TileData pinned,
     List<_TileData> others,
   ) {
+    final theme = Theme.of(context);
     final showPin = others.isNotEmpty;
     return Column(
       children: [

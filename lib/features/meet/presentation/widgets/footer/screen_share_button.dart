@@ -20,7 +20,7 @@ class ScreenShareButton extends ConsumerWidget {
       icon: isScreenSharing ? Icons.stop_screen_share : Icons.screen_share,
       label: isScreenSharing ? 'Stop Share' : 'Share',
       isActive: isScreenSharing,
-      activeColor: AppColors.success,
+      activeColor: Colors.green,
       onTap: () {
         ref.read(bottomIconsProvider.notifier).toggleScreenShare();
         // TODO: Integrate with LiveKit to actually start/stop screen share

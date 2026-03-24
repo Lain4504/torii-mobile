@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 
@@ -160,7 +159,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
-      backgroundColor: theme.brightness == Brightness.dark ? AppColors.surfaceDark : AppColors.surface,
+      backgroundColor: theme.colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -188,7 +187,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.grey300,
+                    color: theme.colorScheme.outlineVariant,
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
@@ -204,10 +203,10 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
               ),
               if (timeLine.isNotEmpty) ...[
                 const SizedBox(height: 6),
-                Text(
-                  timeLine,
-                  style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
-                ),
+                  Text(
+                    timeLine,
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                  ),
               ],
               if ((session.courseTitle ?? '').trim().isNotEmpty &&
                   (session.title ?? '').trim().isNotEmpty &&
@@ -215,17 +214,17 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Khóa: ${session.courseTitle}',
-                  style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
+                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
               if (!joinAllowed) ...[
                 const SizedBox(height: 10),
-                Text(
-                  'Chưa tới giờ mở phòng. Bạn sẽ vào được trước buổi học vài chục phút.',
-                  style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary, height: 1.35),
-                ),
+                  Text(
+                    'Chưa tới giờ mở phòng. Bạn sẽ vào được trước buổi học vài chục phút.',
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), height: 1.35),
+                  ),
               ],
               const SizedBox(height: 16),
               Row(
@@ -236,8 +235,8 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.of(ctx, rootNavigator: true).pop(),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.textSecondary,
-                          side: const BorderSide(color: AppColors.grey300),
+                          foregroundColor: theme.colorScheme.onSurfaceVariant,
+                          side: BorderSide(color: theme.colorScheme.outlineVariant),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
                         child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -256,8 +255,8 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                               }
                             : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.textOnPrimary,
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
@@ -279,13 +278,14 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
     // Gọi API gián tiếp: FutureProvider tự chạy khi watch; khi invalidate ở initState sẽ refetch.
     final liveSchedulesAsync = ref.watch(liveSchedulesProvider);
 
-    final primaryColor = AppColors.primary;
-    final bgColor = isDark ? AppColors.backgroundDark : AppColors.muted;
-    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
+    final primaryColor = theme.colorScheme.primary;
+    final bgColor = theme.scaffoldBackgroundColor;
+    final surfaceColor = theme.colorScheme.surface;
     final weekEnd = _currentWeekStart.add(const Duration(days: 6));
     final dateRangeText =
         '${DateFormat('dd/MM').format(_currentWeekStart)} – ${DateFormat('dd/MM/yyyy').format(weekEnd)}';
@@ -322,15 +322,13 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: surfaceColor,
-                boxShadow: isDark
-                    ? null
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -386,6 +384,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     );
   }
 
+
   /// Header đồng bộ phong cách web-learner `dashboard/schedule`: tiêu đề + Meet + làm mới lịch.
   Widget _buildHeader(
     BuildContext context,
@@ -394,18 +393,16 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     VoidCallback onRefreshSchedule,
   ) {
     final theme = Theme.of(context);
-    final muted = isDark ? AppColors.textTertiary : AppColors.textSecondary;
+    final muted = theme.colorScheme.onSurfaceVariant;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        color: theme.colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : AppColors.grey300,
+            color: theme.colorScheme.outlineVariant,
           ),
         ),
       ),
@@ -424,7 +421,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.2,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -476,10 +473,10 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark.withValues(alpha: 0.85) : AppColors.grey200.withValues(alpha: 0.35),
+        color: theme.colorScheme.surface.withValues(alpha: 0.85),
         border: Border(
           bottom: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.grey300.withValues(alpha: 0.6),
+            color: theme.colorScheme.outlineVariant,
           ),
         ),
       ),
@@ -489,9 +486,9 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
           IconButton(
             onPressed: () => _changeWeek(-1),
             icon: const Icon(Icons.chevron_left_rounded, size: 22),
-            color: AppColors.textSecondary,
+            color: theme.colorScheme.onSurfaceVariant,
             style: IconButton.styleFrom(
-              backgroundColor: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white,
+              backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
               padding: const EdgeInsets.all(6),
             ),
           ),
@@ -519,7 +516,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor: AppColors.textSecondary,
+              foregroundColor: theme.colorScheme.onSurfaceVariant,
             ),
             child: const Text(
               'HIỆN TẠI',
@@ -529,9 +526,9 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
           IconButton(
             onPressed: () => _changeWeek(1),
             icon: const Icon(Icons.chevron_right_rounded, size: 22),
-            color: AppColors.textSecondary,
+            color: theme.colorScheme.onSurfaceVariant,
             style: IconButton.styleFrom(
-              backgroundColor: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white,
+              backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
               padding: const EdgeInsets.all(6),
             ),
           ),
@@ -558,9 +555,10 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     AsyncValue<List<LiveScheduleModel>> schedulesAsync,
     List<LiveScheduleModel> weekList,
   ) {
+    final theme = Theme.of(context);
     const dayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
     final bottomInset = MediaQuery.paddingOf(context).bottom + 8;
-    final dividerColor = isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.grey300.withValues(alpha: 0.7);
+    final dividerColor = theme.colorScheme.outlineVariant;
     final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     return schedulesAsync.when(
@@ -600,19 +598,19 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                             children: [
                               Text(
                                 DateFormat('dd/MM').format(day),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                                ),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
                               ),
                               Text(
                                 dayLabels[dayIndex],
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textTertiary,
-                                ),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                  ),
                               ),
                             ],
                           ),
@@ -624,17 +622,15 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                                   alignment: Alignment.centerLeft,
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                   decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.04)
-                                        : AppColors.grey200.withValues(alpha: 0.55),
+                                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
                                     'Không có buổi học',
                                     style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textTertiary.withValues(alpha: 0.75),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                                     ),
                                   ),
                                 )
@@ -669,7 +665,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
           child: Text(
             'Không tải được lịch: $err',
             textAlign: TextAlign.center,
-            style: TextStyle(color: isDark ? AppColors.textTertiary : AppColors.textSecondary),
+            style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
           ),
         ),
       ),
@@ -682,13 +678,14 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     List<LiveScheduleModel> weekList,
     String todayStr,
   ) {
+    final theme = Theme.of(context);
     const dayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark.withValues(alpha: 0.9) : AppColors.grey200.withValues(alpha: 0.35),
+        color: theme.colorScheme.surface.withValues(alpha: 0.9),
         border: Border(
           bottom: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.06) : AppColors.grey300.withValues(alpha: 0.6),
+            color: theme.colorScheme.outlineVariant,
           ),
         ),
       ),
@@ -710,10 +707,10 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                   width: 48,
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                   decoration: BoxDecoration(
-                    color: isToday ? primaryColor : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.white),
+                    color: isToday ? primaryColor : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isToday ? primaryColor : AppColors.grey300.withValues(alpha: 0.65),
+                      color: isToday ? primaryColor : theme.colorScheme.outlineVariant,
                     ),
                     boxShadow: isToday
                         ? [BoxShadow(color: primaryColor.withValues(alpha: 0.25), blurRadius: 6, offset: const Offset(0, 2))]
@@ -727,18 +724,18 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
-                          color: isToday ? Colors.white.withValues(alpha: 0.95) : AppColors.textTertiary,
+                          color: isToday ? Colors.white.withValues(alpha: 0.95) : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        '${day.day}',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          color: isToday ? Colors.white : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                        Text(
+                          '${day.day}',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w900,
+                            color: isToday ? Colors.white : theme.colorScheme.onSurface,
+                          ),
                         ),
-                      ),
                       if (has)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
@@ -767,6 +764,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     required Color primaryColor,
     required bool isDark,
   }) {
+    final theme = Theme.of(context);
     final now = DateTime.now();
     final ui = e.uiStateAt(now);
     final isLive = ui == LiveScheduleUiState.live;
@@ -775,7 +773,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
     final end = e.endAt;
     final timeTop = start != null ? DateFormat('HH:mm').format(start) : '—';
     final timeBot = end != null ? DateFormat('HH:mm').format(end) : '—';
-    final accentGreen = AppColors.success;
+    final accentGreen = theme.colorScheme.primary;
 
     return Material(
       color: Colors.transparent,
@@ -784,14 +782,14 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
         borderRadius: BorderRadius.circular(12),
         child: Container(
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.04) : AppColors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isLive
-              ? AppColors.error.withValues(alpha: 0.45)
+              ? theme.colorScheme.error.withValues(alpha: 0.45)
               : isEnded
-                  ? AppColors.grey300
-                  : AppColors.grey300.withValues(alpha: 0.85),
+                  ? theme.colorScheme.outlineVariant
+                  : theme.colorScheme.outlineVariant.withValues(alpha: 0.85),
         ),
       ),
       padding: const EdgeInsets.all(10),
@@ -808,7 +806,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                   width: 2,
                   height: 14,
                   decoration: BoxDecoration(
-                    color: AppColors.grey300.withValues(alpha: 0.9),
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),
@@ -830,19 +828,19 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withValues(alpha: 0.12),
+                          color: theme.colorScheme.error.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
+                        child: Text(
                           'LIVE',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppColors.error),
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: theme.colorScheme.error),
                         ),
                       )
                     else if (!isEnded && start != null && start.isAfter(now))
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.muted.withValues(alpha: 0.9),
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -850,7 +848,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       )
@@ -858,12 +856,12 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.grey200.withValues(alpha: 0.8),
+                          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Đã xong',
-                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.textTertiary),
+                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ),
                     if (isEnded)
@@ -918,7 +916,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
                     height: 1.25,
-                    color: isLive ? AppColors.error : accentGreen,
+                    color: isLive ? theme.colorScheme.error : accentGreen,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -929,7 +927,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                     'Khóa: ${e.courseTitle}',
                     style: TextStyle(
                       fontSize: 11,
-                      color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -939,7 +937,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                   const SizedBox(height: 2),
                   Text(
                     e.instructorName!,
-                    style: const TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                    style: TextStyle(fontSize: 10, color: theme.colorScheme.onSurfaceVariant),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -987,12 +985,12 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isDark
-                ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                : [AppColors.surface, AppColors.grey200.withValues(alpha: 0.45)],
+                ? [theme.colorScheme.surface, theme.colorScheme.surface.withValues(alpha: 0.8)]
+                : [theme.colorScheme.surface, theme.colorScheme.outlineVariant.withValues(alpha: 0.45)],
           ),
           border: Border(
             top: BorderSide(
-              color: isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.grey300,
+              color: theme.colorScheme.outlineVariant,
             ),
           ),
         ),
@@ -1020,14 +1018,14 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                         title,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w800,
-                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],

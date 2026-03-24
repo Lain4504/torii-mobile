@@ -178,7 +178,7 @@ class WhiteboardElementsPainter extends CustomPainter {
   void _drawGrid(Canvas canvas, Size size) {
     // grid background
     final paint = Paint()
-      ..color = AppColors.grey300.withOpacity(0.2)
+      ..color = gridColor
       ..strokeWidth = 1;
 
     const gridSize = 40.0;
@@ -332,7 +332,7 @@ class WhiteboardElementsPainter extends CustomPainter {
       e['strokeColor']?.toString() ??
           e['stroke']?.toString() ??
           e['color']?.toString(),
-      fallback: AppColors.textPrimary,
+      fallback: defaultStrokeColor,
     );
     final fillColor = _parseColor(
       e['backgroundColor']?.toString() ??

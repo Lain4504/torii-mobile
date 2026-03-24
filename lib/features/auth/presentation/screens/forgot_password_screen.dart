@@ -22,12 +22,12 @@ class _ForgotPasswordScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: theme.colorScheme.onSurface, size: 20),
           onPressed: () => context.go('/login'),
         ),
       ),
@@ -45,7 +45,7 @@ class _ForgotPasswordScreenState
                       'Torii Nihongo',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
+                        color: theme.colorScheme.primary,
                         letterSpacing: 0.4,
                       ),
                     ),
@@ -62,7 +62,7 @@ class _ForgotPasswordScreenState
                   Text(
                     'Nhập email để nhận link đặt lại mật khẩu.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.grey700,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -82,15 +82,15 @@ class _ForgotPasswordScreenState
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: AppColors.grey300),
+                        borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: AppColors.grey300),
+                        borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: AppColors.primary),
+                        borderSide: BorderSide(color: theme.colorScheme.primary),
                       ),
                     ),
                   ),
@@ -161,20 +161,20 @@ class _ForgotPasswordScreenState
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
+                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
                         Icon(Icons.info_outline,
-                            color: AppColors.primary, size: 20),
+                            color: theme.colorScheme.primary, size: 20),
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu đến email của bạn.',
                             style: TextStyle(
                               fontSize: 14,
-                              color: AppColors.textSecondary,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -186,10 +186,10 @@ class _ForgotPasswordScreenState
                   Center(
                     child: TextButton(
                       onPressed: () => context.go('/login'),
-                      child: const Text(
+                      child: Text(
                         'Quay lại đăng nhập',
                         style: TextStyle(
-                          color: AppColors.primary,
+                          color: theme.colorScheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

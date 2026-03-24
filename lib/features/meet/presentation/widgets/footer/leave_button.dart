@@ -37,7 +37,7 @@ class LeaveButton extends ConsumerWidget {
               Navigator.of(dialogContext).pop();
               _leaveMeeting(context, ref);
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Leave'),
           ),
         ],

@@ -122,14 +122,14 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text('Ghép cặp', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: _buildBody(theme),
@@ -147,7 +147,7 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Lỗi: $_loadError', textAlign: TextAlign.center, style: const TextStyle(color: AppColors.error)),
+              Text('Lỗi: $_loadError', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadMatchData,
@@ -159,7 +159,7 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
       );
     }
     if (_pairCount == 0) {
-      return const Center(child: Text('Không tạo được trò chơi ghép cặp', style: TextStyle(color: AppColors.textTertiary)));
+      return Center(child: Text('Không tạo được trò chơi ghép cặp', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)));
     }
 
     final total = _pairCount;
@@ -176,17 +176,17 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.12),
+                  color: Colors.green.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.celebration_rounded, color: AppColors.success, size: 40),
+                child: const Icon(Icons.celebration_rounded, color: Colors.green, size: 40),
               ),
               const SizedBox(height: 14),
               Text('Tuyệt vời!', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
               const SizedBox(height: 6),
               Text(
                 'Bạn đã ghép xong $total cặp • $_moves lượt',
-                style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -194,8 +194,8 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
                 child: ElevatedButton(
                   onPressed: _shuffleAgain,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.textOnPrimary,
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
@@ -216,19 +216,19 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.grey300),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
             ),
             child: Row(
               children: [
-                Icon(Icons.grid_view_rounded, size: 20, color: AppColors.primary.withValues(alpha: 0.9)),
+                Icon(Icons.grid_view_rounded, size: 20, color: theme.colorScheme.primary.withValues(alpha: 0.9)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Ghép mỗi thuật ngữ với đúng định nghĩa.',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -236,16 +236,16 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     '${_matched.length}/$total',
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: AppColors.primary),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: theme.colorScheme.primary),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text('$_moves lượt', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: AppColors.textTertiary)),
+                Text('$_moves lượt', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700, fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -257,7 +257,7 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
                 Expanded(
                   child: _MatchColumn(
                     title: 'Thuật ngữ',
-                    accent: AppColors.primary,
+                    accent: theme.colorScheme.primary,
                     items: _terms,
                     matched: _matched,
                     selectedId: _selectedTermId,
@@ -272,7 +272,7 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
                 Expanded(
                   child: _MatchColumn(
                     title: 'Định nghĩa',
-                    accent: const Color(0xFF7C3AED),
+                    accent: const Color(0xFF9333EA),
                     items: _defs,
                     matched: _matched,
                     selectedId: _selectedDefId,
@@ -314,12 +314,12 @@ class _MatchColumn extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.grey300),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withValues(alpha: 0.04),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -344,7 +344,7 @@ class _MatchColumn extends StatelessWidget {
               ],
             ),
           ),
-          Divider(height: 1, thickness: 1, color: AppColors.grey300.withValues(alpha: 0.9)),
+          Divider(height: 1, thickness: 1, color: theme.colorScheme.outlineVariant.withValues(alpha: 0.9)),
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.all(10),
@@ -365,10 +365,10 @@ class _MatchColumn extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                       child: Ink(
                         decoration: BoxDecoration(
-                          color: isSelected ? accent.withValues(alpha: 0.1) : AppColors.background,
+                          color: isSelected ? accent.withValues(alpha: 0.12) : theme.scaffoldBackgroundColor,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: isSelected ? accent.withValues(alpha: 0.65) : AppColors.grey300,
+                            color: isSelected ? accent.withValues(alpha: 0.65) : theme.colorScheme.outlineVariant,
                             width: isSelected ? 2 : 1,
                           ),
                         ),

@@ -19,16 +19,16 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Blog học tiếng Nhật',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: Column(
@@ -37,7 +37,7 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
             child: blogListAsync.when(
               data: (paginated) => _buildList(paginated.data),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
+              error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
             ),
           ),
         ],
@@ -60,6 +60,7 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
   }
 
   Widget _buildBlogCard(BlogModel blog) {
+    final theme = Theme.of(context);
     final tag = blog.tags.isNotEmpty ? blog.tags.first : 'Kinh nghiệm';
     return InkWell(
       onTap: () => context.push('/blog-detail/${blog.slug}'),
@@ -67,10 +68,10 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 24),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: AppColors.textPrimary.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5)),
+            BoxShadow(color: theme.colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 5)),
           ],
         ),
         child: Column(
@@ -83,7 +84,7 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
                 height: 160,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(height: 160, color: AppColors.grey200, child: const Icon(Icons.article, size: 48)),
+                errorBuilder: (_, __, ___) => Container(height: 160, color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3), child: const Icon(Icons.article, size: 48)),
               ),
             ),
             Padding(
@@ -97,12 +98,12 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(tag, style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold)),
+                        child: Text(tag, style: TextStyle(color: theme.colorScheme.primary, fontSize: 11, fontWeight: FontWeight.bold)),
                       ),
-                      Text(blog.formattedDate, style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
+                      Text(blog.formattedDate, style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 11)),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -114,7 +115,7 @@ class _BlogListScreenState extends ConsumerState<BlogListScreen> {
                       final text = blog.excerpt ?? plain;
                       return text.length > 100 ? '${text.substring(0, 100)}...' : text;
                     }(),
-                    style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.5),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13, height: 1.5),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

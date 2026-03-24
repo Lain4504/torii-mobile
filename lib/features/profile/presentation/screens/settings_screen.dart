@@ -11,10 +11,10 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -30,7 +30,7 @@ class SettingsScreen extends ConsumerWidget {
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: SafeArea(
@@ -138,7 +138,7 @@ Future<void> _onLogoutTap(BuildContext context, WidgetRef ref) async {
         ),
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(true),
-          child: Text('Đăng xuất', style: TextStyle(color: AppColors.error)),
+          child: Text('Đăng xuất', style: TextStyle(color: Theme.of(context).colorScheme.error)),
         ),
       ],
     ),
@@ -156,14 +156,15 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey300),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.04),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -176,7 +177,7 @@ class _SectionCard extends StatelessWidget {
             children: [
               children[i],
               if (!isLast)
-                Divider(height: 1, thickness: 1, color: AppColors.grey300.withOpacity(0.5)),
+                Divider(height: 1, thickness: 1, color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
             ],
           );
         }),
@@ -200,9 +201,11 @@ class _SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final leadingBg = isDestructive ? AppColors.errorLight : AppColors.primary.withOpacity(0.10);
-    final leadingFg = isDestructive ? AppColors.error : AppColors.primary;
-    final textColor = isDestructive ? AppColors.error : AppColors.textPrimary;
+    final leadingBg = isDestructive 
+        ? theme.colorScheme.error.withValues(alpha: 0.1) 
+        : theme.colorScheme.primary.withValues(alpha: 0.1);
+    final leadingFg = isDestructive ? theme.colorScheme.error : theme.colorScheme.primary;
+    final textColor = isDestructive ? theme.colorScheme.error : theme.colorScheme.onSurface;
 
     return InkWell(
       onTap: onTap,
@@ -231,7 +234,7 @@ class _SettingsTile extends StatelessWidget {
               ),
             ),
             if (!isDestructive)
-              Icon(Icons.chevron_right, color: AppColors.textTertiary.withOpacity(0.7), size: 18),
+              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), size: 18),
           ],
         ),
       ),

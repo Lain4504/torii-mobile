@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 
 class StreakCalendarSheet extends ConsumerStatefulWidget {
@@ -43,7 +42,7 @@ class _StreakCalendarSheetState extends ConsumerState<StreakCalendarSheet> {
             child: Center(
               child: Text(
                 'Không tải được streak',
-                style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textTertiary),
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
             ),
           ),
@@ -84,9 +83,9 @@ class _StreakCalendarSheetState extends ConsumerState<StreakCalendarSheet> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.35), width: 2),
+                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.35), width: 2),
                   ),
                   child: Row(
                     children: [
@@ -94,7 +93,7 @@ class _StreakCalendarSheetState extends ConsumerState<StreakCalendarSheet> {
                         '$currentStreak',
                         style: theme.textTheme.displaySmall?.copyWith(
                           fontWeight: FontWeight.w900,
-                          color: AppColors.primary,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -103,7 +102,7 @@ class _StreakCalendarSheetState extends ConsumerState<StreakCalendarSheet> {
                           'ngày streak!',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                           ),
                         ),
                       ),
@@ -111,10 +110,10 @@ class _StreakCalendarSheetState extends ConsumerState<StreakCalendarSheet> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Icon(Icons.local_fire_department_rounded, color: AppColors.primary),
+                        child: Icon(Icons.local_fire_department_rounded, color: theme.colorScheme.primary),
                       ),
                     ],
                   ),
@@ -136,9 +135,9 @@ class _StreakCalendarSheetState extends ConsumerState<StreakCalendarSheet> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.grey200),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                   ),
                   child: Column(
                     children: [
@@ -177,15 +176,15 @@ class _StreakCalendarSheetState extends ConsumerState<StreakCalendarSheet> {
                 // Legend
                 Row(
                   children: [
-                    _LegendDot(color: AppColors.primary.withValues(alpha: 0.18)),
+                    _LegendDot(color: theme.colorScheme.primary.withValues(alpha: 0.18)),
                     const SizedBox(width: 6),
                     const Text('Đã học', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                     const SizedBox(width: 14),
-                    _LegendDot(color: AppColors.grey200),
+                    _LegendDot(color: theme.colorScheme.outlineVariant),
                     const SizedBox(width: 6),
                     const Text('Chưa học', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                     const SizedBox(width: 14),
-                    _LegendDot(color: AppColors.detail.withValues(alpha: 0.18)),
+                    _LegendDot(color: theme.colorScheme.secondary.withValues(alpha: 0.18)),
                     const SizedBox(width: 6),
                     const Text('Đóng băng', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                   ],
@@ -212,7 +211,7 @@ class _LegendDot extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: AppColors.grey300.withValues(alpha: 0.5)),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
     );
   }
@@ -233,7 +232,7 @@ class _WeekHeader extends StatelessWidget {
                   t,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.textTertiary,
+                    color: theme.colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -312,11 +311,12 @@ class _DayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (day == 0) return const SizedBox.shrink();
+    final theme = Theme.of(context);
 
-    final bg = isActive ? AppColors.primary.withValues(alpha: 0.16) : Colors.transparent;
+    final bg = isActive ? theme.colorScheme.primary.withValues(alpha: 0.16) : Colors.transparent;
     final border = isToday
-        ? Border.all(color: AppColors.primary, width: 1.6)
-        : Border.all(color: AppColors.grey200, width: 1);
+        ? Border.all(color: theme.colorScheme.primary, width: 1.6)
+        : Border.all(color: theme.colorScheme.outlineVariant, width: 1);
 
     return Container(
       alignment: Alignment.center,
@@ -330,7 +330,7 @@ class _DayCell extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w800,
-          color: isActive ? AppColors.primary : AppColors.textSecondary,
+          color: isActive ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
         ),
       ),
     );

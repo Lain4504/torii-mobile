@@ -39,15 +39,15 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'AI Roleplay',
           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: theme.colorScheme.onSurface,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -58,13 +58,13 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.spatial_audio_off_rounded,
                 size: 28,
-                color: AppColors.accent,
+                color: theme.colorScheme.primary,
               ),
             ),
             const SizedBox(height: 16),
@@ -73,7 +73,7 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: AppTypography.bold,
-                color: AppColors.textPrimary,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 6),
@@ -82,7 +82,7 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textTertiary,
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                 height: 1.35,
               ),
             ),
@@ -91,19 +91,20 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               controller: _topicController,
               decoration: InputDecoration(
                 hintText: 'Nhập chủ đề (VD: Mua vé tàu)...',
+                hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                 filled: true,
-                fillColor: AppColors.surface,
+                fillColor: theme.colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppColors.grey300),
+                  borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppColors.grey300),
+                  borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppColors.primary),
+                  borderSide: BorderSide(color: theme.colorScheme.primary),
                 ),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -117,16 +118,16 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               child: ElevatedButton(
                 onPressed: () => _startRoleplay(_topicController.text),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accentDark,
-                  foregroundColor: AppColors.textOnAccent,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 0,
                 ),
-                child: Text(
+                child: const Text(
                   'Bắt đầu hội thoại',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                 ),
               ),
             ),
@@ -138,7 +139,7 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: AppTypography.bold,
-                color: AppColors.textTertiary,
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                 letterSpacing: 1.2,
               ),
             ),
@@ -154,16 +155,16 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: AppColors.grey300),
+                      border: Border.all(color: theme.colorScheme.outlineVariant),
                     ),
                     child: Text(
                       topic,
                       style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: AppTypography.medium,
-                        color: AppColors.textSecondary,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),

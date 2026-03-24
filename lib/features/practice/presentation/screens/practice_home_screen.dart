@@ -9,7 +9,7 @@ class PracticeHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Luyện tập',
@@ -18,7 +18,7 @@ class PracticeHomeScreen extends StatelessWidget {
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: ListView(
@@ -30,12 +30,12 @@ class PracticeHomeScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.grey300),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.textPrimary.withOpacity(0.04),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -47,10 +47,10 @@ class PracticeHomeScreen extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.10),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.style_rounded, color: AppColors.primary),
+                    child: Icon(Icons.style_rounded, color: theme.colorScheme.primary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -67,14 +67,14 @@ class PracticeHomeScreen extends StatelessWidget {
                         Text(
                           'Study sets + flashcards, quản lý và luyện tập từ vựng',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.textTertiary,
+                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                             height: 1.35,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                  Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                 ],
               ),
             ),
@@ -88,12 +88,12 @@ class PracticeHomeScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.grey300),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.textPrimary.withOpacity(0.04),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -105,10 +105,10 @@ class PracticeHomeScreen extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.10),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.edit_note_rounded, color: AppColors.primary),
+                    child: Icon(Icons.edit_note_rounded, color: theme.colorScheme.primary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -125,14 +125,14 @@ class PracticeHomeScreen extends StatelessWidget {
                         Text(
                           'Luyện đề theo cấp độ',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.textTertiary,
+                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                             height: 1.35,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                  Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                 ],
               ),
             ),

@@ -18,16 +18,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Thông báo',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         actions: [
           TextButton(
@@ -37,7 +37,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               ref.invalidate(notificationsListProvider);
               ref.invalidate(notificationsUnreadCountProvider);
             },
-            child: const Text('Đánh dấu đã đọc', style: TextStyle(color: AppColors.primary, fontSize: 13)),
+            child: Text('Đánh dấu đã đọc', style: TextStyle(color: theme.colorScheme.primary, fontSize: 13)),
           ),
         ],
       ),
@@ -56,7 +56,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
       ),
     );
   }
@@ -72,7 +72,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        color: n.isRead ? Colors.transparent : AppColors.primary.withOpacity(0.03),
+        color: n.isRead ? Colors.transparent : Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -82,8 +82,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 child: Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -94,9 +94,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 children: [
                   Text(n.title, style: TextStyle(fontWeight: n.isRead ? FontWeight.w600 : FontWeight.bold, fontSize: 15)),
                   const SizedBox(height: 4),
-                  Text(n.message, style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.4), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(n.message, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13, height: 1.4), maxLines: 2, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 8),
-                  Text(n.timeAgo, style: TextStyle(color: AppColors.textTertiary, fontSize: 11)),
+                  Text(n.timeAgo, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6), fontSize: 11)),
                 ],
               ),
             ),

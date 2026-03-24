@@ -27,7 +27,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
     final setsAsync = ref.watch(studySetsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Thẻ ghi nhớ của tôi',
@@ -36,12 +36,12 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: setsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
         data: (sets) {
           if (sets.isEmpty) {
             return Center(
@@ -54,10 +54,10 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.08),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.psychology_rounded, color: AppColors.primary, size: 32),
+                      child: Icon(Icons.psychology_rounded, color: theme.colorScheme.primary, size: 32),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -68,7 +68,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                     const Text(
                       'Tạo bộ thẻ đầu tiên để bắt đầu học tự chủ.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textTertiary),
+                      style: TextStyle(color: Colors.grey),
                     ),
                     const SizedBox(height: 14),
                     SizedBox(
@@ -76,8 +76,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                       child: ElevatedButton.icon(
                         onPressed: () => _showCreateSetSheet(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.textOnPrimary,
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
@@ -121,8 +121,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                     child: OutlinedButton.icon(
                       onPressed: () => _showCreateSetSheet(context),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primary),
+                        foregroundColor: theme.colorScheme.primary,
+                        side: BorderSide(color: theme.colorScheme.primary),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       icon: const Icon(Icons.add, size: 16),
@@ -146,10 +146,10 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                             width: 220,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isActive ? AppColors.primary.withOpacity(0.06) : AppColors.surface,
+                              color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.06) : theme.colorScheme.surface,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: isActive ? AppColors.primary.withOpacity(0.35) : AppColors.grey300,
+                                color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.35) : theme.colorScheme.outlineVariant,
                                 width: 1.2,
                               ),
                             ),
@@ -159,7 +159,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: isActive ? AppColors.primary.withOpacity(0.14) : AppColors.grey200,
+                                    color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.14) : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                                     borderRadius: BorderRadius.circular(999),
                                   ),
                                   child: Text(
@@ -167,7 +167,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w800,
-                                      color: isActive ? AppColors.primary : AppColors.textSecondary,
+                                      color: isActive ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ),
@@ -179,7 +179,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                     overflow: TextOverflow.ellipsis,
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       fontWeight: FontWeight.w900,
-                                      color: isActive ? AppColors.primary : AppColors.textPrimary,
+                                      color: isActive ? theme.colorScheme.primary : theme.colorScheme.onSurface,
                                       height: 1.15,
                                     ),
                                   ),
@@ -188,7 +188,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                 Text(
                                   '${s.cardCount} thẻ',
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: isActive ? AppColors.primary.withOpacity(0.75) : AppColors.textTertiary,
+                                    color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.75) : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -211,8 +211,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                     child: OutlinedButton.icon(
                       onPressed: () => _showCreateCardSheet(context, selectedId),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primary),
+                        foregroundColor: theme.colorScheme.primary,
+                        side: BorderSide(color: theme.colorScheme.primary),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       icon: const Icon(Icons.add, size: 16),
@@ -226,15 +226,15 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                     ),
                     error: (e, _) => Padding(
                       padding: const EdgeInsets.all(14),
-                      child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error)),
+                      child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error)),
                     ),
                     data: (_) {
                       if (selectedCards.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           child: Text(
                             'Bộ thẻ này chưa có thẻ nào.',
-                            style: TextStyle(color: AppColors.textTertiary),
+                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                           ),
                         );
                       }
@@ -257,9 +257,9 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: AppColors.background,
+                                    color: theme.scaffoldBackgroundColor,
                                     borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: AppColors.grey300),
+                                    border: Border.all(color: theme.colorScheme.outlineVariant),
                                   ),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -268,10 +268,10 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                         width: 36,
                                         height: 36,
                                         decoration: BoxDecoration(
-                                          color: AppColors.primary.withOpacity(0.10),
+                                          color: theme.colorScheme.primary.withValues(alpha: 0.10),
                                           borderRadius: BorderRadius.circular(12),
                                         ),
-                                        child: const Icon(Icons.style_rounded, color: AppColors.primary, size: 18),
+                                        child: Icon(Icons.style_rounded, color: theme.colorScheme.primary, size: 18),
                                       ),
                                       const SizedBox(width: 10),
                                       Expanded(
@@ -293,7 +293,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                                 textAlign: TextAlign.right,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: theme.textTheme.bodySmall?.copyWith(
-                                                  color: AppColors.textSecondary,
+                                                  color: theme.colorScheme.onSurfaceVariant,
                                                   fontWeight: FontWeight.w700,
                                                 ),
                                               ),
@@ -328,8 +328,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                         initialTerm: term,
                                         initialDefinition: def,
                                       ),
-                                      backgroundColor: AppColors.primary,
-                                      foregroundColor: Colors.white,
+                                      backgroundColor: theme.colorScheme.primary,
+                                      foregroundColor: theme.colorScheme.onPrimary,
                                       icon: Icons.edit_rounded,
                                       label: 'Sửa',
                                     ),
@@ -348,7 +348,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                               ),
                                               TextButton(
                                                 onPressed: () => Navigator.of(dCtx).pop(true),
-                                                child: const Text('Xóa', style: TextStyle(color: AppColors.error)),
+                                                child: Text('Xóa', style: TextStyle(color: theme.colorScheme.error)),
                                               ),
                                             ],
                                           ),
@@ -357,8 +357,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                                           await _deleteCard(setId: selectedId, cardId: cardId);
                                         }
                                       },
-                                      backgroundColor: AppColors.error,
-                                      foregroundColor: Colors.white,
+                                      backgroundColor: theme.colorScheme.error,
+                                      foregroundColor: theme.colorScheme.onError,
                                       icon: Icons.delete_rounded,
                                       label: 'Xóa',
                                     ),
@@ -379,9 +379,9 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.06),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.primary.withOpacity(0.20)),
+                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.20)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,16 +390,16 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.10),
+                          color: theme.colorScheme.primary.withValues(alpha: 0.10),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.info_outline_rounded, color: AppColors.primary, size: 18),
+                        child: Icon(Icons.info_outline_rounded, color: theme.colorScheme.primary, size: 18),
                       ),
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Nên dùng bộ gõ tiếng Việt hoặc Nhật cho các chế độ luyện gõ để tăng hiệu quả ghi nhớ.',
-                          style: TextStyle(color: AppColors.textSecondary, height: 1.35),
+                          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, height: 1.35),
                         ),
                       ),
                     ],
@@ -546,14 +546,14 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                       width: 40,
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(999)),
+                      decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(999)),
                     ),
                   ),
                   Text('Tạo thẻ mới', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
                   const SizedBox(height: 6),
                   Text(
                     'Nhập thuật ngữ và định nghĩa cho thẻ.',
-                    style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -592,8 +592,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           child: OutlinedButton(
                             onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.textSecondary,
-                              side: const BorderSide(color: AppColors.grey300),
+                              foregroundColor: theme.colorScheme.onSurfaceVariant,
+                              side: BorderSide(color: theme.colorScheme.outlineVariant),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                             child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -607,8 +607,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           child: ElevatedButton(
                             onPressed: busy ? null : submit,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: AppColors.textOnPrimary,
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
                               elevation: 0,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
@@ -678,7 +678,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                       width: 40,
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(999)),
+                      decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(999)),
                     ),
                   ),
                   Text('Chỉnh sửa thẻ', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
@@ -710,8 +710,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           child: OutlinedButton(
                             onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.textSecondary,
-                              side: const BorderSide(color: AppColors.grey300),
+                              foregroundColor: theme.colorScheme.onSurfaceVariant,
+                              side: BorderSide(color: theme.colorScheme.outlineVariant),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                             child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -725,8 +725,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           child: ElevatedButton(
                             onPressed: busy ? null : submit,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: AppColors.textOnPrimary,
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
                               elevation: 0,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
@@ -802,14 +802,14 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                       width: 40,
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(999)),
+                      decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(999)),
                     ),
                   ),
                   Text('Chỉnh sửa bài', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
                   const SizedBox(height: 6),
                   Text(
                     'Nhấn giữ một bài để mở bảng chỉnh sửa.',
-                    style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -838,8 +838,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           child: OutlinedButton(
                             onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.textSecondary,
-                              side: const BorderSide(color: AppColors.grey300),
+                              foregroundColor: theme.colorScheme.onSurfaceVariant,
+                              side: BorderSide(color: theme.colorScheme.outlineVariant),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                             child: const Text('Đóng', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -853,8 +853,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           child: ElevatedButton(
                             onPressed: busy ? null : submit,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: AppColors.textOnPrimary,
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
                               elevation: 0,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
@@ -925,14 +925,14 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                       width: 40,
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(color: AppColors.grey300, borderRadius: BorderRadius.circular(999)),
+                      decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(999)),
                     ),
                   ),
                   Text('Tạo bài mới', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
                   const SizedBox(height: 6),
                   Text(
                     'Đặt tên và mô tả cho bộ thẻ dùng để học tự chủ.',
-                    style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary),
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -961,8 +961,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           child: OutlinedButton(
                             onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.textSecondary,
-                              side: const BorderSide(color: AppColors.grey300),
+                              foregroundColor: theme.colorScheme.onSurfaceVariant,
+                              side: BorderSide(color: theme.colorScheme.outlineVariant),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
                             child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -976,8 +976,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           child: ElevatedButton(
                             onPressed: busy ? null : submit,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: AppColors.textOnPrimary,
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
                               elevation: 0,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
@@ -1016,9 +1016,9 @@ class _SectionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey300),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1031,7 +1031,7 @@ class _SectionCard extends StatelessWidget {
                   children: [
                     Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900)),
                     const SizedBox(height: 4),
-                    Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary)),
+                    Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
                   ],
                 ),
               ),
@@ -1069,9 +1069,9 @@ class _ModeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey300),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1082,10 +1082,10 @@ class _ModeCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.10),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: AppColors.primary),
+                child: Icon(icon, color: theme.colorScheme.primary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1096,7 +1096,7 @@ class _ModeCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textTertiary, height: 1.35),
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), height: 1.35),
                     ),
                   ],
                 ),
@@ -1110,8 +1110,8 @@ class _ModeCard extends StatelessWidget {
             child: ElevatedButton(
               onPressed: enabled ? onTap : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),

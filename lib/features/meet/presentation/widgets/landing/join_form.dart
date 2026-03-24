@@ -60,15 +60,15 @@ class JoinForm extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.grey300),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
               ),
-              child: const Text(
+              child: Text(
                 'Vui lòng đợi người tổ chức cho phép bạn tham gia.',
                 style: TextStyle(
                   fontSize: 12.5,
-                  color: AppColors.textSecondary,
+                  color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
@@ -98,7 +98,7 @@ class JoinForm extends StatelessWidget {
           _getJoinPrompt(),
           style: TextStyle(
             fontSize: 13,
-            color: AppColors.textTertiary,
+            color: theme.colorScheme.onSurfaceVariant,
             height: 1.35,
           ),
           textAlign: TextAlign.center,
@@ -135,7 +135,7 @@ class JoinForm extends StatelessWidget {
               onPressed: onJoin,
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
-                foregroundColor: AppColors.textOnPrimary,
+                foregroundColor: theme.colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
@@ -152,7 +152,7 @@ class JoinForm extends StatelessWidget {
           'Bằng cách tham gia, bạn đồng ý với Điều khoản dịch vụ của chúng tôi.',
           style: TextStyle(
             fontSize: 11.5,
-            color: AppColors.textTertiary,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),

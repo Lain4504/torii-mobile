@@ -18,6 +18,7 @@ class MeetingRoomScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     // Listen for breakout room invitations
     ref.listen(breakoutRoomProvider, (previous, next) {
       if (next.receivedInvitationFor != null && 
@@ -26,10 +27,8 @@ class MeetingRoomScreen extends ConsumerWidget {
       }
     });
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? AppColors.surfaceDark : AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Stack(
           children: [
@@ -168,6 +167,7 @@ class _WhiteboardOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final isWhiteboardVisible = ref.watch(
       whiteboardProvider.select((s) => s.isVisible),
     );
@@ -178,7 +178,7 @@ class _WhiteboardOverlay extends ConsumerWidget {
 
     return Positioned.fill(
       child: Container(
-        color: AppColors.textPrimary.withOpacity(0.5),
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
         child: const WhiteboardWidget(),
       ),
     );

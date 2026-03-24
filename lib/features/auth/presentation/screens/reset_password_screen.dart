@@ -26,12 +26,12 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: theme.colorScheme.onSurface, size: 20),
           onPressed: () => context.go('/login'),
         ),
       ),
@@ -60,7 +60,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             'Torii Nihongo',
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w800,
-              color: AppColors.primary,
+              color: theme.colorScheme.primary,
               letterSpacing: 0.4,
             ),
           ),
@@ -73,16 +73,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             letterSpacing: 0.2,
           ),
         ),
-        const SizedBox(height: 6),
         Text(
           'Tạo mật khẩu mới để tiếp tục học tiếng Nhật.',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: AppColors.grey700,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 20),
 
-        const Text('Mật khẩu mới', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text('Mật khẩu mới', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
         TextField(
           controller: _newPasswordController,
@@ -104,21 +103,21 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.grey300),
+              borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.grey300),
+              borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: BorderSide(color: theme.colorScheme.primary),
             ),
           ),
         ),
         const SizedBox(height: 16),
-        const Text('Xác nhận mật khẩu mới',
-            style: TextStyle(fontWeight: FontWeight.w600)),
+        Text('Xác nhận mật khẩu mới',
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
         TextField(
           controller: _confirmPasswordController,
@@ -140,25 +139,25 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.grey300),
+              borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.grey300),
+              borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: BorderSide(color: theme.colorScheme.primary),
             ),
           ),
         ),
         const SizedBox(height: 20),
 
-        const Text('Quy định mật khẩu:',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        Text('Quy định mật khẩu:',
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
-        _buildRuleItem('Ít nhất 8 ký tự'),
-        _buildRuleItem('Có chữ và số'),
+        _buildRuleItem(theme, 'Ít nhất 8 ký tự'),
+        _buildRuleItem(theme, 'Có chữ và số'),
 
         const SizedBox(height: 20),
         SizedBox(
@@ -226,21 +225,21 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(message),
-                    backgroundColor: AppColors.error,
+                    backgroundColor: theme.colorScheme.error,
                   ),
                 );
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textOnPrimary,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: const Text('Cập nhật mật khẩu',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            child: Text('Cập nhật mật khẩu',
+                style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.onPrimary)),
           ),
         ),
         const SizedBox(height: 16),
@@ -248,14 +247,14 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     );
   }
 
-  Widget _buildRuleItem(String text) {
+  Widget _buildRuleItem(ThemeData theme, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_outline, color: AppColors.success, size: 18),
+          Icon(Icons.check_circle_outline, color: theme.colorScheme.primary, size: 18),
           const SizedBox(width: 8),
-          Text(text, style: TextStyle(color: AppColors.grey700, fontSize: 14)),
+          Text(text, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ],
       ),
     );
@@ -269,23 +268,23 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           'Torii Nihongo',
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w800,
-            color: AppColors.primary,
+            color: theme.colorScheme.primary,
             letterSpacing: 0.4,
           ),
         ),
         const SizedBox(height: 32),
-        const Icon(Icons.check_circle_rounded,
-            color: AppColors.success, size: 96),
+        Icon(Icons.check_circle_rounded,
+            color: theme.colorScheme.primary, size: 96),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'Thành công!',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        const Text(
+        Text(
           'Mật khẩu đã được cập nhật thành công.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 15, color: AppColors.textTertiary),
+          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 40),
         SizedBox(
@@ -296,14 +295,14 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               context.go('/login');
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textOnPrimary,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: const Text('Đăng nhập ngay',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            child: Text('Đăng nhập ngay',
+                style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.onPrimary)),
           ),
         ),
       ],

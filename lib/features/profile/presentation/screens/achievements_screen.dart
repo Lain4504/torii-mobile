@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 
 class AchievementsScreen extends ConsumerWidget {
@@ -12,10 +11,10 @@ class AchievementsScreen extends ConsumerWidget {
     final achievementsAsync = ref.watch(gamificationAchievementsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -25,21 +24,21 @@ class AchievementsScreen extends ConsumerWidget {
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
       ),
       body: achievementsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error)),
+          child: Text('Lỗi: $e', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error)),
         ),
         data: (items) {
           if (items.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'Bạn chưa có thành tựu nào.\nHãy tiếp tục học để mở khóa huy hiệu!',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textTertiary),
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
             );
           }
@@ -53,12 +52,12 @@ class AchievementsScreen extends ConsumerWidget {
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.grey300),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.textPrimary.withOpacity(0.03),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -70,12 +69,12 @@ class AchievementsScreen extends ConsumerWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: unlocked ? AppColors.primary.withOpacity(0.12) : AppColors.grey200,
+                        color: unlocked ? theme.colorScheme.primary.withValues(alpha: 0.12) : theme.colorScheme.outlineVariant,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(
                         unlocked ? Icons.emoji_events_rounded : Icons.lock_outline,
-                        color: unlocked ? AppColors.primary : AppColors.textTertiary,
+                        color: unlocked ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                         size: 24,
                       ),
                     ),
@@ -94,7 +93,7 @@ class AchievementsScreen extends ConsumerWidget {
                           Text(
                             a.description,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.textTertiary,
+                              color: theme.colorScheme.onSurfaceVariant,
                               height: 1.35,
                             ),
                           ),
@@ -108,15 +107,14 @@ class AchievementsScreen extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: unlocked ? AppColors.success.withOpacity(0.12) : AppColors.grey200,
+                            color: unlocked ? Colors.green.withValues(alpha: 0.12) : theme.colorScheme.outlineVariant,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             unlocked ? 'Đã mở khóa' : 'Chưa đạt',
-                            style: const TextStyle(
-                              fontSize: 11,
+                            style: theme.textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textSecondary,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -124,7 +122,7 @@ class AchievementsScreen extends ConsumerWidget {
                           const SizedBox(height: 4),
                           Text(
                             '${a.unlockedAt!.day}/${a.unlockedAt!.month}/${a.unlockedAt!.year}',
-                            style: const TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                            style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: theme.colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ],

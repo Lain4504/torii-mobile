@@ -20,12 +20,12 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   static ThemeMode _getInitialTheme(SharedPreferences prefs) {
     final savedTheme = prefs.getString(_themeKey);
     if (savedTheme == null) {
-      // FORCE LIGHT MODE as default, ignoring system brightness
-      return ThemeMode.light;
+      // Default to system theme mode
+      return ThemeMode.system;
     }
     return ThemeMode.values.firstWhere(
       (e) => e.toString() == savedTheme,
-      orElse: () => ThemeMode.light, // Default to light if invalid
+      orElse: () => ThemeMode.system,
     );
   }
 
@@ -36,18 +36,20 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
   }
 
   Future<void> toggleTheme() async {
-    ThemeMode currentMode = state;
+    final currentMode = state;
+    Brightness platformBrightness = PlatformDispatcher.instance.platformBrightness;
     
-    // If system, resolve actual mode from platform
     if (currentMode == ThemeMode.system) {
-       final brightness = PlatformDispatcher.instance.platformBrightness;
-       currentMode = brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
-    }
-
-    if (currentMode == ThemeMode.dark) {
-      await setThemeMode(ThemeMode.light);
-    } else {
+      // If currently system, switch to the opposite of what system currently is
+      if (platformBrightness == Brightness.dark) {
+        await setThemeMode(ThemeMode.light);
+      } else {
+        await setThemeMode(ThemeMode.dark);
+      }
+    } else if (currentMode == ThemeMode.light) {
       await setThemeMode(ThemeMode.dark);
+    } else {
+      await setThemeMode(ThemeMode.light);
     }
   }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 
 class StreakWelcomeDialog extends StatelessWidget {
   const StreakWelcomeDialog({
@@ -25,9 +24,9 @@ class StreakWelcomeDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
         decoration: BoxDecoration(
-          color: AppColors.background,
+          color: theme.scaffoldBackgroundColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey200),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -37,7 +36,7 @@ class StreakWelcomeDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 6),
@@ -47,7 +46,7 @@ class StreakWelcomeDialog extends StatelessWidget {
                   : 'Hoàn thành 1 hoạt động học để giữ streak.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textTertiary,
+                color: theme.colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -55,9 +54,9 @@ class StreakWelcomeDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.grey200),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -71,8 +70,8 @@ class StreakWelcomeDialog extends StatelessWidget {
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textSecondary,
-                      side: BorderSide(color: AppColors.grey200),
+                      foregroundColor: theme.colorScheme.onSurfaceVariant,
+                      side: BorderSide(color: theme.colorScheme.outlineVariant),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -87,8 +86,8 @@ class StreakWelcomeDialog extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onViewDetail,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -137,15 +136,16 @@ class _DayDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           day.label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w800,
-            color: AppColors.textTertiary,
+            color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 8),
@@ -153,18 +153,16 @@ class _DayDot extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: day.done ? AppColors.primary : AppColors.grey200,
+            color: day.done ? theme.colorScheme.primary : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
               color: day.done
-                  ? AppColors.primary.withValues(alpha: 0.35)
-                  : AppColors.grey300.withValues(alpha: 0.7),
+                  ? theme.colorScheme.primary.withValues(alpha: 0.35)
+                  : theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
               width: 1,
             ),
           ),
-          child: day.done
-              ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
-              : null,
+          child: day.done ? const Icon(Icons.check_rounded, color: Colors.white, size: 18) : null,
         ),
       ],
     );

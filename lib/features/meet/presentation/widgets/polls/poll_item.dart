@@ -340,16 +340,16 @@ class _PollItemState extends ConsumerState<PollItem> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.error.withOpacity(0.1),
+                                  color: Theme.of(context).colorScheme.error.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                                  border: Border.all(color: Theme.of(context).colorScheme.error.withOpacity(0.3)),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'CLOSED',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.error,
+                                    color: Theme.of(context).colorScheme.error,
                                   ),
                                 ),
                               ),
@@ -392,9 +392,9 @@ class _PollItemState extends ConsumerState<PollItem> {
                             value: 'close-poll',
                             child: Row(
                               children: [
-                                Icon(Icons.close, size: 18, color: AppColors.error),
+                                Icon(Icons.close, size: 18, color: Colors.red),
                                 SizedBox(width: 8),
-                                Text('End Poll', style: TextStyle(color: AppColors.error)),
+                                Text('End Poll', style: TextStyle(color: Colors.red)),
                               ],
                             ),
                           ),

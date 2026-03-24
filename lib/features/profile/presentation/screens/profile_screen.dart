@@ -32,7 +32,7 @@ class ProfileScreen extends ConsumerWidget {
     final streak = streakModel?.currentStreak.toString() ?? '0';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Trang cá nhân',
@@ -41,21 +41,21 @@ class ProfileScreen extends ConsumerWidget {
             letterSpacing: 0.2,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         actions: [
           IconButton(
             icon: Icon(
               themeMode == ThemeMode.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-              color: AppColors.textPrimary,
+              color: theme.colorScheme.onSurface,
             ),
             tooltip: 'Sáng / tối',
             onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
           ),
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.settings_outlined,
-              color: AppColors.textPrimary,
+              color: theme.colorScheme.onSurface,
             ),
             tooltip: 'Cài đặt',
             onPressed: () => context.push('/settings'),
@@ -79,12 +79,12 @@ class ProfileScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.grey300),
+                    border: Border.all(color: theme.colorScheme.outlineVariant),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.textPrimary.withOpacity(0.04),
+                        color: theme.shadowColor.withValues(alpha: 0.04),
                         blurRadius: 12,
                         offset: const Offset(0, 6),
                       ),
@@ -94,7 +94,7 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       CircleAvatar(
                         radius: 22,
-                        backgroundColor: AppColors.grey200,
+                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
                         backgroundImage: avatarUrl.isNotEmpty
                             ? NetworkImage(avatarUrl)
                             : const NetworkImage('https://i.pravatar.cc/150?u=torii-user'),
@@ -116,7 +116,7 @@ class ProfileScreen extends ConsumerWidget {
                               Text(
                                 email,
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.textTertiary,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                           ],
@@ -128,18 +128,18 @@ class ProfileScreen extends ConsumerWidget {
                         child: OutlinedButton(
                           onPressed: () => context.push('/profile/edit'),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.grey300),
+                            side: BorderSide(color: theme.colorScheme.outlineVariant),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Chỉnh sửa',
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 12.5,
-                              color: AppColors.textPrimary,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -163,7 +163,7 @@ class ProfileScreen extends ConsumerWidget {
                       label: 'Ngày hoạt động',
                       value: completedCourses,
                       icon: Icons.calendar_month_rounded,
-                      color: AppColors.primary,
+                      color: theme.colorScheme.primary,
                     ),
                     const SizedBox(width: AppSpacing.md),
                     _buildStatCard(
@@ -171,7 +171,7 @@ class ProfileScreen extends ConsumerWidget {
                       label: 'Điểm XP',
                       value: completedLessons,
                       icon: Icons.bolt_rounded,
-                      color: AppColors.success,
+                      color: const Color(0xFF3BB25E), // Keep success green but explicitly or from codeScheme if added
                     ),
                     const SizedBox(width: AppSpacing.md),
                     _buildStatCard(
@@ -179,7 +179,7 @@ class ProfileScreen extends ConsumerWidget {
                       label: 'Streak',
                       value: streak,
                       icon: Icons.local_fire_department_rounded,
-                      color: AppColors.primaryLight,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.7),
                     ),
                   ],
                 ),
@@ -187,14 +187,14 @@ class ProfileScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.info_outline,
-                        color: AppColors.primary,
+                        color: theme.colorScheme.primary,
                         size: 18,
                       ),
                       const SizedBox(width: 12),
@@ -202,7 +202,7 @@ class ProfileScreen extends ConsumerWidget {
                         child: Text(
                           'Giữ streak học tập để nhận thêm điểm thưởng và huy hiệu mới.',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textPrimary,
+                            color: theme.colorScheme.onSurface,
                             fontSize: 12.5,
                           ),
                         ),
@@ -228,10 +228,10 @@ class ProfileScreen extends ConsumerWidget {
                         minimumSize: const Size(0, 32),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text(
+                      child: Text(
                         'Xem tất cả',
                         style: TextStyle(
-                          color: AppColors.primary,
+                          color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -244,7 +244,7 @@ class ProfileScreen extends ConsumerWidget {
                 else if (achievements.isEmpty)
                   Text(
                     'Bạn chưa có thành tựu nào, bắt đầu học để mở khóa huy hiệu nhé!',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textTertiary),
+                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   )
                 else
                   Wrap(
@@ -281,12 +281,12 @@ class ProfileScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.grey300),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: AppColors.textPrimary.withOpacity(0.03),
+              color: theme.shadowColor.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -307,7 +307,7 @@ class ProfileScreen extends ConsumerWidget {
             Text(
               label,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.textTertiary,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -332,20 +332,20 @@ class _BadgeChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.grey300),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: AppColors.primary),
+          Icon(icon, size: 16, color: theme.colorScheme.primary),
           const SizedBox(width: 8),
           Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: theme.colorScheme.onSurface,
             ),
           ),
         ],

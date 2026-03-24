@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 
@@ -100,27 +99,27 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
     final schedulesAsync = ref.watch(liveSchedulesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
       ),
       body: schedulesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
         data: (all) {
           final nearest = _nearestSessions(all, widget.classId);
 
@@ -142,7 +141,7 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
                           'Buổi học gần nhất',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -155,7 +154,7 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
                           'Nội dung học tập',
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -166,13 +165,13 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
                   pinned: true,
                   delegate: _TabBarDelegate(
                     child: Container(
-                      color: AppColors.background,
+                      color: theme.scaffoldBackgroundColor,
                       child: TabBar(
                         isScrollable: true,
                         tabAlignment: TabAlignment.start,
-                        labelColor: AppColors.primary,
-                        unselectedLabelColor: AppColors.textTertiary,
-                        indicatorColor: AppColors.primary,
+                        labelColor: theme.colorScheme.primary,
+                        unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                        indicatorColor: theme.colorScheme.primary,
                         labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -224,23 +223,24 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
   }
 
   Widget _buildInfoBanner() {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.06),
+          color: theme.colorScheme.primary.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.primary.withOpacity(0.15)),
+          border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.15)),
         ),
         child: Row(
           children: [
-            Icon(Icons.videocam_outlined, color: AppColors.primary, size: 22),
+            Icon(Icons.videocam_outlined, color: theme.colorScheme.primary, size: 22),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 'Trọng tâm là các buổi học trực tiếp. Tài liệu video trong lộ trình chỉ hỗ trợ thêm.',
-                style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.4, fontWeight: FontWeight.w600),
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 13, height: 1.4, fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -250,6 +250,7 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
   }
 
   Widget _buildLiveSwiper(List<LiveScheduleModel> sessions) {
+    final theme = Theme.of(context);
     return SizedBox(
       height: 220,
       child: sessions.isEmpty
@@ -273,16 +274,17 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
   }
 
   Widget _buildEmptySwiperCard() {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.grey300),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: AppColors.textPrimary.withOpacity(0.04),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -292,11 +294,11 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.calendar_today_outlined, size: 40, color: AppColors.textTertiary.withOpacity(0.6)),
+              Icon(Icons.calendar_today_outlined, size: 40, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
               const SizedBox(height: 12),
               Text(
                 'Chưa có buổi live trong khung thời gian',
-                style: TextStyle(color: AppColors.textTertiary, fontSize: 13, fontWeight: FontWeight.w600),
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -330,7 +332,7 @@ class _LiveSessionSwiperCard extends StatelessWidget {
     final canJoin = session.canAttemptJoin;
 
     return Material(
-      color: AppColors.surface,
+      color: theme.colorScheme.surface,
       elevation: 0,
       borderRadius: BorderRadius.circular(20),
       clipBehavior: Clip.antiAlias,
@@ -338,12 +340,12 @@ class _LiveSessionSwiperCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isLive ? AppColors.primary.withOpacity(0.4) : AppColors.grey300,
+            color: isLive ? theme.colorScheme.primary.withValues(alpha: 0.4) : theme.colorScheme.outlineVariant,
             width: isLive ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: (isLive ? AppColors.primary : AppColors.textPrimary).withOpacity(0.08),
+              color: (isLive ? theme.colorScheme.primary : theme.colorScheme.onSurface).withValues(alpha: 0.08),
               blurRadius: 14,
               offset: const Offset(0, 4),
             ),
@@ -361,10 +363,10 @@ class _LiveSessionSwiperCard extends StatelessWidget {
                     Image.network(
                       session.courseThumbnail!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _thumbnailPlaceholder(),
+                      errorBuilder: (_, __, ___) => _thumbnailPlaceholder(context),
                     )
                   else
-                    _thumbnailPlaceholder(),
+                    _thumbnailPlaceholder(context),
                   if (isLive)
                     Positioned(
                       top: 10,
@@ -372,11 +374,11 @@ class _LiveSessionSwiperCard extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.destructive,
+                          color: theme.colorScheme.error,
                           borderRadius: BorderRadius.circular(999),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.destructive.withOpacity(0.5),
+                              color: theme.colorScheme.error.withValues(alpha: 0.5),
                               blurRadius: 6,
                             ),
                           ],
@@ -411,7 +413,7 @@ class _LiveSessionSwiperCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.9),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -429,7 +431,7 @@ class _LiveSessionSwiperCard extends StatelessWidget {
                           Text(
                             timeStr,
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: Colors.white.withOpacity(0.95),
+                              color: Colors.white.withValues(alpha: 0.95),
                               fontWeight: FontWeight.w600,
                               fontSize: 10,
                             ),
@@ -461,7 +463,7 @@ class _LiveSessionSwiperCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'GV: ${session.instructorName}',
-                        style: TextStyle(color: AppColors.textTertiary, fontSize: 12, fontWeight: FontWeight.w600),
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w600),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -473,16 +475,16 @@ class _LiveSessionSwiperCard extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: (!canJoin || joining) ? null : onJoin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.textOnPrimary,
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
                         child: joining
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textOnPrimary),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.onPrimary),
                               )
                             : Text(
                                 canJoin ? 'Vào học ngay' : 'Chưa tới giờ',
@@ -500,20 +502,21 @@ class _LiveSessionSwiperCard extends StatelessWidget {
     );
   }
 
-  Widget _thumbnailPlaceholder() {
+  Widget _thumbnailPlaceholder(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary.withOpacity(0.15),
-            AppColors.primary.withOpacity(0.05),
+            theme.colorScheme.primary.withValues(alpha: 0.15),
+            theme.colorScheme.primary.withValues(alpha: 0.05),
           ],
         ),
       ),
       child: Center(
-        child: Icon(Icons.videocam_rounded, size: 48, color: AppColors.primary.withOpacity(0.5)),
+        child: Icon(Icons.videocam_rounded, size: 48, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
       ),
     );
   }
@@ -564,12 +567,12 @@ class _SyllabusTabPane extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: theme.colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.grey300),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.textPrimary.withOpacity(0.04),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -583,10 +586,10 @@ class _SyllabusTabPane extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 28),
+                      child: Icon(Icons.menu_book_rounded, color: theme.colorScheme.primary, size: 28),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -597,13 +600,13 @@ class _SyllabusTabPane extends StatelessWidget {
                             'Lộ trình / Kho VOD',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary,
+                                  color: theme.colorScheme.onSurface,
                                 ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Tài liệu video tham khảo theo chương trình học.',
-                            style: TextStyle(color: AppColors.textTertiary, fontSize: 13, height: 1.35),
+                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13, height: 1.35),
                           ),
                         ],
                       ),
@@ -619,8 +622,8 @@ class _SyllabusTabPane extends StatelessWidget {
                     icon: const Icon(Icons.open_in_new, size: 20),
                     label: const Text('Mở lộ trình', style: TextStyle(fontWeight: FontWeight.w800)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.textOnPrimary,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
@@ -647,26 +650,27 @@ class _PlaceholderTabPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 56, color: AppColors.textTertiary.withOpacity(0.5)),
+            Icon(icon, size: 56, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textSecondary,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textTertiary, fontSize: 14, height: 1.45),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 14, height: 1.45),
             ),
           ],
         ),

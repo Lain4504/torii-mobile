@@ -37,16 +37,16 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'Khám phá khóa học',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimary,
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
@@ -98,10 +98,10 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: AppColors.textPrimary.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Column(
@@ -116,7 +116,7 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(height: 160, color: AppColors.grey200, child: const Icon(Icons.school, size: 48)),
+                  errorBuilder: (_, __, ___) => Container(height: 160, color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3), child: const Icon(Icons.school, size: 48)),
                 ),
               ),
               Positioned(
@@ -164,7 +164,7 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(priceStr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    Text(priceStr, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                     ElevatedButton(
                       onPressed: () {
                         if (isLive) {
@@ -174,8 +174,8 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
