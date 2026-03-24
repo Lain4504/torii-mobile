@@ -869,7 +869,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                         constraints: const BoxConstraints(maxWidth: 160),
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.muted.withValues(alpha: 0.85),
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -877,7 +877,7 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                           style: TextStyle(
                             fontSize: 8,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

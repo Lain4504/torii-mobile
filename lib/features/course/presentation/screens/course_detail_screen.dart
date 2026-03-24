@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/class_catalog_model.dart';
 
@@ -32,7 +31,7 @@ class CourseDetailScreen extends ConsumerWidget {
           return _buildVod(context, theme, detail, bottomSafePadding);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
       ),
     );
   }
@@ -90,7 +89,7 @@ class CourseDetailScreen extends ConsumerWidget {
                       Text(
                         title,
                         style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: AppTypography.extraBold,
+                          fontWeight: FontWeight.w800,
                           letterSpacing: 0.1,
                         ),
                       ),
@@ -102,12 +101,12 @@ class CourseDetailScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildInfoItem(Icons.video_library_outlined, 'VOD'),
+                          _buildInfoItem(context, theme, Icons.video_library_outlined, 'VOD'),
                           Text(
                             priceStr,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: AppTypography.bold,
-                              color: AppColors.primary,
+                              fontWeight: FontWeight.w800,
+                              color: theme.colorScheme.primary,
                             ),
                           ),
                         ],
@@ -116,12 +115,12 @@ class CourseDetailScreen extends ConsumerWidget {
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            const Icon(Icons.person_outline, size: 16, color: AppColors.textTertiary),
+                            Icon(Icons.person_outline, size: 16, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
                                 'Giảng viên: ${item.instructor!['displayName']}',
-                                style: const TextStyle(color: AppColors.grey700, fontSize: 13, fontWeight: FontWeight.w600),
+                                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13, fontWeight: FontWeight.w600),
                               ),
                             ),
                           ],
@@ -131,7 +130,7 @@ class CourseDetailScreen extends ConsumerWidget {
                       Text(
                         'Mô tả khóa học',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: AppTypography.bold,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 0.1,
                         ),
                       ),
@@ -140,14 +139,14 @@ class CourseDetailScreen extends ConsumerWidget {
                         desc.isEmpty ? 'Không có mô tả.' : desc,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           height: 1.6,
-                          color: AppColors.textPrimary,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 20),
                       Text(
                         'Chương trình học',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: AppTypography.bold,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: 0.1,
                         ),
                       ),
@@ -155,10 +154,10 @@ class CourseDetailScreen extends ConsumerWidget {
                       if (detail.modules.isEmpty)
                         Text(
                           'Chương trình học đang được cập nhật.',
-                          style: TextStyle(color: AppColors.grey700, height: 1.5),
+                          style: TextStyle(color: theme.colorScheme.onSurfaceVariant, height: 1.5),
                         )
                       else
-                        ...detail.modules.map((m) => _buildModuleExpansion(m)),
+                        ...detail.modules.map((m) => _buildModuleExpansion(context, theme, m)),
                       SizedBox(height: bottomSafePadding + 100),
                     ],
                   ),
@@ -223,15 +222,15 @@ class CourseDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String text) {
+  Widget _buildInfoItem(BuildContext context, ThemeData theme, IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+        Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
         const SizedBox(width: 4),
         Text(
           text,
-          style: const TextStyle(
-            color: AppColors.grey700,
+          style: TextStyle(
+            color: theme.colorScheme.onSurfaceVariant,
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
@@ -240,27 +239,27 @@ class CourseDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildModuleExpansion(Map<String, dynamic> mod) {
+  Widget _buildModuleExpansion(BuildContext context, ThemeData theme, Map<String, dynamic> mod) {
     final title = mod['title']?.toString() ?? 'Chương';
     final lessons = mod['lessons'];
     final list = lessons is List ? lessons : const [];
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-        subtitle: Text('${list.length} bài học', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
+        subtitle: Text('${list.length} bài học', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
         children: list.isEmpty
             ? [
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text('Chưa có bài học.', style: TextStyle(color: AppColors.grey700, fontSize: 13)),
+                  child: Text('Chưa có bài học.', style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13)),
                 )
               ]
             : list.map<Widget>((l) {
@@ -270,7 +269,7 @@ class CourseDetailScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Row(
                     children: [
-                      const Icon(Icons.play_circle_outline, size: 18, color: AppColors.textTertiary),
+                      Icon(Icons.play_circle_outline, size: 18, color: theme.colorScheme.outline),
                       const SizedBox(width: 10),
                       Expanded(child: Text(lt, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
                     ],

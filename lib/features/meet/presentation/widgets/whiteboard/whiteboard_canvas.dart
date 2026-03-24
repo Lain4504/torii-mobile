@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/whiteboard_provider.dart';
 
 /// Whiteboard Canvas Widget
@@ -71,6 +70,8 @@ class WhiteboardCanvas extends ConsumerWidget {
           appState: appState,
           panOffset: panOffset,
           localZoomFactor: localZoomFactor,
+          gridColor: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.15),
+          defaultStrokeColor: Theme.of(context).colorScheme.onSurface,
         ),
         size: Size.infinite,
       ),
@@ -84,12 +85,16 @@ class WhiteboardElementsPainter extends CustomPainter {
     required this.appState,
     required this.panOffset,
     required this.localZoomFactor,
+    required this.gridColor,
+    required this.defaultStrokeColor,
   });
 
   final String elementsJson;
   final Map<String, dynamic>? appState;
   final Offset panOffset;
   final double localZoomFactor;
+  final Color gridColor;
+  final Color defaultStrokeColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -345,7 +350,7 @@ class WhiteboardElementsPainter extends CustomPainter {
     final strokeWidth = _toDouble(e['strokeWidth'] ?? 2.0);
 
     final strokePaint = Paint()
-      ..color = strokeColor.withOpacity(opacity)
+      ..color = strokeColor.withValues(alpha: opacity)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
     strokePaint.isAntiAlias = true;
@@ -354,7 +359,7 @@ class WhiteboardElementsPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
 
     final fillPaint = Paint()
-      ..color = fillColor.withOpacity(opacity)
+      ..color = fillColor.withValues(alpha: opacity)
       ..style = PaintingStyle.fill;
     fillPaint.isAntiAlias = true;
 
@@ -446,7 +451,7 @@ class WhiteboardElementsPainter extends CustomPainter {
         text: TextSpan(
           text: text,
           style: TextStyle(
-            color: strokeColor.withOpacity(opacity),
+            color: strokeColor.withValues(alpha: opacity),
             fontSize: fontSize,
           ),
         ),
