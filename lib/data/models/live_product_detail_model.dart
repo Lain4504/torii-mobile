@@ -1,5 +1,30 @@
 import 'academy_models.dart';
 
+class LiveEnrollmentSummary {
+  final int activeEnrollmentCount;
+  final int? maxStudents;
+  final int? spotsLeft;
+  final bool isFull;
+
+  const LiveEnrollmentSummary({
+    required this.activeEnrollmentCount,
+    this.maxStudents,
+    this.spotsLeft,
+    required this.isFull,
+  });
+
+  static LiveEnrollmentSummary? tryParse(Object? raw) {
+    if (raw is! Map) return null;
+    final m = raw.cast<String, dynamic>();
+    return LiveEnrollmentSummary(
+      activeEnrollmentCount: (m['activeEnrollmentCount'] as num?)?.toInt() ?? 0,
+      maxStudents: (m['maxStudents'] as num?)?.toInt(),
+      spotsLeft: (m['spotsLeft'] as num?)?.toInt(),
+      isFull: m['isFull'] as bool? ?? false,
+    );
+  }
+}
+
 class LiveClassModel {
   final String id;
   final String code;
@@ -12,6 +37,7 @@ class LiveClassModel {
   final DateTime? enrollmentCloseAt;
   final String? instructorName;
   final String? instructorAvatarUrl;
+  final LiveEnrollmentSummary? liveEnrollment;
 
   const LiveClassModel({
     required this.id,
@@ -25,6 +51,7 @@ class LiveClassModel {
     this.enrollmentCloseAt,
     this.instructorName,
     this.instructorAvatarUrl,
+    this.liveEnrollment,
   });
 
   factory LiveClassModel.fromJson(Map<String, dynamic> json) {
@@ -53,10 +80,25 @@ class LiveClassModel {
       enrollmentCloseAt: enrollmentCloseAt,
       instructorName: displayName,
       instructorAvatarUrl: avatarUrl,
+      liveEnrollment: LiveEnrollmentSummary.tryParse(json['liveEnrollment']),
     );
   }
 
   bool get isLive => mode.toUpperCase() == 'LIVE';
+
+  bool get isLiveCapacityFull => liveEnrollment?.isFull ?? false;
+
+  String? get liveCapacitySubtitle {
+    final le = liveEnrollment;
+    if (le == null) return null;
+    final max = le.maxStudents;
+    final cur = le.activeEnrollmentCount;
+    if (max == null) return '$cur học viên (không giới hạn)';
+    final tail = le.isFull
+        ? ' — Đã đầy'
+        : (le.spotsLeft != null ? ' — Còn ${le.spotsLeft} chỗ' : '');
+    return '$cur/$max học viên$tail';
+  }
 
   bool get isEnrollableNow {
     final now = DateTime.now();
@@ -66,16 +108,16 @@ class LiveClassModel {
   }
 }
 
-class LiveOfferingDetailModel {
-  final CourseOfferingModel offering;
+class LiveProductDetailModel {
+  final AcademyProductModel product;
   final List<LiveClassModel> classes;
 
-  const LiveOfferingDetailModel({
-    required this.offering,
+  const LiveProductDetailModel({
+    required this.product,
     required this.classes,
   });
 
-  factory LiveOfferingDetailModel.fromJson(Map<String, dynamic> json) {
+  factory LiveProductDetailModel.fromJson(Map<String, dynamic> json) {
     final rawClasses = json['siblingClasses'] ?? json['classes'];
     final List<dynamic> list = rawClasses is List ? rawClasses : const [];
 
@@ -98,8 +140,8 @@ class LiveOfferingDetailModel {
         .where((c) => c.id.isNotEmpty)
         .toList();
 
-    return LiveOfferingDetailModel(
-      offering: CourseOfferingModel.fromJson(json),
+    return LiveProductDetailModel(
+      product: AcademyProductModel.fromJson(json),
       classes: classes,
     );
   }

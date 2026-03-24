@@ -30,22 +30,47 @@ class WhiteboardCanvas extends ConsumerWidget {
     final panOffset = ref.watch(
       whiteboardProvider.select((s) => s.panOffset),
     );
+    final localZoomFactor = ref.watch(
+      whiteboardProvider.select((s) => s.localZoomFactor),
+    );
+
+    // Remote appState format (web): { zoomValue, scrollX, scrollY, width, height, ... }
+    double remoteZoom = double.nan;
+    final zv = appState?['zoomValue'];
+    if (zv is num) {
+      remoteZoom = zv.toDouble();
+    } else if (zv is String) {
+      remoteZoom = double.tryParse(zv) ?? double.nan;
+    }
+    final remoteZoomFinite = remoteZoom.isFinite && remoteZoom > 0;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onPanUpdate: (details) {
-        ref.read(whiteboardProvider.notifier).updatePanOffset(details.delta);
+      onScaleUpdate: (details) {
+        final nextLocalZoomFactor = (details.scale != 1.0)
+            ? (localZoomFactor * details.scale).clamp(0.5, 6.0)
+            : localZoomFactor;
+
+        if (nextLocalZoomFactor != localZoomFactor) {
+          ref.read(whiteboardProvider.notifier).setLocalZoomFactor(nextLocalZoomFactor);
+        }
+
+        // Keep panning working together with pinch.
+        final z = remoteZoomFinite ? (remoteZoom * nextLocalZoomFactor) : nextLocalZoomFactor;
+        ref.read(whiteboardProvider.notifier).updatePanOffset(
+              details.focalPointDelta / (z.isFinite && z > 0 ? z : 1.0),
+            );
       },
       onDoubleTap: () {
-        ref.read(whiteboardProvider.notifier).resetPanOffset();
+        // Double tap reset cả pan lẫn zoom local về mặc định.
+        ref.read(whiteboardProvider.notifier).resetLocalView();
       },
       child: CustomPaint(
         painter: WhiteboardElementsPainter(
           elementsJson: elementsJson,
           appState: appState,
           panOffset: panOffset,
-          gridColor: Theme.of(context).dividerColor.withOpacity(0.2),
-          defaultStrokeColor: Theme.of(context).colorScheme.onSurface,
+          localZoomFactor: localZoomFactor,
         ),
         size: Size.infinite,
       ),
@@ -58,15 +83,13 @@ class WhiteboardElementsPainter extends CustomPainter {
     required this.elementsJson,
     required this.appState,
     required this.panOffset,
-    required this.gridColor,
-    required this.defaultStrokeColor,
+    required this.localZoomFactor,
   });
 
   final String elementsJson;
   final Map<String, dynamic>? appState;
   final Offset panOffset;
-  final Color gridColor;
-  final Color defaultStrokeColor;
+  final double localZoomFactor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -86,18 +109,32 @@ class WhiteboardElementsPainter extends CustomPainter {
 
     canvas.save();
 
-    final zoom = _extractZoom(appState);
+    final remoteZoom = _extractZoom(appState);
     final scrollX = _toDouble(appState?['scrollX']);
     final scrollY = _toDouble(appState?['scrollY']);
+    final senderWidth = _toDouble(appState?['width']);
+    final senderHeight = _toDouble(appState?['height']);
+
+    // When receiver canvas size differs from sender, Excalidraw adjusts scroll
+    // so both users are centered on the same scene coordinates.
+    final adjustedScrollX = (remoteZoom.isFinite && remoteZoom > 0 && senderWidth.isFinite)
+        ? scrollX + (size.width - senderWidth) / (2 * remoteZoom)
+        : scrollX;
+    final adjustedScrollY = (remoteZoom.isFinite && remoteZoom > 0 && senderHeight.isFinite)
+        ? scrollY + (size.height - senderHeight) / (2 * remoteZoom)
+        : scrollY;
+
+    final effectiveZoom =
+        (remoteZoom.isFinite && remoteZoom > 0) ? remoteZoom * localZoomFactor : localZoomFactor;
 
     // Excalidraw-like viewport transform:
     // screen = scene * zoom + (center + scroll) + localPan
-    if (zoom.isFinite && zoom > 0 && scrollX.isFinite && scrollY.isFinite) {
+    if (effectiveZoom.isFinite && effectiveZoom > 0 && adjustedScrollX.isFinite && adjustedScrollY.isFinite) {
       canvas.translate(
-        size.width / 2 + scrollX + panOffset.dx,
-        size.height / 2 + scrollY + panOffset.dy,
+        size.width / 2 + adjustedScrollX + panOffset.dx,
+        size.height / 2 + adjustedScrollY + panOffset.dy,
       );
-      canvas.scale(zoom, zoom);
+      canvas.scale(effectiveZoom, effectiveZoom);
     } else {
       // Fallback: fit whole scene (legacy behavior)
       final bounds = _computeBounds(elements);
@@ -163,11 +200,18 @@ class WhiteboardElementsPainter extends CustomPainter {
     if (old is! WhiteboardElementsPainter) return true;
     return old.elementsJson != elementsJson ||
         old.appState != appState ||
-        old.panOffset != panOffset;
+        old.panOffset != panOffset ||
+        old.localZoomFactor != localZoomFactor;
   }
 
   double _extractZoom(Map<String, dynamic>? state) {
     if (state == null) return double.nan;
+    // Web payload key: `zoomValue`
+    final zoomValue = state['zoomValue'];
+    if (zoomValue is num) return zoomValue.toDouble();
+    if (zoomValue is String) return double.tryParse(zoomValue) ?? double.nan;
+
+    // Compatibility: older shape might carry `zoom`
     final zoomRaw = state['zoom'];
     if (zoomRaw is num) return zoomRaw.toDouble();
     if (zoomRaw is Map<String, dynamic>) {
@@ -304,10 +348,15 @@ class WhiteboardElementsPainter extends CustomPainter {
       ..color = strokeColor.withOpacity(opacity)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
+    strokePaint.isAntiAlias = true;
+    strokePaint
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
     final fillPaint = Paint()
       ..color = fillColor.withOpacity(opacity)
       ..style = PaintingStyle.fill;
+    fillPaint.isAntiAlias = true;
 
     if (type == 'rectangle') {
       final x = _toDouble(e['x']);

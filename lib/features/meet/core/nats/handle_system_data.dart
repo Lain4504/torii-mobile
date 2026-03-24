@@ -17,6 +17,7 @@ import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
 import 'package:torii_app/features/meet/providers/insights_ai_text_chat_provider.dart';
 import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
+import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/polls_provider.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/core/notification_sound_service.dart';
@@ -90,6 +91,8 @@ class HandleSystemData {
             typeOption: 'info',
           ),
         );
+        // Show poll badge indicator on mobile footer.
+        ref?.read(bottomIconsProvider.notifier).incrementUnreadPolls();
         _refetchPolls();
         if (kDebugMode) {
           print('HandleSystemData: New poll created');

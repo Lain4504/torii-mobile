@@ -39,6 +39,7 @@ class WhiteboardState {
   final bool isVisible;
   final String tool;
   final Offset panOffset;
+  final double localZoomFactor;
   
   const WhiteboardState({
     this.totalPages = 10,
@@ -56,6 +57,7 @@ class WhiteboardState {
     this.isVisible = false,
     this.tool = 'pencil',
     this.panOffset = Offset.zero,
+    this.localZoomFactor = 1.0,
   });
   
   WhiteboardState copyWith({
@@ -74,6 +76,7 @@ class WhiteboardState {
     bool? isVisible,
     String? tool,
     Offset? panOffset,
+    double? localZoomFactor,
   }) {
     final safePan = (this.panOffset as dynamic) is Offset ? this.panOffset : Offset.zero;
     return WhiteboardState(
@@ -92,6 +95,7 @@ class WhiteboardState {
       isVisible: isVisible ?? this.isVisible,
       tool: tool ?? this.tool,
       panOffset: panOffset ?? safePan,
+      localZoomFactor: localZoomFactor ?? this.localZoomFactor,
     );
   }
 }
@@ -263,6 +267,24 @@ class WhiteboardNotifier extends StateNotifier<WhiteboardState> {
 
   void resetPanOffset() {
     state = state.copyWith(panOffset: Offset.zero);
+  }
+
+  void setLocalZoomFactor(double zoomFactor) {
+    state = state.copyWith(localZoomFactor: zoomFactor);
+  }
+
+  /// Reset local pan to keep receiver aligned with remote viewport.
+  /// Giữ nguyên `localZoomFactor` để người dùng có thể pinch-zoom riêng.
+  void resetLocalPan() {
+    state = state.copyWith(panOffset: Offset.zero);
+  }
+
+  /// Reset local viewport changes (pan/zoom).
+  void resetLocalView() {
+    state = state.copyWith(
+      panOffset: Offset.zero,
+      localZoomFactor: 1.0,
+    );
   }
 }
 

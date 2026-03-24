@@ -1,4 +1,4 @@
-/// Buổi live trên lịch — map từ `/api/academy/live-sessions` + metadata enrollment (parity web-learner).
+/// Buổi live trên lịch — map từ `GET /api/academy/live-sessions/me` (đồng bộ web-learner).
 class LiveScheduleModel {
   final String id;
   final String? classId;
@@ -8,6 +8,8 @@ class LiveScheduleModel {
   final String? instructorName;
   final String? courseTitle;
   final String? courseThumbnail;
+  /// PRESENT | ABSENT | LATE | EXCUSED — null nếu buổi đã qua mà chưa có bản ghi điểm danh.
+  final String? attendanceStatus;
   /// Trạng thái hiển thị: `LIVE` | `SCHEDULED` | `JOINABLE` | `ENDED` (tính theo giờ local).
   final String? status;
   final String? meetingUrl;
@@ -23,6 +25,7 @@ class LiveScheduleModel {
     this.instructorName,
     this.courseTitle,
     this.courseThumbnail,
+    this.attendanceStatus,
     this.status,
     this.meetingUrl,
     this.roomId,
@@ -43,6 +46,7 @@ class LiveScheduleModel {
       instructorName: json['instructorName'] as String?,
       courseTitle: json['courseTitle'] as String? ?? json['className'] as String?,
       courseThumbnail: json['courseThumbnail'] as String?,
+      attendanceStatus: json['attendanceStatus'] as String?,
       status: json['status'] as String?,
       meetingUrl: json['meetingUrl'] as String?,
       roomId: json['roomId'] as String?,
@@ -59,6 +63,7 @@ class LiveScheduleModel {
     String? instructorName,
     String? courseTitle,
     String? courseThumbnail,
+    String? attendanceStatus,
     String? status,
     String? meetingUrl,
     String? roomId,
@@ -73,6 +78,7 @@ class LiveScheduleModel {
       instructorName: instructorName ?? this.instructorName,
       courseTitle: courseTitle ?? this.courseTitle,
       courseThumbnail: courseThumbnail ?? this.courseThumbnail,
+      attendanceStatus: attendanceStatus ?? this.attendanceStatus,
       status: status ?? this.status,
       meetingUrl: meetingUrl ?? this.meetingUrl,
       roomId: roomId ?? this.roomId,

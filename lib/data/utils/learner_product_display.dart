@@ -1,9 +1,10 @@
 import 'package:torii_app/data/models/academy_models.dart';
-import 'package:torii_app/data/models/live_offering_detail_model.dart';
+import 'package:torii_app/data/models/live_product_detail_model.dart';
 
 /// Đồng bộ quy tắc với web-learner (`learner-offering-display.ts`).
-class LearnerOfferingDisplay {
-  const LearnerOfferingDisplay({
+/// Synchronization of rules with web-learner (`compute-learner-product-display.ts`).
+class LearnerProductDisplay {
+  const LearnerProductDisplay({
     required this.learnerDisplayTitle,
     this.learnerMarketingSubtitle,
     this.liveContextLine,
@@ -18,42 +19,42 @@ String _formatOpeningVi(DateTime d) {
   return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 }
 
-LearnerOfferingDisplay computeLearnerOfferingDisplay({
-  required String offeringTitle,
+LearnerProductDisplay computeLearnerProductDisplay({
+  required String productName,
   required String mode,
   String? className,
   String? courseProfileTitle,
-  String? termName,
-  String? termCode,
-  DateTime? termOpeningDate,
-  List<LiveClassModel> classesForTerm = const [],
+  String? cohortName,
+  String? cohortCode,
+  DateTime? cohortOpeningDate,
+  List<LiveClassModel> classesForProduct = const [],
 }) {
   final isLive = mode.toUpperCase() == 'LIVE';
-  final ot = offeringTitle.trim();
+  final pn = productName.trim();
   final cn = (className ?? '').trim();
   final pt = (courseProfileTitle ?? '').trim();
 
   if (isLive) {
     String? liveContextLine;
-    final tn = (termName ?? '').trim();
-    final tc = (termCode ?? '').trim();
-    if (tn.isNotEmpty || tc.isNotEmpty) {
-      liveContextLine = 'Kỳ: ${tn.isNotEmpty ? tn : tc}';
+    final chn = (cohortName ?? '').trim();
+    final chc = (cohortCode ?? '').trim();
+    if (chn.isNotEmpty || chc.isNotEmpty) {
+      liveContextLine = 'Đợt khai giảng: ${chn.isNotEmpty ? chn : chc}';
     } else {
-      var od = termOpeningDate;
-      if (od == null && classesForTerm.isNotEmpty) {
-        od = classesForTerm.first.openingDate;
+      var od = cohortOpeningDate;
+      if (od == null && classesForProduct.isNotEmpty) {
+        od = classesForProduct.first.openingDate;
       }
       if (od != null) {
         liveContextLine = 'Khai giảng: ${_formatOpeningVi(od)}';
       }
     }
 
-    final title = ot.isNotEmpty
-        ? ot
+    final title = pn.isNotEmpty
+        ? pn
         : (pt.isNotEmpty ? pt : (cn.isNotEmpty ? cn : 'Khóa học'));
 
-    return LearnerOfferingDisplay(
+    return LearnerProductDisplay(
       learnerDisplayTitle: title,
       learnerMarketingSubtitle: null,
       liveContextLine: liveContextLine,
@@ -62,29 +63,29 @@ LearnerOfferingDisplay computeLearnerOfferingDisplay({
 
   final display = cn.isNotEmpty
       ? cn
-      : (pt.isNotEmpty ? pt : (ot.isNotEmpty ? ot : 'Khóa học'));
-  final subtitle = cn.isNotEmpty && ot.isNotEmpty && cn != ot ? ot : null;
+      : (pt.isNotEmpty ? pt : (pn.isNotEmpty ? pn : 'Khóa học'));
+  final subtitle = cn.isNotEmpty && pn.isNotEmpty && cn != pn ? pn : null;
 
-  return LearnerOfferingDisplay(
+  return LearnerProductDisplay(
     learnerDisplayTitle: display,
     learnerMarketingSubtitle: subtitle,
     liveContextLine: null,
   );
 }
 
-extension CourseOfferingModelLearnerDisplay on CourseOfferingModel {
-  LearnerOfferingDisplay learnerOfferingDisplay({
+extension AcademyProductModelLearnerDisplay on AcademyProductModel {
+  LearnerProductDisplay learnerProductDisplay({
     List<LiveClassModel> liveClasses = const [],
   }) {
-    return computeLearnerOfferingDisplay(
-      offeringTitle: title,
+    return computeLearnerProductDisplay(
+      productName: name,
       mode: mode,
       className: className,
       courseProfileTitle: courseProfileTitle,
-      termName: termName,
-      termCode: termCode,
-      termOpeningDate: termOpeningDate,
-      classesForTerm: liveClasses,
+      cohortName: cohortName,
+      cohortCode: cohortCode,
+      cohortOpeningDate: cohortStartDate,
+      classesForProduct: liveClasses,
     );
   }
 }

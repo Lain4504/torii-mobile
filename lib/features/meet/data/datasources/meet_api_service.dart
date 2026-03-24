@@ -330,11 +330,80 @@ class MeetApiService {
           'roomTitle': 'Mobile Meeting',
           'welcomeMessage': 'Welcome from Torii Mobile!',
           'roomFeatures': {
+            // Keep this aligned with web `getDefaultRoomInfo()` so backend
+            // grants the same capabilities (chat/polls/whiteboard/etc).
             'allowWebcams': true,
             'muteOnStart': false,
             'allowScreenShare': true,
+            'allowRtmp': true,
+            'adminOnlyWebcams': false,
+            'allowViewOtherWebcams': true,
+            'allowViewOtherUsersList': true,
+            'roomDuration': '0',
+            'enableAnalytics': true,
+            'allowVirtualBg': true,
             'allowRaiseHand': true,
-            'chatFeatures': {'isAllow': true},
+            'recordingFeatures': {
+              'isAllow': true,
+              'isAllowCloud': true,
+              'isAllowLocal': true,
+              'enableAutoCloudRecording': false,
+              'onlyRecordAdminWebcams': false,
+            },
+            'chatFeatures': {
+              'isAllow': true,
+              'isAllowFileUpload': true,
+              'maxFileSize': '50',
+              'allowedFileTypes': ['jpg', 'png', 'zip', 'pdf'],
+            },
+            'whiteboardFeatures': {
+              'isAllow': true,
+            },
+            'externalMediaPlayerFeatures': {
+              'isAllow': true,
+            },
+            'waitingRoomFeatures': {
+              'isActive': true,
+            },
+            'breakoutRoomFeatures': {
+              'isAllow': true,
+              'allowedNumberRooms': 6,
+            },
+            'displayExternalLinkFeatures': {
+              'isAllow': true,
+            },
+            'ingressFeatures': {
+              'isAllow': true,
+            },
+            'pollsFeatures': {
+              'isAllow': true,
+            },
+            'insightsFeatures': {
+              'isAllow': true,
+              'transcriptionFeatures': {
+                'isAllow': true,
+                'isAllowTranslation': true,
+                'isAllowSpeechSynthesis': true,
+              },
+              'chatTranslationFeatures': {
+                'isAllow': true,
+              },
+              'aiFeatures': {
+                'isAllow': true,
+                'aiTextChatFeatures': {
+                  'isAllow': true,
+                },
+                'meetingSummarizationFeatures': {
+                  'isAllow': true,
+                },
+              }
+            },
+            'endToEndEncryptionFeatures': {
+              'isEnabled': false,
+              'includedChatMessages': false,
+              'includedWhiteboard': false,
+              'enabledSelfInsertEncryptionKey': false,
+            },
           }
         }
       };
@@ -372,6 +441,9 @@ class MeetApiService {
           'user_id': userId,
           'user_metadata': {
             'extra_data': {'client': 'mobile'},
+            // Mirror web/live_schedule permission logic.
+            // Backend uses `user_metadata.is_admin` to derive capabilities/roles.
+            'is_admin': isAdmin,
           },
         }
       };

@@ -1,28 +1,28 @@
 import 'academy_models.dart';
-import 'live_offering_detail_model.dart';
+import 'live_product_detail_model.dart';
 
-class CourseOfferingDetailModel {
-  final CourseOfferingModel offering;
+class AcademyProductDetailModel {
+  final AcademyProductModel product;
   final List<CurriculumModuleModel> modules;
   final String? instructorName;
   final List<LiveClassModel> siblingClasses;
 
-  const CourseOfferingDetailModel({
-    required this.offering,
+  const AcademyProductDetailModel({
+    required this.product,
     required this.modules,
     this.instructorName,
     this.siblingClasses = const [],
   });
 
-  factory CourseOfferingDetailModel.fromJson(Map<String, dynamic> json) {
+  factory AcademyProductDetailModel.fromJson(Map<String, dynamic> json) {
     // The gateway may wrap detail in many shapes; keep it defensive.
-    final offering = CourseOfferingModel.fromJson(json);
+    final product = AcademyProductModel.fromJson(json);
 
     // Try to locate curriculum modules
     final modules = <CurriculumModuleModel>[];
     
-    // Modern structure: courseProfile is at top level or inside offering
-    final profile = json['courseProfile'] ?? json['offering']?['courseProfile'];
+    // Modern structure: courseProfile is at top level or inside product
+    final profile = json['courseProfile'] ?? json['product']?['courseProfile'] ?? json['offering']?['courseProfile'];
     
     if (profile is Map) {
       final rawModules = profile['modules'];
@@ -68,8 +68,8 @@ class CourseOfferingDetailModel {
             .toList()
         : <LiveClassModel>[];
 
-    return CourseOfferingDetailModel(
-      offering: offering,
+    return AcademyProductDetailModel(
+      product: product,
       modules: modules..sort((a, b) => a.orderIndex.compareTo(b.orderIndex)),
       instructorName: instructorName,
       siblingClasses: siblingClasses,
@@ -145,8 +145,8 @@ class CurriculumLessonModel {
 }
 
 String? _findInstructorName(Map<String, dynamic> json) {
-  final offering = json['offering'] ?? json;
-  final instructor = offering['instructor'] ?? offering['class']?['instructor'];
+  final product = json['product'] ?? json['offering'] ?? json;
+  final instructor = product['instructor'] ?? product['class']?['instructor'];
   if (instructor is Map) {
     final name = instructor['displayName'];
     if (name != null) return name.toString();
