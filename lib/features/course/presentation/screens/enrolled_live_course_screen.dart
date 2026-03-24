@@ -250,6 +250,7 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
   }
 
   Widget _buildLiveSwiper(List<LiveScheduleModel> sessions) {
+    final theme = Theme.of(context);
     return SizedBox(
       height: 220,
       child: sessions.isEmpty
