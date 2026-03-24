@@ -60,6 +60,10 @@ class HandleWhiteboard {
       case DataMsgBodyType.WHITEBOARD_APP_STATE_CHANGE:
         // Update Excalidraw app state (only if not presenter)
         if (!_isCurrentUserPresenter()) {
+          // Khi presenter (web) thay đổi viewport (zoom/scroll),
+          // receiver phải reset pan/zoom cục bộ để tránh lệch vị trí.
+          // Giữ localZoomFactor để hỗ trợ pinch-zoom trên mobile.
+          ref?.read(whiteboardProvider.notifier).resetLocalPan();
           try {
             // Parse JSON app state
             // final appState = jsonDecode(payload.message);

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../chat/chat_bottom_sheet.dart';
 import '../participants/participants_bottom_sheet.dart';
 import '../settings/settings_bottom_sheet.dart';
-import '../polls/polls_bottom_sheet.dart';
 import '../translation/translation_bottom_sheet.dart';
 import '../insights_ai/insights_ai_bottom_sheet.dart';
 import '../waiting_room/waiting_room_bottom_sheet.dart';
@@ -44,32 +42,6 @@ class MoreOptionsButton extends ConsumerWidget {
           children: [
             _buildMenuItem(
               context,
-              icon: Icons.chat,
-              title: 'Chat',
-              onTap: () {
-                Navigator.pop(context);
-                showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (ctx) {
-                    final mq = MediaQuery.of(ctx);
-                    final kb = mq.viewInsets.bottom;
-                    final visibleH = mq.size.height - kb;
-                    final sheetH = (visibleH * 0.78).clamp(240.0, mq.size.height);
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: kb),
-                      child: SizedBox(
-                        height: sheetH,
-                        child: const ChatBottomSheet(),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-            _buildMenuItem(
-              context,
               icon: Icons.people,
               title: 'Participants',
               onTap: () {
@@ -79,20 +51,6 @@ class MoreOptionsButton extends ConsumerWidget {
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (context) => const ParticipantsBottomSheet(),
-                );
-              },
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.poll,
-              title: 'Polls',
-              onTap: () {
-                Navigator.pop(context);
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => const PollsBottomSheet(),
                 );
               },
             ),

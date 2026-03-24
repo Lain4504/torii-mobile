@@ -6,6 +6,8 @@ import 'screen_share_button.dart';
 import 'raise_hand_button.dart';
 import 'leave_button.dart';
 import 'more_options_button.dart';
+import 'chat_button.dart';
+import 'polls_button.dart';
 
 /// Control Bar Widget
 /// Shows mic, camera, screen share, leave, and more options buttons
@@ -16,6 +18,7 @@ class ControlBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isMobile = MediaQuery.of(context).size.width < 768;
+    final gap = isMobile ? 5.0 : 12.0;
 
     return SafeArea(
       top: false,
@@ -25,17 +28,21 @@ class ControlBar extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const MicButton(),
-            SizedBox(width: isMobile ? 7 : 12),
+            SizedBox(width: gap),
             const CameraButton(),
-            SizedBox(width: isMobile ? 7 : 12),
+            SizedBox(width: gap),
             if (!isMobile) ...[
               const ScreenShareButton(),
-              const SizedBox(width: 12),
+              SizedBox(width: gap),
             ],
             const RaiseHandButton(),
-            SizedBox(width: isMobile ? 7 : 12),
+            SizedBox(width: gap),
+            const ChatButton(),
+            SizedBox(width: gap),
+            const PollsButton(),
+            SizedBox(width: gap),
             const MoreOptionsButton(),
-            SizedBox(width: isMobile ? 7 : 12),
+            SizedBox(width: gap),
             const LeaveButton(),
           ],
         ),

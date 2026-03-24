@@ -1,8 +1,8 @@
-/// Course offering from GET /api/academy/course-offerings/public
-class CourseOfferingModel {
+/// Academic product (VOD Package / Cohort) from GET /api/academy/cohorts/public or vod-packages/public
+class AcademyProductModel {
   final String id;
   final String code;
-  final String title;
+  final String name;
   final String? description;
   final double price;
   final double? salePrice;
@@ -12,19 +12,20 @@ class CourseOfferingModel {
   final String? thumbnailUrl;
   final String? slug;
   final String? courseProfileId;
-  final String? termId;
+  final String? cohortId;
+  final String? vodPackageId;
 
-  /// Từ `class` (API public offering) — dùng cho tiêu đề hiển thị VOD.
+  /// From `class` (legacy support or single class mode)
   final String? className;
   final String? courseProfileTitle;
-  final String? termName;
-  final String? termCode;
-  final DateTime? termOpeningDate;
+  final String? cohortName;
+  final String? cohortCode;
+  final DateTime? cohortStartDate;
 
-  const CourseOfferingModel({
+  const AcademyProductModel({
     required this.id,
     required this.code,
-    required this.title,
+    required this.name,
     this.description,
     required this.price,
     this.salePrice,
@@ -34,15 +35,16 @@ class CourseOfferingModel {
     this.thumbnailUrl,
     this.slug,
     this.courseProfileId,
-    this.termId,
+    this.cohortId,
+    this.vodPackageId,
     this.className,
     this.courseProfileTitle,
-    this.termName,
-    this.termCode,
-    this.termOpeningDate,
+    this.cohortName,
+    this.cohortCode,
+    this.cohortStartDate,
   });
 
-  factory CourseOfferingModel.fromJson(Map<String, dynamic> json) {
+  factory AcademyProductModel.fromJson(Map<String, dynamic> json) {
     String? className;
     final c = json['class'];
     if (c is Map) {
@@ -59,26 +61,26 @@ class CourseOfferingModel {
       if (t != null && t.isNotEmpty) courseProfileTitle = t;
     }
 
-    String? termName;
-    String? termCode;
-    DateTime? termOpeningDate;
-    final term = json['term'];
-    if (term is Map) {
-      final tm = Map<String, dynamic>.from(term);
-      final n = tm['name']?.toString();
-      final co = tm['code']?.toString();
-      if (n != null && n.isNotEmpty) termName = n;
-      if (co != null && co.isNotEmpty) termCode = co;
-      final od = tm['openingDate'];
-      if (od != null) {
-        termOpeningDate = DateTime.tryParse(od.toString());
+    String? cohortName;
+    String? cohortCode;
+    DateTime? cohortStartDate;
+    final cohort = json['cohort'] ?? json['product'];
+    if (cohort is Map) {
+      final cm = Map<String, dynamic>.from(cohort);
+      final n = cm['name']?.toString();
+      final co = cm['code']?.toString();
+      if (n != null && n.isNotEmpty) cohortName = n;
+      if (co != null && co.isNotEmpty) cohortCode = co;
+      final sd = cm['startDate'] ?? cm['openingDate'];
+      if (sd != null) {
+        cohortStartDate = DateTime.tryParse(sd.toString());
       }
     }
 
-    return CourseOfferingModel(
+    return AcademyProductModel(
       id: (json['id'] ?? '').toString(),
       code: json['code'] as String? ?? '',
-      title: (json['title'] ?? '').toString(),
+      name: (json['name'] ?? json['title'] ?? '').toString(),
       description: json['description'] as String?,
       price: _parseNum(json['price']).toDouble(),
       salePrice: _parseNumOrNull(json['salePrice'])?.toDouble(),
@@ -88,12 +90,13 @@ class CourseOfferingModel {
       thumbnailUrl: json['thumbnailUrl'] as String?,
       slug: json['slug'] as String?,
       courseProfileId: json['courseProfileId']?.toString(),
-      termId: json['termId']?.toString(),
+      cohortId: json['cohortId']?.toString(),
+      vodPackageId: json['vodPackageId']?.toString(),
       className: className,
       courseProfileTitle: courseProfileTitle,
-      termName: termName,
-      termCode: termCode,
-      termOpeningDate: termOpeningDate,
+      cohortName: cohortName,
+      cohortCode: cohortCode,
+      cohortStartDate: cohortStartDate,
     );
   }
 
@@ -119,7 +122,7 @@ class EnrollmentModel {
   final String userId;
   final DateTime? expiresAt;
   final String status;
-  final String? offeringId;
+  final String? productId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? courseTitle;
@@ -131,7 +134,7 @@ class EnrollmentModel {
   final int? completedLessons;
   final int? totalLessons;
 
-  /// `LIVE` | `VOD` | … từ offering/class (dùng lọc lịch live).
+  /// `LIVE` | `VOD` | … từ product/class (dùng lọc lịch live).
   final String? mode;
 
   const EnrollmentModel({
@@ -140,7 +143,7 @@ class EnrollmentModel {
     required this.userId,
     this.expiresAt,
     required this.status,
-    this.offeringId,
+    this.productId,
     required this.createdAt,
     required this.updatedAt,
     this.courseTitle,
@@ -177,7 +180,7 @@ class EnrollmentModel {
           ? DateTime.tryParse(json['expiresAt'].toString())
           : null,
       status: json['status'] as String? ?? 'ACTIVE',
-      offeringId: json['offeringId'] as String?,
+      productId: json['productId']?.toString(),
       createdAt: DateTime.tryParse(createdAtRaw?.toString() ?? '') ?? fallbackDate,
       updatedAt: DateTime.tryParse(updatedAtRaw?.toString() ?? '') ?? fallbackDate,
       courseTitle: json['courseTitle'] as String?,

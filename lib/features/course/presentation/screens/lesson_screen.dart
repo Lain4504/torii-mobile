@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
-import 'package:torii_app/data/models/course_offering_detail_model.dart';
+import 'package:torii_app/data/models/comment_model.dart';
+import 'package:torii_app/data/models/academy_product_detail_model.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:video_player/video_player.dart';
 
 class LessonScreen extends ConsumerStatefulWidget {
@@ -22,11 +24,21 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
   ChewieController? _chewieController;
   bool _autoMarkedComplete = false;
 
+  bool _discussionLoading = false;
+  String? _discussionError;
+  List<CommentModel> _topics = [];
+  String? _expandedTopicId;
+  final Map<String, String> _replyDrafts = {};
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _initVideo();
+    // Load discussions after first render to make sure `widget.lesson` and providers are ready.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshDiscussionIfPossible();
+    });
   }
 
   @override
@@ -34,6 +46,12 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
     super.didUpdateWidget(oldWidget);
     if (oldWidget.lesson?['id'] != widget.lesson?['id']) {
       _autoMarkedComplete = false;
+    }
+
+    final oldClassId = (oldWidget.lesson?['classId'] ?? '').toString();
+    final newClassId = (widget.lesson?['classId'] ?? '').toString();
+    if (oldClassId.isNotEmpty && oldClassId != newClassId) {
+      _refreshDiscussionIfPossible();
     }
     if (oldWidget.lesson?['videoUrl'] != widget.lesson?['videoUrl'] ||
         oldWidget.lesson?['type'] != widget.lesson?['type']) {
@@ -169,9 +187,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
 
   void _openSyllabusSheet() {
     final lesson = widget.lesson ?? const <String, dynamic>{};
-    final offeringId = (lesson['offeringId'] ?? '').toString();
-    if (offeringId.isEmpty) return;
     final classId = (lesson['classId'] ?? '').toString();
+    if (classId.isEmpty) return;
     final progressDisabled = lesson['progressDisabled'] == true;
     final currentLessonId = (lesson['id'] ?? '').toString();
 
@@ -218,7 +235,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                   ),
                   const Divider(height: 1),
                   Expanded(
-                    child: ref.watch(courseOfferingDetailRichProvider(offeringId)).when(
+                    child: ref.watch(classCatalogDetailProvider(classId)).when(
                           loading: () => const Center(child: CircularProgressIndicator()),
                           error: (e, _) => Center(child: Text('Lỗi: $e', style: const TextStyle(color: AppColors.error))),
                           data: (detail) {
@@ -226,12 +243,15 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                               return const Center(child: Text('Không có dữ liệu lộ trình'));
                             }
                             final useProgress = !progressDisabled && classId.isNotEmpty;
+                            final modules = detail.modules
+                                .map((m) => CurriculumModuleModel.fromJson(m))
+                                .toList();
                             final completedIds = useProgress
                                 ? (ref.watch(classCompletedLessonIdsProvider(classId)).value ?? const [])
                                 : const <String>[];
                             final completed = completedIds.toSet();
                             final lessonOrder = <CurriculumLessonModel>[
-                              for (final m in detail.modules) ...m.lessons,
+                              for (final m in modules) ...m.lessons,
                             ];
                             final lessonIndexById = <String, int>{
                               for (int i = 0; i < lessonOrder.length; i++) lessonOrder[i].id: i,
@@ -242,7 +262,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                               controller: scrollController,
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                               children: [
-                                for (final module in detail.modules)
+                                for (final module in modules)
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 12),
                                     child: Theme(
@@ -295,7 +315,6 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
                                                 return;
                                               }
                                               final payload = _syllabusLessonPayload(
-                                                offeringId: offeringId,
                                                 classId: classId.isNotEmpty ? classId : null,
                                                 progressDisabled: progressDisabled,
                                                 lesson: cl,
@@ -334,7 +353,6 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
     final typeUpper = typeRaw.toUpperCase();
     final article = lesson['article'] as Map<String, dynamic>?;
     final nextLesson = lesson['nextLesson'] as Map<String, dynamic>?;
-    final offeringId = (lesson['offeringId'] ?? '').toString();
     final classId = (lesson['classId'] ?? '').toString();
     final progressDisabled = lesson['progressDisabled'] == true;
     final videoUrl = lesson['videoUrl'] as String?;
@@ -361,7 +379,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
           IconButton(
             tooltip: 'Mục lục — chương trình học',
             icon: const Icon(Icons.list_alt_outlined, color: AppColors.textPrimary),
-            onPressed: offeringId.isEmpty ? null : _openSyllabusSheet,
+            onPressed: classId.isEmpty ? null : _openSyllabusSheet,
           ),
         ],
       ),
@@ -404,7 +422,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
               children: [
                 _buildContentTab(type: typeRaw, article: article, videoUrl: videoUrl),
                 _buildPlaceholderTab('Tài liệu sẽ được cập nhật'),
-                _buildPlaceholderTab('Khu vực thảo luận bài học'),
+                _buildDiscussionTab(),
               ],
             ),
           ),
@@ -891,6 +909,322 @@ class _LessonScreenState extends ConsumerState<LessonScreen> with SingleTickerPr
   Widget _buildPlaceholderTab(String text) {
     return Center(child: Text(text, style: TextStyle(color: AppColors.textTertiary)));
   }
+
+  Future<void> _refreshDiscussionIfPossible() async {
+    final lessonId = (widget.lesson?['id'] ?? '').toString();
+    if (lessonId.isEmpty) return;
+
+    final authState = ref.read(authStateProvider).valueOrNull;
+    if (authState == null || !authState.isAuthenticated || authState.user == null) {
+      // Not logged in: keep discussions hidden.
+      return;
+    }
+
+    setState(() {
+      _discussionLoading = true;
+      _discussionError = null;
+    });
+
+    try {
+      final repo = ref.read(commentRepositoryProvider);
+      final topics = await repo.getDiscussionTopics(classId: lessonId, page: 1, limit: 100);
+      setState(() {
+        _topics = topics;
+        _discussionLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _discussionError = e.toString();
+        _discussionLoading = false;
+      });
+    }
+  }
+
+  Future<void> _createTopic({
+    required String title,
+    required String content,
+  }) async {
+    final lessonId = (widget.lesson?['id'] ?? '').toString();
+    if (lessonId.isEmpty) return;
+
+    final authState = ref.read(authStateProvider).valueOrNull;
+    final userId = authState?.user?.id;
+    if (userId == null) return;
+
+    await ref.read(commentRepositoryProvider).createTopic(
+      classId: lessonId,
+      userId: userId,
+      title: title,
+      content: content,
+    );
+
+    await _refreshDiscussionIfPossible();
+  }
+
+  Future<void> _replyToTopic({
+    required String topicId,
+    required String content,
+  }) async {
+    final lessonId = (widget.lesson?['id'] ?? '').toString();
+    if (lessonId.isEmpty) return;
+
+    final authState = ref.read(authStateProvider).valueOrNull;
+    final userId = authState?.user?.id;
+    if (userId == null) return;
+
+    await ref.read(commentRepositoryProvider).replyToTopic(
+      classId: lessonId,
+      userId: userId,
+      parentId: topicId,
+      content: content,
+    );
+
+    setState(() {
+      _replyDrafts[topicId] = '';
+    });
+    await _refreshDiscussionIfPossible();
+  }
+
+  Widget _buildDiscussionTab() {
+    final lessonId = (widget.lesson?['id'] ?? '').toString();
+    final authState = ref.watch(authStateProvider).valueOrNull;
+    final isAuthed = authState != null && authState.isAuthenticated && authState.user != null;
+
+    if (lessonId.isEmpty) {
+      return Center(
+        child: Text('Thiếu lessonId để tải thảo luận.', style: TextStyle(color: AppColors.textTertiary)),
+      );
+    }
+
+    if (!isAuthed) {
+      return Center(
+        child: Text('Đăng nhập để xem và trả lời thảo luận.', style: TextStyle(color: AppColors.textTertiary)),
+      );
+    }
+
+    if (_discussionLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_discussionError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'Không thể tải thảo luận: $_discussionError',
+            style: TextStyle(color: AppColors.error),
+          ),
+        ),
+      );
+    }
+
+    if (_topics.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+                  const Icon(Icons.message_outlined, size: 52, color: AppColors.textTertiary),
+              const SizedBox(height: 12),
+              const Text('Chưa có thảo luận nào', style: TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              const Text('Hãy đặt câu hỏi để nhận phản hồi từ lecture/staff.', textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  String title = '';
+                  String content = '';
+                  await showDialog(
+                    context: context,
+                    builder: (ctx) {
+                      final titleCtrl = TextEditingController();
+                      final contentCtrl = TextEditingController();
+                      return AlertDialog(
+                        title: const Text('Đặt câu hỏi'),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              TextField(
+                                controller: titleCtrl,
+                                decoration: const InputDecoration(labelText: 'Tiêu đề'),
+                              ),
+                              TextField(
+                                controller: contentCtrl,
+                                decoration: const InputDecoration(labelText: 'Nội dung'),
+                                minLines: 3,
+                                maxLines: 6,
+                              ),
+                            ],
+                          ),
+                        ),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Hủy')),
+                          TextButton(
+                            onPressed: () {
+                              title = titleCtrl.text;
+                              content = contentCtrl.text;
+                              Navigator.of(ctx).pop();
+                            },
+                            child: const Text('Gửi'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (title.trim().isEmpty || content.trim().isEmpty) return;
+                  await _createTopic(title: title.trim(), content: content.trim());
+                },
+                child: const Text('Đặt câu hỏi'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refreshDiscussionIfPossible,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _topics.length,
+        itemBuilder: (ctx, i) {
+          final topic = _topics[i];
+          final expanded = _expandedTopicId == topic.id;
+          final topicTitle = topicTitleFrom(topic.content);
+
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _expandedTopicId = expanded ? null : topic.id;
+                      });
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            topicTitle,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                        if (topic.status == 'ANSWERED')
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Text(
+                              'Đã trả lời',
+                              style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.success),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(topic.content, style: TextStyle(color: AppColors.textPrimary.withOpacity(0.85))),
+
+                  if (expanded) ...[
+                    const SizedBox(height: 12),
+                    if ((topic.replies.isEmpty))
+                      Text('Chưa có phản hồi nào.', style: TextStyle(color: AppColors.textTertiary)),
+                    if (topic.replies.isNotEmpty) ...[
+                      const Text('Phản hồi', style: TextStyle(fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: topic.replies
+                            .map((r) => _renderComment(r, depth: 1))
+                            .toList(),
+                      ),
+                    ],
+
+                    const SizedBox(height: 12),
+                    const Text('Trả lời', style: TextStyle(fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: TextEditingController(text: _replyDrafts[topic.id] ?? ''),
+                      onChanged: (v) {
+                        _replyDrafts[topic.id] = v;
+                      },
+                      minLines: 3,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        hintText: 'Viết câu trả lời...',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            final text = (_replyDrafts[topic.id] ?? '').trim();
+                            if (text.isEmpty) return;
+                            await _replyToTopic(topicId: topic.id, content: text);
+                          },
+                          child: const Text('Gửi trả lời'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _renderComment(CommentModel comment, {required int depth}) {
+    final indent = depth * 12.0;
+    final children = comment.replies;
+    return Padding(
+      padding: EdgeInsets.only(left: indent, top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.grey200.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.grey200),
+            ),
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  comment.author?.displayName ?? 'Unknown',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 6),
+                Text(comment.content, style: TextStyle(color: AppColors.textPrimary.withOpacity(0.85))),
+              ],
+            ),
+          ),
+          if (children.isNotEmpty && depth < 2)
+            ...children.map((c) => _renderComment(c, depth: depth + 1)).toList(),
+        ],
+      ),
+    );
+  }
+
+  String topicTitleFrom(String content) {
+    return content.split('\n').firstWhere((e) => e.trim().isNotEmpty, orElse: () => 'Không có tiêu đề').trim();
+  }
 }
 
 bool _syllabusIsTrackable(CurriculumLessonModel l) {
@@ -912,14 +1246,12 @@ bool _syllabusEffectiveUnlocked({
 }
 
 Map<String, dynamic> _syllabusLessonPayload({
-  required String offeringId,
   required CurriculumLessonModel lesson,
   CurriculumLessonModel? nextLesson,
   String? classId,
   bool progressDisabled = false,
 }) {
   return <String, dynamic>{
-    'offeringId': offeringId,
     if (classId != null && classId.isNotEmpty) 'classId': classId,
     if (progressDisabled) 'progressDisabled': true,
     'id': lesson.id,
@@ -932,7 +1264,6 @@ Map<String, dynamic> _syllabusLessonPayload({
     },
     if (nextLesson != null)
       'nextLesson': <String, dynamic>{
-        'offeringId': offeringId,
         if (classId != null && classId.isNotEmpty) 'classId': classId,
         if (progressDisabled) 'progressDisabled': true,
         'id': nextLesson.id,

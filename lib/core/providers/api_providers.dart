@@ -4,16 +4,15 @@ import '../../data/repositories/blog_repository.dart';
 import '../../data/repositories/academy_repository.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../data/repositories/gamification_repository.dart' show GamificationRepository, LeaderboardData;
+import '../../data/repositories/comment_repository.dart';
 import '../../data/models/blog_model.dart';
 import '../../data/models/academy_models.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/models/gamification_models.dart';
 import '../../data/models/live_schedule_model.dart';
-import '../../data/models/course_offering_detail_model.dart';
-import '../../data/models/live_offering_detail_model.dart';
+import '../../data/models/class_catalog_model.dart';
 import '../../data/models/checkout_models.dart';
 import '../../data/models/study_set_models.dart';
-import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/auth/models/auth_state.dart';
@@ -50,6 +49,10 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
   return NotificationRepository(ref.watch(dioForApiProvider));
 });
 
+final commentRepositoryProvider = Provider<CommentRepository>((ref) {
+  return CommentRepository(ref.watch(dioForApiProvider));
+});
+
 final gamificationRepositoryProvider = Provider<GamificationRepository>((ref) {
   return GamificationRepository(ref.watch(dioForApiProvider));
 });
@@ -70,10 +73,33 @@ final blogDetailByIdProvider = FutureProvider.family<BlogModel?, String>((ref, i
   return repo.getBlogById(id);
 });
 
-// ---------- Academy data ----------
-final publicCourseOfferingsProvider = FutureProvider<List<CourseOfferingModel>>((ref) async {
+// ---------- Academy data (catalog theo lớp) ----------
+String _catalogMonthYYYYMM() {
+  final n = DateTime.now();
+  return '${n.year}-${n.month.toString().padLeft(2, '0')}';
+}
+
+/// LIVE — kỳ trong tháng hiện tại (backend filter theo `month`).
+final classCatalogLiveProvider =
+    FutureProvider.autoDispose.family<List<ClassCatalogItemModel>, String?>((ref, level) async {
   final repo = ref.watch(academyRepositoryProvider);
-  return repo.getPublicCourseOfferings();
+  return repo.getPublicClassCatalog(
+    mode: 'LIVE',
+    level: level,
+    month: _catalogMonthYYYYMM(),
+  );
+});
+
+final classCatalogVodProvider =
+    FutureProvider.autoDispose.family<List<ClassCatalogItemModel>, String?>((ref, level) async {
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getPublicClassCatalog(mode: 'VOD', level: level);
+});
+
+final classCatalogDetailProvider =
+    FutureProvider.autoDispose.family<ClassCatalogDetailModel?, String>((ref, classId) async {
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getPublicClassCatalogById(classId);
 });
 
 final myEnrollmentsProvider = FutureProvider<PaginatedResponse<EnrollmentModel>>((ref) async {
@@ -108,41 +134,6 @@ final myOrdersProvider = FutureProvider<PaginatedResponse<OrderModel>>((ref) asy
 final orderDetailProvider = FutureProvider.family<OrderModel?, String>((ref, id) async {
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getMyOrderById(id);
-});
-
-final courseOfferingDetailProvider = FutureProvider.family<CourseOfferingModel?, String>((ref, id) async {
-  final repo = ref.watch(academyRepositoryProvider);
-  return repo.getPublicCourseOfferingById(id);
-});
-
-final courseOfferingDetailRichProvider = FutureProvider.family<CourseOfferingDetailModel?, String>((ref, id) async {
-  final repo = ref.watch(academyRepositoryProvider);
-  final response = await repo.getPublicCourseOfferingById(id);
-  if (response == null) return null;
-
-  // Fetch raw detail again to extract curriculum/modules (since CourseOfferingModel is flat)
-  // We reuse Dio from repo and rely on repository method for the raw map shape.
-  // AcademyRepository already does the GET; but we need the raw JSON to parse curriculum.
-  final dio = ref.watch(dioForApiProvider);
-  final res = await dio.get<Map<String, dynamic>>('/api/academy/course-offerings/public/$id');
-  final api = ApiResponse<Map<String, dynamic>>.fromJson(res.data ?? {});
-  if (!api.success || api.data == null) {
-    return CourseOfferingDetailModel(offering: response, modules: const []);
-  }
-  final raw = api.data!;
-  final item = raw['item'] ?? raw['data'] ?? raw;
-  if (item is Map<String, dynamic>) {
-    return CourseOfferingDetailModel.fromJson(item);
-  }
-  if (item is Map) {
-    return CourseOfferingDetailModel.fromJson(item.cast<String, dynamic>());
-  }
-  return CourseOfferingDetailModel(offering: response, modules: const []);
-});
-
-final liveOfferingDetailProvider = FutureProvider.family<LiveOfferingDetailModel?, String>((ref, id) async {
-  final repo = ref.watch(academyRepositoryProvider);
-  return repo.getPublicLiveOfferingDetailById(id);
 });
 
 final orderFulfillmentByCodeProvider = FutureProvider.family<OrderFulfillmentSummaryModel?, String>((ref, orderCode) async {
@@ -188,7 +179,7 @@ final streakProvider = FutureProvider<StreakModel?>((ref) async {
   return repo.getStreak();
 });
 
-// ---------- Live schedules (enrollments LIVE + /api/academy/live-sessions, parity web-learner) ----------
+// ---------- Live schedules: GET /api/academy/live-sessions/me (parity web-learner) ----------
 final liveSchedulesProvider = FutureProvider<List<LiveScheduleModel>>((ref) async {
   if (!_authenticatedAcademyUser(ref)) {
     return const <LiveScheduleModel>[];

@@ -3,30 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
-import 'package:torii_app/data/models/course_offering_detail_model.dart';
-import 'package:torii_app/data/utils/learner_offering_display.dart';
+import 'package:torii_app/data/models/academy_product_detail_model.dart';
 
 class CurriculumScreen extends ConsumerWidget {
   const CurriculumScreen({
     super.key,
-    required this.offeringId,
-    this.classId,
+    required this.classId,
     this.progressDisabled = false,
   });
 
-  final String offeringId;
-  /// Từ enrollment — cần để tiến độ & khóa bài học tuần tự.
-  final String? classId;
-  /// Khóa LIVE: xem lộ trình tham khảo, không khóa/không tính tiến độ (parity web).
+  final String classId;
+  /// Khi `true`, không tính tiến độ + không mở khóa theo thứ tự.
   final bool progressDisabled;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final detailAsync = ref.watch(courseOfferingDetailRichProvider(offeringId));
-    final useProgress =
-        !progressDisabled && classId != null && classId!.isNotEmpty;
+    final detailAsync = ref.watch(classCatalogDetailProvider(classId));
+    final useProgress = !progressDisabled && classId.isNotEmpty;
     final completedIds = useProgress
-        ? (ref.watch(classCompletedLessonIdsProvider(classId!)).value ?? const [])
+        ? (ref.watch(classCompletedLessonIdsProvider(classId)).value ?? const [])
         : const <String>[];
     final completed = completedIds.toSet();
     final theme = Theme.of(context);
@@ -43,44 +38,65 @@ class CurriculumScreen extends ConsumerWidget {
         ),
         backgroundColor: AppColors.surface,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: detailAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi tải chương trình học: $e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(
+          child: Text('Lỗi tải chương trình học: $e',
+              style: const TextStyle(color: AppColors.error)),
+        ),
         data: (detail) {
           if (detail == null) {
             return const Center(child: Text('Không tìm thấy dữ liệu khóa học'));
           }
 
+          final modules = detail.modules
+              .map((m) => CurriculumModuleModel.fromJson(m))
+              .toList();
+
           final lessonOrder = <CurriculumLessonModel>[
-            for (final module in detail.modules) ...module.lessons,
+            for (final module in modules) ...module.lessons,
           ];
           final lessonIndexById = <String, int>{
             for (int i = 0; i < lessonOrder.length; i++) lessonOrder[i].id: i,
           };
           final trackableOrdered = lessonOrder.where(_isTrackableKind).toList();
 
+          final totalLessons = lessonOrder.length;
+          final totalModules = modules.length;
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildCourseHeaderCard(theme, detail),
+                _buildCourseHeaderCard(
+                  theme: theme,
+                  title: detail.item.name.isNotEmpty ? detail.item.name : (detail.item.profileTitle ?? ''),
+                  code: detail.item.code,
+                  descriptionHtml: detail.descriptionHtml,
+                  totalLessons: totalLessons,
+                  totalModules: totalModules,
+                ),
                 const SizedBox(height: 28),
-                if (detail.modules.isEmpty)
+                if (modules.isEmpty)
                   Text(
                     'Chương trình học đang được cập nhật.',
                     style: TextStyle(color: AppColors.grey700),
                   )
                 else
-                  ...detail.modules.map(
+                  ...modules.map(
                     (module) => _buildModuleItem(
                       module.title,
                       module.lessons.map((lesson) {
                         final idx = lessonIndexById[lesson.id] ?? -1;
                         final hasNext = idx >= 0 && idx + 1 < lessonOrder.length;
                         final nextL = hasNext ? lessonOrder[idx + 1] : null;
+
                         final unlocked = _effectiveLessonUnlocked(
                           lesson: lesson,
                           trackableOrdered: trackableOrdered,
@@ -89,11 +105,14 @@ class CurriculumScreen extends ConsumerWidget {
                         );
                         final done =
                             useProgress && _isTrackableKind(lesson) && completed.contains(lesson.id);
+
                         final status = !unlocked
                             ? 'Đã khóa'
                             : (done ? 'Hoàn thành' : 'Chưa học');
-                        final statusColor =
-                            !unlocked ? AppColors.textTertiary : (done ? AppColors.success : AppColors.textTertiary);
+                        final statusColor = !unlocked
+                            ? AppColors.textTertiary
+                            : (done ? AppColors.success : AppColors.textTertiary);
+
                         return _buildLessonItem(
                           context,
                           title: lesson.title.isNotEmpty ? lesson.title : 'Bài học',
@@ -103,7 +122,6 @@ class CurriculumScreen extends ConsumerWidget {
                           statusColor: statusColor,
                           locked: !unlocked,
                           lesson: _lessonPayload(
-                            offeringId: offeringId,
                             classId: classId,
                             progressDisabled: progressDisabled,
                             lesson: lesson,
@@ -121,11 +139,15 @@ class CurriculumScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCourseHeaderCard(ThemeData theme, CourseOfferingDetailModel detail) {
-    final totalLessons = detail.modules.fold<int>(0, (sum, m) => sum + m.lessons.length);
-    final totalModules = detail.modules.length;
-    final disp = detail.offering.learnerOfferingDisplay(liveClasses: detail.siblingClasses);
-
+  Widget _buildCourseHeaderCard({
+    required ThemeData theme,
+    required String title,
+    required String code,
+    required String? descriptionHtml,
+    required int totalLessons,
+    required int totalModules,
+  }) {
+    final desc = _stripHtml(descriptionHtml ?? '');
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -143,35 +165,22 @@ class CurriculumScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            disp.learnerDisplayTitle,
+            title.isNotEmpty ? title : 'Lớp học',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
               letterSpacing: 0.1,
             ),
           ),
-          if (disp.liveContextLine != null) ...[
+          if (code.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(
-              disp.liveContextLine!,
-              style: TextStyle(
-                color: AppColors.grey700,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-          if (disp.learnerMarketingSubtitle != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Tên gói bán: ${disp.learnerMarketingSubtitle}',
-              style: TextStyle(color: AppColors.grey700, fontSize: 12, height: 1.35),
+              'Mã lớp: $code',
+              style: TextStyle(color: AppColors.grey700, fontSize: 12, fontWeight: FontWeight.w600),
             ),
           ],
           const SizedBox(height: 8),
           Text(
-            detail.offering.description?.trim().isNotEmpty == true
-                ? detail.offering.description!
-                : 'Lộ trình học đang được cập nhật.',
+            desc.isNotEmpty ? desc : 'Lộ trình học đang được cập nhật.',
             style: theme.textTheme.bodySmall?.copyWith(
               color: AppColors.grey700,
               height: 1.5,
@@ -182,7 +191,10 @@ class CurriculumScreen extends ConsumerWidget {
             children: [
               Icon(Icons.menu_book_outlined, size: 16, color: AppColors.grey700),
               const SizedBox(width: 4),
-              Text('$totalLessons bài học • $totalModules module', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
+              Text(
+                '$totalLessons bài học • $totalModules module',
+                style: TextStyle(color: AppColors.grey700, fontSize: 12),
+              ),
             ],
           ),
         ],
@@ -288,15 +300,13 @@ bool _effectiveLessonUnlocked({
 }
 
 Map<String, dynamic> _lessonPayload({
-  required String offeringId,
+  required String classId,
   required CurriculumLessonModel lesson,
   CurriculumLessonModel? nextLesson,
-  String? classId,
   bool progressDisabled = false,
 }) {
   return <String, dynamic>{
-    'offeringId': offeringId,
-    if (classId != null && classId.isNotEmpty) 'classId': classId,
+    if (classId.isNotEmpty) 'classId': classId,
     if (progressDisabled) 'progressDisabled': true,
     'id': lesson.id,
     'title': lesson.title,
@@ -308,8 +318,7 @@ Map<String, dynamic> _lessonPayload({
     },
     if (nextLesson != null)
       'nextLesson': <String, dynamic>{
-        'offeringId': offeringId,
-        if (classId != null && classId.isNotEmpty) 'classId': classId,
+        if (classId.isNotEmpty) 'classId': classId,
         if (progressDisabled) 'progressDisabled': true,
         'id': nextLesson.id,
         'title': nextLesson.title,
@@ -321,6 +330,10 @@ Map<String, dynamic> _lessonPayload({
         },
       },
   };
+}
+
+String _stripHtml(String h) {
+  return h.replaceAll(RegExp(r'<[^>]*>'), ' ').replaceAll(RegExp(r'\\s+'), ' ').trim();
 }
 
 IconData _iconByType(String type) {
