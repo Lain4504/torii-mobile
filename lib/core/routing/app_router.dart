@@ -188,15 +188,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/course-live/:id',
                 builder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
-                  return CourseLiveDetailScreen(courseId: id);
+                  return CourseLiveDetailScreen(classId: id);
                 },
               ),
               GoRoute(
-                path: '/checkout/:id',
+                path: '/checkout/:classId',
                 builder: (context, state) {
-                  final id = state.pathParameters['id'] ?? '';
-                  final classId = state.uri.queryParameters['classId'];
-                  return CheckoutScreen(offeringId: id, classId: classId);
+                  final classId = state.pathParameters['classId'] ?? '';
+                  return CheckoutScreen(classId: classId);
                 },
               ),
               GoRoute(
@@ -216,14 +215,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
-                path: '/curriculum/:offeringId',
+                path: '/curriculum/:classId',
                 builder: (context, state) {
-                  final offeringId = state.pathParameters['offeringId'] ?? '';
-                  final classId = state.uri.queryParameters['classId'];
                   final live = state.uri.queryParameters['live'] == '1';
                   return CurriculumScreen(
-                    offeringId: offeringId,
-                    classId: classId,
+                    classId: state.pathParameters['classId'] ?? '',
                     progressDisabled: live,
                   );
                 },
@@ -232,13 +228,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/enrolled-live/:classId',
                 builder: (context, state) {
                   final classId = state.pathParameters['classId'] ?? '';
-                  final offeringId = state.uri.queryParameters['offeringId'];
+                  final productId = state.uri.queryParameters['productId'];
                   final titleRaw = state.uri.queryParameters['title'];
                   final courseTitle =
                       titleRaw != null && titleRaw.isNotEmpty ? Uri.decodeQueryComponent(titleRaw) : null;
                   return EnrolledLiveCourseScreen(
                     classId: classId,
-                    offeringId: offeringId,
+                    productId: productId,
                     courseTitle: courseTitle,
                   );
                 },

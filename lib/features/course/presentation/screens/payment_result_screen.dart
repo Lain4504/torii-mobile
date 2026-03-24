@@ -93,9 +93,9 @@ class PaymentResultScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(it.offeringTitle, style: const TextStyle(fontWeight: FontWeight.w800)),
+                        Text(it.productName, style: const TextStyle(fontWeight: FontWeight.w800)),
                         const SizedBox(height: 4),
-                        Text('Mã: ${it.offeringCode}', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
+                        Text('Mã: ${it.productCode}', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
                         if (it.missingClassIds.isNotEmpty) ...[
                           const SizedBox(height: 6),
                           Text('Đang cấp quyền lớp học...', style: TextStyle(color: AppColors.grey700, fontSize: 12)),

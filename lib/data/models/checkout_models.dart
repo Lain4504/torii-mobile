@@ -1,10 +1,10 @@
 class OrderPreviewRequest {
-  final String offeringId;
+  final String productId;
   final String? classId; // required for LIVE
   final String? couponCode;
 
   const OrderPreviewRequest({
-    required this.offeringId,
+    required this.productId,
     this.classId,
     this.couponCode,
   });
@@ -51,27 +51,31 @@ class OrderCheckoutResultModel {
 }
 
 class OrderFulfillmentItemModel {
-  final String offeringId;
-  final String offeringCode;
-  final String offeringTitle;
+  final String productId;
+  final String productCode;
+  final String productName;
   final List<String> expectedClassIds;
   final List<String> enrolledClassIds;
   final List<String> missingClassIds;
 
   const OrderFulfillmentItemModel({
-    required this.offeringId,
-    required this.offeringCode,
-    required this.offeringTitle,
+    required this.productId,
+    required this.productCode,
+    required this.productName,
     required this.expectedClassIds,
     required this.enrolledClassIds,
     required this.missingClassIds,
   });
 
   factory OrderFulfillmentItemModel.fromJson(Map<String, dynamic> json) {
+    final pid = (json['productId'] ?? '').toString();
+    final pCode = (json['productCode'] ?? '').toString();
+    final pName = (json['productName'] ?? '').toString();
+
     return OrderFulfillmentItemModel(
-      offeringId: json['offeringId'] as String? ?? '',
-      offeringCode: json['offeringCode'] as String? ?? '',
-      offeringTitle: json['offeringTitle'] as String? ?? '',
+      productId: pid,
+      productCode: pCode,
+      productName: pName,
       expectedClassIds: (json['expectedClassIds'] as List<dynamic>? ?? const []).map((e) => e.toString()).toList(),
       enrolledClassIds: (json['enrolledClassIds'] as List<dynamic>? ?? const []).map((e) => e.toString()).toList(),
       missingClassIds: (json['missingClassIds'] as List<dynamic>? ?? const []).map((e) => e.toString()).toList(),

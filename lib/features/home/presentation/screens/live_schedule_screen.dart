@@ -6,7 +6,7 @@ import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 
 /// Lịch live: cùng pattern các màn khác — `ref.watch(liveSchedulesProvider)` (xem `api_providers.dart`).
-/// Provider gọi [AcademyRepository.getLiveSchedules]: enrollments/me + live-sessions theo lớp LIVE.
+/// Provider gọi [AcademyRepository.getLiveSchedules]: `GET /api/academy/live-sessions/me` (đồng bộ web-learner).
 /// Chỉ cần đã đăng nhập (không bắt buộc onboard) mới gọi API lịch.
 class LiveScheduleScreen extends ConsumerStatefulWidget {
   const LiveScheduleScreen({super.key});
@@ -94,6 +94,21 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
         return 'CN';
     }
     return '';
+  }
+
+  String _attendanceBadgeLabel(String? status) {
+    switch (status) {
+      case 'PRESENT':
+        return 'Đã điểm danh: có mặt';
+      case 'ABSENT':
+        return 'Đã điểm danh: vắng';
+      case 'LATE':
+        return 'Đã điểm danh: muộn';
+      case 'EXCUSED':
+        return 'Đã điểm danh: có phép';
+      default:
+        return 'Chưa có điểm danh';
+    }
   }
 
   LiveScheduleModel? _pickFeaturedUpcoming(List<LiveScheduleModel> all) {
@@ -627,7 +642,6 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                                         padding: EdgeInsets.only(bottom: i < daySessions.length - 1 ? 8 : 0),
                                         child: _buildCompactSessionCard(
                                           daySessions[i],
-                                          slotIndex: i + 1,
                                           primaryColor: primaryColor,
                                           isDark: isDark,
                                         ),
@@ -747,7 +761,6 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
 
   Widget _buildCompactSessionCard(
     LiveScheduleModel e, {
-    required int slotIndex,
     required Color primaryColor,
     required bool isDark,
   }) {
@@ -783,25 +796,8 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 22,
-            child: Center(
-              child: Transform.rotate(
-                angle: -1.5708,
-                child: Text(
-                  'Slot $slotIndex',
-                  style: TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.2,
-                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                  ),
-                ),
-              ),
-            ),
-          ),
           Padding(
-            padding: const EdgeInsets.only(right: 8, left: 2),
+            padding: const EdgeInsets.only(right: 10),
             child: Column(
               children: [
                 Text(timeTop, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
@@ -866,6 +862,25 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
                         child: Text(
                           'Đã xong',
                           style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      ),
+                    if (isEnded)
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 160),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.muted.withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _attendanceBadgeLabel(e.attendanceStatus),
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     if (e.canAttemptJoin)
@@ -962,7 +977,9 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
       color: Colors.transparent,
       shadowColor: Colors.black.withValues(alpha: 0.2),
       child: Container(
-        padding: EdgeInsets.fromLTRB(16, 14, 16, 14 + MediaQuery.paddingOf(context).bottom),
+        // Tránh cộng thêm bottom padding lần 2 (màn đã được bọc SafeArea).
+        // Nếu giữ padding bottom quá lớn, panel sẽ bị đẩy lên xa `AppShellBottom`.
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,

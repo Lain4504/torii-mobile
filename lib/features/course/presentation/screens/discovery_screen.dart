@@ -3,16 +3,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
-import 'package:torii_app/data/models/academy_models.dart';
-import 'package:torii_app/data/utils/learner_offering_display.dart';
+import 'package:torii_app/data/models/class_catalog_model.dart';
 
-class CourseDiscoveryScreen extends ConsumerWidget {
+class CourseDiscoveryScreen extends ConsumerStatefulWidget {
   const CourseDiscoveryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final coursesAsync = ref.watch(publicCourseOfferingsProvider);
-    final selectedLevel = GoRouterState.of(context).uri.queryParameters['level'];
+  ConsumerState<CourseDiscoveryScreen> createState() => _CourseDiscoveryScreenState();
+}
+
+class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rawLevel = GoRouterState.of(context).uri.queryParameters['level'];
+    final level = (rawLevel == null || rawLevel.trim().isEmpty) ? null : rawLevel.trim();
+    final liveAsync = ref.watch(classCatalogLiveProvider(level));
+    final vodAsync = ref.watch(classCatalogVodProvider(level));
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -27,81 +48,53 @@ class CourseDiscoveryScreen extends ConsumerWidget {
         ),
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.grey700,
+          tabs: const [
+            Tab(text: 'Lớp Live'),
+            Tab(text: 'Khóa VOD'),
+          ],
+        ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
-            child: Row(
-              children: [
-                _buildFilterChip(context, selectedLevel != null ? 'Cấp độ: $selectedLevel' : 'Cấp độ', Icons.keyboard_arrow_down),
-                const SizedBox(width: 12),
-                _buildFilterChip(context, 'Loại bài học', Icons.keyboard_arrow_down),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: coursesAsync.when(
-              data: (list) {
-                final filtered = _filterByLevel(list, selectedLevel);
-                return filtered.isEmpty
-                  ? const Center(child: Text('Chưa có khóa học nào'))
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) => _buildCourseCard(context, filtered[index]),
-                    );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
-            ),
-          ),
+          _buildList(context, liveAsync, isLive: true),
+          _buildList(context, vodAsync, isLive: false),
         ],
       ),
     );
   }
 
-  List<CourseOfferingModel> _filterByLevel(List<CourseOfferingModel> list, String? level) {
-    if (level == null || level.isEmpty) return list;
-    final n = level.toUpperCase().trim();
-    final re = RegExp(r'(^|[^A-Z0-9])' + RegExp.escape(n) + r'([^A-Z0-9]|$)', caseSensitive: false);
-
-    bool match(String? s) => s != null && re.hasMatch(s.toUpperCase());
-
-    return list.where((c) {
-      final disp = c.learnerOfferingDisplay();
-      return match(c.code) ||
-          match(c.title) ||
-          match(c.slug) ||
-          match(c.description) ||
-          match(disp.learnerDisplayTitle) ||
-          match(c.className) ||
-          match(c.courseProfileTitle);
-    }).toList();
-  }
-
-  Widget _buildFilterChip(BuildContext context, String label, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
-      child: Row(
-        children: [
-          Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-          const SizedBox(width: 4),
-          Icon(icon, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ],
-      ),
+  Widget _buildList(
+    BuildContext context,
+    AsyncValue<List<ClassCatalogItemModel>> async, {
+    required bool isLive,
+  }) {
+    return async.when(
+      data: (list) {
+        if (list.isEmpty) {
+          return const Center(child: Text('Chưa có lớp phù hợp'));
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          itemCount: list.length,
+          itemBuilder: (context, index) => _buildCourseCard(context, list[index], isLive: isLive),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
     );
   }
 
-  Widget _buildCourseCard(BuildContext context, CourseOfferingModel course) {
-    final disp = course.learnerOfferingDisplay();
-    final priceStr = '${course.displayPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
+  Widget _buildCourseCard(BuildContext context, ClassCatalogItemModel c, {required bool isLive}) {
+    final priceStr =
+        '${c.catalogPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
+    final thumb = c.thumbnailUrl ?? 'https://picsum.photos/seed/c${c.id}/600/300';
+    final title = c.name.isNotEmpty ? c.name : (c.profileTitle ?? 'Khóa học');
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -119,7 +112,7 @@ class CourseDiscoveryScreen extends ConsumerWidget {
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 child: Image.network(
-                  course.thumbnailUrl ?? 'https://picsum.photos/seed/course${course.id}/600/300',
+                  thumb,
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -129,10 +122,27 @@ class CourseDiscoveryScreen extends ConsumerWidget {
               Positioned(
                 top: 12,
                 left: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary, borderRadius: BorderRadius.circular(12)),
-                  child: Text(course.mode, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
+                child: Row(
+                  children: [
+                    if (c.jlptLevel != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(12)),
+                        child: Text(c.jlptLevel!, style: const TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
+                      ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isLive ? AppColors.error : AppColors.primary,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        isLive ? 'LIVE' : 'VOD',
+                        style: const TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -143,49 +153,24 @@ class CourseDiscoveryScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  disp.learnerDisplayTitle,
+                  title,
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (disp.liveContextLine != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    disp.liveContextLine!,
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-                if (disp.learnerMarketingSubtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Gói: ${disp.learnerMarketingSubtitle}',
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                const SizedBox(height: 6),
+                Text('Mã: ${c.code}', style: TextStyle(fontSize: 12, color: AppColors.grey700)),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(Icons.play_circle_outline, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Text('Khóa học ${course.mode}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
-                  ],
-                ),
-                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(priceStr, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
                     ElevatedButton(
                       onPressed: () {
-                        final mode = course.mode.toUpperCase();
-                        if (mode == 'LIVE') {
-                          context.push('/course-live/${course.id}');
+                        if (isLive) {
+                          context.push('/course-live/${c.id}');
                         } else {
-                          context.push('/course-detail/${course.id}');
+                          context.push('/course-detail/${c.id}');
                         }
                       },
                       style: ElevatedButton.styleFrom(

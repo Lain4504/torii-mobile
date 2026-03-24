@@ -1,67 +1,77 @@
 import 'package:dio/dio.dart';
 
 import '../models/academy_models.dart';
+import '../models/class_catalog_model.dart';
 import '../models/checkout_models.dart';
 import '../models/live_schedule_model.dart';
 import '../models/live_session_join_result.dart';
-import '../models/live_offering_detail_model.dart';
 import '../models/study_set_models.dart';
 import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 
-/// Academy API: course offerings (public), enrollments/me, orders/my, live-sessions (lịch học viên)
+/// Academy API: course offerings (public), enrollments/me, orders/my, live-sessions/me (lịch học viên)
 class AcademyRepository {
   const AcademyRepository(this._dio);
 
   final Dio _dio;
 
-  // ---------- Course offerings (public) ----------
-  /// GET /api/academy/course-offerings/public
-  Future<List<CourseOfferingModel>> getPublicCourseOfferings({
+  // ---------- Class catalog (learner) — thay cho course-offerings/public ----------
+  /// GET /api/academy/live-classes/public?mode=LIVE|VOD&level=&month=&q=
+  Future<List<ClassCatalogItemModel>> getPublicClassCatalog({
+    required String mode,
+    String? level,
+    String? month,
     String? q,
-    String? mode,
   }) async {
     final response = await _dio.get<Map<String, dynamic>>(
-      '/api/academy/course-offerings/public',
+      '/api/academy/live-classes/public',
       queryParameters: <String, dynamic>{
+        'mode': mode,
+        if (level != null && level.isNotEmpty) 'level': level,
+        if (month != null && month.isNotEmpty) 'month': month,
         if (q != null && q.isNotEmpty) 'q': q,
-        if (mode != null && mode.isNotEmpty) 'mode': mode,
       },
     );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return [];
     final items = api.data!['items'] as List<dynamic>? ?? [];
-    return items.map((e) => CourseOfferingModel.fromJson(e as Map<String, dynamic>)).toList();
+    return items
+        .map((e) => ClassCatalogItemModel.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
   }
 
-  /// GET /api/academy/course-offerings/public/:id
-  Future<CourseOfferingModel?> getPublicCourseOfferingById(String id) async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/course-offerings/public/$id');
+  /// GET /api/academy/live-classes/public/:id
+  Future<ClassCatalogDetailModel?> getPublicClassCatalogById(String id) async {
+    final response = await _dio.get<Map<String, dynamic>>('/api/academy/live-classes/public/$id');
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return null;
     final raw = api.data!;
     final item = raw['item'] ?? raw['data'] ?? raw;
     if (item is Map<String, dynamic>) {
-      return CourseOfferingModel.fromJson(item);
+      return ClassCatalogDetailModel.fromJson(item);
     }
     if (item is Map) {
-      return CourseOfferingModel.fromJson(item.cast<String, dynamic>());
+      return ClassCatalogDetailModel.fromJson(item.cast<String, dynamic>());
     }
     return null;
   }
 
-  /// GET /api/academy/course-offerings/public/:id (raw detail including classes)
-  Future<LiveOfferingDetailModel?> getPublicLiveOfferingDetailById(String id) async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/course-offerings/public/$id');
+  /// Product details (VOD/LIVE) for curriculum / lesson (enrollment has `productId`/`offeringId`).
+  Future<AcademyProductModel?> getPublicProductById(String id, {String mode = 'LIVE'}) async {
+    final path = mode.toUpperCase() == 'LIVE'
+        ? '/api/academy/cohorts/public/$id'
+        : '/api/academy/vod-packages/public/$id';
+
+    final response = await _dio.get<Map<String, dynamic>>(path);
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return null;
     final raw = api.data!;
     final item = raw['item'] ?? raw['data'] ?? raw;
     if (item is Map<String, dynamic>) {
-      return LiveOfferingDetailModel.fromJson(item);
+      return AcademyProductModel.fromJson(item);
     }
     if (item is Map) {
-      return LiveOfferingDetailModel.fromJson(item.cast<String, dynamic>());
+      return AcademyProductModel.fromJson(item.cast<String, dynamic>());
     }
     return null;
   }
@@ -181,15 +191,15 @@ class AcademyRepository {
 
   /// POST /api/academy/orders/preview
   Future<OrderPreviewModel> previewOrder({
-    required String offeringId,
+    required String productId,
     String? classId,
     String? couponCode,
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/api/academy/orders/preview',
       data: <String, dynamic>{
-        'offeringIds': [offeringId],
-        if (classId != null && classId.isNotEmpty) 'classIdByOffering': {offeringId: classId},
+        'productIds': [productId],
+        if (classId != null && classId.isNotEmpty) 'classIdByProduct': {productId: classId},
         if (couponCode != null && couponCode.trim().isNotEmpty) 'couponCode': couponCode.trim(),
       },
     );
@@ -203,7 +213,7 @@ class AcademyRepository {
 
   /// POST /api/academy/orders/checkout
   Future<OrderCheckoutResultModel> checkoutOrder({
-    required String offeringId,
+    required String productId,
     String? classId,
     String paymentMethod = 'PAYOS',
     String? couponCode,
@@ -212,8 +222,8 @@ class AcademyRepository {
     final response = await _dio.post<Map<String, dynamic>>(
       '/api/academy/orders/checkout',
       data: <String, dynamic>{
-        'offeringIds': [offeringId],
-        if (classId != null && classId.isNotEmpty) 'classIdByOffering': {offeringId: classId},
+        'productIds': [productId],
+        if (classId != null && classId.isNotEmpty) 'classIdByProduct': {productId: classId},
         'paymentMethod': paymentMethod,
         if (couponCode != null && couponCode.trim().isNotEmpty) 'couponCode': couponCode.trim(),
         if (metadata != null) 'metadata': metadata,
@@ -239,19 +249,12 @@ class AcademyRepository {
   static const int _schedulePastWeeks = 2;
   static const int _scheduleFutureWeeks = 12;
 
-  /// Gom buổi học từ các lớp LIVE đã đăng ký: GET enrollments/me + GET /api/academy/live-sessions theo từng classId.
+  /// Lịch buổi LIVE của user: `GET /api/academy/live-sessions/me` (cùng backend với web-learner, kèm điểm danh).
   Future<List<LiveScheduleModel>> getLiveSchedules({
     String? startDate,
     String? endDate,
   }) async {
     try {
-      final enrollments = await getMyEnrollments(page: 1, limit: 100, status: 'ACTIVE');
-      final liveEnrollments = enrollments.data.where((e) {
-        final m = (e.mode ?? '').toUpperCase();
-        return m == 'LIVE';
-      }).toList();
-      if (liveEnrollments.isEmpty) return [];
-
       final now = DateTime.now();
       final from = startDate != null
           ? DateTime.tryParse(startDate) ?? now.subtract(Duration(days: _schedulePastWeeks * 7))
@@ -262,28 +265,20 @@ class AcademyRepository {
       final fromStr = _formatYmd(from);
       final toStr = _formatYmd(to);
 
-      final buckets = await Future.wait(
-        liveEnrollments.map((e) async {
-          try {
-            final raw = await _fetchLiveSessionRows(e.classId, fromStr, toStr);
-            return raw
-                .map(
-                  (row) => _liveScheduleFromSessionRow(
-                    row,
-                    classId: e.classId,
-                    courseTitle: e.courseTitle,
-                    instructorName: e.instructorName,
-                    courseThumbnail: e.thumbnailUrl,
-                  ),
-                )
-                .toList();
-          } catch (_) {
-            return <LiveScheduleModel>[];
-          }
-        }),
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/live-sessions/me',
+        queryParameters: <String, dynamic>{
+          'from': fromStr,
+          'to': toStr,
+        },
       );
-
-      final merged = buckets.expand((x) => x).toList()
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) return [];
+      final items = api.data!['items'] as List<dynamic>? ?? [];
+      final merged = items
+          .map((e) => _liveScheduleFromSessionRow(Map<String, dynamic>.from(e as Map)))
+          .where((m) => m.id.isNotEmpty)
+          .toList()
         ..sort((a, b) {
           final as = a.startAt;
           final bs = b.startAt;
@@ -328,25 +323,6 @@ class AcademyRepository {
         '${local.day.toString().padLeft(2, '0')}';
   }
 
-  Future<List<Map<String, dynamic>>> _fetchLiveSessionRows(
-    String classId,
-    String from,
-    String to,
-  ) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/api/academy/live-sessions',
-      queryParameters: <String, dynamic>{
-        'classId': classId,
-        'from': from,
-        'to': to,
-      },
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return [];
-    final items = api.data!['items'] as List<dynamic>? ?? [];
-    return items.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-  }
-
   int _parseHHmmToMinutes(String time) {
     final parts = time.split(':');
     final h = int.tryParse(parts.isNotEmpty ? parts[0] : '0') ?? 0;
@@ -367,14 +343,9 @@ class AcademyRepository {
     return DateTime(y, mo, d, h, mi);
   }
 
-  LiveScheduleModel _liveScheduleFromSessionRow(
-    Map<String, dynamic> json, {
-    required String classId,
-    String? courseTitle,
-    String? instructorName,
-    String? courseThumbnail,
-  }) {
+  LiveScheduleModel _liveScheduleFromSessionRow(Map<String, dynamic> json) {
     final id = (json['id'] ?? '').toString();
+    final classId = json['classId']?.toString();
     final sessionDate = json['sessionDate']?.toString() ?? '';
     final startTime = json['startTime']?.toString() ?? '00:00';
     final endTime = json['endTime']?.toString() ?? '00:00';
@@ -392,6 +363,10 @@ class AcademyRepository {
     final note = json['note']?.toString().trim();
     final title = (note != null && note.isNotEmpty) ? note : 'Buổi học trực tuyến';
     final roomId = json['roomId']?.toString();
+    final courseTitle = json['courseTitle']?.toString();
+    final courseThumbnail = json['courseThumbnail']?.toString();
+    final rawAtt = json['attendanceStatus'];
+    final attendanceStatus = rawAtt == null ? null : rawAtt.toString();
 
     return LiveScheduleModel(
       id: id,
@@ -399,9 +374,10 @@ class AcademyRepository {
       title: title,
       startAt: startAt,
       endAt: endAt,
-      instructorName: instructorName,
+      instructorName: null,
       courseTitle: courseTitle,
       courseThumbnail: courseThumbnail,
+      attendanceStatus: attendanceStatus,
       status: null,
       meetingUrl: null,
       roomId: roomId,
@@ -581,7 +557,7 @@ class AcademyRepository {
   /// API trả `{ modules: [{ lessons: [{ id, isCompleted }] }] }` — không có `lessons` phẳng.
   Future<List<String>> getCompletedLessonIds(String classId) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>('/api/academy/classes/$classId/progress');
+      final response = await _dio.get<Map<String, dynamic>>('/api/academy/live-classes/$classId/progress');
       final body = response.data ?? {};
       final data = body['data'] ?? body;
       if (data is! Map) return [];
@@ -623,7 +599,7 @@ class AcademyRepository {
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/api/academy/classes/$classId/lessons/$lessonId/complete',
+        '/api/academy/live-classes/$classId/lessons/$lessonId/complete',
       );
       final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
       return api.success == true;

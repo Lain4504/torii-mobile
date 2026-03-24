@@ -10,12 +10,12 @@ class EnrolledLiveCourseScreen extends ConsumerStatefulWidget {
   const EnrolledLiveCourseScreen({
     super.key,
     required this.classId,
-    this.offeringId,
+    this.productId,
     this.courseTitle,
   });
 
   final String classId;
-  final String? offeringId;
+  final String? productId;
   final String? courseTitle;
 
   @override
@@ -189,10 +189,7 @@ class _EnrolledLiveCourseScreenState extends ConsumerState<EnrolledLiveCourseScr
                 SliverFillRemaining(
                   child: TabBarView(
                     children: [
-                        _SyllabusTabPane(
-                          offeringId: widget.offeringId,
-                          classId: widget.classId,
-                        ),
+                        _SyllabusTabPane(classId: widget.classId),
                         _PlaceholderTabPane(
                           icon: Icons.folder_outlined,
                           title: 'Tài liệu học tập',
@@ -546,15 +543,13 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class _SyllabusTabPane extends StatelessWidget {
-  const _SyllabusTabPane({required this.offeringId, required this.classId});
+  const _SyllabusTabPane({required this.classId});
 
-  final String? offeringId;
   final String classId;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final hasCurriculum = offeringId != null && offeringId!.isNotEmpty;
+    final hasCurriculum = classId.isNotEmpty;
 
     if (!hasCurriculum) {
       return _PlaceholderTabPane(
@@ -623,7 +618,7 @@ class _SyllabusTabPane extends StatelessWidget {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton.icon(
-                    onPressed: () => context.push('/curriculum/$offeringId?classId=$classId&live=1'),
+                    onPressed: () => context.push('/curriculum/$classId?live=1'),
                     icon: const Icon(Icons.open_in_new, size: 20),
                     label: const Text('Mở lộ trình', style: TextStyle(fontWeight: FontWeight.w800)),
                     style: ElevatedButton.styleFrom(
