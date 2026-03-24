@@ -44,10 +44,16 @@ import '../../features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_chat_page.dart';
 import '../../features/sensei/views/pages/sensei_voice_agent_page.dart';
 import '../../features/practice/presentation/screens/practice_home_screen.dart';
+import '../../features/practice/presentation/screens/study_sets_list_screen.dart';
 import '../../features/practice/presentation/screens/study_sets_dashboard_screen.dart';
 import '../../features/practice/presentation/screens/study_set_practice_screen.dart';
 import '../../features/practice/presentation/screens/study_set_test_screen.dart';
 import '../../features/practice/presentation/screens/study_set_match_screen.dart';
+import '../../features/practice/presentation/screens/jlpt_mock_levels_screen.dart';
+import '../../features/practice/presentation/screens/jlpt_mock_templates_screen.dart';
+import '../../features/practice/presentation/screens/jlpt_mock_exam_screen.dart';
+import '../../features/practice/presentation/screens/jlpt_mock_history_screen.dart';
+import '../../features/practice/presentation/screens/jlpt_mock_history_detail_screen.dart';
 import '../../features/onboarding/providers/onboarding_provider.dart';
 import '../widgets/app_shell.dart';
 import '../../features/meet/presentation/screens/landing/meet_entry_screen.dart';
@@ -68,7 +74,7 @@ final routerNotifierProvider = Provider<RouterNotifier>((ref) {
 
 final routerProvider = Provider<GoRouter>((ref) {
   final routerNotifier = ref.watch(routerNotifierProvider);
-  
+
   return GoRouter(
     initialLocation: '/',
     refreshListenable: routerNotifier,
@@ -76,13 +82,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       final onboardingNotifier = ref.read(onboardingNotifierProvider);
       final hasCompletedOnboarding = onboardingNotifier.value;
       final authAsync = ref.read(authStateProvider);
-      final isAuthenticated = authAsync.asData?.value.status == AuthStatus.authenticated;
+      final isAuthenticated =
+          authAsync.asData?.value.status == AuthStatus.authenticated;
 
       final path = state.uri.path;
       final auth = authAsync.asData?.value;
       final user = auth?.user;
 
-      if (isAuthenticated && user != null && !user.isOnboarded && path != '/onboarding-survey') {
+      if (isAuthenticated &&
+          user != null &&
+          !user.isOnboarded &&
+          path != '/onboarding-survey') {
         return '/onboarding-survey';
       }
 
@@ -97,7 +107,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Secondary redirect: Auth gating
-      final requiresAuth = path.startsWith('/practice') || path.startsWith('/study-sets');
+      final requiresAuth =
+          path.startsWith('/practice') ||
+          path.startsWith('/study-sets') ||
+          path.startsWith('/jlpt-mock');
       if (requiresAuth && !isAuthenticated) {
         return '/login';
       }
@@ -109,10 +122,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/welcome',
         builder: (context, state) => const WelcomeScreen(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -135,10 +145,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final extra = state.extra as Map<String, dynamic>?;
           final email = extra?['email'] as String?;
           final mode = extra?['mode'] as String? ?? 'registration';
-          return EmailVerificationScreen(
-            email: email,
-            mode: mode,
-          );
+          return EmailVerificationScreen(email: email, mode: mode);
         },
       ),
 
@@ -195,16 +202,25 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/checkout/:classId',
                 builder: (context, state) {
                   final classId = state.pathParameters['classId'] ?? '';
-                  return CheckoutScreen(classId: classId);
+                  final mode = (state.uri.queryParameters['mode'] ?? 'VOD')
+                      .toUpperCase();
+                  return CheckoutScreen(
+                    classId: classId,
+                    mode: mode == 'LIVE' ? 'LIVE' : 'VOD',
+                  );
                 },
               ),
               GoRoute(
                 path: '/payment',
                 builder: (context, state) {
-                  final extra = state.extra as Map<String, dynamic>? ?? const {};
+                  final extra =
+                      state.extra as Map<String, dynamic>? ?? const {};
                   final paymentUrl = (extra['paymentUrl'] as String?) ?? '';
                   final orderCode = (extra['orderCode'] as String?) ?? '';
-                  return PaymentWebViewScreen(paymentUrl: paymentUrl, orderCode: orderCode);
+                  return PaymentWebViewScreen(
+                    paymentUrl: paymentUrl,
+                    orderCode: orderCode,
+                  );
                 },
               ),
               GoRoute(
@@ -218,8 +234,11 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/curriculum/:classId',
                 builder: (context, state) {
                   final live = state.uri.queryParameters['live'] == '1';
+                  final mode = (state.uri.queryParameters['mode'] ?? '')
+                      .toUpperCase();
                   return CurriculumScreen(
                     classId: state.pathParameters['classId'] ?? '',
+                    mode: mode == 'LIVE' ? 'LIVE' : 'VOD',
                     progressDisabled: live,
                   );
                 },
@@ -230,8 +249,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final classId = state.pathParameters['classId'] ?? '';
                   final productId = state.uri.queryParameters['productId'];
                   final titleRaw = state.uri.queryParameters['title'];
-                  final courseTitle =
-                      titleRaw != null && titleRaw.isNotEmpty ? Uri.decodeQueryComponent(titleRaw) : null;
+                  final courseTitle = titleRaw != null && titleRaw.isNotEmpty
+                      ? Uri.decodeQueryComponent(titleRaw)
+                      : null;
                   return EnrolledLiveCourseScreen(
                     classId: classId,
                     productId: productId,
@@ -276,11 +296,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/sensei/roleplay-chat',
                 builder: (context, state) {
-                  final topic = (state.extra is String) ? state.extra as String : '';
-                  return SenseiRoleplayChatPage(topic: topic.isNotEmpty ? topic : 'Roleplay');
+                  final topic = (state.extra is String)
+                      ? state.extra as String
+                      : '';
+                  return SenseiRoleplayChatPage(
+                    topic: topic.isNotEmpty ? topic : 'Roleplay',
+                  );
                 },
               ),
-
             ],
           ),
           // Branch 3: Blog (guest) / My courses (user)
@@ -374,7 +397,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
               GoRoute(
                 path: '/study-sets',
-                builder: (context, state) => const StudySetsDashboardScreen(),
+                builder: (context, state) => const StudySetsListScreen(),
+              ),
+              GoRoute(
+                path: '/study-sets/:id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return StudySetsDashboardScreen(
+                    initialSetId: id.isEmpty ? null : id,
+                  );
+                },
               ),
               GoRoute(
                 path: '/study-sets/:id/study',
@@ -403,6 +435,48 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
                   return StudySetMatchScreen(setId: id);
+                },
+              ),
+              GoRoute(
+                path: '/jlpt-mock',
+                builder: (context, state) => const JlptMockLevelsScreen(),
+              ),
+              GoRoute(
+                path: '/jlpt-mock/:level',
+                builder: (context, state) {
+                  final level = (state.pathParameters['level'] ?? 'N3')
+                      .toUpperCase();
+                  return JlptMockTemplatesScreen(levelCode: level);
+                },
+              ),
+              GoRoute(
+                path: '/jlpt-mock/exam',
+                builder: (context, state) {
+                  final q = state.uri.queryParameters;
+                  final templateId = q['templateId'] ?? '';
+                  final attemptId = q['attemptId'] ?? '';
+                  final sectionOrder =
+                      int.tryParse(q['sectionOrder'] ?? '1') ?? 1;
+                  final level = (q['level'] ?? 'N3').toUpperCase();
+                  final endsAt = q['endsAt'];
+                  return JlptMockExamScreen(
+                    templateId: templateId,
+                    attemptId: attemptId,
+                    initialSectionOrder: sectionOrder,
+                    levelCode: level,
+                    endsAtIso: endsAt,
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/jlpt-mock/history',
+                builder: (context, state) => const JlptMockHistoryScreen(),
+              ),
+              GoRoute(
+                path: '/jlpt-mock/history/:attemptId',
+                builder: (context, state) {
+                  final attemptId = state.pathParameters['attemptId'] ?? '';
+                  return JlptMockHistoryDetailScreen(attemptId: attemptId);
                 },
               ),
             ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/class_catalog_model.dart';
@@ -9,29 +10,29 @@ class CourseDiscoveryScreen extends ConsumerStatefulWidget {
   const CourseDiscoveryScreen({super.key});
 
   @override
-  ConsumerState<CourseDiscoveryScreen> createState() => _CourseDiscoveryScreenState();
+  ConsumerState<CourseDiscoveryScreen> createState() =>
+      _CourseDiscoveryScreenState();
 }
 
-class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen> {
+  static const List<String> _levels = ['Tất cả', 'N5', 'N4', 'N3', 'N2', 'N1'];
+  String _selectedLevel = 'Tất cả';
 
   @override
   Widget build(BuildContext context) {
     final rawLevel = GoRouterState.of(context).uri.queryParameters['level'];
-    final level = (rawLevel == null || rawLevel.trim().isEmpty) ? null : rawLevel.trim();
+    final urlLevel = (rawLevel == null || rawLevel.trim().isEmpty)
+        ? null
+        : rawLevel.trim().toUpperCase();
+    final effectiveLevel = _selectedLevel == 'Tất cả'
+        ? urlLevel
+        : _selectedLevel;
+    final level =
+        (effectiveLevel == null ||
+            effectiveLevel.isEmpty ||
+            effectiveLevel == 'TẤT CẢ')
+        ? null
+        : effectiveLevel;
     final liveAsync = ref.watch(classCatalogLiveProvider(level));
     final vodAsync = ref.watch(classCatalogVodProvider(level));
     final theme = Theme.of(context);
@@ -48,20 +49,60 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
         ),
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.grey700,
-          tabs: const [
-            Tab(text: 'Lớp Live'),
-            Tab(text: 'Khóa VOD'),
-          ],
-        ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
+          Text(
+            'Lọc theo trình độ',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _levels.map((lv) {
+              final selected = _selectedLevel == lv;
+              return ChoiceChip(
+                selected: selected,
+                label: Text(lv),
+                onSelected: (_) => setState(() => _selectedLevel = lv),
+                selectedColor: AppColors.primary.withValues(alpha: 0.15),
+                labelStyle: TextStyle(
+                  color: selected
+                      ? AppColors.primary
+                      : theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Lớp Live sắp mở',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Ưu tiên lớp N3, N5 trong kỳ hiện tại.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 10),
           _buildList(context, liveAsync, isLive: true),
+          const SizedBox(height: 20),
+          Text(
+            'Khóa VOD',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 10),
           _buildList(context, vodAsync, isLive: false),
         ],
       ),
@@ -75,24 +116,63 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
   }) {
     return async.when(
       data: (list) {
-        if (list.isEmpty) {
+        final sorted = isLive ? _sortLiveUpcoming(list) : list;
+        if (sorted.isEmpty) {
           return const Center(child: Text('Chưa có lớp phù hợp'));
         }
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          itemCount: list.length,
-          itemBuilder: (context, index) => _buildCourseCard(context, list[index], isLive: isLive),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: sorted.length,
+          itemBuilder: (context, index) =>
+              _buildCourseCard(context, sorted[index], isLive: isLive),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
+      error: (e, _) => Center(
+        child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error)),
+      ),
     );
   }
 
-  Widget _buildCourseCard(BuildContext context, ClassCatalogItemModel c, {required bool isLive}) {
+  List<ClassCatalogItemModel> _sortLiveUpcoming(
+    List<ClassCatalogItemModel> list,
+  ) {
+    final now = DateTime.now();
+    final copied = [...list];
+    copied.sort((a, b) {
+      final pa = _livePriority(a);
+      final pb = _livePriority(b);
+      if (pa != pb) return pa.compareTo(pb);
+      final da = a.openingDate;
+      final db = b.openingDate;
+      if (da == null && db == null) return 0;
+      if (da == null) return 1;
+      if (db == null) return -1;
+      final aPast = da.isBefore(now);
+      final bPast = db.isBefore(now);
+      if (aPast != bPast) return aPast ? 1 : -1;
+      return da.compareTo(db);
+    });
+    return copied;
+  }
+
+  int _livePriority(ClassCatalogItemModel item) {
+    final level = (item.jlptLevel ?? '').toUpperCase();
+    if (level == 'N3') return 0;
+    if (level == 'N5') return 1;
+    return 2;
+  }
+
+  Widget _buildCourseCard(
+    BuildContext context,
+    ClassCatalogItemModel c, {
+    required bool isLive,
+  }) {
     final priceStr =
         '${c.catalogPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
-    final thumb = c.thumbnailUrl ?? 'https://picsum.photos/seed/c${c.id}/600/300';
+    final thumb =
+        c.thumbnailUrl ?? 'https://picsum.photos/seed/c${c.id}/600/300';
     final title = c.name.isNotEmpty ? c.name : (c.profileTitle ?? 'Khóa học');
 
     return Container(
@@ -101,7 +181,13 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
@@ -110,13 +196,21 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
                 child: Image.network(
                   thumb,
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(height: 160, color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3), child: const Icon(Icons.school, size: 48)),
+                  errorBuilder: (_, error, stackTrace) => Container(
+                    height: 160,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    child: const Icon(Icons.school, size: 48),
+                  ),
                 ),
               ),
               Positioned(
@@ -126,20 +220,40 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
                   children: [
                     if (c.jlptLevel != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(12)),
-                        child: Text(c.jlptLevel!, style: const TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          c.jlptLevel!,
+                          style: const TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: isLive ? AppColors.error : AppColors.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         isLive ? 'LIVE' : 'VOD',
-                        style: const TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: const TextStyle(
+                          color: AppColors.textOnPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -154,17 +268,41 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
-                Text('Mã: ${c.code}', style: TextStyle(fontSize: 12, color: AppColors.grey700)),
+                Text(
+                  'Mã: ${c.code}',
+                  style: TextStyle(fontSize: 12, color: AppColors.grey700),
+                ),
+                if (isLive && c.openingDate != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Khai giảng: ${DateFormat('dd/MM/yyyy').format(c.openingDate!)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.grey700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(priceStr, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
+                    Text(
+                      priceStr,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
                     ElevatedButton(
                       onPressed: () {
                         if (isLive) {
@@ -175,12 +313,22 @@ class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen>
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         elevation: 0,
                       ),
-                      child: const Text('Xem chi tiết', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Xem chi tiết',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),

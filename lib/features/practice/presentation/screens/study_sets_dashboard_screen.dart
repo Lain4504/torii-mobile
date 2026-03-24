@@ -6,7 +6,9 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 
 class StudySetsDashboardScreen extends ConsumerStatefulWidget {
-  const StudySetsDashboardScreen({super.key});
+  const StudySetsDashboardScreen({super.key, this.initialSetId});
+
+  final String? initialSetId;
 
   @override
   ConsumerState<StudySetsDashboardScreen> createState() => _StudySetsDashboardScreenState();
@@ -15,6 +17,8 @@ class StudySetsDashboardScreen extends ConsumerStatefulWidget {
 class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScreen> {
   String? _selectedSetId;
   String? _busyCardId;
+  int _cardsPage = 1;
+  static const int _cardsPageSize = 20;
 
   @override
   void dispose() {
@@ -91,12 +95,20 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
             );
           }
 
-          _selectedSetId ??= sets.first.id;
+          _selectedSetId ??= widget.initialSetId ?? sets.first.id;
+          if (!sets.any((s) => s.id == _selectedSetId)) {
+            _selectedSetId = sets.first.id;
+          }
           final selectedId = _selectedSetId!;
           final selectedAsync = ref.watch(studySetDetailProvider(selectedId));
           final selected = selectedAsync.asData?.value?['item'] as Map<String, dynamic>?;
           final selectedCards = (selected?['setCards'] as List?)?.cast<dynamic>() ?? const [];
           final selectedCount = selectedCards.length;
+          final totalPages = (selectedCount / _cardsPageSize).ceil().clamp(1, 99999).toInt();
+          if (_cardsPage > totalPages) _cardsPage = totalPages;
+          final start = (_cardsPage - 1) * _cardsPageSize;
+          final end = (start + _cardsPageSize) > selectedCount ? selectedCount : (start + _cardsPageSize);
+          final pagedCards = selectedCards.sublist(start, end);
 
           // AppShell dùng extendBody: true → body vẽ xuyên qua bottom bar; padding đáy cho nav + safe area.
           final mq = MediaQuery.of(context);
@@ -139,7 +151,10 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                         final s = sets[index];
                         final isActive = s.id == selectedId;
                         return InkWell(
-                          onTap: () => setState(() => _selectedSetId = s.id),
+                          onTap: () => setState(() {
+                            _selectedSetId = s.id;
+                            _cardsPage = 1;
+                          }),
                           onLongPress: () => _showEditSetSheet(context, s.id, initialTitle: s.title, initialDescription: s.description),
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
@@ -244,10 +259,10 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           ListView.separated(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: selectedCards.length,
+                          itemCount: pagedCards.length,
                             separatorBuilder: (_, __) => const SizedBox(height: 10),
                             itemBuilder: (context, i) {
-                              final c = selectedCards[i] as Map;
+                              final c = pagedCards[i] as Map;
                               final cardId = (c['id'] ?? '').toString();
                               final term = (c['term'] ?? '').toString().trim();
                               final def = (c['definition'] ?? '').toString().trim();
@@ -368,6 +383,56 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                               );
                             },
                           ),
+                          if (totalPages > 1) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  tooltip: 'Trang đầu',
+                                  onPressed: _cardsPage == 1
+                                      ? null
+                                      : () => setState(() => _cardsPage = 1),
+                                  icon: const Icon(Icons.first_page_rounded),
+                                ),
+                                IconButton(
+                                  tooltip: 'Trang trước',
+                                  onPressed: _cardsPage == 1
+                                      ? null
+                                      : () => setState(() => _cardsPage -= 1),
+                                  icon: const Icon(Icons.chevron_left_rounded),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    '$_cardsPage / $totalPages',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Trang sau',
+                                  onPressed: _cardsPage == totalPages
+                                      ? null
+                                      : () => setState(() => _cardsPage += 1),
+                                  icon: const Icon(Icons.chevron_right_rounded),
+                                ),
+                                IconButton(
+                                  tooltip: 'Trang cuối',
+                                  onPressed: _cardsPage == totalPages
+                                      ? null
+                                      : () => setState(() => _cardsPage = totalPages),
+                                  icon: const Icon(Icons.last_page_rounded),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       );
                     },
@@ -458,6 +523,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
     if (created != null) {
       ref.invalidate(studySetDetailProvider(setId));
       ref.invalidate(studyCardsProvider(setId));
+      if (mounted) setState(() => _cardsPage = 1);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm thẻ mới!')));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thêm thẻ thất bại')));
@@ -494,6 +560,10 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
       if (ok) {
         ref.invalidate(studySetDetailProvider(setId));
         ref.invalidate(studyCardsProvider(setId));
+        if (mounted && _cardsPage > 1) {
+          // Nếu xoá ở cuối trang, giảm về trang trước để tránh trang rỗng.
+          setState(() => _cardsPage = _cardsPage - 1);
+        }
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã xóa thẻ')));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Xóa thẻ thất bại')));

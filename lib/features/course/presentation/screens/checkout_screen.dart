@@ -10,14 +10,12 @@ import 'package:torii_app/data/models/checkout_models.dart';
 import 'package:torii_app/data/models/class_catalog_model.dart';
 import 'package:torii_app/data/models/live_product_detail_model.dart';
 
-/// Thanh toán theo **classId** — backend resolve `catalogOfferingId` trong chi tiết lớp.
+/// Thanh toán theo class/product id và mode cụ thể.
 class CheckoutScreen extends ConsumerStatefulWidget {
-  const CheckoutScreen({
-    super.key,
-    required this.classId,
-  });
+  const CheckoutScreen({super.key, required this.classId, required this.mode});
 
   final String classId;
+  final String mode;
 
   @override
   ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -42,7 +40,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   void _schedulePreview(ClassCatalogDetailModel detail) {
     _couponDebounce?.cancel();
-    _couponDebounce = Timer(const Duration(milliseconds: 450), () => _previewNow(detail));
+    _couponDebounce = Timer(
+      const Duration(milliseconds: 450),
+      () => _previewNow(detail),
+    );
   }
 
   Future<void> _previewNow(ClassCatalogDetailModel detail) async {
@@ -85,22 +86,27 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!mounted) return;
       setState(() => _previewError = e.toString());
     } finally {
-      if (!mounted) return;
-      setState(() => _previewing = false);
+      if (mounted) {
+        setState(() => _previewing = false);
+      }
     }
   }
 
   Future<void> _handleCheckout(ClassCatalogDetailModel detail) async {
     final pid = detail.catalogProductId;
     if (pid.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thiếu thông tin gói bán.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Thiếu thông tin gói bán.')));
       return;
     }
     final isLive = detail.isLive;
     if (isLive) {
       final lc = detail.liveClass;
       if (lc != null && lc.isLiveCapacityFull) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lớp đã đầy.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Lớp đã đầy.')));
         return;
       }
     }
@@ -118,24 +124,38 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final paymentUrl = result.paymentUrl;
       final orderCode = result.orderCode;
 
-      if (paymentUrl == null || paymentUrl.isEmpty || orderCode == null || orderCode.isEmpty) {
+      if (paymentUrl == null ||
+          paymentUrl.isEmpty ||
+          orderCode == null ||
+          orderCode.isEmpty) {
         throw Exception('Không nhận được paymentUrl hoặc orderCode.');
       }
 
       if (!mounted) return;
-      context.push('/payment', extra: <String, dynamic>{'paymentUrl': paymentUrl, 'orderCode': orderCode});
+      context.push(
+        '/payment',
+        extra: <String, dynamic>{
+          'paymentUrl': paymentUrl,
+          'orderCode': orderCode,
+        },
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Thanh toán thất bại: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Thanh toán thất bại: $e')));
     } finally {
-      if (!mounted) return;
-      setState(() => _processing = false);
+      if (mounted) {
+        setState(() => _processing = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final detailAsync = ref.watch(classCatalogDetailProvider(widget.classId));
+    final detailAsync = widget.mode == 'LIVE'
+        ? ref.watch(classCatalogLiveDetailProvider(widget.classId))
+        : ref.watch(classCatalogVodDetailProvider(widget.classId));
     final theme = Theme.of(context);
     const bottomNavBarHeight = 64.0;
     final bottomInset = MediaQuery.of(context).padding.bottom;
@@ -155,24 +175,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: detailAsync.when(
         data: (detail) {
-          if (detail == null) return const Center(child: Text('Không tìm thấy lớp học'));
+          if (detail == null) {
+            return const Center(child: Text('Không tìm thấy lớp học'));
+          }
 
           if (!_scheduledInitialPreview) {
             _scheduledInitialPreview = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _previewNow(detail);
+              if (mounted) {
+                _previewNow(detail);
+              }
             });
           }
 
           final isLive = detail.isLive;
           final live = detail.liveClass;
-          final canPayLive = !isLive || (live != null && !live.isLiveCapacityFull);
+          final hasProduct = detail.catalogProductId.isNotEmpty;
+          final canPayLive =
+              hasProduct &&
+              (!isLive || (live != null && !live.isLiveCapacityFull));
           final title = detail.item.name.isNotEmpty
               ? detail.item.name
               : (detail.item.profileTitle ?? 'Khóa học');
@@ -181,7 +212,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           return Stack(
             children: [
               ListView(
-                padding: EdgeInsets.fromLTRB(16, 12, 16, bottomSafePadding + 96),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  12,
+                  16,
+                  bottomSafePadding + 96,
+                ),
                 children: [
                   _CourseSummaryCard(
                     displayTitle: title,
@@ -204,9 +240,31 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     const SizedBox(height: 8),
                     Text(
                       '${live.name.isNotEmpty ? live.name : live.code} • ${live.code}',
-                      style: TextStyle(color: AppColors.grey700, fontSize: 13, height: 1.4),
+                      style: TextStyle(
+                        color: AppColors.grey700,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
                     ),
                     const SizedBox(height: 16),
+                  ],
+                  if (!hasProduct) ...[
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.errorLight,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: const Text(
+                        'Khóa học chưa gắn gói thanh toán. Vui lòng thử lại sau.',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
                   ],
                   Text(
                     'Mã giảm giá',
@@ -224,18 +282,27 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           decoration: InputDecoration(
                             hintText: 'Nhập mã (nếu có)',
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(color: AppColors.grey300),
+                              borderSide: const BorderSide(
+                                color: AppColors.grey300,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(color: AppColors.grey300),
+                              borderSide: const BorderSide(
+                                color: AppColors.grey300,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(color: AppColors.primary),
+                              borderSide: const BorderSide(
+                                color: AppColors.primary,
+                              ),
                             ),
                           ),
                           onChanged: (_) => _schedulePreview(detail),
@@ -243,15 +310,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       ),
                       const SizedBox(width: 10),
                       OutlinedButton(
-                        onPressed: _previewing ? null : () => _previewNow(detail),
+                        onPressed: _previewing
+                            ? null
+                            : () => _previewNow(detail),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                           side: const BorderSide(color: AppColors.borderLight),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text('Áp dụng', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'Áp dụng',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ],
                   ),
@@ -271,7 +346,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   decoration: BoxDecoration(
                     color: AppColors.surface,
                     boxShadow: [
-                      BoxShadow(color: AppColors.textPrimary.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, -6)),
+                      BoxShadow(
+                        color: AppColors.textPrimary.withValues(alpha: 0.05),
+                        blurRadius: 12,
+                        offset: const Offset(0, -6),
+                      ),
                     ],
                   ),
                   child: SizedBox(
@@ -304,7 +383,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(
+          child: Text('Lỗi: $e', style: TextStyle(color: AppColors.error)),
+        ),
       ),
     );
   }
@@ -332,7 +413,8 @@ class _CourseSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final priceStr = '${price.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
+    final priceStr =
+        '${price.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
     final isLive = mode.toUpperCase() == 'LIVE';
 
     return Container(
@@ -351,7 +433,7 @@ class _CourseSummaryCard extends StatelessWidget {
               width: 84,
               height: 84,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (_, error, stackTrace) => Container(
                 width: 84,
                 height: 84,
                 color: AppColors.grey200,
@@ -367,9 +449,14 @@ class _CourseSummaryCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: isLive ? AppColors.error.withOpacity(0.08) : AppColors.primary.withOpacity(0.08),
+                        color: isLive
+                            ? AppColors.error.withValues(alpha: 0.08)
+                            : AppColors.primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -405,7 +492,11 @@ class _CourseSummaryCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     liveContextLine!,
-                    style: TextStyle(color: AppColors.grey700, fontSize: 12, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: AppColors.grey700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -423,14 +514,20 @@ class _CourseSummaryCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     'Lớp: ${selectedClass!.code.isNotEmpty ? selectedClass!.code : selectedClass!.name}',
-                    style: TextStyle(color: AppColors.grey700, fontSize: 12, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: AppColors.grey700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   if (selectedClass!.liveCapacitySubtitle != null) ...[
                     const SizedBox(height: 4),
                     Text(
                       selectedClass!.liveCapacitySubtitle!,
                       style: TextStyle(
-                        color: selectedClass!.isLiveCapacityFull ? AppColors.error : AppColors.grey700,
+                        color: selectedClass!.isLiveCapacityFull
+                            ? AppColors.error
+                            : AppColors.grey700,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -466,7 +563,8 @@ class _OrderTotalsCard extends StatelessWidget {
     final discount = preview?.discountTotal ?? 0;
     final total = preview?.grandTotal ?? sub;
 
-    String fmt(double v) => '${v.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
+    String fmt(double v) =>
+        '${v.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -487,36 +585,73 @@ class _OrderTotalsCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           _row('Tạm tính', fmt(sub)),
-          if (discount > 0) _row('Giảm giá', '-${fmt(discount)}', valueColor: AppColors.success),
+          if (discount > 0)
+            _row(
+              'Giảm giá',
+              '-${fmt(discount)}',
+              valueColor: AppColors.success,
+            ),
           const Divider(height: 24),
           _row('Tổng cộng', fmt(total), isTotal: true),
           if (previewing) ...[
             const SizedBox(height: 10),
             Row(
               children: [
-                const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
                 const SizedBox(width: 10),
-                Text('Đang tính lại...', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
+                Text(
+                  'Đang tính lại...',
+                  style: TextStyle(color: AppColors.grey700, fontSize: 12),
+                ),
               ],
             ),
           ],
           if ((errorText ?? '').isNotEmpty) ...[
             const SizedBox(height: 10),
-            Text(errorText!, style: TextStyle(color: AppColors.error, fontSize: 12, height: 1.4)),
+            Text(
+              errorText!,
+              style: TextStyle(
+                color: AppColors.error,
+                fontSize: 12,
+                height: 1.4,
+              ),
+            ),
           ],
         ],
       ),
     );
   }
 
-  Widget _row(String label, String value, {bool isTotal = false, Color? valueColor}) {
+  Widget _row(
+    String label,
+    String value, {
+    bool isTotal = false,
+    Color? valueColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: AppColors.grey700, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: isTotal ? 18 : 14, color: valueColor ?? AppColors.textPrimary)),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.grey700,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: isTotal ? 18 : 14,
+              color: valueColor ?? AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );
