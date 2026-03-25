@@ -1,10 +1,108 @@
 import 'package:dio/dio.dart';
 import '../models/sensei_model.dart';
+import '../models/sensei_subscription_models.dart';
+
+class SenseiQuotaExceededException implements Exception {
+  final String message;
+
+  const SenseiQuotaExceededException(this.message);
+
+  @override
+  String toString() => message;
+}
 
 class SenseiRepository {
   final Dio _dio;
 
   SenseiRepository({required Dio dio}) : _dio = dio;
+
+  bool _looksLikeQuotaExceeded(String message) {
+    final m = message.toLowerCase();
+    return m.contains('hết lượt') ||
+        m.contains('het luot') ||
+        m.contains('quota') ||
+        m.contains('ai_turns') ||
+        m.contains('remaining') ||
+        (m.contains('out of') && m.contains('turn'));
+  }
+
+  String _extractErrorMessage(dynamic error) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      if (data is Map<String, dynamic>) {
+        final msg = data['message'] ?? data['error'] ?? data['detail'] ?? data['errors'];
+        if (msg is String) return msg;
+        if (msg is List) return msg.join(', ');
+        return data.toString();
+      }
+      return error.message ?? error.toString();
+    }
+    return error.toString();
+  }
+
+  // --- SUBSCRIPTION API ---
+  Future<List<SenseiSubscriptionPlan>> getSubscriptionPlans() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/agents/sensei/subscription-plans',
+    );
+    final body = response.data ?? {};
+    if (body['success'] != true) return [];
+
+    final data = body['data'];
+    if (data is! List) return [];
+
+    return data
+        .whereType<Map>()
+        .map((e) => SenseiSubscriptionPlan.fromJson(e.cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<SenseiQuotaStatus> getQuotaStatus() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/agents/sensei/quota-status',
+    );
+    final body = response.data ?? {};
+    if (body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to fetch quota status');
+    }
+
+    final data = body['data'];
+    if (data is Map<String, dynamic>) {
+      return SenseiQuotaStatus.fromJson(data);
+    }
+    if (data is Map) {
+      return SenseiQuotaStatus.fromJson(data.cast<String, dynamic>());
+    }
+    throw Exception('Unexpected quota-status response');
+  }
+
+  Future<SenseiSubscriptionCheckoutResult> checkoutSubscriptionPlan({
+    required List<String> subscriptionPlanIds,
+    required String paymentMethod,
+    required String description,
+  }) async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/api/academy/orders/checkout',
+      data: <String, dynamic>{
+        'subscriptionPlanIds': subscriptionPlanIds,
+        'paymentMethod': paymentMethod,
+        'description': description,
+      },
+    );
+    final body = response.data ?? {};
+    if (body['success'] != true) {
+      throw Exception(body['message'] ?? 'Failed to checkout subscription');
+    }
+
+    final data = body['data'];
+    if (data is Map<String, dynamic>) {
+      return SenseiSubscriptionCheckoutResult.fromJson(data);
+    }
+    if (data is Map) {
+      return SenseiSubscriptionCheckoutResult.fromJson(data.cast<String, dynamic>());
+    }
+    throw Exception('Unexpected checkout response');
+  }
 
   // --- CHATBOT API ---
 
@@ -26,7 +124,13 @@ class SenseiRepository {
             : null,
       );
     } catch (e) {
-      throw Exception('AI Sensei chat failed: $e');
+      final msg = _extractErrorMessage(e);
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      throw Exception('AI Sensei chat failed: $msg');
     }
   }
 
@@ -35,7 +139,13 @@ class SenseiRepository {
       final response = await _dio.post('/api/agents/grammar-check', data: {'text': text});
       return GrammarCheckResponse.fromJson(response.data);
     } catch (e) {
-      throw Exception('Grammar check failed: $e');
+      final msg = _extractErrorMessage(e);
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      throw Exception('Grammar check failed: $msg');
     }
   }
 
@@ -52,7 +162,13 @@ class SenseiRepository {
       });
       return TranslateResponse.fromJson(response.data);
     } catch (e) {
-      throw Exception('Translation failed: $e');
+      final msg = _extractErrorMessage(e);
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      throw Exception('Translation failed: $msg');
     }
   }
 
@@ -80,10 +196,28 @@ class SenseiRepository {
         if (data['success'] == true) {
           return RoleplayResponse.fromJson(data['data']);
         }
+        final msg = (data['message'] ?? data['error'] ?? '').toString();
+        if (_looksLikeQuotaExceeded(msg)) {
+          throw SenseiQuotaExceededException(
+            msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+          );
+        }
       }
-      throw Exception('Failed to process roleplay: ${response.data?['message'] ?? 'Unknown error'}');
+      final msg = (response.data?['message'] ?? response.data?['error'] ?? 'Unknown error').toString();
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      throw Exception('Failed to process roleplay: $msg');
     } catch (e) {
-      throw Exception('Failed to process roleplay: $e');
+      final msg = _extractErrorMessage(e);
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      throw Exception('Failed to process roleplay: $msg');
     }
   }
 
@@ -107,7 +241,13 @@ class SenseiRepository {
       }
       throw Exception('Failed to generate TTS');
     } catch (e) {
-      throw Exception('Failed to generate TTS: $e');
+      final msg = _extractErrorMessage(e);
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      throw Exception('Failed to generate TTS: $msg');
     }
   }
 
@@ -168,9 +308,21 @@ class SenseiRepository {
           return data['data'];
         }
       }
-      throw Exception('Failed to get voice agent token: ${response.data?['message']}');
+      final msg = (response.data?['message'] ?? response.data?['error'] ?? '').toString();
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      throw Exception('Failed to get voice agent token: $msg');
     } catch (e) {
-      throw Exception('Failed to get voice agent token: $e');
+      final msg = _extractErrorMessage(e);
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      throw Exception('Failed to get voice agent token: $msg');
     }
   }
 }

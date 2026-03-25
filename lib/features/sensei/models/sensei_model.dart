@@ -10,6 +10,9 @@ class ChatMessage {
   final String content;
   final bool isLoading;
   final bool isError;
+  /// Optional code to help UI react to certain error cases.
+  /// Example: `quota_exceeded`
+  final String? errorCode;
   final List<String>? suggestions;
 
   const ChatMessage({
@@ -17,6 +20,7 @@ class ChatMessage {
     required this.content,
     this.isLoading = false,
     this.isError = false,
+    this.errorCode,
     this.suggestions,
   });
 }

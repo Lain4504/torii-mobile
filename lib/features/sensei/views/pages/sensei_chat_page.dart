@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_design_system.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/sensei_model.dart';
 import '../../providers/sensei_providers.dart';
+import '../widgets/sensei_quota_header.dart';
 
 class SenseiChatPage extends ConsumerStatefulWidget {
   const SenseiChatPage({super.key});
@@ -53,7 +55,7 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
             ),
             Text(
               'Hỏi đáp thông minh',
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
             ),
           ],
         ),
@@ -61,7 +63,9 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        actions: const [],
+        actions: const [
+          SenseiQuotaHeader(),
+        ],
       ),
       body: Column(
         children: [
@@ -124,7 +128,7 @@ class _ChatBubble extends ConsumerWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
+                        color: theme.colorScheme.onSurface.withOpacity(0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),
@@ -156,6 +160,23 @@ class _ChatBubble extends ConsumerWidget {
                               ),
                             ),
                 ),
+                if (message.isError && message.errorCode == 'quota_exceeded')
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: TextButton.icon(
+                      onPressed: () => context.push('/sensei/subscription'),
+                      icon: const Icon(Icons.upgrade_rounded),
+                      label: const Text('Nâng cấp gói AI'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: theme.colorScheme.primary,
+                        backgroundColor: theme.colorScheme.primary.withOpacity(0.08),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
                 if (isAssistant && isLatestMessage && message.suggestions != null && message.suggestions!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Wrap(

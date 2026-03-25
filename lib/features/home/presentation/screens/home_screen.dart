@@ -8,6 +8,8 @@ import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/blog_model.dart';
 import 'package:torii_app/features/home/presentation/widgets/streak_calendar_sheet.dart';
 import 'package:torii_app/features/home/presentation/widgets/streak_welcome_dialog.dart';
+import 'package:torii_app/features/sensei/views/widgets/sensei_quota_header.dart';
+import 'package:torii_app/features/sensei/providers/sensei_subscription_providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +26,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     _blogPageController = PageController(viewportFraction: 0.88);
+    // Refresh quota on home entry if logged in
+    Future.microtask(() {
+      if (ref.read(authStateProvider).valueOrNull?.isAuthenticated == true) {
+        ref.refresh(senseiQuotaStatusProvider);
+      }
+    });
   }
 
   @override
@@ -227,7 +235,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ],
                       ),
                     ),
-                    if (isLoggedIn && !isAuthLoading)
+                    if (isLoggedIn && !isAuthLoading) ...[
+                      const SenseiQuotaHeader(),
                       IconButton(
                         onPressed: () => context.push('/notifications'),
                         icon: Stack(
@@ -283,8 +292,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                           ],
                         ),
-                      )
-                    else if (!isAuthLoading)
+                      ),
+                    ] else if (!isAuthLoading)
                       SizedBox(
                         height: 32,
                         child: OutlinedButton(

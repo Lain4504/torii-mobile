@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_design_system.dart';
 import '../../models/sensei_model.dart';
+import '../../providers/sensei_subscription_providers.dart';
+import '../widgets/sensei_quota_header.dart';
 
-class SenseiDashboardPage extends StatelessWidget {
+class SenseiDashboardPage extends ConsumerStatefulWidget {
   const SenseiDashboardPage({super.key});
+
+  @override
+  ConsumerState<SenseiDashboardPage> createState() => _SenseiDashboardPageState();
+}
+
+class _SenseiDashboardPageState extends ConsumerState<SenseiDashboardPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh quota status when entering dashboard
+    Future.microtask(() => ref.refresh(senseiQuotaStatusProvider));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +37,9 @@ class SenseiDashboardPage extends StatelessWidget {
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
+        actions: const [
+          SenseiQuotaHeader(),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -61,7 +78,7 @@ class SenseiDashboardPage extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             theme.colorScheme.primary,
-            theme.colorScheme.primary.withValues(alpha: 0.8),
+            theme.colorScheme.primary.withOpacity(0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -69,7 +86,7 @@ class SenseiDashboardPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+            color: theme.colorScheme.primary.withOpacity(0.3),
             blurRadius: 14,
             offset: const Offset(0, 10),
           ),
@@ -81,7 +98,7 @@ class SenseiDashboardPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
+              color: theme.colorScheme.onPrimary.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.auto_awesome, color: theme.colorScheme.onPrimary, size: 18),
@@ -99,7 +116,7 @@ class SenseiDashboardPage extends StatelessWidget {
           Text(
             'Người bạn đồng hành thông minh giúp bạn chinh phục tiếng Nhật mỗi ngày.',
             style: TextStyle(
-              color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
+              color: theme.colorScheme.onPrimary.withOpacity(0.9),
               fontSize: 12.5,
               height: 1.35,
             ),
@@ -125,7 +142,7 @@ class _MenuCard extends StatelessWidget {
         border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
+            color: theme.colorScheme.onSurface.withOpacity(0.04),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -164,7 +181,7 @@ class _MenuCard extends StatelessWidget {
                     Text(
                       item.description,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                           height: 1.2,
                         ),
                       maxLines: 1,
@@ -173,7 +190,7 @@ class _MenuCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), size: 18),
+              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7), size: 18),
             ],
           ),
         ),
