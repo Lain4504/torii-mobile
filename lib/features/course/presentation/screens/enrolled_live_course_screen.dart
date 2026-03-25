@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
+import 'package:torii_app/data/models/academy_models.dart';
+import 'package:torii_app/features/academy/presentation/widgets/resource_item.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Khóa LIVE đã ghi danh: swiper 3 buổi gần nhất + tabs syllabus (parity web LiveClassDashboard).
 class EnrolledLiveCourseScreen extends ConsumerStatefulWidget {
@@ -212,12 +215,7 @@ class _EnrolledLiveCourseScreenState
                     child: TabBarView(
                       children: [
                         _SyllabusTabPane(classId: widget.classId),
-                        _PlaceholderTabPane(
-                          icon: Icons.folder_outlined,
-                          title: 'Tài liệu học tập',
-                          message:
-                              'Tài liệu sẽ được cập nhật theo từng buổi học.',
-                        ),
+                        _ResourcesTabPane(classId: widget.classId),
                         _PlaceholderTabPane(
                           icon: Icons.forum_outlined,
                           title: 'Hỏi đáp',
@@ -732,6 +730,80 @@ class _SyllabusTabPane extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _ResourcesTabPane extends ConsumerWidget {
+  const _ResourcesTabPane({required this.classId});
+
+  final String classId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resourcesAsync = ref.watch(folderResourcesByClassProvider(classId));
+
+    return resourcesAsync.when(
+      data: (resources) {
+        if (resources.isEmpty) {
+          return const _PlaceholderTabPane(
+            icon: Icons.folder_outlined,
+            title: 'Tài liệu học tập',
+            message: 'Tài liệu sẽ được cập nhật theo từng buổi học.',
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: resources.length,
+          separatorBuilder: (context, index) => const Divider(height: 1),
+          itemBuilder: (context, index) {
+            final resource = resources[index];
+            return ResourceItem(
+              resource: resource,
+              onTap: () => _handleOpenResource(context, resource),
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Text('Lỗi: $error'),
+      ),
+    );
+  }
+
+  Future<void> _handleOpenResource(
+    BuildContext context,
+    AcademyResource resource,
+  ) async {
+    final url = resource.url;
+    if (url == null || url.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không tìm thấy đường dẫn tài nguyên')),
+        );
+      }
+      return;
+    }
+
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Không thể mở liên kết này')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi mở tài nguyên: $e')),
+        );
+      }
+    }
   }
 }
 

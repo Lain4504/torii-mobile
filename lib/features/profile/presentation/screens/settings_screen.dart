@@ -47,6 +47,11 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: () => context.push('/profile/edit'),
               ),
               _SettingsTile(
+                icon: Icons.folder_copy_outlined,
+                title: 'Thư mục tài nguyên',
+                onTap: () => context.push('/academy/folders'),
+              ),
+              _SettingsTile(
                 icon: Icons.link_rounded,
                 title: 'Liên kết tài khoản',
                 onTap: () => context.push('/linked-accounts'),

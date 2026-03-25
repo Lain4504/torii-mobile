@@ -309,11 +309,11 @@ class AcademyRepository {
         '/api/academy/live-sessions/me',
         queryParameters: <String, dynamic>{'from': fromStr, 'to': toStr},
       );
-      final api = ApiResponse<Map<String, dynamic>>.fromJson(
-        response.data ?? {},
-      );
-      if (!api.success || api.data == null) return [];
-      final items = api.data!['items'] as List<dynamic>? ?? [];
+      final body = response.data ?? {};
+      if (body['success'] != true) return [];
+      
+      final data = body['data'];
+      final items = (data is Map ? data['items'] : data) as List<dynamic>? ?? [];
       final merged =
           items
               .map(
@@ -811,6 +811,71 @@ class AcademyRepository {
     final item = api.data!['item'];
     if (item is! Map) return null;
     return JlptMockAttemptResultModel.fromJson(item.cast<String, dynamic>());
+  }
+
+  // ---------- Academy Resource & My Folders ----------
+  /// GET /api/academy/my-folders/live-classes
+  Future<List<AcademyFolder>> getMyFolders({String? classId}) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/my-folders/live-classes',
+      queryParameters: <String, dynamic>{
+        if (classId != null && classId.isNotEmpty) 'classId': classId,
+      },
+    );
+    final body = response.data ?? {};
+    if (body['success'] != true) return [];
+    
+    final data = body['data'];
+    if (data is List) {
+      return data.map((e) => AcademyFolder.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return [];
+  }
+
+  /// GET /api/academy/folders/:folderId/resources
+  Future<List<AcademyResource>> getFolderResources(String folderId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/folders/$folderId/resources',
+    );
+    final body = response.data ?? {};
+    if (body['success'] != true) return [];
+
+    final data = body['data'];
+    if (data is List) {
+      return data.map((e) => AcademyResource.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return [];
+  }
+
+  /// GET /api/academy/resources/:resourceId
+  Future<AcademyResource?> getResourceDetail(String resourceId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/resources/$resourceId',
+    );
+    final body = response.data ?? {};
+    if (body['success'] != true) return null;
+    
+    final data = body['data'];
+    final item = (data is Map ? (data['item'] ?? data['data'] ?? data) : data);
+    
+    if (item is Map<String, dynamic>) {
+      return AcademyResource.fromJson(item);
+    }
+    return null;
+  }
+
+  Future<List<AcademyResource>> getFolderResourcesByClass(String classId) async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/api/academy/my-folders/live-classes/$classId/resources',
+    );
+    final body = response.data ?? {};
+    if (body['success'] != true) return [];
+
+    final data = body['data'];
+    if (data is List) {
+      return data.map((e) => AcademyResource.fromJson(Map<String, dynamic>.from(e))).toList();
+    }
+    return [];
   }
 
   Future<String?> getStorageSignedUrl({

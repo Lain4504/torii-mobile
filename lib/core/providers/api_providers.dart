@@ -228,14 +228,39 @@ final studySetsProvider = FutureProvider<List<StudySetModel>>((ref) async {
 
 final studySetDetailProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, id) async {
-      final repo = ref.watch(academyRepositoryProvider);
-      return repo.getStudySetById(id);
-    });
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getStudySetById(id);
+});
 
-final studyCardsProvider = FutureProvider.family<List<SetCardModel>, String>((
-  ref,
-  setId,
-) async {
+final studyCardsProvider =
+    FutureProvider.family<List<SetCardModel>, String>((ref, setId) async {
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getStudyCards(setId);
+});
+
+// ---------- Academy Resource & My Folders ----------
+final myFoldersProvider = FutureProvider<List<AcademyFolder>>((ref) async {
+  if (!_authenticatedAcademyUser(ref)) {
+    return const [];
+  }
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getMyFolders();
+});
+
+final folderResourcesProvider =
+    FutureProvider.family<List<AcademyResource>, String>((ref, folderId) async {
+  if (!_authenticatedAcademyUser(ref) || folderId.isEmpty) {
+    return const [];
+  }
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getFolderResources(folderId);
+});
+
+final folderResourcesByClassProvider =
+    FutureProvider.family<List<AcademyResource>, String>((ref, classId) async {
+  if (!_authenticatedAcademyUser(ref) || classId.isEmpty) {
+    return const [];
+  }
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getFolderResourcesByClass(classId);
 });

@@ -174,7 +174,7 @@ class EnrollmentModel {
 
     return EnrollmentModel(
       id: (json['id'] ?? '').toString(),
-      classId: (json['classId'] ?? '').toString(),
+      classId: (json['classId'] ?? json['productId'] ?? '').toString(),
       userId: (json['userId'] ?? '').toString(),
       expiresAt: json['expiresAt'] != null
           ? DateTime.tryParse(json['expiresAt'].toString())
@@ -266,4 +266,72 @@ class OrderModel {
         return status;
     }
   }
+}
+
+class AcademyFolder {
+  final String id;
+  final String name;
+  final String? className;
+  final String? classCode;
+  final int resourceCount;
+
+  const AcademyFolder({
+    required this.id,
+    required this.name,
+    this.className,
+    this.classCode,
+    required this.resourceCount,
+  });
+
+  factory AcademyFolder.fromJson(Map<String, dynamic> json) {
+    return AcademyFolder(
+      id: (json['folderId'] ?? json['id'] ?? '').toString(),
+      name: (json['folderName'] ?? json['name'] ?? '').toString(),
+      className: json['liveClass']?['name'] as String?,
+      classCode: json['liveClass']?['code'] as String?,
+      resourceCount: (json['resourceCount'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+enum AcademyResourceType { file, link, unknown }
+
+class AcademyResource {
+  final String id;
+  final String title;
+  final AcademyResourceType type;
+  final String? url;
+  final String? thumbnailUrl;
+  final DateTime createdAt;
+
+  const AcademyResource({
+    required this.id,
+    required this.title,
+    required this.type,
+    this.url,
+    this.thumbnailUrl,
+    required this.createdAt,
+  });
+
+  factory AcademyResource.fromJson(Map<String, dynamic> json) {
+    final typeStr = (json['resourceType'] ?? '').toString().toUpperCase();
+    final type = typeStr == 'FILE'
+        ? AcademyResourceType.file
+        : (typeStr == 'LINK' ? AcademyResourceType.link : AcademyResourceType.unknown);
+
+    return AcademyResource(
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      type: type,
+      url: type == AcademyResourceType.file
+          ? json['downloadUrl'] as String?
+          : json['externalUrl'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
+  bool get isFile => type == AcademyResourceType.file;
+  bool get isLink => type == AcademyResourceType.link;
 }
