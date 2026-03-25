@@ -44,6 +44,8 @@ import '../../features/sensei/views/pages/sensei_translate_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_topic_page.dart';
 import '../../features/sensei/views/pages/sensei_roleplay_chat_page.dart';
 import '../../features/sensei/views/pages/sensei_voice_agent_page.dart';
+import '../../features/sensei/views/pages/sensei_subscription_page.dart';
+import '../../features/sensei/views/pages/sensei_subscription_payment_webview_screen.dart';
 import '../../features/practice/presentation/screens/practice_home_screen.dart';
 import '../../features/practice/presentation/screens/study_sets_list_screen.dart';
 import '../../features/practice/presentation/screens/study_sets_dashboard_screen.dart';
@@ -322,6 +324,23 @@ final routerProvider = Provider<GoRouter>((ref) {
                       : '';
                   return SenseiRoleplayChatPage(
                     topic: topic.isNotEmpty ? topic : 'Roleplay',
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/sensei/subscription',
+                builder: (context, state) => const SenseiSubscriptionPage(),
+              ),
+              GoRoute(
+                path: '/sensei/subscription/payment-webview',
+                builder: (context, state) {
+                  final extra =
+                      state.extra as Map<String, dynamic>? ?? const <String, dynamic>{};
+                  final paymentUrl = (extra['paymentUrl'] as String?) ?? '';
+                  final orderCode = (extra['orderCode'] as String?) ?? '';
+                  return SenseiSubscriptionPaymentWebViewScreen(
+                    paymentUrl: paymentUrl,
+                    orderCode: orderCode,
                   );
                 },
               ),

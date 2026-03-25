@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'dart:math' as math;
 import '../../../../core/constants/app_design_system.dart';
 import '../../providers/voice_agent_provider.dart';
+import '../widgets/sensei_quota_header.dart';
 
 class SenseiVoiceAgentPage extends ConsumerStatefulWidget {
   const SenseiVoiceAgentPage({super.key});
@@ -62,6 +63,9 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
         backgroundColor: Colors.transparent,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
+        actions: const [
+          SenseiQuotaHeader(),
+        ],
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
@@ -86,14 +90,27 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                           padding: const EdgeInsets.all(16),
                           margin: const EdgeInsets.only(bottom: 24),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.error.withValues(alpha: 0.1),
+                            color: theme.colorScheme.error.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.3)),
+                            border: Border.all(color: theme.colorScheme.error.withOpacity(0.3)),
                           ),
-                          child: Text(
-                            'Lỗi kết nối: ${voiceState.error}',
-                            style: TextStyle(color: theme.colorScheme.error, fontSize: 13),
-                            textAlign: TextAlign.center,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Lỗi kết nối: ${voiceState.error}',
+                                style: TextStyle(color: theme.colorScheme.error, fontSize: 13),
+                                textAlign: TextAlign.center,
+                              ),
+                              if (voiceState.errorCode == 'quota_exceeded') ...[
+                                const SizedBox(height: 12),
+                                OutlinedButton.icon(
+                                  onPressed: () => context.push('/sensei/subscription'),
+                                  icon: const Icon(Icons.upgrade_rounded),
+                                  label: const Text('Nâng cấp gói AI'),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       const Spacer(),
@@ -132,18 +149,18 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: isConnected 
-                  ? theme.colorScheme.primary.withValues(alpha: 0.05 + 0.15 * speakingFactor) 
+                  ? theme.colorScheme.primary.withOpacity(0.05 + 0.15 * speakingFactor) 
                   : theme.colorScheme.surface,
               border: Border.all(
                 color: isConnected 
-                    ? Color.lerp(theme.colorScheme.primary.withValues(alpha: 0.5), theme.colorScheme.primary, speakingFactor)!
+                    ? Color.lerp(theme.colorScheme.primary.withOpacity(0.5), theme.colorScheme.primary, speakingFactor)!
                     : theme.colorScheme.outlineVariant,
                 width: 4 + 2 * speakingFactor,
               ),
               boxShadow: [
                 if (isConnected && speakingFactor > 0.01)
                   BoxShadow(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.3 * speakingFactor),
+                    color: theme.colorScheme.primary.withOpacity(0.3 * speakingFactor),
                     blurRadius: 30 * speakingFactor,
                     spreadRadius: 10 * speakingFactor,
                   )
@@ -216,7 +233,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
             const SizedBox(height: 8),
             Text(
               subStatus,
-              style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), fontSize: 15),
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7), fontSize: 15),
               textAlign: TextAlign.center,
             ),
           ]
@@ -310,12 +327,12 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: state.isMicOn ? theme.colorScheme.surface : theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                  color: state.isMicOn ? theme.colorScheme.surface : theme.colorScheme.onSurface.withOpacity(0.1),
                   shape: BoxShape.circle,
                   border: state.isMicOn ? Border.all(color: theme.colorScheme.outlineVariant) : null,
                   boxShadow: state.isMicOn ? [
                     BoxShadow(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                      color: theme.colorScheme.onSurface.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     )
@@ -323,7 +340,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                 ),
                 child: Icon(
                   state.isMicOn ? Icons.mic_rounded : Icons.mic_off_rounded,
-                  color: state.isMicOn ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  color: state.isMicOn ? theme.colorScheme.onSurface : theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                   size: 32,
                 ),
               ),
@@ -352,7 +369,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: theme.colorScheme.error.withValues(alpha: 0.3),
+                      color: theme.colorScheme.error.withOpacity(0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     )

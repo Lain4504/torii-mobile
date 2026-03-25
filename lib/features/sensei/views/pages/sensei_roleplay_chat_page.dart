@@ -12,6 +12,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../providers/sensei_providers.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../models/sensei_model.dart';
+import '../widgets/sensei_quota_header.dart';
 
 class SenseiRoleplayChatPage extends ConsumerStatefulWidget {
   final String topic;
@@ -317,6 +318,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
           ],
         ),
         actions: [
+          const SenseiQuotaHeader(),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: _showSettingsModal,
@@ -368,20 +370,33 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                           Icon(Icons.error_outline, color: theme.colorScheme.error, size: 48),
                           const SizedBox(height: 16),
                           Text(
-                            'Lỗi kết nối hoặc máy chủ phản hồi chậm.\nChi tiết: ${state.error}',
+                                    state.errorCode == 'quota_exceeded'
+                                        ? '${state.error}'
+                                        : 'Lỗi kết nối hoặc máy chủ phản hồi chậm.\nChi tiết: ${state.error}',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: () => notifier.start(),
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Thử lại'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.colorScheme.primary,
-                              foregroundColor: theme.colorScheme.onPrimary,
-                            ),
-                          ),
+                                  if (state.errorCode == 'quota_exceeded')
+                                    ElevatedButton.icon(
+                                      onPressed: () => context.push('/sensei/subscription'),
+                                      icon: const Icon(Icons.upgrade_rounded),
+                                      label: const Text('Nâng cấp gói AI'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: theme.colorScheme.primary,
+                                        foregroundColor: theme.colorScheme.onPrimary,
+                                      ),
+                                    )
+                                  else
+                                    ElevatedButton.icon(
+                                      onPressed: () => notifier.start(),
+                                      icon: const Icon(Icons.refresh),
+                                      label: const Text('Thử lại'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: theme.colorScheme.primary,
+                                        foregroundColor: theme.colorScheme.onPrimary,
+                                      ),
+                                    ),
                         ],
                       ),
                     ),
@@ -395,7 +410,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                         return _buildTypingIndicator();
                       }
                       if (index == state.messages.length + (state.isLoading ? 1 : 0) && state.error != null) {
-                         return _buildErrorBubble(state.error!, notifier);
+                        return _buildErrorBubble(state.error!, state.errorCode, notifier);
                       }
                       final msg = state.messages[index];
                       return _buildMessageBubble(msg);
@@ -474,7 +489,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                       child: Text(
                         msg.english!,
                         style: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                           fontSize: 11.5,
                         ),
                       ),
@@ -513,16 +528,16 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
     );
   }
 
-  Widget _buildErrorBubble(String error, dynamic notifier) {
+  Widget _buildErrorBubble(String error, String? errorCode, dynamic notifier) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16, top: 8),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: theme.colorScheme.error.withValues(alpha: 0.1),
+          color: theme.colorScheme.error.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.colorScheme.error.withValues(alpha: 0.5)),
+          border: Border.all(color: theme.colorScheme.error.withOpacity(0.5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,21 +556,27 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () {
-                   if (ref.read(senseiRoleplayProvider(widget.topic)).messages.isEmpty) {
-                      notifier.start();
-                   } else {
-                      // We don't have a direct "retry last message" in the provider, 
-                      // but user can just type again or we can re-send the last user message.
-                      // For now, let's just instruct them.
-                   }
+                  if (errorCode == 'quota_exceeded') {
+                    context.push('/sensei/subscription');
+                    return;
+                  }
+
+                  if (ref.read(senseiRoleplayProvider(widget.topic)).messages.isEmpty) {
+                    notifier.start();
+                  } else {
+                    // For non-quota errors: let the user retry by sending again.
+                  }
                 },
                 style: TextButton.styleFrom(
                   minimumSize: Size.zero,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  backgroundColor: theme.colorScheme.error.withValues(alpha: 0.1),
+                  backgroundColor: theme.colorScheme.error.withOpacity(0.1),
                   foregroundColor: theme.colorScheme.error,
                 ),
-                child: const Text('Đã hiểu'),
+                child: Text(
+                  errorCode == 'quota_exceeded' ? 'Nâng cấp ngay' : 'Đã hiểu',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
               ),
             )
           ],
@@ -592,7 +613,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
         color: theme.colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+            color: theme.colorScheme.onSurface.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -645,7 +666,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
                 controller: _messageController,
                 decoration: InputDecoration(
                   hintText: _holdToTalkActive ? 'Đang nghe… thả tay để gửi' : 'Nhập câu trả lời...',
-                  hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                  hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide(color: theme.colorScheme.outlineVariant),

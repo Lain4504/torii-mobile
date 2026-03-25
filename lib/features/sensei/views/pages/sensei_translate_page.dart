@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../models/sensei_model.dart';
 import '../../providers/sensei_providers.dart';
+import '../widgets/sensei_quota_header.dart';
 
 /// Nền body giống [StudySetMatchScreen]. Removed fixed color for theme support.
 
@@ -67,7 +68,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
       border: Border.all(color: borderColor ?? theme.colorScheme.outlineVariant),
       boxShadow: [
         BoxShadow(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
+          color: theme.colorScheme.onSurface.withOpacity(0.04),
           blurRadius: 12,
           offset: const Offset(0, 4),
         ),
@@ -97,6 +98,9 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
+        actions: const [
+          SenseiQuotaHeader(),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -109,7 +113,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                 decoration: _cardDecoration(theme),
                 child: Row(
                   children: [
-                    Icon(Icons.translate_rounded, size: 20, color: theme.colorScheme.primary.withValues(alpha: 0.9)),
+                    Icon(Icons.translate_rounded, size: 20, color: theme.colorScheme.primary.withOpacity(0.9)),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -137,7 +141,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.swap_horiz_rounded, color: theme.colorScheme.primary.withValues(alpha: 0.95)),
+                      icon: Icon(Icons.swap_horiz_rounded, color: theme.colorScheme.primary.withOpacity(0.95)),
                       onPressed: _swapLanguages,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -166,7 +170,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                         style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, height: 1.35),
                         decoration: InputDecoration(
                           hintText: 'Nhập văn bản cần dịch…',
-                          hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                          hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
                           border: InputBorder.none,
                           isDense: true,
                         ),
@@ -178,7 +182,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                       child: Row(
                         children: [
                           IconButton(
-                            icon: Icon(Icons.volume_up_rounded, size: 22, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.85)),
+                            icon: Icon(Icons.volume_up_rounded, size: 22, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.85)),
                             onPressed: () {},
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -186,7 +190,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                           if (_textController.text.isNotEmpty)
                             IconButton(
                               icon: const Icon(Icons.close_rounded, size: 22),
-                              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                               onPressed: () => setState(() => _textController.clear()),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -227,10 +231,10 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.22)),
+                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.22)),
                     boxShadow: [
                       BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.06),
+                        color: theme.colorScheme.primary.withOpacity(0.06),
                         blurRadius: 14,
                         offset: const Offset(0, 4),
                       ),
@@ -280,7 +284,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
                           ),
                           IconButton(
-                            icon: Icon(Icons.volume_up_rounded, size: 22, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.85)),
+                            icon: Icon(Icons.volume_up_rounded, size: 22, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.85)),
                             onPressed: () {},
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
@@ -288,6 +292,96 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                         ],
                       ),
                     ],
+                  ),
+                ),
+              ],
+              if (translatorState.error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.error.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: theme.colorScheme.error.withOpacity(0.35)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.error_outline_rounded, size: 20, color: theme.colorScheme.error),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Lỗi',
+                              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          translatorState.error!,
+                          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        if (translatorState.errorCode == 'quota_exceeded') ...[
+                          const SizedBox(height: 12),
+                          ElevatedButton.icon(
+                            onPressed: () => context.push('/sensei/subscription'),
+                            icon: const Icon(Icons.upgrade_rounded),
+                            label: const Text('Nâng cấp gói AI'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              if (grammarState.error != null) ...[
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.error.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: theme.colorScheme.error.withOpacity(0.35)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.error_outline_rounded, size: 20, color: theme.colorScheme.error),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Lỗi phân tích ngữ pháp',
+                              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          grammarState.error!,
+                          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        if (grammarState.errorCode == 'quota_exceeded') ...[
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: () => context.push('/sensei/subscription'),
+                            icon: const Icon(Icons.upgrade_rounded),
+                            label: const Text('Nâng cấp gói AI'),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -299,10 +393,10 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.35)),
+                      border: Border.all(color: theme.colorScheme.primary.withOpacity(0.35)),
                       boxShadow: [
                         BoxShadow(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.05),
+                          color: theme.colorScheme.primary.withOpacity(0.05),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -323,7 +417,7 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                               Text(
                                 'Kiểm tra lỗi và gợi ý cách dùng từ tự nhiên hơn.',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                                   height: 1.35,
                                 ),
                               ),
@@ -388,7 +482,7 @@ class _LanguageDrop extends StatelessWidget {
       onChanged: onChanged,
       underline: const SizedBox.shrink(),
       style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: theme.colorScheme.onSurface),
-      icon: Icon(Icons.expand_more_rounded, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+      icon: Icon(Icons.expand_more_rounded, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
     );
   }
 }
@@ -410,7 +504,7 @@ class _GrammarResultView extends StatelessWidget {
         border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
+            color: theme.colorScheme.onSurface.withOpacity(0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -457,12 +551,12 @@ class _GrammarResultView extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Icon(Icons.expand_more_rounded, size: 22, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+            child: Icon(Icons.expand_more_rounded, size: 22, color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
           ),
           _ResultBox(
             title: 'Đề xuất',
             text: response.correctedText?.toString() ?? '',
-            color: theme.colorScheme.primary.withValues(alpha: 0.07),
+            color: theme.colorScheme.primary.withOpacity(0.07),
             textColor: theme.colorScheme.primary,
           ),
           if (response.errors.isNotEmpty) ...[
@@ -528,7 +622,7 @@ class _ResultBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,7 +633,7 @@ class _ResultBox extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.4,
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.9),
+              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.9),
             ),
           ),
           const SizedBox(height: 6),
@@ -589,7 +683,7 @@ class _ErrorItem extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.45)),
+                    border: Border.all(color: theme.colorScheme.primary.withOpacity(0.45)),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -608,7 +702,7 @@ class _ErrorItem extends StatelessWidget {
                   child: Text(
                     'Vị trí: $location',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                       fontWeight: FontWeight.w700,
                     ),
                     maxLines: 2,
@@ -622,7 +716,7 @@ class _ErrorItem extends StatelessWidget {
             'Vấn đề',
             style: theme.textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w900,
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
               letterSpacing: 0.2,
             ),
           ),
@@ -631,7 +725,7 @@ class _ErrorItem extends StatelessWidget {
             issue.isEmpty ? '—' : issue,
             style: theme.textTheme.bodyMedium?.copyWith(
               decoration: issue.isEmpty ? null : TextDecoration.lineThrough,
-              decorationColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              decorationColor: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
               height: 1.4,
@@ -640,7 +734,7 @@ class _ErrorItem extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              Icon(Icons.south_rounded, size: 18, color: theme.colorScheme.primary.withValues(alpha: 0.75)),
+              Icon(Icons.south_rounded, size: 18, color: theme.colorScheme.primary.withOpacity(0.75)),
               const SizedBox(width: 6),
               Text(
                 'Gợi ý sửa',

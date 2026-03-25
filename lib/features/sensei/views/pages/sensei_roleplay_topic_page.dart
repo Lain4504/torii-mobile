@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_design_system.dart';
+import '../widgets/sensei_quota_header.dart';
 
 class SenseiRoleplayTopicPage extends ConsumerStatefulWidget {
   const SenseiRoleplayTopicPage({super.key});
@@ -12,7 +13,7 @@ class SenseiRoleplayTopicPage extends ConsumerStatefulWidget {
 
 class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPage> {
   final TextEditingController _topicController = TextEditingController();
-  
+
   final List<String> _suggestedTopics = [
     "Đi siêu thị",
     "Gọi điện thoại",
@@ -48,6 +49,9 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         foregroundColor: theme.colorScheme.onSurface,
+        actions: const [
+          SenseiQuotaHeader(),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -58,7 +62,7 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                color: theme.colorScheme.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -82,7 +86,7 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                 height: 1.35,
               ),
             ),
@@ -91,7 +95,7 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               controller: _topicController,
               decoration: InputDecoration(
                 hintText: 'Nhập chủ đề (VD: Mua vé tàu)...',
-                hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+                hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7)),
                 filled: true,
                 fillColor: theme.colorScheme.surface,
                 border: OutlineInputBorder(
@@ -139,7 +143,7 @@ class _SenseiRoleplayTopicPageState extends ConsumerState<SenseiRoleplayTopicPag
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: AppTypography.bold,
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
                 letterSpacing: 1.2,
               ),
             ),

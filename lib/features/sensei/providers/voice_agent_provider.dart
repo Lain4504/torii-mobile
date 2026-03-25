@@ -3,6 +3,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../repositories/sensei_repository.dart';
 import 'sensei_providers.dart';
+import 'sensei_subscription_providers.dart';
 
 class VoiceAgentState {
   final Room? room;
@@ -11,6 +12,7 @@ class VoiceAgentState {
   final bool isReconnecting;
   final bool isMicOn;
   final String? error;
+  final String? errorCode;
   final bool isAgentSpeaking;
   final bool isUserSpeaking;
 
@@ -21,6 +23,7 @@ class VoiceAgentState {
     this.isReconnecting = false,
     this.isMicOn = false,
     this.error,
+    this.errorCode,
     this.isAgentSpeaking = false,
     this.isUserSpeaking = false,
   });
@@ -32,6 +35,7 @@ class VoiceAgentState {
     bool? isReconnecting,
     bool? isMicOn,
     String? error,
+    String? errorCode,
     bool? isAgentSpeaking,
     bool? isUserSpeaking,
   }) {
@@ -42,6 +46,7 @@ class VoiceAgentState {
       isReconnecting: isReconnecting ?? this.isReconnecting,
       isMicOn: isMicOn ?? this.isMicOn,
       error: error,
+      errorCode: errorCode,
       isAgentSpeaking: isAgentSpeaking ?? this.isAgentSpeaking,
       isUserSpeaking: isUserSpeaking ?? this.isUserSpeaking,
     );
@@ -50,9 +55,10 @@ class VoiceAgentState {
 
 class VoiceAgentNotifier extends StateNotifier<VoiceAgentState> {
   final SenseiRepository _repository;
+  final Ref _ref;
   EventsListener<RoomEvent>? _listener;
 
-  VoiceAgentNotifier(this._repository) : super(VoiceAgentState());
+  VoiceAgentNotifier(this._repository, this._ref) : super(VoiceAgentState());
 
   Future<void> connect(String graphName) async {
     if (state.isConnecting || state.isConnected) return;
@@ -68,6 +74,8 @@ class VoiceAgentNotifier extends StateNotifier<VoiceAgentState> {
 
       // 2. Get credentials
       final config = await _repository.getLiveKitToken(graphName);
+      _ref.invalidate(senseiQuotaStatusProvider);
+      
       final String wsUrl = config['wsUrl'];
       final String token = config['token'];
 
@@ -133,9 +141,11 @@ class VoiceAgentNotifier extends StateNotifier<VoiceAgentState> {
       }
     } catch (e) {
       if (mounted) {
+        final isQuota = e is SenseiQuotaExceededException;
         state = state.copyWith(
           isConnecting: false,
-          error: e.toString(),
+          error: isQuota ? (e as SenseiQuotaExceededException).message : e.toString(),
+          errorCode: isQuota ? 'quota_exceeded' : null,
         );
       }
     }
@@ -178,5 +188,5 @@ class VoiceAgentNotifier extends StateNotifier<VoiceAgentState> {
 
 final voiceAgentProvider = StateNotifierProvider<VoiceAgentNotifier, VoiceAgentState>((ref) {
   final repository = ref.watch(senseiRepositoryProvider);
-  return VoiceAgentNotifier(repository);
+  return VoiceAgentNotifier(repository, ref);
 });
