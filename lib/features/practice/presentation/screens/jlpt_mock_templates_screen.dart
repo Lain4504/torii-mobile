@@ -37,7 +37,9 @@ class _JlptMockTemplatesScreenState
     if (started == null || started.attemptId.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Khong the bat dau de thi')));
+      ).showSnackBar(
+        const SnackBar(content: Text('Không thể bắt đầu đề thi')),
+      );
       return;
     }
     final endsAt = started.endsAt == null
@@ -52,7 +54,9 @@ class _JlptMockTemplatesScreenState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text('De thi ${widget.levelCode.toUpperCase()}')),
+      appBar: AppBar(
+        title: Text('Đề thi ${widget.levelCode.toUpperCase()}'),
+      ),
       body: FutureBuilder<List<JlptMockTemplateItemModel>>(
         future: _future,
         builder: (context, snapshot) {
@@ -61,7 +65,7 @@ class _JlptMockTemplatesScreenState
           }
           if (snapshot.hasError) {
             return Center(
-              child: Text('Loi tai danh sach de: ${snapshot.error}'),
+              child: Text('Lỗi tải danh sách đề: ${snapshot.error}'),
             );
           }
           final items = snapshot.data ?? const [];
@@ -70,7 +74,7 @@ class _JlptMockTemplatesScreenState
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Chua co de thi mo phong cho cap do nay',
+                  'Chưa có đề thi mô phỏng cho cấp độ này',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -118,7 +122,7 @@ class _JlptMockTemplatesScreenState
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              '${item.code} - ${(item.totalDurationMinutes ?? 0)} phut',
+                              '${item.code} - ${(item.totalDurationMinutes ?? 0)} phút',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),

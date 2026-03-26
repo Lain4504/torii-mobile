@@ -163,6 +163,34 @@ class EnrollmentModel {
     final updatedAtRaw = json['updatedAt'] ?? enrolledAtRaw;
     final fallbackDate = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 
+    // Backend trả về shape khác cho enrollment:
+    // - LIVE: `liveClassId` + `cohortId` (để mobile dùng cho routing)
+    // - VOD: `vodPackageId`
+    // Nên map linh hoạt sang `classId`/`productId` và `progress` (0..1) để UI hoạt động.
+    final classIdRaw = (json['classId'] ??
+            json['liveClassId'] ??
+            json['vodPackageId'] ??
+            json['productId'] ??
+            '')
+        .toString();
+    final productIdRaw =
+        (json['productId'] ?? json['cohortId'] ?? json['vodPackageId'] ?? '')
+            .toString()
+            .trim();
+
+    final progressRaw = _parseNumOrNull(json['progress']);
+    final progressPercentRaw =
+        _parseNumOrNull(json['progressPercent']) ??
+            _parseNumOrNull(json['progress_percent']);
+
+    double? progress;
+    if (progressRaw != null) {
+      // Heuristic: nếu đang là 0..100 thì normalize về 0..1.
+      progress = progressRaw > 1 ? (progressRaw / 100).toDouble() : progressRaw.toDouble();
+    } else if (progressPercentRaw != null) {
+      progress = (progressPercentRaw / 100).toDouble();
+    }
+
     String? instructorName = json['instructorName'] as String?;
     if (instructorName == null || instructorName.isEmpty) {
       final ins = json['instructor'];
@@ -174,13 +202,13 @@ class EnrollmentModel {
 
     return EnrollmentModel(
       id: (json['id'] ?? '').toString(),
-      classId: (json['classId'] ?? '').toString(),
+      classId: classIdRaw,
       userId: (json['userId'] ?? '').toString(),
       expiresAt: json['expiresAt'] != null
           ? DateTime.tryParse(json['expiresAt'].toString())
           : null,
       status: json['status'] as String? ?? 'ACTIVE',
-      productId: json['productId']?.toString(),
+      productId: productIdRaw.isEmpty ? null : productIdRaw,
       createdAt: DateTime.tryParse(createdAtRaw?.toString() ?? '') ?? fallbackDate,
       updatedAt: DateTime.tryParse(updatedAtRaw?.toString() ?? '') ?? fallbackDate,
       courseTitle: json['courseTitle'] as String?,
@@ -188,10 +216,11 @@ class EnrollmentModel {
       thumbnailUrl: json['thumbnailUrl'] as String?,
       instructorName: instructorName,
       slug: json['slug'] as String?,
-      progress: (json['progress'] as num?)?.toDouble(),
+      progress: progress,
       completedLessons: (json['completedLessons'] as num?)?.toInt(),
       totalLessons: (json['totalLessons'] as num?)?.toInt(),
-      mode: json['mode'] as String?,
+      // Backend hay dùng `type: 'live' | 'vod'` thay cho `mode`.
+      mode: json['mode']?.toString() ?? json['type']?.toString(),
     );
   }
 }
@@ -266,4 +295,72 @@ class OrderModel {
         return status;
     }
   }
+}
+
+class AcademyFolder {
+  final String id;
+  final String name;
+  final String? className;
+  final String? classCode;
+  final int resourceCount;
+
+  const AcademyFolder({
+    required this.id,
+    required this.name,
+    this.className,
+    this.classCode,
+    required this.resourceCount,
+  });
+
+  factory AcademyFolder.fromJson(Map<String, dynamic> json) {
+    return AcademyFolder(
+      id: (json['folderId'] ?? json['id'] ?? '').toString(),
+      name: (json['folderName'] ?? json['name'] ?? '').toString(),
+      className: json['liveClass']?['name'] as String?,
+      classCode: json['liveClass']?['code'] as String?,
+      resourceCount: (json['resourceCount'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+enum AcademyResourceType { file, link, unknown }
+
+class AcademyResource {
+  final String id;
+  final String title;
+  final AcademyResourceType type;
+  final String? url;
+  final String? thumbnailUrl;
+  final DateTime createdAt;
+
+  const AcademyResource({
+    required this.id,
+    required this.title,
+    required this.type,
+    this.url,
+    this.thumbnailUrl,
+    required this.createdAt,
+  });
+
+  factory AcademyResource.fromJson(Map<String, dynamic> json) {
+    final typeStr = (json['resourceType'] ?? '').toString().toUpperCase();
+    final type = typeStr == 'FILE'
+        ? AcademyResourceType.file
+        : (typeStr == 'LINK' ? AcademyResourceType.link : AcademyResourceType.unknown);
+
+    return AcademyResource(
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      type: type,
+      url: type == AcademyResourceType.file
+          ? json['downloadUrl'] as String?
+          : json['externalUrl'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
+  bool get isFile => type == AcademyResourceType.file;
+  bool get isLink => type == AcademyResourceType.link;
 }

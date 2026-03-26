@@ -32,7 +32,7 @@ class _JlptMockHistoryScreenState extends ConsumerState<JlptMockHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Lich su JLPT')),
+      appBar: AppBar(title: const Text('Lịch sử JLPT')),
       body: FutureBuilder<List<JlptMockAttemptHistoryItemModel>>(
         future: _future,
         builder: (context, snapshot) {
@@ -40,11 +40,15 @@ class _JlptMockHistoryScreenState extends ConsumerState<JlptMockHistoryScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Loi tai lich su: ${snapshot.error}'));
+            return Center(
+              child: Text('Lỗi tải lịch sử: ${snapshot.error}'),
+            );
           }
           final items = snapshot.data ?? const [];
           if (items.isEmpty)
-            return const Center(child: Text('Chua co lich su lam bai'));
+            return const Center(
+              child: Text('Chưa có lịch sử làm bài'),
+            );
           return ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             itemBuilder: (context, index) {

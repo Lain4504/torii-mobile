@@ -228,7 +228,9 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
       if (!ok) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Khong the nop bai')));
+        ).showSnackBar(
+          const SnackBar(content: Text('Không thể nộp bài')),
+        );
         return;
       }
       context.go('/jlpt-mock/history/${widget.attemptId}');
@@ -255,7 +257,9 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     if (!autoSubmit) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Da nop phan hien tai')));
+      ).showSnackBar(
+        const SnackBar(content: Text('Đã nộp phần hiện tại')),
+      );
     }
   }
 
@@ -267,8 +271,8 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     }
     if (_template == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Thi thu JLPT')),
-        body: const Center(child: Text('Khong tai duoc du lieu de thi')),
+        appBar: AppBar(title: const Text('Thi thử JLPT')),
+        body: const Center(child: Text('Không tải được dữ liệu đề thi')),
       );
     }
 
@@ -276,7 +280,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     final questions = _sectionQuestions;
     final sectionLabel = currentSection?.title.isNotEmpty == true
         ? currentSection!.title
-        : 'Phan thi';
+        : 'Phần thi';
     final sectionNo =
         (_sections.indexWhere((s) => s.orderIndex == _sectionOrder) + 1).clamp(
           1,
@@ -286,7 +290,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'JLPT ${widget.levelCode.toUpperCase()} - Phan $sectionNo/${_sections.length}',
+          'JLPT ${widget.levelCode.toUpperCase()} - Phần $sectionNo/${_sections.length}',
         ),
         actions: [
           if (_endsAtIso != null && _endsAtIso!.isNotEmpty)
@@ -352,7 +356,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Audio nghe hieu',
+                      'Âm thanh nghe hiểu',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -365,7 +369,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
                           ? Icons.pause_rounded
                           : Icons.play_arrow_rounded,
                     ),
-                    label: Text(_audioPlaying ? 'Tam dung' : 'Phat'),
+                    label: Text(_audioPlaying ? 'Tạm dừng' : 'Phát'),
                   ),
                 ],
               ),
@@ -386,7 +390,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Cau ${index + 1}',
+                        'Câu ${index + 1}',
                         style: theme.textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -422,7 +426,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
                                   color:
                                       theme.colorScheme.surfaceContainerHighest,
                                   child: const Text(
-                                    'Khong tai duoc hinh anh cau hoi',
+                                    'Không tải được hình ảnh câu hỏi',
                                   ),
                                 ),
                           ),
@@ -478,8 +482,8 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
                 : const Icon(Icons.send_rounded),
             label: Text(
               _sections.last.orderIndex == _sectionOrder
-                  ? 'Nop bai'
-                  : 'Nop phan nay',
+                  ? 'Nộp bài'
+                  : 'Nộp phần này',
             ),
           ),
         ),

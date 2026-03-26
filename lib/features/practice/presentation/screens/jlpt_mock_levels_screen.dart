@@ -11,10 +11,10 @@ class JlptMockLevelsScreen extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Thi thu JLPT'),
+        title: const Text('Thi thử JLPT'),
         actions: [
           IconButton(
-            tooltip: 'Lich su',
+            tooltip: 'Lịch sử',
             onPressed: () => context.push('/jlpt-mock/history'),
             icon: const Icon(Icons.history_rounded),
           ),
@@ -58,14 +58,14 @@ class JlptMockLevelsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'De thi muc $level',
+                          'Đề thi mức $level',
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          'Chon de va bat dau bai thi mo phong',
+                          'Chọn đề và bắt đầu bài thi mô phỏng',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),

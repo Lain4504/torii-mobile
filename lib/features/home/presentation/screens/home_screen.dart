@@ -359,6 +359,71 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: AppSpacing.xl),
               _buildSectionHeader(
                 context,
+                'Tài nguyên của tôi',
+                isLoggedIn ? () => context.push('/academy/folders') : null,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: InkWell(
+                  onTap: isLoggedIn ? () => context.push('/academy/folders') : null,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Ink(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.folder_shared_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Thư mục tài nguyên',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Tài liệu học tập & liên kết từ lớp học',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              _buildSectionHeader(
+                context,
                 'Cấp độ JLPT',
                 () => context.push('/discovery'),
               ),
@@ -632,7 +697,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: e.classId.isEmpty ? null : () {
+                      if (e.mode?.toUpperCase() == 'LIVE') {
+                        final title = Uri.encodeQueryComponent(e.courseTitle ?? 'Lớp LIVE');
+                        context.push(
+                          '/enrolled-live/${e.classId}?productId=${e.productId ?? ''}&title=$title',
+                        );
+                      } else {
+                        context.push(
+                          '/curriculum/${e.classId}?mode=${e.mode ?? 'VOD'}',
+                        );
+                      }
+                    },
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,

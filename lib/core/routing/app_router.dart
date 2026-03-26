@@ -58,6 +58,8 @@ import '../../features/practice/presentation/screens/jlpt_mock_exam_screen.dart'
 import '../../features/practice/presentation/screens/jlpt_mock_history_screen.dart';
 import '../../features/practice/presentation/screens/jlpt_mock_history_detail_screen.dart';
 import '../../features/onboarding/providers/onboarding_provider.dart';
+import '../../features/academy/presentation/screens/my_folders_screen.dart';
+import '../../features/academy/presentation/screens/folder_resources_screen.dart';
 import '../widgets/app_shell.dart';
 import '../../features/meet/presentation/screens/landing/meet_entry_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_survey_screen.dart';
@@ -373,6 +375,21 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
                   return OrderDetailScreen(orderId: id);
+                },
+              ),
+              GoRoute(
+                path: '/academy/folders',
+                builder: (context, state) => const MyFoldersScreen(),
+              ),
+              GoRoute(
+                path: '/academy/folders/:id',
+                builder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  final folderName = state.extra as String?;
+                  return FolderResourcesScreen(
+                    folderId: id,
+                    folderName: folderName,
+                  );
                 },
               ),
             ],
