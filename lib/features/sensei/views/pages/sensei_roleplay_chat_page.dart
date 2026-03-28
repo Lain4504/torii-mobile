@@ -25,6 +25,8 @@ class SenseiRoleplayChatPage extends ConsumerStatefulWidget {
 class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final Map<String, Uint8List> _audioCache = {};
+  final Map<String, bool> _loadingAudio = {};
   
   // Audio & Speech
   late stt.SpeechToText _speech;
@@ -163,9 +165,19 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
     return base64Decode(b64);
   }
 
-  Future<void> _playResponse(RoleplayMessage message) async {
+  Future<void> _playResponse(RoleplayMessage message, {bool force = false}) async {
     if (!_autoPlay) return;
     
+    // Check cache first
+    if (_audioCache.containsKey(message.id)) {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(BytesSource(_audioCache[message.id]!));
+      await _audioPlayer.setPlaybackRate(_voiceSpeed);
+      return;
+    }
+
+    setState(() => _loadingAudio[message.id] = true);
+
     try {
       if (_voiceSelection == 'system') {
         await _flutterTts.setSpeechRate(_voiceSpeed * 0.5);
@@ -177,10 +189,12 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
       if (tts.url.isNotEmpty) {
         final bytes = _tryDecodeDataAudioUrl(tts.url);
         if (bytes != null) {
+          _audioCache[message.id] = bytes;
           await _audioPlayer.stop();
           await _audioPlayer.play(BytesSource(bytes));
           await _audioPlayer.setPlaybackRate(_voiceSpeed);
         } else {
+          // If it's a real URL, we just play it (less common in this project)
           await _audioPlayer.stop();
           await _audioPlayer.play(UrlSource(tts.url));
           await _audioPlayer.setPlaybackRate(_voiceSpeed);
@@ -194,6 +208,10 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
       // Fallback
       await _flutterTts.setSpeechRate(_voiceSpeed * 0.5);
       await _flutterTts.speak(message.content);
+    } finally {
+      if (mounted) {
+        setState(() => _loadingAudio[message.id] = false);
+      }
     }
   }
 
@@ -295,7 +313,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
         // Auto-play last AI message
         final lastMsg = next.messages.last;
         if (lastMsg.role == ChatMessageRole.assistant && !lastMsg.isFeedback) {
-          _playResponse(lastMsg);
+          _playResponse(lastMsg, force: false);
         }
       }
     });
@@ -431,71 +449,120 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
       child: Column(
         crossAxisAlignment: isAI ? CrossAxisAlignment.start : CrossAxisAlignment.end,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: msg.isFeedback 
-                  ? theme.colorScheme.primary.withOpacity(0.1) 
-                  : (isAI ? theme.colorScheme.surfaceContainerHighest : theme.colorScheme.primary),
-              borderRadius: BorderRadius.circular(20).copyWith(
-                bottomLeft: isAI ? const Radius.circular(0) : const Radius.circular(20),
-                bottomRight: isAI ? const Radius.circular(20) : const Radius.circular(0),
-              ),
-              border: msg.isFeedback ? Border.all(color: theme.colorScheme.primary.withOpacity(0.4)) : null,
-              boxShadow: [
-                BoxShadow(
-                  color: theme.colorScheme.onSurface.withOpacity(0.05),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                isAI
-                    ? MarkdownBody(
-                        data: msg.content,
-                        styleSheet: MarkdownStyleSheet(
-                          p: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                            fontSize: 14.5,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: msg.isFeedback 
+                    ? theme.colorScheme.primary.withOpacity(0.1) 
+                    : (isAI ? theme.colorScheme.surfaceContainerHighest : theme.colorScheme.primary),
+                borderRadius: BorderRadius.circular(20).copyWith(
+                  bottomLeft: isAI ? const Radius.circular(0) : const Radius.circular(20),
+                  bottomRight: isAI ? const Radius.circular(20) : const Radius.circular(0),
+                ),
+                border: msg.isFeedback ? Border.all(color: theme.colorScheme.primary.withOpacity(0.4)) : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.onSurface.withOpacity(0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Flexible(
+                        child: isAI
+                            ? MarkdownBody(
+                                data: msg.content,
+                                styleSheet: MarkdownStyleSheet(
+                                  p: TextStyle(
+                                    color: theme.colorScheme.onSurface,
+                                    fontSize: 14.5,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                msg.content,
+                                style: TextStyle(
+                                  color: theme.colorScheme.onPrimary,
+                                  fontSize: 14.5,
+                                ),
+                              ),
+                      ),
+                      if (isAI && !msg.isFeedback)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: InkWell(
+                            onTap: _loadingAudio[msg.id] == true 
+                                ? null 
+                                : () => _playResponse(msg, force: true),
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: (_loadingAudio[msg.id] == true || _audioCache.containsKey(msg.id))
+                                    ? theme.colorScheme.primary.withOpacity(0.12)
+                                    : theme.colorScheme.onSurface.withOpacity(0.05),
+                                shape: BoxShape.circle,
+                              ),
+                              child: _loadingAudio[msg.id] == true
+                                  ? SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.volume_up_rounded,
+                                      size: 16,
+                                      color: _audioCache.containsKey(msg.id)
+                                          ? theme.colorScheme.primary
+                                          : theme.colorScheme.onSurfaceVariant,
+                                    ),
+                            ),
                           ),
                         ),
-                      )
-                    : Text(
-                        msg.content,
-                        style: TextStyle(
-                          color: theme.colorScheme.onPrimary,
-                          fontSize: 14.5,
+                    ],
+                  ),
+                  if (isAI && !msg.isFeedback && _showTranslation) ...[
+                    if (msg.romaji != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          msg.romaji!,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontSize: 11.5,
+                            fontStyle: FontStyle.italic,
+                          ),
                         ),
                       ),
-                if (isAI && !msg.isFeedback && _showTranslation) ...[
-                  if (msg.romaji != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Text(
-                        msg.romaji!,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11.5,
-                          fontStyle: FontStyle.italic,
+                    if (msg.english != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          msg.english!,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                            fontSize: 11.5,
+                          ),
                         ),
                       ),
-                    ),
-                  if (msg.english != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        msg.english!,
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-                          fontSize: 11.5,
-                        ),
-                      ),
-                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ],

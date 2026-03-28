@@ -98,9 +98,6 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        actions: const [
-          SenseiQuotaHeader(),
-        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -372,14 +369,6 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                           grammarState.error!,
                           style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                         ),
-                        if (grammarState.errorCode == 'quota_exceeded') ...[
-                          const SizedBox(height: 12),
-                          OutlinedButton.icon(
-                            onPressed: () => context.push('/sensei/subscription'),
-                            icon: const Icon(Icons.upgrade_rounded),
-                            label: const Text('Nâng cấp gói AI'),
-                          ),
-                        ],
                       ],
                     ),
                   ),

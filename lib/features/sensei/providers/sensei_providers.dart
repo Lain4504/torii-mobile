@@ -39,7 +39,6 @@ class SenseiChatNotifier extends StateNotifier<List<ChatMessage>> {
         ...state.sublist(0, state.length - 1), // Remove the loading message
         response,
       ];
-      _ref.invalidate(senseiQuotaStatusProvider);
     } catch (e) {
       final isQuota = e is SenseiQuotaExceededException;
       state = [
@@ -242,7 +241,7 @@ class SenseiRoleplayNotifier extends StateNotifier<RoleplayState> {
 }
 
 final senseiRoleplayProvider =
-    StateNotifierProvider.family<SenseiRoleplayNotifier, RoleplayState, String>(
+    StateNotifierProvider.autoDispose.family<SenseiRoleplayNotifier, RoleplayState, String>(
       (ref, topic) {
         final repository = ref.watch(senseiRepositoryProvider);
         return SenseiRoleplayNotifier(repository, ref, topic);
@@ -298,7 +297,6 @@ class TranslatorNotifier extends StateNotifier<TranslatorState> {
         targetLanguage: targetLang,
       );
       state = state.copyWith(translation: res, isLoading: false);
-      _ref.invalidate(senseiQuotaStatusProvider);
     } catch (e) {
       final isQuota = e is SenseiQuotaExceededException;
       state = state.copyWith(
@@ -360,7 +358,6 @@ class GrammarCheckNotifier extends StateNotifier<GrammarCheckState> {
     try {
       final res = await _repository.checkGrammar(text: text);
       state = state.copyWith(response: res, isLoading: false);
-      _ref.invalidate(senseiQuotaStatusProvider);
     } catch (e) {
       final isQuota = e is SenseiQuotaExceededException;
       state = state.copyWith(
