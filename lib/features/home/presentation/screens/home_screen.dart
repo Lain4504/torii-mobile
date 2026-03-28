@@ -60,6 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ? ref.watch(notificationsUnreadCountProvider)
         : null;
     final streakAsync = loadPersonalized ? ref.watch(streakProvider) : null;
+    final quotaAsync = loadPersonalized ? ref.watch(senseiQuotaStatusProvider) : null;
 
     if (loadPersonalized) {
       ref.listen(streakProvider, (previous, next) async {
@@ -198,7 +199,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                           size: 18,
                                           color: AppColors.primary,
                                         ),
-                                        const SizedBox(width: 6),
+                                        const SizedBox(width: 4),
                                         streakAsync == null
                                             ? const SizedBox.shrink()
                                             : streakAsync.when(
@@ -209,7 +210,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                                     fontWeight: FontWeight.w800,
                                                     color: theme
                                                         .colorScheme
-                                                        .onSurfaceVariant,
+                                                        .onSurface,
                                                   ),
                                                 ),
                                                 loading: () => Text(
@@ -230,13 +231,73 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     ),
                                   ),
                                 ),
+                                if (quotaAsync != null)
+                                  quotaAsync.maybeWhen(
+                                    data: (q) {
+                                      final tier = (q.tier ?? 'FREE').toUpperCase();
+                                      final isPlus = tier != 'FREE';
+                                      return Padding(
+                                        padding: const EdgeInsets.only(left: 8),
+                                        child: InkWell(
+                                          onTap: () => context.push('/sensei/subscription'),
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: isPlus 
+                                                ? theme.colorScheme.primaryContainer
+                                                : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: isPlus 
+                                                  ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                                                  : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                                                width: 1,
+                                              ),
+                                              boxShadow: isPlus ? [
+                                                BoxShadow(
+                                                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                )
+                                              ] : null,
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                if (isPlus) ...[
+                                                  Icon(
+                                                    Icons.auto_awesome,
+                                                    size: 10,
+                                                    color: theme.colorScheme.primary,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                ],
+                                                Text(
+                                                  '$tier | ${q.remaining}/${q.limit}',
+                                                  style: TextStyle(
+                                                    fontSize: 9.5,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: isPlus 
+                                                      ? theme.colorScheme.primary 
+                                                      : theme.colorScheme.onSurfaceVariant,
+                                                    letterSpacing: 0.2,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    orElse: () => const SizedBox.shrink(),
+                                  ),
                               ],
                             ),
                         ],
                       ),
                     ),
                     if (isLoggedIn && !isAuthLoading) ...[
-                      const SenseiQuotaHeader(),
                       IconButton(
                         onPressed: () => context.push('/notifications'),
                         icon: Stack(

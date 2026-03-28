@@ -510,15 +510,15 @@ class _PlanCard extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isActive
                             ? theme.colorScheme.surfaceVariant
-                            : (isPlus ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant),
+                            : (plan.price > 0 ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant),
                         foregroundColor: isActive
                             ? theme.colorScheme.onSurfaceVariant
-                            : (isPlus ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant),
+                            : (plan.price > 0 ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant),
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       child: Text(
-                        isActive ? 'Đang sử dụng' : (isPlus ? 'Nâng cấp ngay' : 'Gói cơ bản'),
+                        isActive ? 'Đang sử dụng' : (plan.price > 0 ? 'Nâng cấp ngay' : 'Gói cơ bản'),
                         style: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                     );

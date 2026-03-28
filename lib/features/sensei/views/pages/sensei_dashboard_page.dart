@@ -37,9 +37,6 @@ class _SenseiDashboardPageState extends ConsumerState<SenseiDashboardPage> {
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        actions: const [
-          SenseiQuotaHeader(),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),

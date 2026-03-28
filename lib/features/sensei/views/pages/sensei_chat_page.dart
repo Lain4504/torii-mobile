@@ -63,9 +63,6 @@ class _SenseiChatPageState extends ConsumerState<SenseiChatPage> {
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 0,
-        actions: const [
-          SenseiQuotaHeader(),
-        ],
       ),
       body: Column(
         children: [
@@ -160,23 +157,6 @@ class _ChatBubble extends ConsumerWidget {
                               ),
                             ),
                 ),
-                if (message.isError && message.errorCode == 'quota_exceeded')
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: TextButton.icon(
-                      onPressed: () => context.push('/sensei/subscription'),
-                      icon: const Icon(Icons.upgrade_rounded),
-                      label: const Text('Nâng cấp gói AI'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: theme.colorScheme.primary,
-                        backgroundColor: theme.colorScheme.primary.withOpacity(0.08),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                    ),
-                  ),
                 if (isAssistant && isLatestMessage && message.suggestions != null && message.suggestions!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Wrap(
