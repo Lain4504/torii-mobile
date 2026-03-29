@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/session_provider.dart';
-import '../../navigation/meet_exit_navigation.dart';
 import 'control_button.dart';
 
 /// Nút rời / kết thúc phòng — khớp web [EndMeetingButton]:
@@ -73,7 +72,7 @@ class LeaveButton extends ConsumerWidget {
         );
         return;
       }
-      navigateOutOfMeet(context);
+      ref.read(sessionProvider.notifier).toggleStartup(true);
       return;
     }
 
@@ -81,7 +80,6 @@ class LeaveButton extends ConsumerWidget {
           userInitiatedLeave: true,
           sessionEndMessage: 'notifications.user-logged-out',
         );
-    if (!context.mounted) return;
-    navigateOutOfMeet(context);
+    ref.read(sessionProvider.notifier).toggleStartup(true);
   }
 }

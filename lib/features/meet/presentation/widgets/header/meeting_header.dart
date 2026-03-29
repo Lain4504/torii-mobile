@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/room_settings_provider.dart';
 import '../../../providers/session_provider.dart';
-import '../../navigation/meet_exit_navigation.dart';
 import '../settings/settings_bottom_sheet.dart';
 
 /// Header meet — clone [apps/meet Header]: bên phải thông báo, âm lượng, menu (cài đặt / rời họp).
@@ -395,7 +394,7 @@ class MeetingHeader extends ConsumerWidget {
                     sessionEndMessage: 'Người dùng đã đăng xuất',
                   );
               if (!context.mounted) return;
-              navigateOutOfMeet(context);
+              ref.read(sessionProvider.notifier).toggleStartup(true);
             },
             child: Text('Rời khỏi họp', style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
