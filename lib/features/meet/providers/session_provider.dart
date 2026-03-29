@@ -268,6 +268,8 @@ class SessionNotifier extends StateNotifier<SessionState> {
     required Function(dynamic) setCurrentMediaServerConn,
     bool initialAudioEnabled = false,
     bool initialVideoEnabled = false,
+    /// Host/web client kết thúc phòng → [ConnectNats.endSession]; reset session + pop khỏi `/meet`.
+    void Function()? onRemoteSessionEnded,
   }) async {
     // Initialize ConnectNats
     _connectNats = ConnectNats(
@@ -281,6 +283,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
       setRoomConnectionStatusState: setRoomConnectionStatusState,
       setCurrentMediaServerConn: setCurrentMediaServerConn,
       ref: ref,
+      onRemoteSessionEnded: onRemoteSessionEnded,
     );
 
     // Initialize ConnectLivekit (media server connection)
@@ -314,6 +317,20 @@ class SessionNotifier extends StateNotifier<SessionState> {
     // Note: LiveKit connection should be triggered when Room Info is received
     // and contains LiveKit URL/Token. specific logic depends on backend implementation.
     // For now, we assume NATS connection success is enough to proceed.
+  }
+
+  /// Sau khi [ConnectNats.endSession] dọn LiveKit/NATS (vd. SESSION_ENDED từ server).
+  /// Tránh gọi [disconnect] lại → lặp vô hạn.
+  void absorbRemoteSessionEnd() {
+    final lk = _connectLivekit;
+    _connectLivekit = null;
+    _connectNats = null;
+    if (lk != null) {
+      try {
+        lk.dispose();
+      } catch (_) {}
+    }
+    state = SessionState.initial();
   }
 
   /// Ngắt kết nối phiên họp.

@@ -9,6 +9,7 @@ import '../../../data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import '../../widgets/landing/join_form.dart';
 import '../../widgets/landing/device_preview.dart';
+import '../../navigation/meet_exit_navigation.dart';
 
 /// Join Meeting Screen
 /// 1:1 clone of apps/meet/src/components/landing/index.tsx
@@ -17,7 +18,15 @@ class JoinMeetingScreen extends ConsumerStatefulWidget {
   /// Token from MeetLoginScreen or route extra
   final String? initialToken;
 
-  const JoinMeetingScreen({super.key, this.initialToken});
+  /// [MeetEntryScreen] truyền [context] còn mounted khi đã chuyển sang [MeetingRoomScreen].
+  /// Nếu null (vd. [MeetApp] độc lập): dùng context của chính màn join.
+  final void Function()? onRemoteSessionEndedNavigate;
+
+  const JoinMeetingScreen({
+    super.key,
+    this.initialToken,
+    this.onRemoteSessionEndedNavigate,
+  });
 
   @override
   ConsumerState<JoinMeetingScreen> createState() => _JoinMeetingScreenState();
@@ -365,6 +374,10 @@ class _JoinMeetingScreenState extends ConsumerState<JoinMeetingScreen> {
         },
         initialAudioEnabled: _isMicEnabled,
         initialVideoEnabled: _isCameraEnabled,
+        onRemoteSessionEnded: widget.onRemoteSessionEndedNavigate ??
+            () {
+              if (mounted) navigateOutOfMeet(context);
+            },
       );
     } catch (e) {
       if (mounted) {
