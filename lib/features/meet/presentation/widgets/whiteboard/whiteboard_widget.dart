@@ -28,64 +28,37 @@ class WhiteboardWidget extends ConsumerWidget {
           shadowColor: scheme.shadow,
           borderRadius: BorderRadius.circular(16),
           clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.visibility_outlined, color: scheme.primary, size: 22),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Bảng trắng',
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            'Markdraw · Chế độ xem (tay/khung) · Đồng bộ từ meet web',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
+              const MeetMarkdrawWhiteboard(),
+              if (!hasContent)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'Chưa có nội dung bảng trắng hoặc đang chờ đồng bộ từ người trình bày…',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        ref.read(whiteboardProvider.notifier).setIsVisible(false);
-                      },
-                      icon: const Icon(Icons.close),
-                      tooltip: 'Đóng',
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    const MeetMarkdrawWhiteboard(),
-                    if (!hasContent)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(
-                            'Chưa có nội dung bảng trắng hoặc đang chờ đồng bộ từ người trình bày…',
-                            textAlign: TextAlign.center,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black26,
+                  shape: const CircleBorder(),
+                  clipBehavior: Clip.antiAlias,
+                  child: IconButton(
+                    onPressed: () {
+                      ref.read(whiteboardProvider.notifier).setIsVisible(false);
+                    },
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    tooltip: 'Đóng',
+                  ),
                 ),
               ),
             ],
