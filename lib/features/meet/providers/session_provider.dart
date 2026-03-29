@@ -17,6 +17,7 @@ import '../core/livekit/connect_livekit.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:torii_app/features/meet/data/models/room_info.dart';
 import 'package:torii_app/features/meet/data/models/user_metadata.dart';
+import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 
 part 'session_provider.freezed.dart';
 
@@ -315,21 +316,61 @@ class SessionNotifier extends StateNotifier<SessionState> {
     // For now, we assume NATS connection success is enough to proceed.
   }
 
-  /// Disconnect from session
-  Future<void> disconnect() async {
+  /// Ngắt kết nối phiên họp.
+  ///
+  /// * [userInitiatedLeave]: `true` khi người dùng rời phòng hoặc sau khi host gọi API kết thúc —
+  ///   dùng thông điệp giống web, không kích hoạt snackbar lỗi từ [ConnectNats.endSession].
+  /// * [sessionEndMessage]: ví dụ web `notifications.user-logged-out`, header `Người dùng đã đăng xuất`.
+  Future<void> disconnect({
+    bool userInitiatedLeave = false,
+    String sessionEndMessage = 'notifications.user-logged-out',
+  }) async {
     if (_connectLivekit != null) {
       await _connectLivekit!.disconnectRoom(true);
       _connectLivekit!.dispose();
       _connectLivekit = null;
     }
-    
+
     if (_connectNats != null) {
-      await _connectNats!.endSession('User requested disconnect');
+      await _connectNats!.endSession(
+        sessionEndMessage,
+        userInitiatedLeave: userInitiatedLeave,
+      );
       _connectNats = null;
     }
-    
-    // Reset state
+
     state = SessionState.initial();
+  }
+
+  /// Trưởng phòng kết thúc phòng cho tất cả (web [EndMeetingButton] khi `isAdmin`).
+  /// Sau khi API thành công: đóng LiveKit/NATS và reset state như người rời chủ động.
+  Future<({bool ok, String message})> endRoomAsAdmin() async {
+    final roomId = state.currentRoom.roomId;
+    if (roomId.isEmpty) {
+      return (ok: false, message: 'Thiếu roomId');
+    }
+    final jwt = state.token;
+    if (jwt.isEmpty) {
+      return (ok: false, message: 'Thiếu token phiên');
+    }
+    final api = ref.read(meetApiServiceProvider);
+    api.setManualToken(jwt);
+    try {
+      final res = await api.endRoom(roomId: roomId);
+      if (!res.status) {
+        return (
+          ok: false,
+          message: res.msg.isNotEmpty ? res.msg : 'Không kết thúc được phòng',
+        );
+      }
+      await disconnect(
+        userInitiatedLeave: true,
+        sessionEndMessage: 'notifications.room-ended-by-host',
+      );
+      return (ok: true, message: '');
+    } on MeetApiException catch (e) {
+      return (ok: false, message: e.message);
+    }
   }
 
   /// Get the LiveKit connection instance

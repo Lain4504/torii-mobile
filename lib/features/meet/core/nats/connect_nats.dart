@@ -125,6 +125,10 @@ class ConnectNats {
   /// Chat / whiteboard / data channel — web subscribes in onAfterUserReady only.
   bool _realtimeChannelsStarted = false;
 
+  /// JetStream pull và systemPublic pub/sub đều có thể gửi cùng một [RES_MEDIA_SERVER_DATA].
+  /// Gọi [initializeConnection] song song trên cùng một [Room] làm WebRTC đóng (CLOSED) + lỗi publish.
+  Future<void> _mediaServerInitGate = Future.value();
+
   ConnectNats({
     required List<String> natsWSUrls,
     required String token,
@@ -230,10 +234,15 @@ class ConnectNats {
   
   /// End session and cleanup
   /// Matches: endSession() in ConnectNats.ts
-  Future<void> endSession(String msg) async {
+  ///
+  /// [userInitiatedLeave]: người dùng chủ động rời / host đã xử lý xong — không bật snack lỗi
+  /// (tránh gọi [setErrorState] khi [JoinMeetingScreen] đã dispose).
+  Future<void> endSession(String msg, {bool userInitiatedLeave = false}) async {
     // 1. Update UI immediately
     _isConnected = false;
-    _setErrorState('Phòng bị ngắt kết nối', msg);
+    if (!userInitiatedLeave) {
+      _setErrorState('Phòng bị ngắt kết nối', msg);
+    }
     messageQueue.setIsConnected(false);
     _setRoomConnectionStatusState('disconnected');
     
@@ -783,19 +792,33 @@ class ConnectNats {
 
   /// Handle media server data - connect to LiveKit (matches web handleMediaServerData)
   Future<void> _handleMediaServerData(String msg) async {
+    final prev = _mediaServerInitGate;
+    final done = Completer<void>();
+    _mediaServerInitGate = done.future;
+    await prev;
     try {
-      final serverInfo = nats_msg.MediaServerConnInfo.fromJson(_normalizeJson(msg));
-      if (_mediaServerConn != null && serverInfo.url.isNotEmpty && serverInfo.token.isNotEmpty) {
-        await _mediaServerConn!.initializeConnection(serverInfo.url, serverInfo.token);
-        if (kDebugMode) {
-          print('ConnectNats: LiveKit connection initialized');
+      try {
+        final serverInfo =
+            nats_msg.MediaServerConnInfo.fromJson(_normalizeJson(msg));
+        if (_mediaServerConn != null &&
+            serverInfo.url.isNotEmpty &&
+            serverInfo.token.isNotEmpty) {
+          await _mediaServerConn!.initializeConnection(
+            serverInfo.url,
+            serverInfo.token,
+          );
+          if (kDebugMode) {
+            print('ConnectNats: LiveKit connection initialized');
+          }
         }
+      } catch (e) {
+        if (kDebugMode) {
+          print('ConnectNats: Error handling media server data - $e');
+        }
+        _setErrorState('Lỗi kết nối media', e.toString());
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('ConnectNats: Error handling media server data - $e');
-      }
-      _setErrorState('Lỗi kết nối media', e.toString());
+    } finally {
+      done.complete();
     }
   }
   

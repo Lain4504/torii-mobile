@@ -684,6 +684,23 @@ class MeetApiService {
     }
   }
 
+  /// Host kết thúc phòng cho tất cả người tham gia (web `sendAPIRequest('endRoom', RoomEndAPIReq)`).
+  /// Trả về [CommonResponse] nguyên bản — kiểm tra [CommonResponse.status] ở caller.
+  Future<CommonResponse> endRoom({required String roomId}) async {
+    try {
+      final req = RoomEndAPIReq(roomId: roomId);
+      return await _postProto(
+        path: '/api/endRoom',
+        request: req,
+        fromBuffer: (bytes) => CommonResponse.fromBuffer(bytes),
+      );
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to end room', originalError: e);
+    }
+  }
+
   // --- File upload (protobuf, /api/uploadBase64EncodedData) ---
 
   /// Upload file as base64 (for chat). Returns filePath and fileName on success.
