@@ -27,7 +27,7 @@ class HandleWhiteboard {
   Future<void> handleWhiteboardMsg(DataChannelMessage payload) async {
     switch (payload.type) {
       case DataMsgBodyType.SCENE_UPDATE:
-        // Update Excalidraw elements (drawing data)
+        // Excalidraw (web + mobile viewer): mảng phần tử JSON.
         _updateExcalidrawElements(payload.message);
         break;
         
@@ -58,20 +58,14 @@ class HandleWhiteboard {
         break;
         
       case DataMsgBodyType.WHITEBOARD_APP_STATE_CHANGE:
-        // Update Excalidraw app state (only if not presenter)
-        if (!_isCurrentUserPresenter()) {
-          // Khi presenter (web) thay đổi viewport (zoom/scroll),
-          // receiver phải reset pan/zoom cục bộ để tránh lệch vị trí.
-          // Giữ localZoomFactor để hỗ trợ pinch-zoom trên mobile.
-          ref?.read(whiteboardProvider.notifier).resetLocalPan();
-          try {
-            // Parse JSON app state
-            // final appState = jsonDecode(payload.message);
-            _updateMouseAppStateChanges(payload.message);
-          } catch (e) {
-            if (kDebugMode) {
-              print('HandleWhiteboard: Failed to parse app state - $e');
-            }
+        // Mobile chỉ xem: luôn áp dụng viewport từ presenter web (không chặn theo isPresenter —
+        // tránh thiếu zoom/scroll nếu metadata role lệch).
+        ref?.read(whiteboardProvider.notifier).resetLocalPan();
+        try {
+          _updateMouseAppStateChanges(payload.message);
+        } catch (e) {
+          if (kDebugMode) {
+            print('HandleWhiteboard: Failed to parse app state - $e');
           }
         }
         break;

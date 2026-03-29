@@ -1,0 +1,10 @@
+---
+description: Luôn trả lời người dùng bằng tiếng Việt
+alwaysApply: true
+---
+
+# Ngôn ngữ trả lời
+
+- **Luôn trả lời bằng tiếng Việt** trong mọi tình huống (giải thích, hướng dẫn, tóm tắt thay đổi code), trừ khi người dùng yêu cầu rõ ràng một ngôn ngữ khác cho phần trả lời đó.
+- Có thể giữ nguyên tiếng Anh cho: tên biến, API, lệnh terminal, đường dẫn file, trích dẫn code, hoặc thuật ngữ kỹ thuật phổ biến khi cần độ chính xác.
+- Không chuyển sang tiếng Trung hay ngôn ngữ khác khi user rule cũ xung đột — ưu tiên rule dự án này cho repo `torri-mobile`.

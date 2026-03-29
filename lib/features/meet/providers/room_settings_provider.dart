@@ -40,6 +40,12 @@ class RoomSettingsState {
   /// Web `roomSettings.focusActiveSpeakerWebcam` — ưu tiên sắp xếp người đang nói.
   final bool focusActiveSpeakerWebcam;
 
+  /// Web `roomAudioVolume` — 0.0–1.0 (slider header). Áp dụng renderer trong tương lai.
+  final double roomAudioVolume;
+
+  /// Web `roomScreenShareAudioVolume`.
+  final double roomScreenShareAudioVolume;
+
   const RoomSettingsState({
     this.notifications = const [],
     this.selectedChatOption = 'public',
@@ -49,6 +55,8 @@ class RoomSettingsState {
     this.initiatePrivateChat,
     this.pinCamUserId,
     this.focusActiveSpeakerWebcam = true,
+    this.roomAudioVolume = 1.0,
+    this.roomScreenShareAudioVolume = 1.0,
   });
 
   RoomSettingsState copyWith({
@@ -61,6 +69,8 @@ class RoomSettingsState {
     String? pinCamUserId,
     bool? focusActiveSpeakerWebcam,
     bool clearPinCam = false,
+    double? roomAudioVolume,
+    double? roomScreenShareAudioVolume,
   }) {
     return RoomSettingsState(
       notifications: notifications ?? this.notifications,
@@ -74,6 +84,9 @@ class RoomSettingsState {
       pinCamUserId: clearPinCam ? null : (pinCamUserId ?? this.pinCamUserId),
       focusActiveSpeakerWebcam:
           focusActiveSpeakerWebcam ?? this.focusActiveSpeakerWebcam,
+      roomAudioVolume: roomAudioVolume ?? this.roomAudioVolume,
+      roomScreenShareAudioVolume:
+          roomScreenShareAudioVolume ?? this.roomScreenShareAudioVolume,
     );
   }
 }
@@ -122,6 +135,22 @@ class RoomSettingsNotifier extends StateNotifier<RoomSettingsState> {
 
   void updateFocusActiveSpeakerWebcam(bool enabled) {
     state = state.copyWith(focusActiveSpeakerWebcam: enabled);
+  }
+
+  void updateRoomAudioVolume(double volume) {
+    state = state.copyWith(
+      roomAudioVolume: volume.clamp(0.0, 1.0),
+    );
+  }
+
+  void updateRoomScreenShareAudioVolume(double volume) {
+    state = state.copyWith(
+      roomScreenShareAudioVolume: volume.clamp(0.0, 1.0),
+    );
+  }
+
+  void clearUserNotifications() {
+    state = state.copyWith(notifications: const []);
   }
 }
 

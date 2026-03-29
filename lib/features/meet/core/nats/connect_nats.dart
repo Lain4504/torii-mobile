@@ -41,6 +41,7 @@ import '../livekit/connect_livekit.dart';
 // Providers
 import '../../providers/session_provider.dart';
 import '../../providers/participant_provider.dart';
+import '../../providers/whiteboard_provider.dart';
 import '../../providers/room_settings_provider.dart';
 import '../../data/datasources/meet_api_service.dart';
 
@@ -80,6 +81,7 @@ class ConnectNats {
   Timer? _pingInterval;
   Timer? _statusCheckerInterval;
   Timer? _reconciliationInterval;
+  Timer? _whiteboardFullSceneRetryTimer;
   bool _isRoomReconnecting = false;
   
 
@@ -122,6 +124,10 @@ class ConnectNats {
 
   /// Chat / whiteboard / data channel — web subscribes in onAfterUserReady only.
   bool _realtimeChannelsStarted = false;
+
+  /// JetStream pull và systemPublic pub/sub đều có thể gửi cùng một [RES_MEDIA_SERVER_DATA].
+  /// Gọi [initializeConnection] song song trên cùng một [Room] làm WebRTC đóng (CLOSED) + lỗi publish.
+  Future<void> _mediaServerInitGate = Future.value();
 
   ConnectNats({
     required List<String> natsWSUrls,
@@ -228,10 +234,15 @@ class ConnectNats {
   
   /// End session and cleanup
   /// Matches: endSession() in ConnectNats.ts
-  Future<void> endSession(String msg) async {
+  ///
+  /// [userInitiatedLeave]: người dùng chủ động rời / host đã xử lý xong — không bật snack lỗi
+  /// (tránh gọi [setErrorState] khi [JoinMeetingScreen] đã dispose).
+  Future<void> endSession(String msg, {bool userInitiatedLeave = false}) async {
     // 1. Update UI immediately
     _isConnected = false;
-    _setErrorState('Phòng bị ngắt kết nối', msg);
+    if (!userInitiatedLeave) {
+      _setErrorState('Phòng bị ngắt kết nối', msg);
+    }
     messageQueue.setIsConnected(false);
     _setRoomConnectionStatusState('disconnected');
     
@@ -240,6 +251,8 @@ class ConnectNats {
     _pingInterval?.cancel();
     _reconciliationInterval?.cancel();
     _statusCheckerInterval?.cancel();
+    _whiteboardFullSceneRetryTimer?.cancel();
+    _whiteboardFullSceneRetryTimer = null;
     handleParticipants.clearParticipantCounterInterval();
     
     // 3. Concurrent cleanup
@@ -723,9 +736,33 @@ class ConnectNats {
       unawaited(_subscribeToDataChannel());
     }
 
-    // Request initial whiteboard scene from a "donor" (presenter) so
-    // whiteboard viewers can render it immediately (view-only on mobile).
+    // Request initial whiteboard scene from presenter (Excalidraw chỉ mount khi web mở bảng trắng).
     unawaited(_requestWhiteboardFullScene());
+    _scheduleWhiteboardFullSceneRetries();
+  }
+
+  /// Gửi lại REQ_FULL sau vài lần: donor có thể chưa mount Excalidraw ngay khi mobile vào phòng.
+  void _scheduleWhiteboardFullSceneRetries() {
+    _whiteboardFullSceneRetryTimer?.cancel();
+    var attempts = 0;
+    const maxAttempts = 15;
+    _whiteboardFullSceneRetryTimer =
+        Timer.periodic(const Duration(seconds: 4), (_) async {
+      attempts++;
+      final elements =
+          ref.read(whiteboardProvider).allExcalidrawElements.trim();
+      if (elements.isNotEmpty) {
+        _whiteboardFullSceneRetryTimer?.cancel();
+        _whiteboardFullSceneRetryTimer = null;
+        return;
+      }
+      if (attempts >= maxAttempts) {
+        _whiteboardFullSceneRetryTimer?.cancel();
+        _whiteboardFullSceneRetryTimer = null;
+        return;
+      }
+      await _requestWhiteboardFullScene();
+    });
   }
 
   /// Periodically request the latest online users list from backend,
@@ -755,19 +792,33 @@ class ConnectNats {
 
   /// Handle media server data - connect to LiveKit (matches web handleMediaServerData)
   Future<void> _handleMediaServerData(String msg) async {
+    final prev = _mediaServerInitGate;
+    final done = Completer<void>();
+    _mediaServerInitGate = done.future;
+    await prev;
     try {
-      final serverInfo = nats_msg.MediaServerConnInfo.fromJson(_normalizeJson(msg));
-      if (_mediaServerConn != null && serverInfo.url.isNotEmpty && serverInfo.token.isNotEmpty) {
-        await _mediaServerConn!.initializeConnection(serverInfo.url, serverInfo.token);
-        if (kDebugMode) {
-          print('ConnectNats: LiveKit connection initialized');
+      try {
+        final serverInfo =
+            nats_msg.MediaServerConnInfo.fromJson(_normalizeJson(msg));
+        if (_mediaServerConn != null &&
+            serverInfo.url.isNotEmpty &&
+            serverInfo.token.isNotEmpty) {
+          await _mediaServerConn!.initializeConnection(
+            serverInfo.url,
+            serverInfo.token,
+          );
+          if (kDebugMode) {
+            print('ConnectNats: LiveKit connection initialized');
+          }
         }
+      } catch (e) {
+        if (kDebugMode) {
+          print('ConnectNats: Error handling media server data - $e');
+        }
+        _setErrorState('Lỗi kết nối media', e.toString());
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('ConnectNats: Error handling media server data - $e');
-      }
-      _setErrorState('Lỗi kết nối media', e.toString());
+    } finally {
+      done.complete();
     }
   }
   

@@ -130,17 +130,13 @@ class HandleDataMessage {
   // WHITEBOARD HANDLERS
   // ============================================================================
   
-  void _handleSendInitWhiteboard(data_msg.DataChannelMessage payload) {
-    // Check if whiteboard provider state
-    final isWhiteboardVisible = ref?.read(whiteboardProvider).isVisible ?? false;
-    
-    if (isWhiteboardVisible) {
-       // Request whiteboard data from donor
-       // TODO: Implement send whiteboard data logic
-    }
-    
+  void _handleSendInitWhiteboard(data_msg.DataChannelMessage _) {
+    // Web: donor có Excalidraw → set `requestedWhiteboardData` để `useWhiteboardDataSharer` gửi RES_FULL.
+    // Mobile chỉ xem, không có Excalidraw — không đóng vai donor; không set state (tránh kẹt `requested`).
     if (kDebugMode) {
-      print('HandleDataMessage: Request to send whiteboard data to ${payload.fromUserId}');
+      print(
+        'HandleDataMessage: bỏ qua REQ_FULL_WHITEBOARD_DATA (mobile không gửi RES_FULL Excalidraw)',
+      );
     }
   }
   

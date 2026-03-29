@@ -1,52 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/whiteboard_provider.dart';
-import 'whiteboard_canvas.dart';
+import 'meet_markdraw_whiteboard.dart';
 
-/// Whiteboard Widget
-/// Main whiteboard container
-/// 1:1 clone of apps/meet/src/components/whiteboard/index.tsx
+/// Bảng trắng trên mobile: đồng bộ scene Excalidraw từ web qua NATS, hiển thị bằng [markdraw].
 class WhiteboardWidget extends ConsumerWidget {
   const WhiteboardWidget({super.key});
 
+  bool _hasScene(WhiteboardState s) {
+    final all = s.allExcalidrawElements.trim();
+    final cur = s.excalidrawElements.trim();
+    return all.isNotEmpty || cur.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Only show if whiteboard is active
-    final isWhiteboardVisible = ref.watch(
-      whiteboardProvider.select((s) => s.isVisible),
-    );
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final hasContent = ref.watch(whiteboardProvider.select(_hasScene));
 
-    if (!isWhiteboardVisible) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      child: Stack(
-        children: [
-          // Canvas
-          const Positioned.fill(
-            child: WhiteboardCanvas(),
-          ),
-          
-          // Close button (top right)
-          Positioned(
-            top: 16,
-            right: 16,
-            child: IconButton.filled(
-              onPressed: () {
-                // TODO: Close whiteboard
-                ref.read(whiteboardProvider.notifier).setIsVisible(false);
-              },
-              icon: const Icon(Icons.close),
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
-                foregroundColor: Theme.of(context).colorScheme.onSurface,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 960),
+        child: Material(
+          color: scheme.surface,
+          elevation: 6,
+          shadowColor: scheme.shadow,
+          borderRadius: BorderRadius.circular(16),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              const MeetMarkdrawWhiteboard(),
+              if (!hasContent)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'Chưa có nội dung bảng trắng hoặc đang chờ đồng bộ từ người trình bày…',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black26,
+                  shape: const CircleBorder(),
+                  clipBehavior: Clip.antiAlias,
+                  child: IconButton(
+                    onPressed: () {
+                      ref.read(whiteboardProvider.notifier).setIsVisible(false);
+                    },
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    tooltip: 'Đóng',
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

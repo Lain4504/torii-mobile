@@ -1,8 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/bottom_icons_provider.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/active_speakers_provider.dart';
@@ -166,96 +164,166 @@ class VideoTile extends ConsumerWidget {
       roomSettingsProvider.select((s) => s.pinCamUserId == userId),
     );
 
+    void onPinTap() {
+      final notifier = ref.read(roomSettingsProvider.notifier);
+      final cur = ref.read(roomSettingsProvider).pinCamUserId;
+      notifier.updatePinCamUserId(cur == userId ? null : userId);
+    }
+
     return Positioned(
-      left: 10,
-      right: 10,
-      bottom: 10,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: isSpeaking ? 0.52 : 0.4),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSpeaking
-                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.55)
-                    : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
-                width: isSpeaking ? 1.2 : 0.5,
-              ),
-            ),
-            child: Row(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final maxW = c.maxWidth;
+          // Tile nhỏ (strip ghim): padding trái/phải đối xứng, action nhỏ hơn — tránh lệch lề.
+          final narrow = isSmall || maxW < 220;
+          final needsTwoLines = isSmall || maxW < 208;
+          final hPad = narrow ? 4.0 : 8.0;
+          final bottomPad = narrow ? 3.0 : 6.0;
+          final topPad = narrow ? 10.0 : 18.0;
+          final actionSize = narrow ? 30.0 : 40.0;
+          final statusIconSize = narrow ? 14.0 : 17.0;
+          final pinIconSize = narrow ? 15.0 : 20.0;
+
+          final nameStyle = TextStyle(
+            fontSize: narrow ? 11 : 12,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: 0.15,
+            height: 1.15,
+            shadows: const [
+              Shadow(blurRadius: 6, color: Colors.black54, offset: Offset(0, 1)),
+              Shadow(blurRadius: 2, color: Colors.black87, offset: Offset(0, 0)),
+            ],
+          );
+
+          Widget micHandRow() {
+            return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (isRaisedHand) ...[
-                   Icon(
-                    Icons.back_hand_rounded,
-                    size: 14,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 6),
-                ],
                 Icon(
                   isMicOn ? Icons.mic_rounded : Icons.mic_off_rounded,
-                  size: 14,
+                  size: statusIconSize,
                   color: isMicOn
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(context).colorScheme.error,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      letterSpacing: 0.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (showPinButton) ...[
-                  const SizedBox(width: 2),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        final notifier = ref.read(
-                          roomSettingsProvider.notifier,
-                        );
-                        final cur = ref.read(roomSettingsProvider).pinCamUserId;
-                        notifier.updatePinCamUserId(
-                          cur == userId ? null : userId,
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: Icon(
-                          isPinned ? Icons.push_pin : Icons.push_pin_outlined,
-                          size: 15,
-                          color: isPinned
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.85),
-                        ),
-                      ),
-                    ),
+                if (isRaisedHand) ...[
+                  SizedBox(width: narrow ? 3 : 6),
+                  Icon(
+                    Icons.back_hand_rounded,
+                    size: statusIconSize,
+                    color: Colors.amber.shade200,
                   ),
                 ],
-                const SizedBox(width: 4),
-                _buildConnectionQuality(
+              ],
+            );
+          }
+
+          Widget pinButton() {
+            if (!showPinButton) return const SizedBox.shrink();
+            return Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onPinTap,
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: actionSize,
+                  height: actionSize,
+                  child: Icon(
+                    isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                    size: pinIconSize,
+                    color: isPinned
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.white,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          Widget qualityCell() {
+            return SizedBox(
+              width: actionSize,
+              height: actionSize,
+              child: Center(
+                child: _buildConnectionQuality(
                   context,
                   participant?.connectionQuality ?? ConnectionQuality.unknown,
+                  compact: narrow,
                 ),
-              ],
+              ),
+            );
+          }
+
+          return ClipRRect(
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(19)),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: isSpeaking ? 0.62 : 0.5),
+                    Colors.black.withValues(alpha: 0.0),
+                  ],
+                  stops: const [0.0, 1.0],
+                ),
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(hPad, topPad, hPad, bottomPad),
+                child: needsTwoLines
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              micHandRow(),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  pinButton(),
+                                  qualityCell(),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            name,
+                            style: nameStyle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.left,
+                          ),
+                        ],
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          micHandRow(),
+                          SizedBox(width: narrow ? 6 : 8),
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: nameStyle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          pinButton(),
+                          qualityCell(),
+                        ],
+                      ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -281,18 +349,19 @@ class VideoTile extends ConsumerWidget {
 
   Widget _buildConnectionQuality(
     BuildContext context,
-    ConnectionQuality quality,
-  ) {
+    ConnectionQuality quality, {
+    required bool compact,
+  }) {
     Color color;
     int bars;
 
     switch (quality) {
       case ConnectionQuality.excellent:
-        color = Theme.of(context).colorScheme.primary;
+        color = Colors.greenAccent.shade200;
         bars = 3;
         break;
       case ConnectionQuality.good:
-        color = Theme.of(context).colorScheme.primary;
+        color = Colors.lightGreenAccent.shade200;
         bars = 2;
         break;
       case ConnectionQuality.poor:
@@ -300,22 +369,26 @@ class VideoTile extends ConsumerWidget {
         bars = 1;
         break;
       default:
-        color = Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.24);
+        color = Colors.white.withValues(alpha: 0.35);
         bars = 0;
     }
 
+    final barW = compact ? 3.0 : 4.0;
+    final baseH = compact ? 5.0 : 7.0;
+    final step = compact ? 3.5 : 5.0;
+    final dim = Colors.white.withValues(alpha: 0.22);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: List.generate(3, (index) {
         return Container(
-          width: 2.5,
-          height: 4.0 + index * 2.5,
-          margin: const EdgeInsets.only(left: 1.5),
+          width: barW,
+          height: baseH + index * step,
+          margin: EdgeInsets.only(left: index == 0 ? 0 : 2.5),
           decoration: BoxDecoration(
-            color: index < bars
-                ? color
-                : Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(1),
+            color: index < bars ? color : dim,
+            borderRadius: BorderRadius.circular(1.5),
           ),
         );
       }),

@@ -101,6 +101,9 @@ abstract class WhiteboardFeatures with _$WhiteboardFeatures {
     @Default('') String whiteboardFileId,
     @Default('') String filePath,
     @Default(0) int totalPages,
+    /// Khớp web `roomFeatures.whiteboardFeatures.visible` — presenter bật/tắt bảng qua API.
+    @Default(false) bool visible,
+    @Default(true) bool isAllow,
   }) = _WhiteboardFeatures;
 
   factory WhiteboardFeatures.fromJson(Map<String, dynamic> json) => _$WhiteboardFeaturesFromJson(json);

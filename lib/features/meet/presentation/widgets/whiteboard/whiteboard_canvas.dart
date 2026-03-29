@@ -9,16 +9,22 @@ import '../../../providers/whiteboard_provider.dart';
 /// Whiteboard Canvas Widget
 /// Read-only renderer for received Excalidraw elements.
 ///
-/// Mobile whiteboard does not support collaboration: we only render
-/// `whiteboardProvider.excalidrawElements` (scene elements) coming from donors.
-class WhiteboardCanvas extends ConsumerWidget {
+/// Mobile: chỉ xem nội dung đồng bộ từ web (NATS); kéo một/ngón để pan, chụm để zoom.
+class WhiteboardCanvas extends ConsumerStatefulWidget {
   const WhiteboardCanvas({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WhiteboardCanvas> createState() => _WhiteboardCanvasState();
+}
+
+class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
+  /// `ScaleUpdateDetails.scale` là hệ số nhân **từ đầu cử chỉ** (bắt đầu từ 1.0), không phải delta từng frame.
+  double _scaleStartZoom = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
     final elementsJson = ref.watch(
       whiteboardProvider.select((s) {
-        // For rendering we prefer the full-scene cache (`allExcalidrawElements`).
         final all = s.allExcalidrawElements;
         if (all.isNotEmpty) return all;
         return s.excalidrawElements;
@@ -32,41 +38,21 @@ class WhiteboardCanvas extends ConsumerWidget {
       whiteboardProvider.select((s) => s.localZoomFactor),
     );
 
-    // Remote appState format (web): { zoomValue, scrollX, scrollY, width, height, ... }
-    double remoteZoom = double.nan;
-    final zv = appState?['zoomValue'];
-    if (zv is num) {
-      remoteZoom = zv.toDouble();
-    } else if (zv is String) {
-      remoteZoom = double.tryParse(zv) ?? double.nan;
-    }
-    final remoteZoomFinite = remoteZoom.isFinite && remoteZoom > 0;
-
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
+      onScaleStart: (_) {
+        _scaleStartZoom = localZoomFactor;
+      },
       onScaleUpdate: (details) {
-        final nextLocalZoomFactor = (details.scale != 1.0)
-            ? (localZoomFactor * details.scale).clamp(0.5, 6.0)
-            : localZoomFactor;
-
-        if (nextLocalZoomFactor != localZoomFactor) {
-          ref
-              .read(whiteboardProvider.notifier)
-              .setLocalZoomFactor(nextLocalZoomFactor);
+        var zoomForPan = localZoomFactor;
+        if (details.scale != 1.0) {
+          zoomForPan = (_scaleStartZoom * details.scale).clamp(0.25, 8.0);
+          ref.read(whiteboardProvider.notifier).setLocalZoomFactor(zoomForPan);
         }
-
-        // Keep panning working together with pinch.
-        final z = remoteZoomFinite
-            ? (remoteZoom * nextLocalZoomFactor)
-            : nextLocalZoomFactor;
-        ref
-            .read(whiteboardProvider.notifier)
-            .updatePanOffset(
-              details.focalPointDelta / (z.isFinite && z > 0 ? z : 1.0),
-            );
+        // `panOffset` là offset màn hình (pixel), áp dụng trước scale — giống kéo khung nhìn.
+        ref.read(whiteboardProvider.notifier).updatePanOffset(details.focalPointDelta);
       },
       onDoubleTap: () {
-        // Double tap reset cả pan lẫn zoom local về mặc định.
         ref.read(whiteboardProvider.notifier).resetLocalView();
       },
       child: CustomPaint(
@@ -116,13 +102,18 @@ class WhiteboardElementsPainter extends CustomPainter {
     canvas.save();
 
     final remoteZoom = _extractZoom(appState);
-    final scrollX = _toDouble(appState?['scrollX']);
-    final scrollY = _toDouble(appState?['scrollY']);
+    var scrollX = _toDouble(appState?['scrollX']);
+    var scrollY = _toDouble(appState?['scrollY']);
+    if (!scrollX.isFinite) {
+      scrollX = 0;
+    }
+    if (!scrollY.isFinite) {
+      scrollY = 0;
+    }
     final senderWidth = _toDouble(appState?['width']);
     final senderHeight = _toDouble(appState?['height']);
 
-    // When receiver canvas size differs from sender, Excalidraw adjusts scroll
-    // so both users are centered on the same scene coordinates.
+    // Khớp `useWhiteboardAppStateSync` trên web: cùng focal point khi khác kích thước viewport.
     final adjustedScrollX =
         (remoteZoom.isFinite && remoteZoom > 0 && senderWidth.isFinite)
         ? scrollX + (size.width - senderWidth) / (2 * remoteZoom)
@@ -136,17 +127,16 @@ class WhiteboardElementsPainter extends CustomPainter {
         ? remoteZoom * localZoomFactor
         : localZoomFactor;
 
-    // Excalidraw-like viewport transform:
-    // screen = scene * zoom + (center + scroll) + localPan
+    // Excalidraw (chunk-3KPV5WBD): sceneCoordsToViewportCoords
+    //   x = (sceneX + scrollX) * zoom + offsetLeft
+    // Không dùng width/2 hay height/2 — đó là nguyên nhân lệch nét so với web.
     if (effectiveZoom.isFinite &&
         effectiveZoom > 0 &&
         adjustedScrollX.isFinite &&
         adjustedScrollY.isFinite) {
-      canvas.translate(
-        size.width / 2 + adjustedScrollX + panOffset.dx,
-        size.height / 2 + adjustedScrollY + panOffset.dy,
-      );
-      canvas.scale(effectiveZoom, effectiveZoom);
+      canvas.translate(panOffset.dx, panOffset.dy);
+      canvas.scale(effectiveZoom);
+      canvas.translate(adjustedScrollX, adjustedScrollY);
     } else {
       // Fallback: fit whole scene (legacy behavior)
       final bounds = _computeBounds(elements);
@@ -218,10 +208,15 @@ class WhiteboardElementsPainter extends CustomPainter {
 
   double _extractZoom(Map<String, dynamic>? state) {
     if (state == null) return double.nan;
-    // Web payload key: `zoomValue`
+    // Web payload key: `zoomValue` (số) hoặc giống AppState Excalidraw `{ value: number }`
     final zoomValue = state['zoomValue'];
     if (zoomValue is num) return zoomValue.toDouble();
     if (zoomValue is String) return double.tryParse(zoomValue) ?? double.nan;
+    if (zoomValue is Map) {
+      final v = zoomValue['value'];
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? double.nan;
+    }
 
     // Compatibility: older shape might carry `zoom`
     final zoomRaw = state['zoom'];
@@ -337,6 +332,9 @@ class WhiteboardElementsPainter extends CustomPainter {
 
   void _drawElement(Canvas canvas, Map<String, dynamic> e) {
     final type = e['type']?.toString() ?? '';
+    final elX = _toDouble(e['x'] ?? 0);
+    final elY = _toDouble(e['y'] ?? 0);
+    final elAngle = _toDouble(e['angle'] ?? 0);
 
     final strokeColor = _parseColor(
       e['strokeColor']?.toString() ??
@@ -426,9 +424,15 @@ class WhiteboardElementsPainter extends CustomPainter {
 
       final pts = _parsePoints(e['points']);
       if (pts.length >= 2) {
+        canvas.save();
+        canvas.translate(elX, elY);
+        if (elAngle != 0 && elAngle.isFinite) {
+          canvas.rotate(elAngle);
+        }
         for (var i = 0; i < pts.length - 1; i++) {
           canvas.drawLine(pts[i], pts[i + 1], strokePaint);
         }
+        canvas.restore();
       }
       return;
     }
@@ -436,12 +440,18 @@ class WhiteboardElementsPainter extends CustomPainter {
     if (type == 'freedraw') {
       final pts = _parsePoints(e['points']);
       if (pts.length < 2) return;
+      canvas.save();
+      canvas.translate(elX, elY);
+      if (elAngle != 0 && elAngle.isFinite) {
+        canvas.rotate(elAngle);
+      }
       final path = Path()..moveTo(pts.first.dx, pts.first.dy);
       for (final p in pts.skip(1)) {
         path.lineTo(p.dx, p.dy);
       }
       final paint = strokePaint..style = PaintingStyle.stroke;
       canvas.drawPath(path, paint);
+      canvas.restore();
       return;
     }
 

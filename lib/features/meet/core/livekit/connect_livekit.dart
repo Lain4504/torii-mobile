@@ -69,6 +69,8 @@ class ConnectLivekit implements IConnectLivekit {
 
   // State
   bool _wasNormalDisconnected = false;
+  String? _activeLiveKitUrl;
+  String? _activeLiveKitToken;
 
   // Stream controllers for events
   final _screenShareStatusController = StreamController<bool>.broadcast();
@@ -137,6 +139,17 @@ class ConnectLivekit implements IConnectLivekit {
   /// Matches: initializeConnection() in ConnectLivekit.ts
   @override
   Future<void> initializeConnection(String url, String token) async {
+    if (_room.connectionState == ConnectionState.connected &&
+        _activeLiveKitUrl == url &&
+        _activeLiveKitToken == token) {
+      if (kDebugMode) {
+        print(
+          'ConnectLivekit: Skip duplicate initializeConnection (same url/token)',
+        );
+      }
+      return;
+    }
+
     onConnectionStatusChange('media-server-conn-start');
 
     try {
@@ -152,6 +165,8 @@ class ConnectLivekit implements IConnectLivekit {
 
       // Connect to room
       await _room.connect(url, token);
+      _activeLiveKitUrl = url;
+      _activeLiveKitToken = token;
 
       // Apply initial media state
       if (initialAudioEnabled) {
@@ -181,6 +196,8 @@ class ConnectLivekit implements IConnectLivekit {
       if (kDebugMode) {
         print('ConnectLivekit: Connection error - $error');
       }
+      _activeLiveKitUrl = null;
+      _activeLiveKitToken = null;
       onConnectionStatusChange('error');
       onError('Error', error.toString());
     }
@@ -240,6 +257,10 @@ class ConnectLivekit implements IConnectLivekit {
     _roomEventListener?.dispose();
     _roomEventListener = room.createListener();
     _roomEventListener!
+      ..on<RoomReconnectedEvent>((_) {
+        // Sau reconnect, đồng bộ nút mic/cam với trạng thái track thật (tránh UI lệch).
+        _syncFooterIconsFromLocalParticipant();
+      })
       ..on<ParticipantConnectedEvent>((_) {
         _rebuildTrackSubscribersFromRoom();
       })
@@ -360,23 +381,13 @@ class ConnectLivekit implements IConnectLivekit {
 
   /// Handle track events
   void _onTrackEvent() {
-    // Track subscribed - using listener instead of setter
-    _room.addListener(() {
-      // Handle room events through event stream
-    });
-
-    // Note: In newer LiveKit SDK, event handling is done through EventsListener
-    // The old setter-based approach is deprecated
-    // Events are now handled in _registerRoomEventListeners via room.createListener()
+    // Track/participant thực tế xử lý qua [EventsListener] trong [_registerRoomEventListeners].
+    // Tuyệt đối không gọi [_room.addListener] ở đây: mỗi lần notify sẽ chồng listener → mất ổn định.
   }
 
   /// Handle participant events
   void _onParticipantEvent() {
-    // Connection quality changed for local participant
-    // Note: In newer LiveKit SDK, this is handled through EventsListener
-    _room.localParticipant?.addListener(() {
-      // Connection quality updates are now handled through participant listener
-    });
+    // Giữ callback rỗng; cùng lý do như [_onTrackEvent].
   }
 
   /// Initialize participants after connection
@@ -404,11 +415,16 @@ class ConnectLivekit implements IConnectLivekit {
   /// Matches: disconnectRoom() in ConnectLivekit.ts
   @override
   Future<void> disconnectRoom(bool normalDisconnect) async {
-    if (_room.connectionState == ConnectionState.connected) {
-      _wasNormalDisconnected = normalDisconnect;
-      _closeLocalTracks();
-      await _room.disconnect();
+    if (_room.connectionState == ConnectionState.disconnected) {
+      _activeLiveKitUrl = null;
+      _activeLiveKitToken = null;
+      return;
     }
+    _wasNormalDisconnected = normalDisconnect;
+    _closeLocalTracks();
+    await _room.disconnect();
+    _activeLiveKitUrl = null;
+    _activeLiveKitToken = null;
   }
 
   /// Set error status
@@ -679,20 +695,60 @@ class ConnectLivekit implements IConnectLivekit {
     _emitScreenShareSessionFromMap();
   }
 
+  /// Chỉ publish khi engine đã [ConnectionState.connected] (SDK sẽ throw `UnexpectedConnectionState` nếu không).
+  bool get _canPublishMedia =>
+      _room.connectionState == ConnectionState.connected;
+
+  void _notifyMediaUnavailable(String detail) {
+    ref.read(roomSettingsProvider.notifier).addUserNotification(
+          UserNotification(
+            message: detail,
+            typeOption: 'warning',
+          ),
+        );
+  }
+
+  /// Đồng bộ footer mic/cam với publication thực tế (sau lỗi publish hoặc reconnect).
+  void _syncFooterIconsFromLocalParticipant() {
+    final lp = _room.localParticipant;
+    if (lp == null) return;
+    final micPub = lp.getTrackPublicationBySource(TrackSource.microphone);
+    final camPub = lp.getTrackPublicationBySource(TrackSource.camera);
+    final micMuted = micPub == null || micPub.muted;
+    final camMuted = camPub == null || camPub.muted;
+    ref.read(bottomIconsProvider.notifier).updateMicStatus(micMuted);
+    ref.read(bottomIconsProvider.notifier).updateWebcamStatus(camMuted);
+  }
+
   /// Toggle audio
   /// Matches: toggleAudio() in ConnectLivekit.ts
   @override
   Future<void> toggleAudio(bool enable) async {
-    if (_room.localParticipant != null) {
+    if (_room.localParticipant == null) return;
+
+    // Bật mic cần publisher — khi mất kết nối / đang reconnect sẽ throw.
+    if (enable && !_canPublishMedia) {
+      _notifyMediaUnavailable(
+        'Chưa kết nối tới máy chủ media. Đợi kết nối lại rồi thử bật micro.',
+      );
+      _syncFooterIconsFromLocalParticipant();
+      return;
+    }
+
+    try {
       await _room.localParticipant!.setMicrophoneEnabled(enable);
       ref.read(bottomIconsProvider.notifier).updateMicStatus(!enable);
-
-      // Update local participant state in provider if needed
-      // (LiveKit events should handle this automatically via _onTrackEvent)
-
       if (kDebugMode) {
         print('ConnectLivekit: Audio toggled to $enable');
       }
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('ConnectLivekit: toggleAudio failed $e\n$st');
+      }
+      _notifyMediaUnavailable(
+        'Không thể điều chỉnh micro. Kiểm tra kết nối mạng và thử lại.',
+      );
+      _syncFooterIconsFromLocalParticipant();
     }
   }
 
@@ -700,16 +756,30 @@ class ConnectLivekit implements IConnectLivekit {
   /// Matches: toggleVideo() in ConnectLivekit.ts
   @override
   Future<void> toggleVideo(bool enable) async {
-    if (_room.localParticipant != null) {
+    if (_room.localParticipant == null) return;
+
+    if (enable && !_canPublishMedia) {
+      _notifyMediaUnavailable(
+        'Chưa kết nối tới máy chủ media. Đợi kết nối lại rồi thử bật camera.',
+      );
+      _syncFooterIconsFromLocalParticipant();
+      return;
+    }
+
+    try {
       await _room.localParticipant!.setCameraEnabled(enable);
       ref.read(bottomIconsProvider.notifier).updateWebcamStatus(!enable);
-
-      // Update local participant state in provider if needed
-      // (LiveKit events should handle this automatically via _onTrackEvent)
-
       if (kDebugMode) {
         print('ConnectLivekit: Video toggled to $enable');
       }
+    } catch (e, st) {
+      if (kDebugMode) {
+        print('ConnectLivekit: toggleVideo failed $e\n$st');
+      }
+      _notifyMediaUnavailable(
+        'Không thể điều chỉnh camera. Kiểm tra kết nối mạng và thử lại.',
+      );
+      _syncFooterIconsFromLocalParticipant();
     }
   }
 
