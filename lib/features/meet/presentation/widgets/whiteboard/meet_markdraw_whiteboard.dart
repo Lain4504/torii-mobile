@@ -21,30 +21,23 @@ class _MeetMarkdrawWhiteboardState extends ConsumerState<MeetMarkdrawWhiteboard>
   late final MarkdrawController _controller;
   String _lastLoaded = '';
 
-  /// Mobile: chỉ xem + pan (tay); không toolbar / zoom / vẽ — giảng viên dùng meet web.
   static const _config = MarkdrawEditorConfig(
     showPropertyPanel: false,
     showLibraryPanel: false,
     showMarkdownButton: false,
     showMenu: false,
     showHelpButton: false,
-    showToolbar: false,
-    showZoomControls: false,
-    tools: [ToolType.hand],
+    showToolbar: true,
+    tools: [ToolType.hand, ToolType.select],
   );
-
-  void _enforceViewOnly() {
-    if (!_controller.viewMode) {
-      _controller.toggleViewMode();
-    }
-  }
 
   @override
   void initState() {
     super.initState();
     _controller = MarkdrawController(config: _config);
-    _enforceViewOnly();
-    _controller.addListener(_enforceViewOnly);
+    if (!_controller.viewMode) {
+      _controller.toggleViewMode();
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final json = ref.read(whiteboardProvider).allExcalidrawElements;
@@ -56,7 +49,6 @@ class _MeetMarkdrawWhiteboardState extends ConsumerState<MeetMarkdrawWhiteboard>
 
   @override
   void dispose() {
-    _controller.removeListener(_enforceViewOnly);
     _controller.dispose();
     super.dispose();
   }
@@ -102,33 +94,12 @@ class _MeetMarkdrawWhiteboardState extends ConsumerState<MeetMarkdrawWhiteboard>
       },
     );
 
-    // Che pill "Exit view mode" của markdraw (không có API tắt); vẫn giữ pan ở phần còn lại.
-    return Stack(
-      fit: StackFit.expand,
-      clipBehavior: Clip.hardEdge,
-      children: [
-        MarkdrawEditor(
-          controller: _controller,
-          config: _config,
-          currentThemeMode: theme.brightness == Brightness.dark
-              ? ThemeMode.dark
-              : ThemeMode.light,
-          onThemeModeChanged: (_) {},
-        ),
-        // Trùng nền canvas mặc định (#fff) để không lộ vệt khi theme tối.
-        Positioned(
-          top: 0,
-          right: 0,
-          child: const ColoredBox(
-            color: Color(0xFFFFFFFF),
-            child: SizedBox(
-              width: 200,
-              height: 56,
-              child: AbsorbPointer(child: SizedBox.expand()),
-            ),
-          ),
-        ),
-      ],
+    return MarkdrawEditor(
+      controller: _controller,
+      config: _config,
+      currentThemeMode:
+          theme.brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
+      onThemeModeChanged: (_) {},
     );
   }
 }
