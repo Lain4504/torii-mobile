@@ -41,6 +41,7 @@ import '../livekit/connect_livekit.dart';
 // Providers
 import '../../providers/session_provider.dart';
 import '../../providers/participant_provider.dart';
+import '../../providers/whiteboard_provider.dart';
 import '../../providers/room_settings_provider.dart';
 import '../../data/datasources/meet_api_service.dart';
 
@@ -80,6 +81,7 @@ class ConnectNats {
   Timer? _pingInterval;
   Timer? _statusCheckerInterval;
   Timer? _reconciliationInterval;
+  Timer? _whiteboardFullSceneRetryTimer;
   bool _isRoomReconnecting = false;
   
 
@@ -240,6 +242,8 @@ class ConnectNats {
     _pingInterval?.cancel();
     _reconciliationInterval?.cancel();
     _statusCheckerInterval?.cancel();
+    _whiteboardFullSceneRetryTimer?.cancel();
+    _whiteboardFullSceneRetryTimer = null;
     handleParticipants.clearParticipantCounterInterval();
     
     // 3. Concurrent cleanup
@@ -723,9 +727,33 @@ class ConnectNats {
       unawaited(_subscribeToDataChannel());
     }
 
-    // Request initial whiteboard scene from a "donor" (presenter) so
-    // whiteboard viewers can render it immediately (view-only on mobile).
+    // Request initial whiteboard scene from presenter (Excalidraw chỉ mount khi web mở bảng trắng).
     unawaited(_requestWhiteboardFullScene());
+    _scheduleWhiteboardFullSceneRetries();
+  }
+
+  /// Gửi lại REQ_FULL sau vài lần: donor có thể chưa mount Excalidraw ngay khi mobile vào phòng.
+  void _scheduleWhiteboardFullSceneRetries() {
+    _whiteboardFullSceneRetryTimer?.cancel();
+    var attempts = 0;
+    const maxAttempts = 15;
+    _whiteboardFullSceneRetryTimer =
+        Timer.periodic(const Duration(seconds: 4), (_) async {
+      attempts++;
+      final elements =
+          ref.read(whiteboardProvider).allExcalidrawElements.trim();
+      if (elements.isNotEmpty) {
+        _whiteboardFullSceneRetryTimer?.cancel();
+        _whiteboardFullSceneRetryTimer = null;
+        return;
+      }
+      if (attempts >= maxAttempts) {
+        _whiteboardFullSceneRetryTimer?.cancel();
+        _whiteboardFullSceneRetryTimer = null;
+        return;
+      }
+      await _requestWhiteboardFullScene();
+    });
   }
 
   /// Periodically request the latest online users list from backend,

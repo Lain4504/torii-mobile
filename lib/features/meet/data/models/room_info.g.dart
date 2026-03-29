@@ -151,6 +151,8 @@ _WhiteboardFeatures _$WhiteboardFeaturesFromJson(Map<String, dynamic> json) =>
       whiteboardFileId: json['whiteboardFileId'] as String? ?? '',
       filePath: json['filePath'] as String? ?? '',
       totalPages: (json['totalPages'] as num?)?.toInt() ?? 0,
+      visible: json['visible'] as bool? ?? false,
+      isAllow: json['isAllow'] as bool? ?? true,
     );
 
 Map<String, dynamic> _$WhiteboardFeaturesToJson(_WhiteboardFeatures instance) =>
@@ -160,4 +162,6 @@ Map<String, dynamic> _$WhiteboardFeaturesToJson(_WhiteboardFeatures instance) =>
       'whiteboardFileId': instance.whiteboardFileId,
       'filePath': instance.filePath,
       'totalPages': instance.totalPages,
+      'visible': instance.visible,
+      'isAllow': instance.isAllow,
     };

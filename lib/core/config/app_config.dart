@@ -30,4 +30,5 @@ class AppConfig {
     'TORII_MEET_API_SECRET',
     defaultValue: 'zumyyYWqv7KR2kUqvYdq4z4sXg7XTBD2ljT6',
   );
+
 }

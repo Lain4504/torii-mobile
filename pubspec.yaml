@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.4
+  sdk: ^3.10.7
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -84,6 +84,18 @@ dependencies:
   flutter_markdown: ^0.7.7+1
   chewie: ^1.13.0
   android_pip: ^2.0.2
+  # Whiteboard: Excalidraw JSON interop (conflict google_fonts → dependency_overrides)
+  markdraw: ^0.2.0
+
+
+
+dependency_overrides:
+  # markdraw khoá google_fonts ^6; app dùng ^8 — ép thống nhất (cần test UI fonts).
+  google_fonts: ^8.0.2
+  # markdraw khoá freezed_annotation ^2; app dùng ^3.
+  freezed_annotation: ^3.1.0
+  # markdraw → super_clipboard → super_native_extensions: device_info <12; livekit cần ^12 — ép 11.x (rủi ro nhỏ).
+  device_info_plus: ^11.3.0
 
 
 

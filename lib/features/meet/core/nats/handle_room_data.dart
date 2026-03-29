@@ -110,6 +110,9 @@ class HandleRoomData {
     // Dispatch to session provider
     ref?.read(sessionProvider.notifier).updateCurrentRoomMetadata(metadata);
     // ref?.read(sessionProvider.notifier).updateCurrentRoomMetadata(metadata);
+
+    // Khớp web `whiteboard.tsx`: khi presenter bật/tắt bảng qua API, metadata.visible đổi.
+    _syncWhiteboardVisibilityFromRoom(metadata);
     
     // Check for preloaded whiteboard file
     if (!_checkedPreloadedWhiteboardFile) {
@@ -121,6 +124,11 @@ class HandleRoomData {
     }
   }
   
+  void _syncWhiteboardVisibilityFromRoom(RoomInfo metadata) {
+    final visible = metadata.roomFeatures?.whiteboardFeatures?.visible ?? false;
+    ref?.read(whiteboardProvider.notifier).setIsVisible(visible);
+  }
+
   /// Set app title
   void _setAppTitle(String title) {
     // Update app title (platform-specific)

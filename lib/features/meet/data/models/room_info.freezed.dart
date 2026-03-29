@@ -1828,7 +1828,8 @@ as bool,
 /// @nodoc
 mixin _$WhiteboardFeatures {
 
- String get preloadFile; String get fileName; String get whiteboardFileId; String get filePath; int get totalPages;
+ String get preloadFile; String get fileName; String get whiteboardFileId; String get filePath; int get totalPages;/// Khớp web `roomFeatures.whiteboardFeatures.visible` — presenter bật/tắt bảng qua API.
+ bool get visible; bool get isAllow;
 /// Create a copy of WhiteboardFeatures
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1841,16 +1842,16 @@ $WhiteboardFeaturesCopyWith<WhiteboardFeatures> get copyWith => _$WhiteboardFeat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WhiteboardFeatures&&(identical(other.preloadFile, preloadFile) || other.preloadFile == preloadFile)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.whiteboardFileId, whiteboardFileId) || other.whiteboardFileId == whiteboardFileId)&&(identical(other.filePath, filePath) || other.filePath == filePath)&&(identical(other.totalPages, totalPages) || other.totalPages == totalPages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WhiteboardFeatures&&(identical(other.preloadFile, preloadFile) || other.preloadFile == preloadFile)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.whiteboardFileId, whiteboardFileId) || other.whiteboardFileId == whiteboardFileId)&&(identical(other.filePath, filePath) || other.filePath == filePath)&&(identical(other.totalPages, totalPages) || other.totalPages == totalPages)&&(identical(other.visible, visible) || other.visible == visible)&&(identical(other.isAllow, isAllow) || other.isAllow == isAllow));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,preloadFile,fileName,whiteboardFileId,filePath,totalPages);
+int get hashCode => Object.hash(runtimeType,preloadFile,fileName,whiteboardFileId,filePath,totalPages,visible,isAllow);
 
 @override
 String toString() {
-  return 'WhiteboardFeatures(preloadFile: $preloadFile, fileName: $fileName, whiteboardFileId: $whiteboardFileId, filePath: $filePath, totalPages: $totalPages)';
+  return 'WhiteboardFeatures(preloadFile: $preloadFile, fileName: $fileName, whiteboardFileId: $whiteboardFileId, filePath: $filePath, totalPages: $totalPages, visible: $visible, isAllow: $isAllow)';
 }
 
 
@@ -1861,7 +1862,7 @@ abstract mixin class $WhiteboardFeaturesCopyWith<$Res>  {
   factory $WhiteboardFeaturesCopyWith(WhiteboardFeatures value, $Res Function(WhiteboardFeatures) _then) = _$WhiteboardFeaturesCopyWithImpl;
 @useResult
 $Res call({
- String preloadFile, String fileName, String whiteboardFileId, String filePath, int totalPages
+ String preloadFile, String fileName, String whiteboardFileId, String filePath, int totalPages, bool visible, bool isAllow
 });
 
 
@@ -1878,14 +1879,16 @@ class _$WhiteboardFeaturesCopyWithImpl<$Res>
 
 /// Create a copy of WhiteboardFeatures
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? preloadFile = null,Object? fileName = null,Object? whiteboardFileId = null,Object? filePath = null,Object? totalPages = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? preloadFile = null,Object? fileName = null,Object? whiteboardFileId = null,Object? filePath = null,Object? totalPages = null,Object? visible = null,Object? isAllow = null,}) {
   return _then(_self.copyWith(
 preloadFile: null == preloadFile ? _self.preloadFile : preloadFile // ignore: cast_nullable_to_non_nullable
 as String,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
 as String,whiteboardFileId: null == whiteboardFileId ? _self.whiteboardFileId : whiteboardFileId // ignore: cast_nullable_to_non_nullable
 as String,filePath: null == filePath ? _self.filePath : filePath // ignore: cast_nullable_to_non_nullable
 as String,totalPages: null == totalPages ? _self.totalPages : totalPages // ignore: cast_nullable_to_non_nullable
-as int,
+as int,visible: null == visible ? _self.visible : visible // ignore: cast_nullable_to_non_nullable
+as bool,isAllow: null == isAllow ? _self.isAllow : isAllow // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -1970,10 +1973,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String preloadFile,  String fileName,  String whiteboardFileId,  String filePath,  int totalPages)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String preloadFile,  String fileName,  String whiteboardFileId,  String filePath,  int totalPages,  bool visible,  bool isAllow)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WhiteboardFeatures() when $default != null:
-return $default(_that.preloadFile,_that.fileName,_that.whiteboardFileId,_that.filePath,_that.totalPages);case _:
+return $default(_that.preloadFile,_that.fileName,_that.whiteboardFileId,_that.filePath,_that.totalPages,_that.visible,_that.isAllow);case _:
   return orElse();
 
 }
@@ -1991,10 +1994,10 @@ return $default(_that.preloadFile,_that.fileName,_that.whiteboardFileId,_that.fi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String preloadFile,  String fileName,  String whiteboardFileId,  String filePath,  int totalPages)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String preloadFile,  String fileName,  String whiteboardFileId,  String filePath,  int totalPages,  bool visible,  bool isAllow)  $default,) {final _that = this;
 switch (_that) {
 case _WhiteboardFeatures():
-return $default(_that.preloadFile,_that.fileName,_that.whiteboardFileId,_that.filePath,_that.totalPages);case _:
+return $default(_that.preloadFile,_that.fileName,_that.whiteboardFileId,_that.filePath,_that.totalPages,_that.visible,_that.isAllow);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2011,10 +2014,10 @@ return $default(_that.preloadFile,_that.fileName,_that.whiteboardFileId,_that.fi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String preloadFile,  String fileName,  String whiteboardFileId,  String filePath,  int totalPages)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String preloadFile,  String fileName,  String whiteboardFileId,  String filePath,  int totalPages,  bool visible,  bool isAllow)?  $default,) {final _that = this;
 switch (_that) {
 case _WhiteboardFeatures() when $default != null:
-return $default(_that.preloadFile,_that.fileName,_that.whiteboardFileId,_that.filePath,_that.totalPages);case _:
+return $default(_that.preloadFile,_that.fileName,_that.whiteboardFileId,_that.filePath,_that.totalPages,_that.visible,_that.isAllow);case _:
   return null;
 
 }
@@ -2026,7 +2029,7 @@ return $default(_that.preloadFile,_that.fileName,_that.whiteboardFileId,_that.fi
 @JsonSerializable()
 
 class _WhiteboardFeatures implements WhiteboardFeatures {
-  const _WhiteboardFeatures({this.preloadFile = '', this.fileName = '', this.whiteboardFileId = '', this.filePath = '', this.totalPages = 0});
+  const _WhiteboardFeatures({this.preloadFile = '', this.fileName = '', this.whiteboardFileId = '', this.filePath = '', this.totalPages = 0, this.visible = false, this.isAllow = true});
   factory _WhiteboardFeatures.fromJson(Map<String, dynamic> json) => _$WhiteboardFeaturesFromJson(json);
 
 @override@JsonKey() final  String preloadFile;
@@ -2034,6 +2037,9 @@ class _WhiteboardFeatures implements WhiteboardFeatures {
 @override@JsonKey() final  String whiteboardFileId;
 @override@JsonKey() final  String filePath;
 @override@JsonKey() final  int totalPages;
+/// Khớp web `roomFeatures.whiteboardFeatures.visible` — presenter bật/tắt bảng qua API.
+@override@JsonKey() final  bool visible;
+@override@JsonKey() final  bool isAllow;
 
 /// Create a copy of WhiteboardFeatures
 /// with the given fields replaced by the non-null parameter values.
@@ -2048,16 +2054,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WhiteboardFeatures&&(identical(other.preloadFile, preloadFile) || other.preloadFile == preloadFile)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.whiteboardFileId, whiteboardFileId) || other.whiteboardFileId == whiteboardFileId)&&(identical(other.filePath, filePath) || other.filePath == filePath)&&(identical(other.totalPages, totalPages) || other.totalPages == totalPages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WhiteboardFeatures&&(identical(other.preloadFile, preloadFile) || other.preloadFile == preloadFile)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.whiteboardFileId, whiteboardFileId) || other.whiteboardFileId == whiteboardFileId)&&(identical(other.filePath, filePath) || other.filePath == filePath)&&(identical(other.totalPages, totalPages) || other.totalPages == totalPages)&&(identical(other.visible, visible) || other.visible == visible)&&(identical(other.isAllow, isAllow) || other.isAllow == isAllow));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,preloadFile,fileName,whiteboardFileId,filePath,totalPages);
+int get hashCode => Object.hash(runtimeType,preloadFile,fileName,whiteboardFileId,filePath,totalPages,visible,isAllow);
 
 @override
 String toString() {
-  return 'WhiteboardFeatures(preloadFile: $preloadFile, fileName: $fileName, whiteboardFileId: $whiteboardFileId, filePath: $filePath, totalPages: $totalPages)';
+  return 'WhiteboardFeatures(preloadFile: $preloadFile, fileName: $fileName, whiteboardFileId: $whiteboardFileId, filePath: $filePath, totalPages: $totalPages, visible: $visible, isAllow: $isAllow)';
 }
 
 
@@ -2068,7 +2074,7 @@ abstract mixin class _$WhiteboardFeaturesCopyWith<$Res> implements $WhiteboardFe
   factory _$WhiteboardFeaturesCopyWith(_WhiteboardFeatures value, $Res Function(_WhiteboardFeatures) _then) = __$WhiteboardFeaturesCopyWithImpl;
 @override @useResult
 $Res call({
- String preloadFile, String fileName, String whiteboardFileId, String filePath, int totalPages
+ String preloadFile, String fileName, String whiteboardFileId, String filePath, int totalPages, bool visible, bool isAllow
 });
 
 
@@ -2085,14 +2091,16 @@ class __$WhiteboardFeaturesCopyWithImpl<$Res>
 
 /// Create a copy of WhiteboardFeatures
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? preloadFile = null,Object? fileName = null,Object? whiteboardFileId = null,Object? filePath = null,Object? totalPages = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? preloadFile = null,Object? fileName = null,Object? whiteboardFileId = null,Object? filePath = null,Object? totalPages = null,Object? visible = null,Object? isAllow = null,}) {
   return _then(_WhiteboardFeatures(
 preloadFile: null == preloadFile ? _self.preloadFile : preloadFile // ignore: cast_nullable_to_non_nullable
 as String,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
 as String,whiteboardFileId: null == whiteboardFileId ? _self.whiteboardFileId : whiteboardFileId // ignore: cast_nullable_to_non_nullable
 as String,filePath: null == filePath ? _self.filePath : filePath // ignore: cast_nullable_to_non_nullable
 as String,totalPages: null == totalPages ? _self.totalPages : totalPages // ignore: cast_nullable_to_non_nullable
-as int,
+as int,visible: null == visible ? _self.visible : visible // ignore: cast_nullable_to_non_nullable
+as bool,isAllow: null == isAllow ? _self.isAllow : isAllow // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

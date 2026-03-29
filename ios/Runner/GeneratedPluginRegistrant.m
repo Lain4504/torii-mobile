@@ -84,6 +84,12 @@
 @import google_sign_in_ios;
 #endif
 
+#if __has_include(<irondash_engine_context/IrondashEngineContextPlugin.h>)
+#import <irondash_engine_context/IrondashEngineContextPlugin.h>
+#else
+@import irondash_engine_context;
+#endif
+
 #if __has_include(<livekit_client/LiveKitPlugin.h>)
 #import <livekit_client/LiveKitPlugin.h>
 #else
@@ -118,6 +124,12 @@
 #import <sqlite3_flutter_libs/Sqlite3FlutterLibsPlugin.h>
 #else
 @import sqlite3_flutter_libs;
+#endif
+
+#if __has_include(<super_native_extensions/SuperNativeExtensionsPlugin.h>)
+#import <super_native_extensions/SuperNativeExtensionsPlugin.h>
+#else
+@import super_native_extensions;
 #endif
 
 #if __has_include(<url_launcher_ios/URLLauncherPlugin.h>)
@@ -160,12 +172,14 @@
   [FlutterTtsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterTtsPlugin"]];
   [FlutterWebRTCPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterWebRTCPlugin"]];
   [FLTGoogleSignInPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTGoogleSignInPlugin"]];
+  [IrondashEngineContextPlugin registerWithRegistrar:[registry registrarForPlugin:@"IrondashEngineContextPlugin"]];
   [LiveKitPlugin registerWithRegistrar:[registry registrarForPlugin:@"LiveKitPlugin"]];
   [FPPPackageInfoPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"FPPPackageInfoPlusPlugin"]];
   [PermissionHandlerPlugin registerWithRegistrar:[registry registrarForPlugin:@"PermissionHandlerPlugin"]];
   [SharedPreferencesPlugin registerWithRegistrar:[registry registrarForPlugin:@"SharedPreferencesPlugin"]];
   [SpeechToTextPlugin registerWithRegistrar:[registry registrarForPlugin:@"SpeechToTextPlugin"]];
   [Sqlite3FlutterLibsPlugin registerWithRegistrar:[registry registrarForPlugin:@"Sqlite3FlutterLibsPlugin"]];
+  [SuperNativeExtensionsPlugin registerWithRegistrar:[registry registrarForPlugin:@"SuperNativeExtensionsPlugin"]];
   [URLLauncherPlugin registerWithRegistrar:[registry registrarForPlugin:@"URLLauncherPlugin"]];
   [FVPVideoPlayerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FVPVideoPlayerPlugin"]];
   [WakelockPlusPlugin registerWithRegistrar:[registry registrarForPlugin:@"WakelockPlusPlugin"]];

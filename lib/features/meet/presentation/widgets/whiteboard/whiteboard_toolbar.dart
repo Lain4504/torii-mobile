@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/whiteboard_provider.dart';
 
 /// Whiteboard Toolbar Widget

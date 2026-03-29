@@ -229,9 +229,12 @@ class WhiteboardNotifier extends StateNotifier<WhiteboardState> {
       elementsJson = elementsRaw == null ? '' : jsonEncode(elementsRaw);
     }
 
+    final pageRaw = data['currentPageNumber'];
+    final page = pageRaw is num ? pageRaw.toInt() : (pageRaw is int ? pageRaw : int.tryParse('$pageRaw') ?? 1);
+
     state = state.copyWith(
       currentWhiteboardOfficeFileId: data['currentWhiteboardOfficeFileId'] as String? ?? '',
-      currentPage: data['currentPageNumber'] as int? ?? 1,
+      currentPage: page,
       currentOfficeFilePages: data['currentOfficeFilePages'] as String? ?? '',
       excalidrawElements: elementsJson,
       allExcalidrawElements: elementsJson,
