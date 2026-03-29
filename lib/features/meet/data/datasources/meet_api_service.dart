@@ -294,24 +294,14 @@ class MeetApiService {
         'roomId': roomId,
       });
 
-      // Accept a few known response shapes.
-      final isActive = data['is_active'] ?? data['isActive'];
-      if (isActive != null) {
-        return isActive == true || isActive == 1 || isActive == 'true';
+      // IsRoomActiveRes: bool is_active (= isActive trong JSON) mới là "phòng đang chạy".
+      // Field `status` (field 1) không đồng nghĩa với is_active — meet service có thể trả
+      // {"status":true,"msg":"Phòng không hoạt động"} khi is_active=false.
+      // Proto3 JSON thường bỏ giá trị mặc định false → thiếu key `isActive` nghĩa là không active.
+      final raw = data['is_active'] ?? data['isActive'];
+      if (raw != null) {
+        return raw == true || raw == 1 || raw == 'true';
       }
-
-      // Some gateways return {status: true/false, ...} without is_active.
-      final status = data['status'];
-      if (status == true || status == 1 || status == 'true') {
-        // If status is true but field missing, assume active (room exists).
-        return true;
-      }
-      if (status == false || status == 0 || status == 'false') {
-        return false;
-      }
-
-      // Fallback: if server only returns msg or unknown shape, treat as "not active"
-      // so UI can proceed to createRoom.
       return false;
     } on MeetApiException {
       rethrow;
