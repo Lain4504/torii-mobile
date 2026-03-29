@@ -96,6 +96,9 @@ class ConnectNats {
   // Riverpod ref for state management
   final Ref ref;
 
+  /// SESSION_ENDED / NATS đóng: sau [endSession] gọi để pop khỏi `/meet` (web: ErrorPage).
+  final void Function()? onRemoteSessionEnded;
+
   // Handlers (matching web's handler structure)
   late final MessageQueue messageQueue;
   late final HandleRoomData handleRoomData;
@@ -139,7 +142,8 @@ class ConnectNats {
     required Function(String, String) setErrorState,
     required Function(String) setRoomConnectionStatusState,
     required Function(dynamic) setCurrentMediaServerConn,
-    required this.ref, // Add ref parameter
+    required this.ref,
+    this.onRemoteSessionEnded,
   })  : _natsWSUrls = natsWSUrls,
         _token = token,
         _roomId = roomId,
@@ -268,22 +272,25 @@ class ConnectNats {
     
     // cleanupFutures.add(_deleteRoomDB());
     
-    await Future.wait(cleanupFutures, eagerError: false);
-    
-    // 4. Final cleanup
-    // destroyAudioManager();
-    
-    // 5. Post-session navigation (after delay)
+    try {
+      await Future.wait(cleanupFutures, eagerError: false);
+    } finally {
+      if (!userInitiatedLeave && onRemoteSessionEnded != null) {
+        onRemoteSessionEnded!();
+      }
+      ref.read(sessionProvider.notifier).absorbRemoteSessionEnd();
+    }
+
+    // Post-session: web dùng logoutUrl / đóng breakout — mobile xử lý trong callback pop.
     Future.delayed(const Duration(seconds: 3), () {
       final meta = _currentRoomInfo?['metadata'];
       if (meta?['isBreakoutRoom'] == true) {
-        // In Flutter, we can't close window, so navigate back
         return;
       }
-      
+
       final logoutUrl = meta?['logoutUrl'];
       if (logoutUrl != null && _isValidHttpUrl(logoutUrl)) {
-        // Navigate to logout URL
+        // Có thể mở URL bằng url_launcher khi cần.
       }
     });
   }
