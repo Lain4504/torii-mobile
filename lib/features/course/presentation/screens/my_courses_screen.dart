@@ -20,7 +20,7 @@ class MyCoursesScreen extends ConsumerWidget {
         appBar: AppBar(
           title: Text(
             'Khóa học của tôi',
-            style: theme.textTheme.titleMedium?.copyWith(
+            style: theme.textTheme.titleLarge?.copyWith(
               color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w800,
             ),
@@ -29,9 +29,7 @@ class MyCoursesScreen extends ConsumerWidget {
           elevation: 0,
           bottom: TabBar(
             labelColor: theme.colorScheme.primary,
-            unselectedLabelColor: theme.colorScheme.onSurfaceVariant.withValues(
-              alpha: 0.7,
-            ),
+            unselectedLabelColor: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             indicatorColor: theme.colorScheme.primary,
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold),
@@ -43,21 +41,14 @@ class MyCoursesScreen extends ConsumerWidget {
         ),
         body: enrollmentsAsync.when(
           data: (paginated) {
-            final all = paginated.data;
-            final inProgress = all
-                .where(
-                  (e) =>
-                      e.status.toUpperCase() == 'ACTIVE' &&
-                      (e.progress ?? 0) < 1,
-                )
+            final list = paginated.data;
+            final inProgress = list
+                .where((e) => e.status?.toUpperCase() == 'ACTIVE' && e.progress < 1.0)
                 .toList();
-            final completed = all
-                .where(
-                  (e) =>
-                      (e.progress ?? 0) >= 1 ||
-                      e.status.toUpperCase() != 'ACTIVE',
-                )
+            final completed = list
+                .where((e) => e.progress >= 1.0 || e.status?.toUpperCase() == 'COMPLETED')
                 .toList();
+
             return TabBarView(
               children: [
                 _buildCourseList(context, inProgress, false),
@@ -84,149 +75,142 @@ class MyCoursesScreen extends ConsumerWidget {
   ) {
     if (list.isEmpty) {
       return Center(
-        child: Text(
-          isCompleted
-              ? 'Chưa có khóa học hoàn thành'
-              : 'Chưa có khóa học đang học',
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isCompleted ? Icons.workspace_premium : Icons.auto_stories,
+              size: 64,
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isCompleted ? 'Chưa có khóa học hoàn thành' : 'Chưa có khóa học đang học',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+          ],
         ),
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       itemCount: list.length,
       itemBuilder: (context, index) {
         final e = list[index];
-        final progress = e.progress ?? 0.0;
+        final progress = e.progress;
+        
         return Container(
-          margin: const EdgeInsets.only(bottom: 24),
+          margin: const EdgeInsets.only(bottom: 20),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.04),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-                child: Image.network(
-                  e.thumbnailUrl ??
-                      'https://picsum.photos/seed/mycourse${e.id}/600/300',
-                  height: 140,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+          child: InkWell(
+            onTap: () => _navigateToCourse(context, e),
+            borderRadius: BorderRadius.circular(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: Image.network(
+                    e.thumbnailUrl ?? 'https://picsum.photos/seed/enrolled${e.id}/600/300',
                     height: 140,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                    child: const Icon(Icons.school, size: 48),
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 140,
+                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                      child: const Icon(Icons.school, size: 48),
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      e.courseTitle ?? 'Khóa học',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        e.courseTitle,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: LinearProgressIndicator(
-                            value: isCompleted ? 1.0 : progress.clamp(0.0, 1.0),
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              isCompleted
-                                  ? AppColors.success
-                                  : Theme.of(context).colorScheme.primary,
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              backgroundColor: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                isCompleted ? AppColors.success : Theme.of(context).colorScheme.primary,
+                              ),
+                              minHeight: 8,
+                              borderRadius: BorderRadius.circular(4),
                             ),
-                            minHeight: 8,
-                            borderRadius: BorderRadius.circular(4),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '${(progress * 100).toInt()}%',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: isCompleted
-                                ? AppColors.success
-                                : Theme.of(context).colorScheme.onSurface,
+                          const SizedBox(width: 12),
+                          Text(
+                            '${(progress * 100).toInt()}%',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: isCompleted ? AppColors.success : Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: ElevatedButton(
-                        onPressed: e.classId.isEmpty
-                            ? null
-                            : () {
-                                final mode = (e.mode ?? '').toUpperCase();
-                                if (mode == 'LIVE' && e.classId.isNotEmpty) {
-                                  final t = Uri.encodeQueryComponent(
-                                    e.courseTitle ?? '',
-                                  );
-                                  context.push(
-                                    '/enrolled-live/${e.classId}?productId=${e.productId}&title=$t',
-                                  );
-                                } else {
-                                  context.push(
-                                    '/curriculum/${e.classId}?mode=VOD',
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isCompleted
-                              ? Theme.of(context).colorScheme.outlineVariant
-                                    .withValues(alpha: 0.3)
-                              : Theme.of(context).colorScheme.primary,
-                          foregroundColor: isCompleted
-                              ? Theme.of(context).colorScheme.onSurfaceVariant
-                              : Theme.of(context).colorScheme.onPrimary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () => _navigateToCourse(context, e),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isCompleted
+                                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                                : Theme.of(context).colorScheme.primary,
+                            foregroundColor: isCompleted
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.onPrimary,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          isCompleted ? 'Xem lại bài học' : 'Tiếp tục học',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          child: Text(
+                            isCompleted ? 'Xem lại bài học' : 'Tiếp tục học',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
     );
+  }
+
+  void _navigateToCourse(BuildContext context, EnrollmentModel e) {
+    if (e.isLive && e.classId.isNotEmpty) {
+      context.push('/enrolled-live/${e.classId}?productId=${e.classId}&title=${Uri.encodeComponent(e.courseTitle)}');
+    } else if (e.classId.isNotEmpty) {
+      context.push('/curriculum/${e.classId}?mode=VOD');
+    }
   }
 }

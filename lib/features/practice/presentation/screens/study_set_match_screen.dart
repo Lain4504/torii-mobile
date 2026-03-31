@@ -1,4 +1,5 @@
-import 'dart:math';
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,104 +15,132 @@ class StudySetMatchScreen extends ConsumerStatefulWidget {
 }
 
 class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
-  String? _selectedTermId;
-  String? _selectedDefId;
-  final Set<String> _matched = {};
-  int _moves = 0;
-
+  List<_MatchItem> _items = [];
+  String? _selectedUniqueId;
+  String? _wrongUniqueId;
+  final Set<String> _matchedIds = {}; // Card IDs that are matched
+  
   bool _loading = true;
-  Object? _loadError;
-  List<Map<String, String>> _terms = [];
-  List<Map<String, String>> _defs = [];
-  int _pairCount = 0;
+  bool _finished = false;
+  Object? _error;
+  
+  Timer? _timer;
+  int _seconds = 0;
+  DateTime? _startTime;
 
   @override
   void initState() {
     super.initState();
-    _loadMatchData();
+    _initGame();
   }
 
-  Future<void> _loadMatchData() async {
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initGame() async {
     setState(() {
       _loading = true;
-      _loadError = null;
+      _error = null;
+      _finished = false;
+      _matchedIds.clear();
+      _selectedUniqueId = null;
+      _wrongUniqueId = null;
+      _seconds = 0;
     });
+    
     try {
       final repo = ref.read(academyRepositoryProvider);
       final pairs = await repo.getStudySetMatchGame(widget.setId, count: 6);
+      
       if (!mounted) return;
+      
       if (pairs.isEmpty) {
         setState(() {
           _loading = false;
-          _pairCount = 0;
+          _error = "Không có đủ thẻ để tạo trò chơi.";
         });
-        return;
+         return;
       }
-      final rng = Random(widget.setId.hashCode ^ pairs.length);
-      final terms = pairs
-          .map((p) => {'id': (p['id'] ?? '').toString(), 'text': (p['term'] ?? '').toString()})
-          .toList();
-      final defs = pairs
-          .map((p) => {'id': (p['id'] ?? '').toString(), 'text': (p['definition'] ?? '').toString()})
-          .toList();
-      terms.shuffle(rng);
-      defs.shuffle(rng);
+
+      final List<_MatchItem> flattened = [];
+      for (final p in pairs) {
+        final id = (p['id'] ?? '').toString();
+        flattened.add(_MatchItem(id: id, text: (p['term'] ?? '').toString(), type: _MatchItemType.term, uniqueId: '$id-term'));
+        flattened.add(_MatchItem(id: id, text: (p['definition'] ?? '').toString(), type: _MatchItemType.definition, uniqueId: '$id-def'));
+      }
+
+      flattened.shuffle(math.Random());
+
       setState(() {
-        _terms = terms;
-        _defs = defs;
-        _pairCount = pairs.length;
-        _matched.clear();
-        _selectedTermId = null;
-        _selectedDefId = null;
-        _moves = 0;
+        _items = flattened;
         _loading = false;
+        _startTime = DateTime.now();
       });
-    } catch (e, st) {
-      if (!mounted) return;
-      setState(() {
-        _loadError = e;
-        _loading = false;
-      });
-      debugPrint('StudySetMatch load: $e\n$st');
+      
+      _startTimer();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = e;
+        });
+      }
     }
   }
 
-  /// Xáo lại thứ tự hai cột từ cùng bộ cặp đã tải — không gọi API lại.
-  void _shuffleAgain() {
-    if (_terms.length != _pairCount || _pairCount == 0) return;
-    final rng = Random(widget.setId.hashCode ^ _moves ^ DateTime.now().millisecondsSinceEpoch);
-    final terms = List<Map<String, String>>.from(_terms.map((e) => Map<String, String>.from(e)));
-    final defs = List<Map<String, String>>.from(_defs.map((e) => Map<String, String>.from(e)));
-    terms.shuffle(rng);
-    defs.shuffle(rng);
-    setState(() {
-      _terms = terms;
-      _defs = defs;
-      _matched.clear();
-      _selectedTermId = null;
-      _selectedDefId = null;
-      _moves = 0;
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_finished) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _seconds = DateTime.now().difference(_startTime!).inSeconds;
+      });
     });
   }
 
-  Future<void> _tryMatch() async {
-    if (_selectedTermId == null || _selectedDefId == null) return;
-    final ok = _selectedTermId == _selectedDefId;
-    setState(() => _moves += 1);
-    if (ok) {
+  Future<void> _handleSelect(_MatchItem item) async {
+    if (_matchedIds.contains(item.id) || _finished || _loading) return;
+    if (_selectedUniqueId == item.uniqueId) {
+      setState(() => _selectedUniqueId = null);
+      return;
+    }
+
+    if (_selectedUniqueId == null) {
+      setState(() => _selectedUniqueId = item.uniqueId);
+      return;
+    }
+
+    final firstItem = _items.firstWhere((it) => it.uniqueId == _selectedUniqueId);
+    
+    // Check match
+    if (firstItem.id == item.id && firstItem.type != item.type) {
+      // Match!
       HapticFeedback.lightImpact();
       setState(() {
-        _matched.add(_selectedTermId!);
-        _selectedTermId = null;
-        _selectedDefId = null;
+        _matchedIds.add(item.id);
+        _selectedUniqueId = null;
+        if (_matchedIds.length == _items.length ~/ 2) {
+          _finished = true;
+          _timer?.cancel();
+        }
       });
     } else {
+      // Wrong
       HapticFeedback.heavyImpact();
-      await Future.delayed(const Duration(milliseconds: 220));
+      setState(() {
+        _wrongUniqueId = item.uniqueId;
+      });
+      await Future.delayed(const Duration(milliseconds: 500));
       if (mounted) {
         setState(() {
-          _selectedTermId = null;
-          _selectedDefId = null;
+          _selectedUniqueId = null;
+          _wrongUniqueId = null;
         });
       }
     }
@@ -120,88 +149,92 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Ghép cặp', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-        backgroundColor: theme.colorScheme.surface,
-        elevation: 0,
+        title: Text('Ghép cặp', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        actions: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Text(
+                '${_seconds}s',
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, fontFeatures: [FontFeature.tabularFigures()]),
+              ),
+            ),
+          ),
+        ],
       ),
-      body: _buildBody(theme),
+      body: _buildContent(theme),
     );
   }
 
-  Widget _buildBody(ThemeData theme) {
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_loadError != null) {
+  Widget _buildContent(ThemeData theme) {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Lỗi: $_loadError', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadMatchData,
-                child: const Text('Thử lại'),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Lỗi: $_error', style: TextStyle(color: theme.colorScheme.error)),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _initGame, child: const Text('Thử lại')),
+          ],
         ),
       );
     }
-    if (_pairCount == 0) {
-      return Center(child: Text('Không tạo được trò chơi ghép cặp', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)));
-    }
 
-    final total = _pairCount;
-    final done = _matched.length >= total;
-
-    if (done) {
+    if (_finished) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.celebration_rounded, color: Colors.green, size: 40),
-              ),
-              const SizedBox(height: 14),
-              Text('Tuyệt vời!', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
-              const SizedBox(height: 6),
-              Text(
-                'Bạn đã ghép xong $total cặp • $_moves lượt',
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 44,
-                child: ElevatedButton(
-                  onPressed: _shuffleAgain,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: const Text('Chơi lại', style: TextStyle(fontWeight: FontWeight.w900)),
-                ),
-              ),
+               Container(
+                 padding: const EdgeInsets.all(24),
+                 decoration: BoxDecoration(
+                   color: Colors.amber.withValues(alpha: 0.1),
+                   shape: BoxShape.circle,
+                 ),
+                 child: const Icon(Icons.emoji_events, size: 80, color: Colors.amber),
+               ),
+               const SizedBox(height: 24),
+               Text('Tuyệt vời!', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
+               const SizedBox(height: 12),
+               Text(
+                 'Bạn đã hoàn thành trong $_seconds giây.',
+                 style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+               ),
+               const SizedBox(height: 32),
+               Row(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                   OutlinedButton(
+                     onPressed: () => Navigator.pop(context),
+                     style: OutlinedButton.styleFrom(
+                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                     ),
+                     child: const Text('Quay lại'),
+                   ),
+                   const SizedBox(width: 16),
+                   ElevatedButton(
+                     onPressed: _initGame,
+                     style: ElevatedButton.styleFrom(
+                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                     ),
+                     child: const Text('Chơi lại'),
+                   ),
+                 ],
+               ),
             ],
           ),
         ),
@@ -209,194 +242,126 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: theme.colorScheme.outlineVariant),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.grid_view_rounded, size: 20, color: theme.colorScheme.primary.withValues(alpha: 0.9)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Ghép mỗi thuật ngữ với đúng định nghĩa.',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    '${_matched.length}/$total',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: theme.colorScheme.primary),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text('$_moves lượt', style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700, fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: _MatchColumn(
-                    title: 'Thuật ngữ',
-                    accent: theme.colorScheme.primary,
-                    items: _terms,
-                    matched: _matched,
-                    selectedId: _selectedTermId,
-                    onSelect: (id) async {
-                      if (_matched.contains(id)) return;
-                      setState(() => _selectedTermId = id);
-                      await _tryMatch();
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _MatchColumn(
-                    title: 'Định nghĩa',
-                    accent: const Color(0xFF9333EA),
-                    items: _defs,
-                    matched: _matched,
-                    selectedId: _selectedDefId,
-                    onSelect: (id) async {
-                      if (_matched.contains(id)) return;
-                      setState(() => _selectedDefId = id);
-                      await _tryMatch();
-                    },
-                  ),
-                ),
-              ],
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1.2,
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+              ),
+              itemCount: _items.length,
+              itemBuilder: (context, index) {
+                final item = _items[index];
+                final isMatched = _matchedIds.contains(item.id);
+                final isSelected = _selectedUniqueId == item.uniqueId;
+                final isWrong = _wrongUniqueId == item.uniqueId;
+                
+                return _MatchCard(
+                  item: item,
+                  isMatched: isMatched,
+                  isSelected: isSelected,
+                  isWrong: isWrong,
+                  onTap: () => _handleSelect(item),
+                );
+              },
             ),
           ),
+          const SizedBox(height: 24),
+          Text(
+            'Hãy chọn một thuật ngữ và nghĩa tương ứng để chúng biến mất!',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 }
 
-class _MatchColumn extends StatelessWidget {
-  final String title;
-  final Color accent;
-  final List<Map<String, String>> items;
-  final Set<String> matched;
-  final String? selectedId;
-  final ValueChanged<String> onSelect;
+class _MatchCard extends StatelessWidget {
+  final _MatchItem item;
+  final bool isMatched;
+  final bool isSelected;
+  final bool isWrong;
+  final VoidCallback onTap;
 
-  const _MatchColumn({
-    required this.title,
-    required this.accent,
-    required this.items,
-    required this.matched,
-    required this.selectedId,
-    required this.onSelect,
+  const _MatchCard({
+    required this.item,
+    required this.isMatched,
+    required this.isSelected,
+    required this.isWrong,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-            child: Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900)),
-              ],
-            ),
-          ),
-          Divider(height: 1, thickness: 1, color: theme.colorScheme.outlineVariant.withValues(alpha: 0.9)),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(10),
-              itemCount: items.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (context, index) {
-                final id = items[index]['id']!;
-                final text = items[index]['text']!;
-                final isMatched = matched.contains(id);
-                final isSelected = selectedId == id;
+    
+    if (isMatched) {
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3), style: BorderStyle.none),
+        ),
+      );
+    }
 
-                return Opacity(
-                  opacity: isMatched ? 0.38 : 1,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: isMatched ? null : () => onSelect(id),
-                      borderRadius: BorderRadius.circular(14),
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          color: isSelected ? accent.withValues(alpha: 0.12) : theme.scaffoldBackgroundColor,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isSelected ? accent.withValues(alpha: 0.65) : theme.colorScheme.outlineVariant,
-                            width: isSelected ? 2 : 1,
-                          ),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                        child: Center(
-                          child: Text(
-                            text,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                              height: 1.25,
-                              color: isMatched ? AppColors.textTertiary : AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
+    Color bgColor = theme.colorScheme.surface;
+    Color borderColor = theme.colorScheme.outlineVariant;
+    Color textColor = theme.colorScheme.onSurface;
+
+    if (isSelected) {
+      bgColor = theme.colorScheme.primary;
+      borderColor = theme.colorScheme.primary;
+      textColor = theme.colorScheme.onPrimary;
+    } else if (isWrong) {
+      bgColor = theme.colorScheme.errorContainer;
+      borderColor = theme.colorScheme.error;
+      textColor = theme.colorScheme.onErrorContainer;
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor, width: 2),
+          boxShadow: isSelected
+              ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            item.text,
+            textAlign: TextAlign.center,
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: textColor,
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
+enum _MatchItemType { term, definition }
+
+class _MatchItem {
+  final String id;
+  final String text;
+  final _MatchItemType type;
+  final String uniqueId;
+
+  _MatchItem({required this.id, required this.text, required this.type, required this.uniqueId});
+}

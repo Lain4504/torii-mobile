@@ -1,12 +1,11 @@
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-// Removed unused import
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/study_set_models.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class StudySetPracticeScreen extends ConsumerStatefulWidget {
   final String setId;
@@ -22,7 +21,6 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
   bool _autoSpeak = true;
   bool _busy = false;
   bool _sessionComplete = false;
-  bool _scheduledInitialSpeak = false;
   final Map<int, bool> _flippedByIndex = {};
   final FlutterTts _tts = FlutterTts();
 
@@ -53,7 +51,10 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
   }
 
   void _onPageChanged(int i, List<SetCardModel> cards) {
-    setState(() => _index = i);
+    setState(() {
+      _index = i;
+      _flippedByIndex[i] = false; // Reset flip on page change or keep it? Web usually resets.
+    });
     if (i >= 0 && i < cards.length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _speak(cards[i].term);
@@ -67,26 +68,30 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
     try {
       await ref.read(academyRepositoryProvider).reviewStudyCard(card.id, quality: quality);
     } catch (_) {}
+    
     if (!mounted) return;
     HapticFeedback.lightImpact();
+    
     final isLast = _index >= total - 1;
-    setState(() {
-      _busy = false;
-      if (isLast) _sessionComplete = true;
-    });
-    if (!isLast) {
-      await _pageController.nextPage(
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOutCubic,
+    if (isLast) {
+      setState(() {
+        _busy = false;
+        _sessionComplete = true;
+      });
+    } else {
+      setState(() => _busy = false);
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubic,
       );
     }
   }
 
-  void _restartSession() {
+  void _restart() {
     setState(() {
       _sessionComplete = false;
       _index = 0;
-      _scheduledInitialSpeak = false;
+      _flippedByIndex.clear();
     });
     _pageController.jumpToPage(0);
   }
@@ -100,130 +105,68 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: theme.colorScheme.onSurface),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Flashcard',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
-        ),
-        backgroundColor: theme.colorScheme.surface,
-        elevation: 0,
+        title: const Text('Flashcard', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             onPressed: () => setState(() => _autoSpeak = !_autoSpeak),
-            icon: Icon(_autoSpeak ? Icons.volume_up_rounded : Icons.volume_off_rounded),
-            tooltip: 'Âm thanh',
+            icon: Icon(_autoSpeak ? Icons.volume_up : Icons.volume_off),
+            tooltip: 'Âm thanh tự động',
           ),
         ],
+        elevation: 0,
+        backgroundColor: theme.colorScheme.surface,
       ),
       body: cardsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error))),
+        error: (e, _) => Center(child: Text('Lỗi: $e')),
         data: (cards) {
-          if (cards.isEmpty) {
-            return Center(
-              child: Text(
-                'Không có thẻ để luyện tập.',
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          if (cards.isEmpty) return const Center(child: Text('Không có thẻ nào để học.'));
+          if (_sessionComplete) return _FinishView(onRestart: _restart);
+
+          return Column(
+            children: [
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _ProgressBar(current: _index + 1, total: cards.length),
               ),
-            );
-          }
-          if (_sessionComplete) {
-            return _DoneView(onRestart: _restartSession);
-          }
-
-          if (!_scheduledInitialSpeak && cards.isNotEmpty) {
-            _scheduledInitialSpeak = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _speak(cards[0].term);
-            });
-          }
-
-          final bottomPadding = MediaQuery.of(context).padding.bottom;
-          return Padding(
-            padding: EdgeInsets.fromLTRB(0, 8, 0, 16 + bottomPadding),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _ProgressBar(current: _index + 1, total: cards.length),
+              const SizedBox(height: 24),
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: cards.length,
+                  physics: const NeverScrollableScrollPhysics(), // Force user to use buttons
+                  onPageChanged: (i) => _onPageChanged(i, cards),
+                  itemBuilder: (context, i) {
+                    return _FlashcardWidget(
+                      card: cards[i],
+                      isFlipped: _flippedByIndex[i] ?? false,
+                      onFlip: (v) {
+                        setState(() => _flippedByIndex[i] = v);
+                        if (v) _speak(cards[i].definition);
+                      },
+                      onSpeak: () => _speak(_flippedByIndex[i] == true ? cards[i].definition : cards[i].term),
+                    );
+                  },
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Vuốt ngang để đổi thẻ • Chạm thẻ để lật',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: cards.length,
-                    onPageChanged: (i) => _onPageChanged(i, cards),
-                    itemBuilder: (context, i) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: _FlipFlashcard(
-                          key: ValueKey(cards[i].id),
-                          card: cards[i],
-                          autoSpeak: _autoSpeak,
-                          onSpeak: _speak,
-                          onFlipChanged: (flipped) => setState(() => _flippedByIndex[i] = flipped),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(
-                  height: 56,
-                  child: _flippedByIndex[_index] == true
-                      ? Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: SizedBox(
-                                    height: 48,
-                                    child: OutlinedButton(
-                                      onPressed: _busy ? null : () => _review(cards[_index], 0, cards.length),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: theme.colorScheme.error,
-                                        side: BorderSide(color: theme.colorScheme.error.withValues(alpha: 0.55)),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                      ),
-                                      child: const Text('Chưa nhớ', style: TextStyle(fontWeight: FontWeight.w900)),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: SizedBox(
-                                    height: 48,
-                                    child: ElevatedButton(
-                                      onPressed: _busy ? null : () => _review(cards[_index], 1, cards.length),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF3BB25E), // success green
-                                        foregroundColor: Colors.white,
-                                        elevation: 0,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                      ),
-                                      child: const Text('Đã nhớ', style: TextStyle(fontWeight: FontWeight.w900)),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 24),
+              _StudyActionButtons(
+                isFlipped: _flippedByIndex[_index] ?? false,
+                isBusy: _busy,
+                onKnown: () => _review(cards[_index], 1, cards.length),
+                onUnknown: () => _review(cards[_index], 0, cards.length),
+                onFlip: () {
+                   final current = _flippedByIndex[_index] ?? false;
+                   setState(() => _flippedByIndex[_index] = !current);
+                   if (!current) _speak(cards[_index].definition);
+                },
+              ),
+              const SizedBox(height: 32),
+            ],
           );
         },
       ),
@@ -231,96 +174,91 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
   }
 }
 
-/// Thẻ 3D: tap để lật (rotateY), hai mặt front/back.
-class _FlipFlashcard extends StatefulWidget {
+class _FlashcardWidget extends StatefulWidget {
   final SetCardModel card;
-  final bool autoSpeak;
-  final Future<void> Function(String text) onSpeak;
-  final void Function(bool isFlipped)? onFlipChanged;
+  final bool isFlipped;
+  final ValueChanged<bool> onFlip;
+  final VoidCallback onSpeak;
 
-  const _FlipFlashcard({
-    super.key,
+  const _FlashcardWidget({
     required this.card,
-    required this.autoSpeak,
+    required this.isFlipped,
+    required this.onFlip,
     required this.onSpeak,
-    this.onFlipChanged,
   });
 
   @override
-  State<_FlipFlashcard> createState() => _FlipFlashcardState();
+  State<_FlashcardWidget> createState() => _FlashcardWidgetState();
 }
 
-class _FlipFlashcardState extends State<_FlipFlashcard> with SingleTickerProviderStateMixin {
-  late AnimationController _flipCtrl;
-  late Animation<double> _turn;
+class _FlashcardWidgetState extends State<_FlashcardWidget> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
 
   @override
   void initState() {
     super.initState();
-    _flipCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
-    _turn = CurvedAnimation(parent: _flipCtrl, curve: Curves.easeInOutCubic);
-    _turn.addListener(() => setState(() {}));
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _anim = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOutCubic));
+    if (widget.isFlipped) _ctrl.value = 1.0;
+  }
+
+  @override
+  void didUpdateWidget(_FlashcardWidget old) {
+    super.didUpdateWidget(old);
+    if (widget.isFlipped != old.isFlipped) {
+      if (widget.isFlipped) _ctrl.forward(); else _ctrl.reverse();
+    }
+    // Handle card change (PageView)
+    if (widget.card.id != old.card.id && !widget.isFlipped) {
+      _ctrl.value = 0.0;
+    }
   }
 
   @override
   void dispose() {
-    _flipCtrl.dispose();
+    _ctrl.dispose();
     super.dispose();
-  }
-
-  @override
-  void didUpdateWidget(covariant _FlipFlashcard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.card.id != widget.card.id) {
-      _flipCtrl.value = 0;
-    }
-  }
-
-  Future<void> _toggleFlip() async {
-    HapticFeedback.selectionClick();
-    if (_flipCtrl.isAnimating) return;
-    if (_flipCtrl.value < 0.5) {
-      await _flipCtrl.forward();
-      widget.onFlipChanged?.call(true);
-      if (widget.autoSpeak) await widget.onSpeak(widget.card.definition);
-    } else {
-      await _flipCtrl.reverse();
-      widget.onFlipChanged?.call(false);
-      if (widget.autoSpeak) await widget.onSpeak(widget.card.term);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final angle = _turn.value * math.pi;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, child) {
+        final double angle = _anim.value * math.pi;
+        final bool isBack = angle > math.pi / 2;
+
         return Center(
-          child: Material(
-            color: Colors.transparent,
-            elevation: 8,
-            shadowColor: Colors.black.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(28),
-            child: InkWell(
-              onTap: _toggleFlip,
-              borderRadius: BorderRadius.circular(28),
-              child: AspectRatio(
-                aspectRatio: 4 / 3,
-                child: Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..setEntry(3, 2, 0.0012)
-                    ..rotateY(angle),
-                  child: angle < math.pi / 2
-                      ? _CardFace(label: 'Thuật ngữ', labelColor: theme.colorScheme.primary, child: _buildFront(theme))
-                      : Transform(
-                          alignment: Alignment.center,
-                          transform: Matrix4.identity()..rotateY(math.pi),
-                          child: _CardFace(label: 'Nghĩa', labelColor: Colors.green, child: _buildBack(theme)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: GestureDetector(
+              onTap: () => widget.onFlip(!widget.isFlipped),
+              child: Transform(
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.001)
+                  ..rotateY(angle),
+                alignment: Alignment.center,
+                child: isBack
+                    ? Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()..rotateY(math.pi),
+                        child: _CardSide(
+                          title: 'Giải nghĩa',
+                          text: widget.card.definition,
+                          color: const Color(0xFF2563EB),
+                          onSpeak: widget.onSpeak,
                         ),
-                ),
+                      )
+                    : _CardSide(
+                        title: 'Thuật ngữ',
+                        text: widget.card.term,
+                        hint: widget.card.hint,
+                        color: theme.colorScheme.primary,
+                        onSpeak: widget.onSpeak,
+                      ),
               ),
             ),
           ),
@@ -328,95 +266,21 @@ class _FlipFlashcardState extends State<_FlipFlashcard> with SingleTickerProvide
       },
     );
   }
-
-  Widget _buildFront(ThemeData theme) {
-    final hint = (widget.card.hint ?? '').trim();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          widget.card.term,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.w900,
-            height: 1.2,
-            letterSpacing: -0.3,
-          ),
-        ),
-        if (hint.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Text(
-              hint,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                height: 1.35,
-              ),
-            ),
-          ),
-        ],
-        const SizedBox(height: 24),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.flip_rounded, size: 18, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.9)),
-            const SizedBox(width: 8),
-            Text(
-              'Chạm để lật thẻ',
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBack(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          widget.card.definition,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            height: 1.35,
-          ),
-        ),
-        const SizedBox(height: 20),
-        IconButton(
-          onPressed: () => widget.onSpeak(widget.card.definition),
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.green.withValues(alpha: 0.15),
-            foregroundColor: Colors.green,
-          ),
-          icon: const Icon(Icons.volume_up_rounded, size: 22),
-        ),
-      ],
-    );
-  }
 }
 
-class _CardFace extends StatelessWidget {
-  final String label;
-  final Color labelColor;
-  final Widget child;
+class _CardSide extends StatelessWidget {
+  final String title;
+  final String text;
+  final String? hint;
+  final Color color;
+  final VoidCallback onSpeak;
 
-  const _CardFace({
-    required this.label,
-    required this.labelColor,
-    required this.child,
+  const _CardSide({
+    required this.title,
+    required this.text,
+    this.hint,
+    required this.color,
+    required this.onSpeak,
   });
 
   @override
@@ -424,49 +288,87 @@ class _CardFace extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       width: double.infinity,
-      height: double.infinity,
+      height: 400,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(27),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 22, 22),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 24,
+            left: 24,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                title.toUpperCase(),
+                style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1),
+              ),
+            ),
+          ),
+          Positioned(
+             top: 16,
+             right: 16,
+             child: IconButton(
+               onPressed: () {
+                 onSpeak();
+               },
+               icon: const Icon(Icons.volume_up_rounded),
+               color: color,
+             ),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(40),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: labelColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          label.toUpperCase(),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.0,
-                            color: labelColor,
-                          ),
-                        ),
-                      ),
-                    ],
+                  Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
                   ),
-                  Expanded(child: Center(child: SingleChildScrollView(child: child))),
+                  if (hint != null && hint!.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      hint!,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
                 ],
               ),
-        ),
+            ),
+          ),
+          const Positioned(
+            bottom: 24,
+            left: 0,
+            right: 0,
+            child: Text(
+              'Chạm để lật thẻ',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -482,27 +384,20 @@ class _ProgressBar extends StatelessWidget {
     final theme = Theme.of(context);
     final ratio = total == 0 ? 0.0 : current / total;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '$current/$total',
-              style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, color: theme.colorScheme.onSurfaceVariant),
-            ),
-            Text(
-              '${(ratio * 100).toInt()}%',
-              style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, color: theme.colorScheme.onSurfaceVariant),
-            ),
+            Text('$current/$total', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+            Text('${(ratio * 100).toInt()}%', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
           ],
         ),
         const SizedBox(height: 8),
         ClipRRect(
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(
-            value: ratio.clamp(0.0, 1.0),
-            minHeight: 10,
+            value: ratio,
+            minHeight: 8,
             backgroundColor: theme.colorScheme.outlineVariant,
             valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
           ),
@@ -512,53 +407,113 @@ class _ProgressBar extends StatelessWidget {
   }
 }
 
-class _DoneView extends StatelessWidget {
+class _StudyActionButtons extends StatelessWidget {
+  final bool isFlipped;
+  final bool isBusy;
+  final VoidCallback onKnown;
+  final VoidCallback onUnknown;
+  final VoidCallback onFlip;
+
+  const _StudyActionButtons({
+    required this.isFlipped,
+    required this.isBusy,
+    required this.onKnown,
+    required this.onUnknown,
+    required this.onFlip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    if (!isFlipped) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: onFlip,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
+            ),
+            child: const Text('Xem nghĩa', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 56,
+              child: OutlinedButton(
+                onPressed: isBusy ? null : onUnknown,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red, width: 2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: const Text('Chưa nhớ', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: SizedBox(
+              height: 56,
+              child: ElevatedButton(
+                onPressed: isBusy ? null : onKnown,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3BB25E),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: const Text('Đã nhớ', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FinishView extends StatelessWidget {
   final VoidCallback onRestart;
-  const _DoneView({required this.onRestart});
+  const _FinishView({required this.onRestart});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.check_circle_rounded, color: Colors.green, size: 40),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              'Hoàn thành!',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Tốt lắm. Tiếp tục duy trì streak mỗi ngày nhé.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, height: 1.35),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 44,
-              child: ElevatedButton(
-                onPressed: onRestart,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                child: const Text('Luyện lại', style: TextStyle(fontWeight: FontWeight.w900)),
-              ),
-            ),
+             const Icon(Icons.check_circle_outline, size: 80, color: Color(0xFF3BB25E)),
+             const SizedBox(height: 24),
+             const Text('Hoàn thành!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+             const SizedBox(height: 12),
+             const Text('Bạn đã xem hết các thẻ trong bộ nhớ này.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+             const SizedBox(height: 32),
+             ElevatedButton(
+               onPressed: onRestart,
+               style: ElevatedButton.styleFrom(
+                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+               ),
+               child: const Text('Luyện tập lại'),
+             ),
+             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Về bảng điều khiển')),
           ],
         ),
       ),

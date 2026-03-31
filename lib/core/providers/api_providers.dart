@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/blog_repository.dart';
 import '../../data/repositories/academy_repository.dart';
+import '../../data/database/app_database.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../data/repositories/gamification_repository.dart'
     show GamificationRepository, LeaderboardData;
@@ -11,7 +12,6 @@ import '../../data/models/academy_models.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/models/gamification_models.dart';
 import '../../data/models/live_schedule_model.dart';
-import '../../data/models/class_catalog_model.dart';
 import '../../data/models/checkout_models.dart';
 import '../../data/models/study_set_models.dart';
 import '../../core/models/paginated_response.dart';
@@ -37,13 +37,21 @@ bool _authenticatedAcademyUser(Ref ref) {
   return auth?.status == AuthStatus.authenticated && auth?.user != null;
 }
 
+// ---------- Database & Storage ----------
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  return AppDatabase();
+});
+
 // ---------- Repositories ----------
 final blogRepositoryProvider = Provider<BlogRepository>((ref) {
   return BlogRepository(ref.watch(dioForApiProvider));
 });
 
 final academyRepositoryProvider = Provider<AcademyRepository>((ref) {
-  return AcademyRepository(ref.watch(dioForApiProvider));
+  return AcademyRepository(
+    ref.watch(dioForApiProvider),
+    ref.watch(appDatabaseProvider),
+  );
 });
 
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
@@ -88,33 +96,32 @@ String _catalogMonthYYYYMM() {
   return '${n.year}-${n.month.toString().padLeft(2, '0')}';
 }
 
-/// LIVE — kỳ trong tháng hiện tại (backend filter theo `month`).
+/// LIVE — kỳ trong tháng hiện tại.
 final classCatalogLiveProvider = FutureProvider.autoDispose
-    .family<List<ClassCatalogItemModel>, String?>((ref, level) async {
+    .family<List<AcademyProductModel>, String?>((ref, level) async {
       final repo = ref.watch(academyRepositoryProvider);
       return repo.getPublicClassCatalog(
         mode: 'LIVE',
         level: level,
-        month: _catalogMonthYYYYMM(),
       );
     });
 
 final classCatalogVodProvider = FutureProvider.autoDispose
-    .family<List<ClassCatalogItemModel>, String?>((ref, level) async {
+    .family<List<AcademyProductModel>, String?>((ref, level) async {
       final repo = ref.watch(academyRepositoryProvider);
       return repo.getPublicClassCatalog(mode: 'VOD', level: level);
     });
 
 final classCatalogLiveDetailProvider = FutureProvider.autoDispose
-    .family<ClassCatalogDetailModel?, String>((ref, classId) async {
+    .family<AcademyProductModel?, String>((ref, classId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicClassCatalogById(classId, mode: 'LIVE');
+      return repo.getPublicProductById(classId, mode: 'LIVE');
     });
 
 final classCatalogVodDetailProvider = FutureProvider.autoDispose
-    .family<ClassCatalogDetailModel?, String>((ref, classId) async {
+    .family<AcademyProductModel?, String>((ref, classId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicClassCatalogById(classId, mode: 'VOD');
+      return repo.getPublicProductById(classId, mode: 'VOD');
     });
 
 final myEnrollmentsProvider =
@@ -224,6 +231,12 @@ final liveSchedulesProvider = FutureProvider<List<LiveScheduleModel>>((
 final studySetsProvider = FutureProvider<List<StudySetModel>>((ref) async {
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getStudySets();
+});
+
+final publicStudySetsProvider =
+    FutureProvider.family<List<StudySetModel>, String?>((ref, q) async {
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getPublicStudySets(q: q);
 });
 
 final studySetDetailProvider =

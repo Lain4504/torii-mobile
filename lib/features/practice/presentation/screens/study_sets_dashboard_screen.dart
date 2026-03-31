@@ -1,1191 +1,889 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
+import 'package:torii_app/core/widgets/base_sheet_wrapper.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/data/models/study_set_models.dart';
 
 class StudySetsDashboardScreen extends ConsumerStatefulWidget {
-  const StudySetsDashboardScreen({super.key, this.initialSetId});
+  const StudySetsDashboardScreen({super.key, required this.initialSetId});
 
-  final String? initialSetId;
+  final String initialSetId;
 
   @override
   ConsumerState<StudySetsDashboardScreen> createState() => _StudySetsDashboardScreenState();
 }
 
 class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScreen> {
-  String? _selectedSetId;
   String? _busyCardId;
-  int _cardsPage = 1;
-  static const int _cardsPageSize = 20;
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final setsAsync = ref.watch(studySetsProvider);
+    // Fetch details for the specific set
+    final detailAsync = ref.watch(studySetDetailProvider(widget.initialSetId));
+    final cardsAsync = ref.watch(studyCardsProvider(widget.initialSetId));
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'Thẻ ghi nhớ của tôi',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w900,
-            letterSpacing: 0.2,
+    return Hero(
+      tag: 'study_set_${widget.initialSetId}',
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
           ),
+          title: detailAsync.when(
+            data: (data) => Text(
+              data?['title'] ?? 'Chi tiết bộ thẻ',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, fontFamily: AppTypography.fontFamily),
+            ),
+            loading: () => const Text('Đang tải...'),
+            error: (_, __) => const Text('Lỗi'),
+          ),
+          actions: [
+            detailAsync.when(
+              data: (data) {
+                if (data == null) return const SizedBox.shrink();
+                final currentUserId = ref.watch(authStateProvider).valueOrNull?.user?.id;
+                final isMine = data['userId'] == currentUserId;
+                
+                if (!isMine) return const SizedBox.shrink();
+
+                return IconButton(
+                  onPressed: () {
+                    // Since studySetDetailProvider returns Map<String, dynamic>, we might need to map it or fetch from studySetsProvider
+                    final sets = ref.read(studySetsProvider).value ?? [];
+                    final currentSet = sets.firstWhere((s) => s.id == widget.initialSetId);
+                    _showEditSetSheet(context, currentSet);
+                  },
+                  icon: const Icon(Icons.settings_outlined),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+          ],
+          backgroundColor: theme.colorScheme.surface,
+          elevation: 0,
         ),
-        backgroundColor: theme.colorScheme.surface,
-        elevation: 0,
-      ),
-      body: setsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
-        data: (sets) {
-          if (sets.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                        shape: BoxShape.circle,
+        body: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(studySetDetailProvider(widget.initialSetId));
+            ref.invalidate(studyCardsProvider(widget.initialSetId));
+          },
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Mode Selection Section
+              SliverToBoxAdapter(
+                child: detailAsync.when(
+                  data: (data) {
+                    if (data == null) return const SizedBox.shrink();
+                    final currentUserId = ref.watch(authStateProvider).valueOrNull?.user?.id;
+                    final isMine = data['userId'] == currentUserId;
+                    final count = data['cardCount'] ?? 0;
+
+                    return Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (!isMine) ...[
+                            _buildCloneBanner(context, data['id']),
+                            const SizedBox(height: 24),
+                          ],
+                          Text(
+                            'Luyện tập',
+                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 16),
+                          _StudyModeSelectionGrid(
+                            setId: widget.initialSetId,
+                            cardCount: count,
+                            enabled: isMine,
+                          ),
+                        ],
                       ),
-                      child: Icon(Icons.psychology_rounded, color: theme.colorScheme.primary, size: 32),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Chưa có bộ thẻ nào',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Tạo bộ thẻ đầu tiên để bắt đầu học tự chủ.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      height: 44,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _showCreateSetSheet(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
-                          foregroundColor: theme.colorScheme.onPrimary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                        icon: const Icon(Icons.add),
-                        label: const Text('Tạo bộ thẻ ngay', style: TextStyle(fontWeight: FontWeight.w900)),
-                      ),
-                    ),
-                  ],
+                    );
+                  },
+                  loading: () => const Padding(
+                    padding: EdgeInsets.all(40),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (e, _) => Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text('Lỗi tải chế độ: $e'),
+                  ),
                 ),
               ),
-            );
-          }
 
-          _selectedSetId ??= widget.initialSetId ?? sets.first.id;
-          if (!sets.any((s) => s.id == _selectedSetId)) {
-            _selectedSetId = sets.first.id;
-          }
-          final selectedId = _selectedSetId!;
-          final selectedAsync = ref.watch(studySetDetailProvider(selectedId));
-          final selected = selectedAsync.asData?.value?['item'] as Map<String, dynamic>?;
-          final selectedCards = (selected?['setCards'] as List?)?.cast<dynamic>() ?? const [];
-          final selectedCount = selectedCards.length;
-          final totalPages = (selectedCount / _cardsPageSize).ceil().clamp(1, 99999).toInt();
-          if (_cardsPage > totalPages) _cardsPage = totalPages;
-          final start = (_cardsPage - 1) * _cardsPageSize;
-          final end = (start + _cardsPageSize) > selectedCount ? selectedCount : (start + _cardsPageSize);
-          final pagedCards = selectedCards.sublist(start, end);
-
-          // AppShell dùng extendBody: true → body vẽ xuyên qua bottom bar; padding đáy cho nav + safe area.
-          final mq = MediaQuery.of(context);
-          final shellBottomInset = mq.padding.bottom + 64 + 12;
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              ref.invalidate(studySetsProvider);
-              ref.invalidate(studySetDetailProvider(selectedId));
-              ref.invalidate(studyCardsProvider(selectedId));
-            },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(16, 12, 16, shellBottomInset),
-              children: [
-                // List of sets (mobile adaptation of the web grid)
-                _SectionCard(
-                  title: 'Danh sách bài',
-                  subtitle: 'Mỗi bộ thẻ tương ứng với một bài học/tập từ vựng riêng.',
-                  trailing: SizedBox(
-                    height: 32,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _showCreateSetSheet(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.primary,
-                        side: BorderSide(color: theme.colorScheme.primary),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      icon: const Icon(Icons.add, size: 16),
-                      label: const Text('Tạo bài', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
-                    ),
-                  ),
-                  child: SizedBox(
-                    height: 112,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: sets.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 10),
-                      itemBuilder: (context, index) {
-                        final s = sets[index];
-                        final isActive = s.id == selectedId;
-                        return InkWell(
-                          onTap: () => setState(() {
-                            _selectedSetId = s.id;
-                            _cardsPage = 1;
-                          }),
-                          onLongPress: () => _showEditSetSheet(context, s.id, initialTitle: s.title, initialDescription: s.description),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            width: 220,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.06) : theme.colorScheme.surface,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.35) : theme.colorScheme.outlineVariant,
-                                width: 1.2,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.14) : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: Text(
-                                    'Bài ${index + 1}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      color: isActive ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Expanded(
-                                  child: Text(
-                                    s.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w900,
-                                      color: isActive ? theme.colorScheme.primary : theme.colorScheme.onSurface,
-                                      height: 1.15,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '${s.cardCount} thẻ',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: isActive ? theme.colorScheme.primary.withValues(alpha: 0.75) : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Cards list (mobile)
-                _SectionCard(
-                  title: 'Danh sách thẻ ($selectedCount)',
-                  subtitle: 'Nhấn «Thêm thẻ» hoặc vuốt thẻ để sửa / xóa.',
-                  trailing: SizedBox(
-                    height: 32,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _showCreateCardSheet(context, selectedId),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.colorScheme.primary,
-                        side: BorderSide(color: theme.colorScheme.primary),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      icon: const Icon(Icons.add, size: 16),
-                      label: const Text('Thêm thẻ', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5)),
-                    ),
-                  ),
-                  child: selectedAsync.when(
-                    loading: () => const Padding(
-                      padding: EdgeInsets.all(18),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (e, _) => Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error)),
-                    ),
-                    data: (_) {
-                      if (selectedCards.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Text(
-                            'Bộ thẻ này chưa có thẻ nào.',
-                            style: TextStyle(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
-                          ),
-                        );
-                      }
-
-                      return Column(
+              // Cards List Header
+              SliverToBoxAdapter(
+                child: detailAsync.when(
+                  data: (data) {
+                    if (data == null) return const SizedBox.shrink();
+                    final currentUserId = ref.watch(authStateProvider).valueOrNull?.user?.id;
+                    final isMine = data['userId'] == currentUserId;
+                    
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                          itemCount: pagedCards.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 10),
-                            itemBuilder: (context, i) {
-                              final c = pagedCards[i] as Map;
-                              final cardId = (c['id'] ?? '').toString();
-                              final term = (c['term'] ?? '').toString().trim();
-                              final def = (c['definition'] ?? '').toString().trim();
-
-                              final row = SizedBox(
-                                height: 64,
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: theme.scaffoldBackgroundColor,
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: theme.colorScheme.outlineVariant),
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.primary.withValues(alpha: 0.10),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Icon(Icons.style_rounded, color: theme.colorScheme.primary, size: 18),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                term.isEmpty ? '(Trống)' : term,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                              child: Text(
-                                                def.isEmpty ? '(Trống)' : def,
-                                                maxLines: 1,
-                                                textAlign: TextAlign.right,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: theme.textTheme.bodySmall?.copyWith(
-                                                  color: theme.colorScheme.onSurfaceVariant,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      if (_busyCardId == cardId) ...[
-                                        const SizedBox(width: 10),
-                                        const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              );
-
-                              return Slidable(
-                                key: ValueKey('card-$cardId'),
-                                endActionPane: ActionPane(
-                                  motion: const ScrollMotion(),
-                                  extentRatio: 0.46,
-                                  children: [
-                                    SlidableAction(
-                                      onPressed: (_) => _showEditCardSheet(
-                                        context,
-                                        setId: selectedId,
-                                        cardId: cardId,
-                                        initialTerm: term,
-                                        initialDefinition: def,
-                                      ),
-                                      backgroundColor: theme.colorScheme.primary,
-                                      foregroundColor: theme.colorScheme.onPrimary,
-                                      icon: Icons.edit_rounded,
-                                      label: 'Sửa',
-                                    ),
-                                    SlidableAction(
-                                      onPressed: (_) async {
-                                        final ok = await showDialog<bool>(
-                                          context: context,
-                                          useRootNavigator: true,
-                                          builder: (dCtx) => AlertDialog(
-                                            title: const Text('Xóa thẻ?'),
-                                            content: const Text('Bạn có chắc chắn muốn xóa thẻ này không?'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.of(dCtx).pop(false),
-                                                child: const Text('Hủy'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () => Navigator.of(dCtx).pop(true),
-                                                child: Text('Xóa', style: TextStyle(color: theme.colorScheme.error)),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                        if (ok == true) {
-                                          await _deleteCard(setId: selectedId, cardId: cardId);
-                                        }
-                                      },
-                                      backgroundColor: theme.colorScheme.error,
-                                      foregroundColor: theme.colorScheme.onError,
-                                      icon: Icons.delete_rounded,
-                                      label: 'Xóa',
-                                    ),
-                                  ],
-                                ),
-                                child: row,
-                              );
-                            },
+                          Text(
+                            'Danh sách ghi chú',
+                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                          if (totalPages > 1) ...[
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  tooltip: 'Trang đầu',
-                                  onPressed: _cardsPage == 1
-                                      ? null
-                                      : () => setState(() => _cardsPage = 1),
-                                  icon: const Icon(Icons.first_page_rounded),
-                                ),
-                                IconButton(
-                                  tooltip: 'Trang trước',
-                                  onPressed: _cardsPage == 1
-                                      ? null
-                                      : () => setState(() => _cardsPage -= 1),
-                                  icon: const Icon(Icons.chevron_left_rounded),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: Text(
-                                    '$_cardsPage / $totalPages',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      fontWeight: FontWeight.w900,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  tooltip: 'Trang sau',
-                                  onPressed: _cardsPage == totalPages
-                                      ? null
-                                      : () => setState(() => _cardsPage += 1),
-                                  icon: const Icon(Icons.chevron_right_rounded),
-                                ),
-                                IconButton(
-                                  tooltip: 'Trang cuối',
-                                  onPressed: _cardsPage == totalPages
-                                      ? null
-                                      : () => setState(() => _cardsPage = totalPages),
-                                  icon: const Icon(Icons.last_page_rounded),
-                                ),
-                              ],
+                          if (isMine)
+                            TextButton.icon(
+                              onPressed: () => _showAddCardSheet(context, widget.initialSetId),
+                              icon: const Icon(Icons.add, size: 18),
+                              label: const Text('Thêm thẻ'),
                             ),
-                          ],
                         ],
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
                 ),
-                const SizedBox(height: 12),
+              ),
 
-                // Mode selection (web parity)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.20)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(Icons.info_outline_rounded, color: theme.colorScheme.primary, size: 18),
+              // Cards List
+              cardsAsync.when(
+                loading: () => const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (e, _) => SliverFillRemaining(
+                  child: Center(child: Text('Lỗi tải thẻ: $e')),
+                ),
+                data: (cards) {
+                  if (cards.isEmpty) {
+                    final currentUserId = ref.watch(authStateProvider).valueOrNull?.user?.id;
+                    final isMine = detailAsync.valueOrNull?['userId'] == currentUserId;
+                    
+                    return SliverToBoxAdapter(
+                      child: _EmptyCardsState(
+                        onAdd: isMine ? () => _showAddCardSheet(context, widget.initialSetId) : null,
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Nên dùng bộ gõ tiếng Việt hoặc Nhật cho các chế độ luyện gõ để tăng hiệu quả ghi nhớ.',
-                          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, height: 1.35),
-                        ),
+                    );
+                  }
+                  return SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final card = cards[index];
+                          final currentUserId = ref.read(authStateProvider).valueOrNull?.user?.id;
+                          final isMine = detailAsync.valueOrNull?['userId'] == currentUserId;
+
+                          return _CardListItem(
+                            card: card,
+                            isBusy: _busyCardId == card.id,
+                            onEdit: isMine ? () => _showEditCardSheet(context, card) : null,
+                            onDelete: isMine ? () => _handleDeleteCard(card.id) : null,
+                          );
+                        },
+                        childCount: cards.length,
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text('Chọn chế độ học', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900)),
-                const SizedBox(height: 10),
-                _ModeCard(
-                  icon: Icons.layers_rounded,
-                  title: 'Flashcard',
-                  subtitle: 'Lật thẻ để xem đáp án. Phù hợp để làm quen với từ mới.',
-                  buttonText: 'Bắt đầu Flashcard',
-                  enabled: selectedCount > 0,
-                  onTap: () => context.push('/study-sets/$selectedId/review'),
-                ),
-                const SizedBox(height: 10),
-                _ModeCard(
-                  icon: Icons.my_location_rounded,
-                  title: 'Trắc nghiệm',
-                  subtitle: 'Xem từ vựng, chọn đáp án. Kiểm tra nhanh kiến thức.',
-                  buttonText: 'Bắt đầu Trắc nghiệm',
-                  enabled: selectedCount > 0,
-                  onTap: () => context.push('/study-sets/$selectedId/test'),
-                ),
-                const SizedBox(height: 10),
-                _ModeCard(
-                  icon: Icons.bolt_rounded,
-                  title: 'Match',
-                  subtitle: 'Ghép cặp thuật ngữ và định nghĩa để ghi nhớ sâu hơn.',
-                  buttonText: 'Bắt đầu Match',
-                  enabled: selectedCount > 0,
-                  onTap: () => context.push('/study-sets/$selectedId/match'),
-                ),
-              ],
-            ),
-          );
-        },
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Future<void> _createCard({
-    required String setId,
-    required String term,
-    required String definition,
-    String? hint,
-  }) async {
-    final t = term.trim();
-    final d = definition.trim();
-    final h = hint?.trim();
-    if (t.isEmpty || d.isEmpty) return;
-    final repo = ref.read(academyRepositoryProvider);
-    final created = await repo.createStudySetCard(setId: setId, term: t, definition: d, hint: h);
-    if (!mounted) return;
-    if (created != null) {
-      ref.invalidate(studySetDetailProvider(setId));
-      ref.invalidate(studyCardsProvider(setId));
-      if (mounted) setState(() => _cardsPage = 1);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm thẻ mới!')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thêm thẻ thất bại')));
-    }
+  Widget _buildCloneBanner(BuildContext context, String setId) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Bạn chưa có bộ thẻ này trong danh sách!',
+                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Hãy lưu bộ thẻ này về tài khoản của bạn để có thể bắt đầu luyện tập, theo dõi tiến độ và chỉnh sửa theo ý muốn.',
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              onPressed: () => _handleClone(setId),
+              icon: const Icon(Icons.copy_rounded, size: 18),
+              label: const Text('Lưu về bộ thẻ của tôi'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  Future<void> _updateCard({
-    required String setId,
-    required String cardId,
-    required String term,
-    required String definition,
-  }) async {
-    final t = term.trim();
-    final d = definition.trim();
-    if (t.isEmpty || d.isEmpty) return;
-    final repo = ref.read(academyRepositoryProvider);
-    final updated = await repo.updateStudySetCard(cardId: cardId, term: t, definition: d);
-    if (!mounted) return;
-    if (updated != null) {
-      ref.invalidate(studySetDetailProvider(setId));
-      ref.invalidate(studyCardsProvider(setId));
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật thẻ!')));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật thẻ thất bại')));
-    }
-  }
-
-  Future<void> _deleteCard({required String setId, required String cardId}) async {
-    if (mounted) setState(() => _busyCardId = cardId);
+  Future<void> _handleClone(String setId) async {
+    setState(() => _busyCardId = 'cloning'); // Reuse busy indicator logic vaguely or just show loader
     try {
-      final repo = ref.read(academyRepositoryProvider);
-      final ok = await repo.deleteStudySetCard(cardId: cardId);
-      if (!mounted) return;
-      if (ok) {
-        ref.invalidate(studySetDetailProvider(setId));
-        ref.invalidate(studyCardsProvider(setId));
-        if (mounted && _cardsPage > 1) {
-          // Nếu xoá ở cuối trang, giảm về trang trước để tránh trang rỗng.
-          setState(() => _cardsPage = _cardsPage - 1);
+      final newSet = await ref.read(academyRepositoryProvider).cloneStudySet(setId);
+      if (newSet != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đã clone bộ thẻ thành công!')),
+          );
+          // Navigate to the new set dashboard
+          context.pushReplacement('/study-sets/${newSet.id}');
+          ref.invalidate(studySetsProvider);
         }
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã xóa thẻ')));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Xóa thẻ thất bại')));
+        throw Exception('Clone thất bại');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi clone: $e'), backgroundColor: AppColors.error),
+        );
       }
     } finally {
       if (mounted) setState(() => _busyCardId = null);
     }
   }
 
-  Future<void> _showCreateCardSheet(BuildContext context, String setId) async {
-    final termCtrl = TextEditingController();
-    final defCtrl = TextEditingController();
-    final hintCtrl = TextEditingController();
-    final theme = Theme.of(context);
+  // ---------- API Actions ----------
 
-    await showModalBottomSheet<void>(
+  Future<void> _handleDeleteCard(String cardId) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) {
-        bool busy = false;
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Xóa thẻ?'),
+        content: const Text('Bạn có chắc chắn muốn xóa thẻ này không?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Xóa'),
           ),
-          child: StatefulBuilder(
-            builder: (ctx, setSheet) {
-              Future<void> submit() async {
-                final term = termCtrl.text.trim();
-                final def = defCtrl.text.trim();
-                final hint = hintCtrl.text.trim();
-                if (term.isEmpty || def.isEmpty) return;
-                setSheet(() => busy = true);
-                await _createCard(setId: setId, term: term, definition: def, hint: hint.isEmpty ? null : hint);
-                if (!ctx.mounted) return;
-                setSheet(() => busy = false);
-                Navigator.of(ctx, rootNavigator: true).pop();
-              }
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(999)),
-                    ),
-                  ),
-                  Text('Tạo thẻ mới', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Nhập thuật ngữ và định nghĩa cho thẻ.',
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: termCtrl,
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Mặt trước (term) *',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: defCtrl,
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Mặt sau (definition) *',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: hintCtrl,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => busy ? null : submit(),
-                    decoration: const InputDecoration(
-                      labelText: 'Gợi ý (tuỳ chọn)',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: OutlinedButton(
-                            onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: theme.colorScheme.onSurfaceVariant,
-                              side: BorderSide(color: theme.colorScheme.outlineVariant),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: ElevatedButton(
-                            onPressed: busy ? null : submit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.colorScheme.primary,
-                              foregroundColor: theme.colorScheme.onPrimary,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: Text(busy ? 'Đang tạo...' : 'Tạo thẻ', style: const TextStyle(fontWeight: FontWeight.w900)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
+        ],
+      ),
     );
 
-    termCtrl.dispose();
-    defCtrl.dispose();
-    hintCtrl.dispose();
+    if (confirmed != true) return;
+
+    setState(() => _busyCardId = cardId);
+    try {
+      final success = await ref.read(academyRepositoryProvider).deleteStudySetCard(cardId: cardId);
+      if (success) {
+        ref.invalidate(studyCardsProvider(widget.initialSetId));
+        ref.invalidate(studySetsProvider);
+        ref.invalidate(studySetDetailProvider(widget.initialSetId));
+      }
+    } catch (e) {
+      if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _busyCardId = null);
+    }
   }
 
-  Future<void> _showEditCardSheet(
-    BuildContext context, {
-    required String setId,
-    required String cardId,
-    required String initialTerm,
-    required String initialDefinition,
-  }) async {
-    final termCtrl = TextEditingController(text: initialTerm);
-    final defCtrl = TextEditingController(text: initialDefinition);
-    final theme = Theme.of(context);
+  // ---------- Sheets ----------
 
-    await showModalBottomSheet<void>(
+  void _showEditSetSheet(BuildContext context, StudySetModel set) {
+     showModalBottomSheet(
       context: context,
-      useRootNavigator: true,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) {
-        bool busy = false;
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
-          ),
-          child: StatefulBuilder(
-            builder: (ctx, setSheet) {
-              Future<void> submit() async {
-                final term = termCtrl.text.trim();
-                final def = defCtrl.text.trim();
-                if (term.isEmpty || def.isEmpty) return;
-                setSheet(() => busy = true);
-                await _updateCard(setId: setId, cardId: cardId, term: term, definition: def);
-                if (!ctx.mounted) return;
-                setSheet(() => busy = false);
-                Navigator.of(ctx, rootNavigator: true).pop();
-              }
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(999)),
-                    ),
-                  ),
-                  Text('Chỉnh sửa thẻ', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: termCtrl,
-                    textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Mặt trước *',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: defCtrl,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => busy ? null : submit(),
-                    decoration: const InputDecoration(
-                      labelText: 'Mặt sau *',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: OutlinedButton(
-                            onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: theme.colorScheme.onSurfaceVariant,
-                              side: BorderSide(color: theme.colorScheme.outlineVariant),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: ElevatedButton(
-                            onPressed: busy ? null : submit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.colorScheme.primary,
-                              foregroundColor: theme.colorScheme.onPrimary,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: Text(busy ? 'Đang lưu...' : 'Lưu', style: const TextStyle(fontWeight: FontWeight.w900)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _EditSetSheet(
+        set: set,
+        onUpdated: () {
+          ref.invalidate(studySetsProvider);
+          ref.invalidate(studySetDetailProvider(widget.initialSetId));
+        },
+        onDeleted: () {
+           ref.invalidate(studySetsProvider);
+           context.pop(); // Go back to list
+        },
+      ),
     );
-
-    termCtrl.dispose();
-    defCtrl.dispose();
   }
 
-  Future<void> _showEditSetSheet(
-    BuildContext context,
-    String setId, {
-    required String initialTitle,
-    String? initialDescription,
-  }) async {
-    final titleCtrl = TextEditingController(text: initialTitle);
-    final descCtrl = TextEditingController(text: initialDescription ?? '');
-    final theme = Theme.of(context);
-
-    await showModalBottomSheet<void>(
+  void _showAddCardSheet(BuildContext context, String setId) {
+    showModalBottomSheet(
       context: context,
-      useRootNavigator: true,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) {
-        bool busy = false;
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
-          ),
-          child: StatefulBuilder(
-            builder: (ctx, setSheet) {
-              Future<void> submit() async {
-                final title = titleCtrl.text.trim();
-                final desc = descCtrl.text.trim();
-                if (title.isEmpty) return;
-                setSheet(() => busy = true);
-                final repo = ref.read(academyRepositoryProvider);
-                final ok = await repo.updateStudySet(setId: setId, title: title, description: desc.isEmpty ? null : desc);
-                if (!ctx.mounted) return;
-                setSheet(() => busy = false);
-                if (ok) {
-                  ref.invalidate(studySetsProvider);
-                  ref.invalidate(studySetDetailProvider(setId));
-                  Navigator.of(ctx, rootNavigator: true).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật bài')));
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật thất bại')));
-                }
-              }
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(999)),
-                    ),
-                  ),
-                  Text('Chỉnh sửa bài', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Nhấn giữ một bài để mở bảng chỉnh sửa.',
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: titleCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Tên bài *',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: descCtrl,
-                    minLines: 2,
-                    maxLines: 4,
-                    decoration: const InputDecoration(
-                      labelText: 'Mô tả',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: OutlinedButton(
-                            onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: theme.colorScheme.onSurfaceVariant,
-                              side: BorderSide(color: theme.colorScheme.outlineVariant),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: const Text('Đóng', style: TextStyle(fontWeight: FontWeight.w800)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: ElevatedButton(
-                            onPressed: busy ? null : submit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.colorScheme.primary,
-                              foregroundColor: theme.colorScheme.onPrimary,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: Text(busy ? 'Đang lưu...' : 'Lưu', style: const TextStyle(fontWeight: FontWeight.w900)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AddCardSheet(setId: setId, onAdded: () {
+         ref.invalidate(studyCardsProvider(setId));
+         ref.invalidate(studySetsProvider);
+         ref.invalidate(studySetDetailProvider(setId));
+      }),
     );
-
-    titleCtrl.dispose();
-    descCtrl.dispose();
   }
 
-  Future<void> _showCreateSetSheet(BuildContext context) async {
-    final titleCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
-    final theme = Theme.of(context);
-
-    await showModalBottomSheet<void>(
+  void _showEditCardSheet(BuildContext context, SetCardModel card) {
+    showModalBottomSheet(
       context: context,
-      useRootNavigator: true,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) {
-        bool busy = false;
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
-          ),
-          child: StatefulBuilder(
-            builder: (ctx, setSheet) {
-              Future<void> submit() async {
-                final title = titleCtrl.text.trim();
-                final desc = descCtrl.text.trim();
-                if (title.isEmpty) return;
-                setSheet(() => busy = true);
-                final repo = ref.read(academyRepositoryProvider);
-                final created = await repo.createStudySet(title: title, description: desc.isEmpty ? null : desc);
-                if (ctx.mounted) {
-                  setSheet(() => busy = false);
-                  if (created != null) {
-                    ref.invalidate(studySetsProvider);
-                    setState(() => _selectedSetId = created.id);
-                    Navigator.of(ctx, rootNavigator: true).pop();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tạo bộ thẻ thất bại')));
-                  }
-                }
-              }
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(color: theme.colorScheme.outlineVariant, borderRadius: BorderRadius.circular(999)),
-                    ),
-                  ),
-                  Text('Tạo bài mới', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Đặt tên và mô tả cho bộ thẻ dùng để học tự chủ.',
-                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: titleCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Tên bộ thẻ *',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: descCtrl,
-                    minLines: 2,
-                    maxLines: 4,
-                    decoration: const InputDecoration(
-                      labelText: 'Mô tả',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: OutlinedButton(
-                            onPressed: busy ? null : () => Navigator.of(ctx, rootNavigator: true).pop(),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: theme.colorScheme.onSurfaceVariant,
-                              side: BorderSide(color: theme.colorScheme.outlineVariant),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.w800)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: ElevatedButton(
-                            onPressed: busy ? null : submit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.colorScheme.primary,
-                              foregroundColor: theme.colorScheme.onPrimary,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: Text(busy ? 'Đang tạo...' : 'Tạo mới', style: const TextStyle(fontWeight: FontWeight.w900)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        );
-      },
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _EditCardSheet(card: card, onUpdated: () {
+         ref.invalidate(studyCardsProvider(card.studySetId));
+      }),
     );
   }
 }
 
-class _SectionCard extends StatelessWidget {
+// ============= SUB-WIDGETS =============
+
+class _StudyModeSelectionGrid extends StatelessWidget {
+  final String setId;
+  final int cardCount;
+  final bool enabled;
+
+  const _StudyModeSelectionGrid({
+    required this.setId,
+    required this.cardCount,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final canStudy = cardCount > 0;
+    
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _ModeCard(
+                title: 'Flashcard',
+                subtitle: 'Ghi nhớ lặp lại',
+                icon: Icons.layers_outlined,
+                color: const Color(0xFF2563EB),
+                onTap: () => context.push('/study-sets/$setId/review'),
+                enabled: enabled && canStudy,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _ModeCard(
+                title: 'Trắc nghiệm',
+                subtitle: 'Kiểm tra trình độ',
+                icon: Icons.quiz_outlined,
+                color: const Color(0xFFF97316),
+                onTap: () => context.push('/study-sets/$setId/test'),
+                enabled: enabled && cardCount >= 4,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _ModeCard(
+          title: 'Ghép cặp (Match)',
+          subtitle: 'Thử thách tốc độ ghép nối từ vựng',
+          icon: Icons.extension_outlined,
+          color: const Color(0xFF059669),
+          onTap: () => context.push('/study-sets/$setId/match'),
+          enabled: enabled && canStudy,
+          isWide: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _ModeCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final Widget child;
-  final Widget? trailing;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  final bool enabled;
+  final bool isWide;
 
-  const _SectionCard({
+  const _ModeCard({
     required this.title,
     required this.subtitle,
-    required this.child,
-    this.trailing,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.enabled = true,
+    this.isWide = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(20),
+      child: Opacity(
+        opacity: enabled ? 1.0 : 0.5,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withValues(alpha: 0.15)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 24),
+                  ),
+                  if (isWide) ...[
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: color)),
+                          Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: color),
+                  ]
+                ],
+              ),
+              if (!isWide) ...[
+                const SizedBox(height: 16),
+                Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: color)),
+                const SizedBox(height: 4),
+                Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+              ],
+            ],
+          ),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    );
+  }
+}
+
+class _EmptyCardsState extends StatelessWidget {
+  final VoidCallback? onAdd;
+  const _EmptyCardsState({required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: theme.colorScheme.outlineVariant, style: BorderStyle.none),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.style_outlined, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+            const SizedBox(height: 16),
+            Text('Chưa có thẻ nào', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(
+              'Hãy thêm những thuật ngữ đầu tiên để bắt đầu luyện tập.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 24),
+            if (onAdd != null)
+              OutlinedButton.icon(
+                onPressed: onAdd,
+                icon: const Icon(Icons.add),
+                label: const Text('Thêm thẻ mới'),
+                style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CardListItem extends StatelessWidget {
+  final SetCardModel card;
+  final bool isBusy;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
+  const _CardListItem({
+    required this.card,
+    required this.isBusy,
+    this.onEdit,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Slidable(
+        endActionPane: onEdit == null && onDelete == null
+            ? null
+            : ActionPane(
+                motion: const ScrollMotion(),
+                children: [
+                  if (onEdit != null)
+                    SlidableAction(
+                      onPressed: (_) => onEdit!(),
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      icon: Icons.edit,
+                      label: 'Sửa',
+                      borderRadius:
+                          const BorderRadius.horizontal(left: Radius.circular(16)),
+                    ),
+                  if (onDelete != null)
+                    SlidableAction(
+                      onPressed: (_) => onDelete!(),
+                      backgroundColor: AppColors.error,
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
+                      label: 'Xóa',
+                      borderRadius: const BorderRadius.horizontal(
+                          right: Radius.circular(16)),
+                    ),
+                ],
+              ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+          ),
+          child: Row(
             children: [
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 4),
-                    Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
+                    Text(card.term, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 6),
+                    Text(card.definition, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),
-              if (trailing != null) trailing!,
+              if (isBusy)
+                const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+              else
+                 Icon(Icons.chevron_right, color: theme.colorScheme.outlineVariant),
             ],
           ),
-          const SizedBox(height: 12),
-          child,
+        ),
+      ),
+    );
+  }
+}
+
+// ---------- Bottom Sheets Implementation ----------
+
+class _EditSetSheet extends ConsumerStatefulWidget {
+  final StudySetModel set;
+  final VoidCallback onUpdated;
+  final VoidCallback onDeleted;
+  const _EditSetSheet({required this.set, required this.onUpdated, required this.onDeleted});
+
+  @override
+  ConsumerState<_EditSetSheet> createState() => _EditSetSheetState();
+}
+
+class _EditSetSheetState extends ConsumerState<_EditSetSheet> {
+  late final TextEditingController _titleCtrl;
+  late final TextEditingController _descCtrl;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleCtrl = TextEditingController(text: widget.set.title);
+    _descCtrl = TextEditingController(text: widget.set.description);
+  }
+
+  Future<void> _update() async {
+     final title = _titleCtrl.text.trim();
+    if (title.isEmpty) return;
+
+    setState(() => _busy = true);
+    try {
+      final repo = ref.read(academyRepositoryProvider);
+      final success = await repo.updateStudySet(
+        setId: widget.set.id,
+        title: title,
+        description: _descCtrl.text.trim(),
+      );
+      if (success) {
+        widget.onUpdated();
+        if (mounted) Navigator.pop(context);
+      }
+    } catch (e) {
+        if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BaseSheetWrapper(
+      title: 'Cài đặt bộ thẻ',
+      busy: _busy,
+      child: Column(
+        children: [
+          TextField(
+            controller: _titleCtrl,
+            decoration: const InputDecoration(labelText: 'Tên bộ thẻ', border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _descCtrl,
+            maxLines: 3,
+            decoration: const InputDecoration(labelText: 'Mô tả', border: OutlineInputBorder()),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _busy ? null : () async {
+                     final confirmed = await showDialog<bool>(
+                       context: context,
+                       builder: (ctx) => AlertDialog(
+                         title: const Text('Xóa bộ thẻ?'),
+                         content: const Text('Tất cả thẻ bên trong sẽ bị xóa vĩnh viễn.'),
+                         actions: [
+                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                              child: const Text('Xóa'),
+                            ),
+                         ],
+                       ),
+                     );
+                     
+                     if (confirmed == true && mounted) {
+                        setState(() => _busy = true);
+                        try {
+                           final success = await ref.read(academyRepositoryProvider).deleteStudySet(setId: widget.set.id);
+                           if (success && mounted) {
+                             Navigator.pop(context);
+                             widget.onDeleted();
+                           }
+                        } finally {
+                           if (mounted) setState(() => _busy = false);
+                        }
+                     }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                  ),
+                  child: const Text('Xóa bộ thẻ'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _busy ? null : _update,
+                  child: const Text('Cập nhật'),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _ModeCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String buttonText;
-  final bool enabled;
-  final VoidCallback onTap;
+class _AddCardSheet extends ConsumerStatefulWidget {
+  final String setId;
+  final VoidCallback onAdded;
+  const _AddCardSheet({required this.setId, required this.onAdded});
 
-  const _ModeCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.buttonText,
-    required this.enabled,
-    required this.onTap,
-  });
+  @override
+  ConsumerState<_AddCardSheet> createState() => _AddCardSheetState();
+}
+
+class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
+  final _termCtrl = TextEditingController();
+  final _defCtrl = TextEditingController();
+  final _hintCtrl = TextEditingController();
+  bool _busy = false;
+
+  Future<void> _submit() async {
+    final term = _termCtrl.text.trim();
+    final def = _defCtrl.text.trim();
+    if (term.isEmpty || def.isEmpty) return;
+
+    setState(() => _busy = true);
+    try {
+      final repo = ref.read(academyRepositoryProvider);
+      final card = await repo.createStudySetCard(
+        setId: widget.setId,
+        term: term,
+        definition: def,
+        hint: _hintCtrl.text.trim(),
+      );
+      if (card != null) {
+        widget.onAdded();
+        _termCtrl.clear();
+        _defCtrl.clear();
+        _hintCtrl.clear();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã thêm thẻ mới!'), duration: Duration(seconds: 1)));
+        }
+      }
+    } catch (e) {
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
+    return BaseSheetWrapper(
+      title: 'Thêm thẻ mới',
+      busy: _busy,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, color: theme.colorScheme.primary),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7), height: 1.35),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          TextField(controller: _termCtrl, autofocus: true, decoration: const InputDecoration(labelText: 'Thuật ngữ (Ví dụ: Từ vựng)', border: OutlineInputBorder())),
+          const SizedBox(height: 16),
+          TextField(controller: _defCtrl, decoration: const InputDecoration(labelText: 'Định nghĩa (Ví dụ: Nghĩa tiếng Việt)', border: OutlineInputBorder())),
+          const SizedBox(height: 16),
+          TextField(controller: _hintCtrl, decoration: const InputDecoration(labelText: 'Gợi ý (không bắt buộc)', border: OutlineInputBorder())),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: _busy ? null : _submit,
+              child: const Text('Thêm thẻ'),
+            ),
           ),
           const SizedBox(height: 12),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Đã xong')),
+        ],
+      ),
+    );
+  }
+}
+
+class _EditCardSheet extends ConsumerStatefulWidget {
+  final SetCardModel card;
+  final VoidCallback onUpdated;
+  const _EditCardSheet({required this.card, required this.onUpdated});
+
+  @override
+  ConsumerState<_EditCardSheet> createState() => _EditCardSheetState();
+}
+
+class _EditCardSheetState extends ConsumerState<_EditCardSheet> {
+  late final TextEditingController _termCtrl;
+  late final TextEditingController _defCtrl;
+  late final TextEditingController _hintCtrl;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _termCtrl = TextEditingController(text: widget.card.term);
+    _defCtrl = TextEditingController(text: widget.card.definition);
+    _hintCtrl = TextEditingController(text: widget.card.hint);
+  }
+
+  Future<void> _submit() async {
+    final term = _termCtrl.text.trim();
+    final def = _defCtrl.text.trim();
+    if (term.isEmpty || def.isEmpty) return;
+
+    setState(() => _busy = true);
+    try {
+      final repo = ref.read(academyRepositoryProvider);
+      final updated = await repo.updateStudySetCard(
+        cardId: widget.card.id,
+        term: term,
+        definition: def,
+        hint: _hintCtrl.text.trim(),
+      );
+      if (updated != null) {
+        widget.onUpdated();
+        if (mounted) Navigator.pop(context);
+      }
+    } catch (e) {
+        if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BaseSheetWrapper(
+      title: 'Chỉnh sửa thẻ',
+      busy: _busy,
+      child: Column(
+        children: [
+          TextField(controller: _termCtrl, decoration: const InputDecoration(labelText: 'Thuật ngữ', border: OutlineInputBorder())),
+          const SizedBox(height: 16),
+          TextField(controller: _defCtrl, decoration: const InputDecoration(labelText: 'Định nghĩa', border: OutlineInputBorder())),
+          const SizedBox(height: 16),
+          TextField(controller: _hintCtrl, decoration: const InputDecoration(labelText: 'Gợi ý', border: OutlineInputBorder())),
+          const SizedBox(height: 32),
           SizedBox(
-            height: 44,
             width: double.infinity,
+            height: 54,
             child: ElevatedButton(
-              onPressed: enabled ? onTap : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              child: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.w900)),
+              onPressed: _busy ? null : _submit,
+              child: const Text('Cập nhật'),
             ),
           ),
         ],
@@ -1193,4 +891,3 @@ class _ModeCard extends StatelessWidget {
     );
   }
 }
-
