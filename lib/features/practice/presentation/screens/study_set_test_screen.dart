@@ -226,7 +226,7 @@ class _QuestionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -236,7 +236,7 @@ class _QuestionCard extends StatelessWidget {
             children: [
                Container(
                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                 decoration: BoxDecoration(color: Colors.orange.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                 decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                  child: const Text('TRẮC NGHIỆM', style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold, fontSize: 10)),
                ),
                IconButton(onPressed: onSpeak, icon: const Icon(Icons.volume_up_rounded, color: Colors.grey, size: 20)),
@@ -289,15 +289,15 @@ class _OptionButton extends StatelessWidget {
 
     if (isCorrect) {
       borderColor = const Color(0xFF3BB25E);
-      bgColor = const Color(0xFF3BB25E).withValues(alpha: 0.1);
+      bgColor = const Color(0xFF3BB25E).withOpacity(0.1);
       textColor = const Color(0xFF3BB25E);
     } else if (isWrong) {
       borderColor = theme.colorScheme.error;
-      bgColor = theme.colorScheme.error.withValues(alpha: 0.1);
+      bgColor = theme.colorScheme.error.withOpacity(0.1);
       textColor = theme.colorScheme.error;
     } else if (isSelected) {
       borderColor = theme.colorScheme.primary;
-      bgColor = theme.colorScheme.primary.withValues(alpha: 0.05);
+      bgColor = theme.colorScheme.primary.withOpacity(0.05);
     }
 
     return Padding(
@@ -357,10 +357,10 @@ class _TrueFalseButton extends StatelessWidget {
 
     if (isCorrect) {
       borderColor = const Color(0xFF3BB25E);
-      bgColor = const Color(0xFF3BB25E).withValues(alpha: 0.1);
+      bgColor = const Color(0xFF3BB25E).withOpacity(0.1);
     } else if (isWrong) {
       borderColor = Colors.red;
-      bgColor = Colors.red.withValues(alpha: 0.1);
+      bgColor = Colors.red.withOpacity(0.1);
     } else if (isSelected) {
        borderColor = color;
     }

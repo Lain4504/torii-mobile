@@ -7,7 +7,7 @@ class AcademyProductModel {
   final double price;
   final double? discountPrice;
   final String? status;
-  final String? mode; // 'LIVE' | 'VOD'
+  final String mode; // 'LIVE' | 'VOD'
   final String? thumbnailUrl;
   final String? courseProfileId;
   final String? jlptLevel;
@@ -26,7 +26,7 @@ class AcademyProductModel {
     required this.price,
     this.discountPrice,
     this.status,
-    this.mode,
+    required this.mode,
     this.thumbnailUrl,
     this.courseProfileId,
     this.jlptLevel,
@@ -39,51 +39,33 @@ class AcademyProductModel {
   });
 
   factory AcademyProductModel.fromJson(Map<String, dynamic> json) {
-    // Determine mode if not explicitly provided
-    final mode = json['mode']?.toString().toUpperCase() ?? 
-                (json['courseProfileId'] != null ? (json.containsKey('enrollmentCloseAt') ? 'LIVE' : 'VOD') : 'VOD');
-    
     final cp = json['courseProfile'] as Map<String, dynamic>?;
+    final mode = json['mode']?.toString().toUpperCase() ?? 
+                (json['enrollmentCloseAt'] != null ? 'LIVE' : 'VOD');
     
     return AcademyProductModel(
-      id: json['id']?.toString() ?? '',
-      code: json['code']?.toString(),
-      name: (json['name'] ?? json['title'] ?? cp?['title'] ?? '').toString(),
+      id: json['id'].toString(),
+      code: json['code'] as String?,
+      name: (json['name'] ?? cp?['title'] ?? '').toString(),
       description: (json['description'] ?? cp?['description'])?.toString(),
-      price: _parseNum(json['price']).toDouble(),
-      discountPrice: _parseNumOrNull(json['discountPrice'] ?? json['salePrice'])?.toDouble(),
-      status: json['status']?.toString(),
+      price: (json['price'] as num).toDouble(),
+      discountPrice: (json['discountPrice'] as num?)?.toDouble() ?? (json['salePrice'] as num?)?.toDouble(),
+      status: json['status'] as String?,
       mode: mode,
       thumbnailUrl: (json['thumbnailUrl'] ?? cp?['thumbnailUrl'])?.toString(),
       courseProfileId: (json['courseProfileId'] ?? cp?['id'])?.toString(),
-      jlptLevel: cp?['level']?.toString(),
-      startDate: _parseDate(json['startDate'] ?? json['openingDate']),
-      endDate: _parseDate(json['endDate']),
-      enrollmentCloseAt: _parseDate(json['enrollmentCloseAt']),
-      instructor: json['instructor'] is Map ? Map<String, dynamic>.from(json['instructor']) : null,
-      modules: json['courseProfile']?['modules'] is List ? List.from(json['courseProfile']['modules']) : null,
-      liveClasses: json['liveClasses'] is List ? List.from(json['liveClasses']) : null,
+      jlptLevel: cp?['level'] as String?,
+      startDate: json['startDate'] != null ? DateTime.parse(json['startDate'].toString()) : null,
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate'].toString()) : null,
+      enrollmentCloseAt: json['enrollmentCloseAt'] != null ? DateTime.parse(json['enrollmentCloseAt'].toString()) : null,
+      instructor: json['instructor'] as Map<String, dynamic>?,
+      modules: json['modules'] as List?,
+      liveClasses: json['liveClasses'] as List?,
     );
   }
 
   double get displayPrice => discountPrice ?? price;
   bool get isLive => mode == 'LIVE';
-}
-
-DateTime? _parseDate(dynamic v) {
-  if (v == null) return null;
-  return DateTime.tryParse(v.toString());
-}
-
-num _parseNum(dynamic value) {
-  return _parseNumOrNull(value) ?? 0;
-}
-
-num? _parseNumOrNull(dynamic value) {
-  if (value == null) return null;
-  if (value is num) return value;
-  if (value is String) return num.tryParse(value);
-  return null;
 }
 
 /// My enrollment from GET /api/academy/enrollments/me
@@ -123,29 +105,29 @@ class EnrollmentModel {
   });
 
   factory EnrollmentModel.fromJson(Map<String, dynamic> json) {
-    final progressVal = _parseNum(json['progressPercent'] ?? json['progress']).toDouble();
+    final progressVal = (json['progressPercent'] as num? ?? json['progress'] as num? ?? 0).toDouble();
     
     return EnrollmentModel(
-      id: json['id']?.toString() ?? '',
-      status: json['status']?.toString(),
-      enrolledAt: _parseDate(json['enrolledAt']),
-      expiresAt: _parseDate(json['expiresAt']),
-      vodPackageId: json['vodPackageId']?.toString(),
-      liveClassId: json['liveClassId']?.toString(),
-      cohortId: json['cohortId']?.toString(),
-      type: json['type']?.toString().toLowerCase() ?? 'vod',
-      courseTitle: (json['courseTitle'] ?? '').toString(),
-      courseCode: json['courseCode']?.toString(),
-      thumbnailUrl: json['thumbnailUrl']?.toString(),
-      instructor: json['instructor'] is Map ? Map<String, dynamic>.from(json['instructor']) : null,
+      id: json['id'].toString(),
+      status: json['status'] as String?,
+      enrolledAt: json['enrolledAt'] != null ? DateTime.parse(json['enrolledAt'].toString()) : null,
+      expiresAt: json['expiresAt'] != null ? DateTime.parse(json['expiresAt'].toString()) : null,
+      vodPackageId: json['vodPackageId'] as String?,
+      liveClassId: json['liveClassId'] as String?,
+      cohortId: json['cohortId'] as String?,
+      type: (json['type'] ?? 'vod').toString().toLowerCase(),
+      courseTitle: json['courseTitle'].toString(),
+      courseCode: json['courseCode'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      instructor: json['instructor'] as Map<String, dynamic>?,
       progress: (progressVal / 100.0).clamp(0.0, 1.0),
-      completedLessons: _parseNum(json['completedLessons']).toInt(),
-      totalLessons: _parseNum(json['totalLessons']).toInt(),
+      completedLessons: (json['completedLessons'] as num? ?? 0).toInt(),
+      totalLessons: (json['totalLessons'] as num? ?? 0).toInt(),
     );
   }
 
   String get classId => liveClassId ?? vodPackageId ?? '';
-  bool get isLive => type == 'live';
+  bool get isLive => type == 'live' || type == 'LIVE';
   String get mode => type.toUpperCase();
   String get productId => cohortId ?? vodPackageId ?? '';
 }
@@ -179,21 +161,17 @@ class OrderModel {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    final createdAtRaw = json['createdAt'] ?? json['created_at'];
-    final updatedAtRaw = json['updatedAt'] ?? json['updated_at'];
-    final fallbackDate = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-
     return OrderModel(
-      id: (json['id'] ?? '').toString(),
+      id: json['id'].toString(),
       code: json['code'] as String?,
-      userId: (json['userId'] ?? '').toString(),
-      amount: _parseNum(json['amount'] ?? json['grandTotal']).toDouble(),
+      userId: json['userId'].toString(),
+      amount: (json['grandTotal'] as num? ?? json['amount'] as num).toDouble(),
       currency: json['currency'] as String? ?? 'VND',
-      status: json['status'] as String? ?? 'PENDING',
+      status: json['status']?.toString() ?? 'PENDING',
       courseName: json['courseName'] as String?,
       courseThumbnail: json['courseThumbnail'] as String?,
-      createdAt: DateTime.tryParse(createdAtRaw?.toString() ?? '') ?? fallbackDate,
-      updatedAt: DateTime.tryParse(updatedAtRaw?.toString() ?? '') ?? fallbackDate,
+      createdAt: DateTime.parse(json['createdAt'].toString()),
+      updatedAt: DateTime.parse(json['updatedAt'].toString()),
       metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
@@ -239,11 +217,11 @@ class AcademyFolder {
 
   factory AcademyFolder.fromJson(Map<String, dynamic> json) {
     return AcademyFolder(
-      id: (json['folderId'] ?? json['id'] ?? '').toString(),
-      name: (json['folderName'] ?? json['name'] ?? '').toString(),
+      id: json['id'].toString(),
+      name: json['name'].toString(),
       className: json['liveClass']?['name'] as String?,
       classCode: json['liveClass']?['code'] as String?,
-      resourceCount: (json['resourceCount'] as num?)?.toInt() ?? 0,
+      resourceCount: (json['resourceCount'] as num? ?? 0).toInt(),
     );
   }
 }
@@ -274,15 +252,14 @@ class AcademyResource {
         : (typeStr == 'LINK' ? AcademyResourceType.link : AcademyResourceType.unknown);
 
     return AcademyResource(
-      id: (json['id'] ?? '').toString(),
-      title: (json['title'] ?? '').toString(),
+      id: json['id'].toString(),
+      title: json['title'].toString(),
       type: type,
       url: type == AcademyResourceType.file
           ? json['downloadUrl'] as String?
           : json['externalUrl'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
-      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
-          DateTime.fromMillisecondsSinceEpoch(0),
+      createdAt: DateTime.parse(json['createdAt'].toString()),
     );
   }
 

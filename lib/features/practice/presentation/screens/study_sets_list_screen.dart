@@ -192,7 +192,7 @@ class _StudySetCard extends StatelessWidget {
               border: Border.all(color: theme.colorScheme.outlineVariant),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
+                  color: Colors.black.withOpacity(0.03),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -205,7 +205,7 @@ class _StudySetCard extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      color: theme.colorScheme.primary.withOpacity(0.1),
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                     ),
                     child: Center(

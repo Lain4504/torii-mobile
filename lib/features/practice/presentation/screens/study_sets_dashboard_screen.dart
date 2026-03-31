@@ -28,10 +28,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
     final detailAsync = ref.watch(studySetDetailProvider(widget.initialSetId));
     final cardsAsync = ref.watch(studyCardsProvider(widget.initialSetId));
 
-    return Hero(
-      tag: 'study_set_${widget.initialSetId}',
-      child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -56,10 +54,11 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
 
                 return IconButton(
                   onPressed: () {
-                    // Since studySetDetailProvider returns Map<String, dynamic>, we might need to map it or fetch from studySetsProvider
-                    final sets = ref.read(studySetsProvider).value ?? [];
-                    final currentSet = sets.firstWhere((s) => s.id == widget.initialSetId);
-                    _showEditSetSheet(context, currentSet);
+                    final sets = ref.read(studySetsProvider).valueOrNull ?? [];
+                    final currentSet = sets.where((s) => s.id == widget.initialSetId).firstOrNull;
+                    if (currentSet != null) {
+                      _showEditSetSheet(context, currentSet);
+                    }
                   },
                   icon: const Icon(Icons.settings_outlined),
                 );
@@ -85,8 +84,10 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                   data: (data) {
                     if (data == null) return const SizedBox.shrink();
                     final currentUserId = ref.watch(authStateProvider).valueOrNull?.user?.id;
-                    final isMine = data['userId'] == currentUserId;
-                    final count = data['cardCount'] ?? 0;
+                    final userId = (data['userId'] ?? data['item']?['userId'] ?? '').toString();
+                    final isMine = userId == currentUserId;
+                    final count = (data['cardCount'] as num?)?.toInt() ?? 
+                                  (data['_count']?['setCards'] as num?)?.toInt() ?? 0;
 
                     return Padding(
                       padding: const EdgeInsets.all(20),
@@ -94,7 +95,7 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (!isMine) ...[
-                            _buildCloneBanner(context, data['id']),
+                            _buildCloneBanner(context, widget.initialSetId),
                             const SizedBox(height: 24),
                           ],
                           Text(
@@ -198,7 +199,6 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -207,9 +207,9 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+        color: theme.colorScheme.primaryContainer.withOpacity(0.5),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
       ),
       child: Column(
         children: [
@@ -451,9 +451,9 @@ class _ModeCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withValues(alpha: 0.15)),
+            border: Border.all(color: color.withOpacity(0.15)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,7 +515,7 @@ class _EmptyCardsState extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(Icons.style_outlined, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+            Icon(Icons.style_outlined, size: 64, color: theme.colorScheme.primary.withOpacity(0.2)),
             const SizedBox(height: 16),
             Text('Chưa có thẻ nào', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),

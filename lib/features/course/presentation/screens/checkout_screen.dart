@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/checkout_models.dart';
 import 'package:torii_app/data/models/academy_models.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
@@ -47,23 +48,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Future<void> _previewNow(AcademyProductModel item) async {
+    if (_previewing) return;
     setState(() {
       _previewing = true;
       _previewError = null;
     });
-
     try {
       final repo = ref.read(academyRepositoryProvider);
-      final result = await repo.previewOrder(
+      final res = await repo.previewOrder(
         productId: item.id,
+        mode: widget.mode,
         classId: widget.mode == 'LIVE' ? widget.classId : null,
         couponCode: _couponController.text,
       );
-      if (!mounted) return;
-      setState(() => _preview = result);
+      if (mounted) setState(() => _preview = res);
     } catch (e) {
-      if (!mounted) return;
-      setState(() => _previewError = e.toString());
+      if (mounted) setState(() => _previewError = e.toString());
     } finally {
       if (mounted) setState(() => _previewing = false);
     }
@@ -75,23 +75,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final repo = ref.read(academyRepositoryProvider);
       final result = await repo.checkoutOrder(
         productId: item.id,
+        mode: widget.mode,
         classId: widget.mode == 'LIVE' ? widget.classId : null,
         paymentMethod: 'PAYOS',
         couponCode: _couponController.text,
+        metadata: {'isGift': false},
       );
 
-      if (!mounted) return;
-      if (result.paymentUrl != null) {
+      if (mounted) setState(() => _processing = false);
+      
+      if (result != null && result.paymentUrl != null) {
         context.push('/payment', extra: {
           'paymentUrl': result.paymentUrl,
           'orderCode': result.orderCode,
         });
+      } else if (result != null && result.orderCode != null) {
+        context.replace('/payment-result/${result.orderCode}');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không thể tạo liên kết thanh toán')),
+        );
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Thanh toán lỗi: $e')));
-    } finally {
       if (mounted) setState(() => _processing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 

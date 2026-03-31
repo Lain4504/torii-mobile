@@ -200,7 +200,7 @@ class _StudySetMatchScreenState extends ConsumerState<StudySetMatchScreen> {
                Container(
                  padding: const EdgeInsets.all(24),
                  decoration: BoxDecoration(
-                   color: Colors.amber.withValues(alpha: 0.1),
+                   color: Colors.amber.withOpacity(0.1),
                    shape: BoxShape.circle,
                  ),
                  child: const Icon(Icons.emoji_events, size: 80, color: Colors.amber),
@@ -306,7 +306,7 @@ class _MatchCard extends StatelessWidget {
       return Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3), style: BorderStyle.none),
+          border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.3), style: BorderStyle.none),
         ),
       );
     }
@@ -335,7 +335,7 @@ class _MatchCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: borderColor, width: 2),
           boxShadow: isSelected
-              ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))]
+              ? [BoxShadow(color: theme.colorScheme.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))]
               : null,
         ),
         child: Center(

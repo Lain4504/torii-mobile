@@ -153,7 +153,7 @@ class AppRadius {
 class AppTypography {
   AppTypography._();
 
-  static const String fontFamily = 'Andika';
+  static const String fontFamily = 'Montserrat';
 
   // Font Sizes
   static const double fontSizeXs = 12.0;

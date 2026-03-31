@@ -30,7 +30,7 @@ class ApiResponse<T> {
     return ApiResponse<T>(
       success: json['success'] ?? false,
       data: parsedData,
-      message: json['message'],
+      message: json['message']?.toString(),
       errors: json['errors'] != null ? List<dynamic>.from(json['errors']) : null,
     );
   }

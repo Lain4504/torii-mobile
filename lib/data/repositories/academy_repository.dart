@@ -86,48 +86,25 @@ class AcademyRepository {
         if (status != null && status.isNotEmpty) 'status': status,
       },
     );
-    final body = response.data ?? {};
-    if (body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to fetch enrollments');
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) {
+      throw Exception(api.message ?? 'Không thể tải danh sách khóa học');
     }
 
-    // API shape: { success, data: { items, total, page, limit, totalPages } }
-    final inner = body['data'];
-    final List<dynamic> items;
-    int total;
-    int totalPages;
-
-    if (inner is Map<String, dynamic>) {
-      items = inner['items'] as List<dynamic>? ?? [];
-      total = (inner['total'] as num?)?.toInt() ?? items.length;
-      totalPages = (inner['totalPages'] as num?)?.toInt() ?? 1;
-    } else {
-      items = body['items'] as List<dynamic>? ?? [];
-      total = (body['total'] as num?)?.toInt() ?? items.length;
-      totalPages = (body['totalPages'] as num?)?.toInt() ?? 1;
-    }
+    final data = api.data!;
+    final items = data['items'] as List<dynamic>? ?? [];
 
     return PaginatedResponse<EnrollmentModel>(
-      data: items
-          .map((e) => EnrollmentModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      total: total,
-      page:
-          (inner is Map<String, dynamic>
-              ? (inner['page'] as num?)?.toInt()
-              : (body['page'] as num?)?.toInt()) ??
-          1,
-      limit:
-          (inner is Map<String, dynamic>
-              ? (inner['limit'] as num?)?.toInt()
-              : (body['limit'] as num?)?.toInt()) ??
-          limit,
-      totalPages: totalPages,
+      data: items.map((e) => EnrollmentModel.fromJson(e as Map<String, dynamic>)).toList(),
+      total: (data['total'] as num? ?? items.length).toInt(),
+      page: (data['page'] as num? ?? page).toInt(),
+      limit: (data['limit'] as num? ?? limit).toInt(),
+      totalPages: (data['totalPages'] as num? ?? 1).toInt(),
     );
   }
 
   // ---------- Orders (my) ----------
-  /// GET /api/academy/orders/my - gateway returns successResponse(result) with result = { data, total, page, limit, totalPages }
+  /// GET /api/academy/orders/my
   Future<PaginatedResponse<OrderModel>> getMyOrders({
     int page = 1,
     int limit = 20,
@@ -143,43 +120,20 @@ class AcademyRepository {
         if (search != null && search.isNotEmpty) 'search': search,
       },
     );
-    final body = response.data ?? {};
-    if (body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to fetch orders');
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) {
+      throw Exception(api.message ?? 'Không thể tải danh sách đơn hàng');
     }
-    final inner = body['data'];
-    final List<dynamic> data;
-    int total;
-    int totalPages;
-    if (inner is Map<String, dynamic>) {
-      data =
-          inner['data'] as List<dynamic>? ??
-          inner['items'] as List<dynamic>? ??
-          [];
-      total = (inner['total'] as num?)?.toInt() ?? data.length;
-      totalPages = (inner['totalPages'] as num?)?.toInt() ?? 1;
-    } else {
-      data =
-          body['data'] as List<dynamic>? ??
-          body['items'] as List<dynamic>? ??
-          [];
-      total = (body['total'] as num?)?.toInt() ?? data.length;
-      totalPages = (body['totalPages'] as num?)?.toInt() ?? 1;
-    }
+
+    final data = api.data!;
+    final items = data['items'] as List<dynamic>? ?? data['data'] as List<dynamic>? ?? [];
+
     return PaginatedResponse<OrderModel>(
-      data: data
-          .map((e) => OrderModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      total: total,
-      page:
-          (body['page'] as num?)?.toInt() ??
-          (inner is Map ? (inner['page'] as num?)?.toInt() : null) ??
-          1,
-      limit:
-          (body['limit'] as num?)?.toInt() ??
-          (inner is Map ? (inner['limit'] as num?)?.toInt() : null) ??
-          limit,
-      totalPages: totalPages,
+      data: items.map((e) => OrderModel.fromJson(e as Map<String, dynamic>)).toList(),
+      total: (data['total'] as num? ?? items.length).toInt(),
+      page: (data['page'] as num? ?? page).toInt(),
+      limit: (data['limit'] as num? ?? limit).toInt(),
+      totalPages: (data['totalPages'] as num? ?? 1).toInt(),
     );
   }
 
@@ -208,55 +162,86 @@ class AcademyRepository {
     return null;
   }
 
-  /// POST /api/academy/orders/preview
-  Future<OrderPreviewModel> previewOrder({
+  /// Preview order: `POST /api/academy/orders/preview`
+  Future<OrderPreviewModel?> previewOrder({
     required String productId,
+    required String mode,
     String? classId,
     String? couponCode,
   }) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/academy/orders/preview',
-      data: <String, dynamic>{
-        'productIds': [productId],
-        if (classId != null && classId.isNotEmpty)
-          'classIdByProduct': {productId: classId},
-        if (couponCode != null && couponCode.trim().isNotEmpty)
-          'couponCode': couponCode.trim(),
-      },
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) {
-      throw Exception(api.message ?? 'Failed to preview order');
+    final isLive = mode.toUpperCase() == 'LIVE';
+    
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/academy/orders/preview',
+        data: <String, dynamic>{
+          if (isLive) 'cohortIds': [productId] else 'vodPackageIds': [productId],
+          if (isLive && classId != null && classId.isNotEmpty)
+            'liveClassIdByCohort': <String, String>{productId: classId},
+          if (couponCode != null && couponCode.trim().isNotEmpty)
+            'couponCode': couponCode.trim(),
+        },
+      );
+
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) {
+        throw Exception(api.message ?? 'Không thể tải thông tin thanh toán');
+      }
+      
+      return OrderPreviewModel.fromJson(api.data!);
+    } on DioException catch (e) {
+      final msg = _extractErrorMessage(e);
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Lỗi hệ thống: $e');
     }
-    final raw = api.data!;
-    return OrderPreviewModel.fromJson(raw);
   }
 
-  /// POST /api/academy/orders/checkout
-  Future<OrderCheckoutResultModel> checkoutOrder({
+  /// Create order: `POST /api/academy/orders/checkout`
+  Future<OrderCheckoutResultModel?> checkoutOrder({
     required String productId,
+    required String mode,
     String? classId,
-    String paymentMethod = 'PAYOS',
+    required String paymentMethod,
     String? couponCode,
     Map<String, dynamic>? metadata,
   }) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/academy/orders/checkout',
-      data: <String, dynamic>{
-        'productIds': [productId],
-        if (classId != null && classId.isNotEmpty)
-          'classIdByProduct': {productId: classId},
-        'paymentMethod': paymentMethod,
-        if (couponCode != null && couponCode.trim().isNotEmpty)
-          'couponCode': couponCode.trim(),
-        if (metadata != null) 'metadata': metadata,
-      },
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) {
-      throw Exception(api.message ?? 'Failed to create order');
+    final isLive = mode.toUpperCase() == 'LIVE';
+    
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/academy/orders/checkout',
+        data: <String, dynamic>{
+          if (isLive) 'cohortIds': [productId] else 'vodPackageIds': [productId],
+          if (isLive && classId != null && classId.isNotEmpty)
+            'liveClassIdByCohort': <String, String>{productId: classId},
+          'paymentMethod': paymentMethod.toUpperCase(),
+          if (couponCode != null && couponCode.trim().isNotEmpty)
+            'couponCode': couponCode.trim(),
+          if (metadata != null) 'metadata': metadata,
+        },
+      );
+
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) {
+        throw Exception(api.message ?? 'Không thể tạo đơn hàng');
+      }
+      
+      return OrderCheckoutResultModel.fromJson(api.data!);
+    } on DioException catch (e) {
+      final msg = _extractErrorMessage(e);
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Lỗi hệ thống: $e');
     }
-    return OrderCheckoutResultModel.fromJson(api.data!);
+  }
+
+  String _extractErrorMessage(DioException e) {
+    if (e.response?.data is Map) {
+      final data = e.response!.data as Map;
+      return data['message']?.toString() ?? 'Lỗi kết nối server';
+    }
+    return e.message ?? 'Lỗi kết nối. Vui lòng thử lại.';
   }
 
   /// GET /api/academy/orders/by-code/:orderCode (fulfillment summary for current user)
@@ -497,8 +482,21 @@ class AcademyRepository {
       );
       final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
       if (api.success && api.data != null) {
-        _database?.saveStudySetDetail(id, api.data!);
-        return api.data!;
+        final item = api.data!['item'];
+        if (item is Map) {
+          final res = Map<String, dynamic>.from(item);
+
+          // Injection: Ensure cardCount is accessible at top level (mirrors StudySetModel.fromJson)
+          if (!res.containsKey('cardCount') || res['cardCount'] == 0) {
+            final count = res['_count'];
+            if (count is Map && count.containsKey('setCards')) {
+              res['cardCount'] = count['setCards'];
+            }
+          }
+
+          _database?.saveStudySetDetail(id, res);
+          return res;
+        }
       }
     } catch (_) {
       if (_database != null) {

@@ -495,44 +495,48 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/jlpt-mock',
                 builder: (context, state) => const JlptMockLevelsScreen(),
-              ),
-              GoRoute(
-                path: '/jlpt-mock/:level',
-                builder: (context, state) {
-                  final level = (state.pathParameters['level'] ?? 'N3')
-                      .toUpperCase();
-                  return JlptMockTemplatesScreen(levelCode: level);
-                },
-              ),
-              GoRoute(
-                path: '/jlpt-mock/exam',
-                builder: (context, state) {
-                  final q = state.uri.queryParameters;
-                  final templateId = q['templateId'] ?? '';
-                  final attemptId = q['attemptId'] ?? '';
-                  final sectionOrder =
-                      int.tryParse(q['sectionOrder'] ?? '1') ?? 1;
-                  final level = (q['level'] ?? 'N3').toUpperCase();
-                  final endsAt = q['endsAt'];
-                  return JlptMockExamScreen(
-                    templateId: templateId,
-                    attemptId: attemptId,
-                    initialSectionOrder: sectionOrder,
-                    levelCode: level,
-                    endsAtIso: endsAt,
-                  );
-                },
-              ),
-              GoRoute(
-                path: '/jlpt-mock/history',
-                builder: (context, state) => const JlptMockHistoryScreen(),
-              ),
-              GoRoute(
-                path: '/jlpt-mock/history/:attemptId',
-                builder: (context, state) {
-                  final attemptId = state.pathParameters['attemptId'] ?? '';
-                  return JlptMockHistoryDetailScreen(attemptId: attemptId);
-                },
+                routes: [
+                  GoRoute(
+                    path: 'exam',
+                    builder: (context, state) {
+                      final q = state.uri.queryParameters;
+                      final templateId = q['templateId'] ?? '';
+                      final attemptId = q['attemptId'] ?? '';
+                      final sectionOrder =
+                          int.tryParse(q['sectionOrder'] ?? '1') ?? 1;
+                      final level = (q['level'] ?? 'N3').toUpperCase();
+                      final endsAt = q['endsAt'];
+                      return JlptMockExamScreen(
+                        templateId: templateId,
+                        attemptId: attemptId,
+                        initialSectionOrder: sectionOrder,
+                        levelCode: level,
+                        endsAtIso: endsAt,
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: 'history',
+                    builder: (context, state) => const JlptMockHistoryScreen(),
+                    routes: [
+                      GoRoute(
+                        path: ':attemptId',
+                        builder: (context, state) {
+                          final attemptId = state.pathParameters['attemptId'] ?? '';
+                          return JlptMockHistoryDetailScreen(attemptId: attemptId);
+                        },
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: ':level(N[1-5]|n[1-5]|all|ALL)',
+                    builder: (context, state) {
+                      final level = (state.pathParameters['level'] ?? 'N3')
+                          .toUpperCase();
+                      return JlptMockTemplatesScreen(levelCode: level);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
