@@ -392,7 +392,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               SizedBox(
                 height: 220,
                 child: isLoggedIn
-                    ? enrollmentsAsync!.when(
+                    ? (enrollmentsAsync?.when(
                         data: (paginated) {
                           final list = paginated.data.take(5).toList();
                           if (list.isEmpty) return _emptyCourseHint(context);
@@ -409,7 +409,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         loading: () =>
                             const Center(child: CircularProgressIndicator()),
                         error: (error, _) => _emptyCourseHint(context),
-                      )
+                      ) ?? const SizedBox.shrink())
                     : _loginRequiredHint(
                         context,
                         title: 'Đăng nhập để xem khóa học của bạn',
@@ -759,14 +759,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: e.classId.isEmpty ? null : () {
-                      if (e.mode?.toUpperCase() == 'LIVE') {
-                        final title = Uri.encodeQueryComponent(e.courseTitle ?? 'Lớp LIVE');
+                      if (e.mode.toUpperCase() == 'LIVE') {
+                        final title = Uri.encodeQueryComponent(e.courseTitle);
                         context.push(
-                          '/enrolled-live/${e.classId}?productId=${e.productId ?? ''}&title=$title',
+                          '/enrolled-live/${e.classId}?productId=${e.productId}&title=$title',
                         );
                       } else {
                         context.push(
-                          '/curriculum/${e.classId}?mode=${e.mode ?? 'VOD'}',
+                          '/curriculum/${e.classId}?mode=${e.mode}',
                         );
                       }
                     },

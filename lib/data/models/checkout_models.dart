@@ -1,6 +1,6 @@
 class OrderPreviewRequest {
   final String productId;
-  final String? classId; // required for LIVE
+  final String? classId;
   final String? couponCode;
 
   const OrderPreviewRequest({
@@ -22,30 +22,37 @@ class OrderPreviewModel {
   });
 
   factory OrderPreviewModel.fromJson(Map<String, dynamic> json) {
+    double toDouble(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0;
+      return double.tryParse(v.toString()) ?? 0;
+    }
+
     return OrderPreviewModel(
-      subTotal: _parseNum(json['subTotal']).toDouble(),
-      discountTotal: _parseNum(json['discountTotal']).toDouble(),
-      grandTotal: _parseNum(json['grandTotal']).toDouble(),
+      subTotal: toDouble(json['subTotal']),
+      discountTotal: toDouble(json['discountTotal']),
+      grandTotal: toDouble(json['grandTotal']),
     );
   }
 }
 
 class OrderCheckoutResultModel {
-  final String? orderId;
-  final String? orderCode;
+  final String orderId;
+  final String orderCode;
   final String? paymentUrl;
 
   const OrderCheckoutResultModel({
-    this.orderId,
-    this.orderCode,
+    required this.orderId,
+    required this.orderCode,
     this.paymentUrl,
   });
 
   factory OrderCheckoutResultModel.fromJson(Map<String, dynamic> json) {
     return OrderCheckoutResultModel(
-      orderId: json['orderId'] as String? ?? json['id'] as String?,
-      orderCode: json['orderCode'] as String? ?? json['code'] as String?,
-      paymentUrl: json['paymentUrl'] as String? ?? json['checkoutUrl'] as String?,
+      orderId: (json['orderId'] ?? '').toString(),
+      orderCode: (json['orderCode'] ?? '').toString(),
+      paymentUrl: json['paymentUrl'] as String?,
     );
   }
 }
@@ -68,17 +75,13 @@ class OrderFulfillmentItemModel {
   });
 
   factory OrderFulfillmentItemModel.fromJson(Map<String, dynamic> json) {
-    final pid = (json['productId'] ?? '').toString();
-    final pCode = (json['productCode'] ?? '').toString();
-    final pName = (json['productName'] ?? '').toString();
-
     return OrderFulfillmentItemModel(
-      productId: pid,
-      productCode: pCode,
-      productName: pName,
-      expectedClassIds: (json['expectedClassIds'] as List<dynamic>? ?? const []).map((e) => e.toString()).toList(),
-      enrolledClassIds: (json['enrolledClassIds'] as List<dynamic>? ?? const []).map((e) => e.toString()).toList(),
-      missingClassIds: (json['missingClassIds'] as List<dynamic>? ?? const []).map((e) => e.toString()).toList(),
+      productId: json['productId'].toString(),
+      productCode: json['productCode'].toString(),
+      productName: json['productName'].toString(),
+      expectedClassIds: List<String>.from(json['expectedClassIds'] ?? []),
+      enrolledClassIds: List<String>.from(json['enrolledClassIds'] ?? []),
+      missingClassIds: List<String>.from(json['missingClassIds'] ?? []),
     );
   }
 }
@@ -103,25 +106,24 @@ class OrderFulfillmentSummaryModel {
   });
 
   factory OrderFulfillmentSummaryModel.fromJson(Map<String, dynamic> json) {
+    double toDouble(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0;
+      return double.tryParse(v.toString()) ?? 0;
+    }
+
     return OrderFulfillmentSummaryModel(
-      id: json['id'] as String? ?? '',
-      code: json['code'] as String? ?? '',
-      status: json['status'] as String? ?? '',
-      paidAt: json['paidAt'] != null ? DateTime.tryParse(json['paidAt'].toString()) : null,
-      grandTotal: _parseNum(json['grandTotal']).toDouble(),
-      currency: json['currency'] as String? ?? 'VND',
-      items: (json['items'] as List<dynamic>? ?? const [])
-          .whereType<Map>()
-          .map((e) => OrderFulfillmentItemModel.fromJson(e.cast<String, dynamic>()))
-          .toList(),
+      id: json['id'].toString(),
+      code: json['code'].toString(),
+      status: json['status'].toString(),
+      paidAt: json['paidAt'] != null ? DateTime.parse(json['paidAt'].toString()) : null,
+      grandTotal: toDouble(json['grandTotal']),
+      currency: json['currency']?.toString() ?? 'VND',
+      items: (json['items'] as List?)
+              ?.map((e) => OrderFulfillmentItemModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }
-
-num _parseNum(dynamic value) {
-  if (value == null) return 0;
-  if (value is num) return value;
-  if (value is String) return num.tryParse(value) ?? 0;
-  return 0;
-}
-

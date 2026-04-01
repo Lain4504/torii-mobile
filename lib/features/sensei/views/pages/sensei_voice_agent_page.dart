@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:math' as math;
+import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../providers/voice_agent_provider.dart';
 import '../widgets/sensei_quota_header.dart';
@@ -48,6 +49,19 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
     _pulseController.dispose();
     _waveController.dispose();
     super.dispose();
+  }
+
+  String _getFriendlyErrorMessage(String error) {
+    if (error.contains('microphone_permanently_denied')) {
+      return 'Ứng dụng đã bị từ chối quyền truy cập Micro. Vui lòng cấp lại quyền trong Cài đặt để sử dụng tính năng này.';
+    }
+    if (error.contains('microphone_denied')) {
+      return 'Bạn cần cấp quyền truy cập Micro để có thể hội thoại với AI Sensei.';
+    }
+    if (error.contains('quota_exceeded')) {
+      return 'Bạn đã hết lượt sử dụng AI Sensei hôm nay. Vui lòng nâng cấp gói để tiếp tục.';
+    }
+    return 'Lỗi kết nối: ${error.replaceFirst('Exception: ', '')}';
   }
 
   @override
@@ -98,11 +112,31 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Lỗi kết nối: ${voiceState.error}',
-                                style: TextStyle(color: theme.colorScheme.error, fontSize: 13),
+                                _getFriendlyErrorMessage(voiceState.error!),
+                                style: TextStyle(color: theme.colorScheme.error, fontSize: 13, fontWeight: FontWeight.w600),
                                 textAlign: TextAlign.center,
                               ),
-                              if (voiceState.errorCode == 'quota_exceeded') ...[
+                              if (voiceState.error!.contains('microphone_permanently_denied')) ...[
+                                const SizedBox(height: 12),
+                                ElevatedButton.icon(
+                                  onPressed: () => openAppSettings(),
+                                  icon: const Icon(Icons.settings_rounded, size: 18),
+                                  label: const Text('Cấp quyền trong Cài đặt'),
+                                  style: ElevatedButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                    backgroundColor: theme.colorScheme.error,
+                                    foregroundColor: theme.colorScheme.onError,
+                                  ),
+                                ),
+                              ] else if (voiceState.error!.contains('microphone_denied')) ...[
+                                const SizedBox(height: 12),
+                                ElevatedButton.icon(
+                                  onPressed: () => voiceNotifier.connect('japanese_tutor'),
+                                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                                  label: const Text('Thử lại'),
+                                  style: ElevatedButton.styleFrom(visualDensity: VisualDensity.compact),
+                                ),
+                              ] else if (voiceState.errorCode == 'quota_exceeded') ...[
                                 const SizedBox(height: 12),
                                 OutlinedButton.icon(
                                   onPressed: () => context.push('/sensei/subscription'),

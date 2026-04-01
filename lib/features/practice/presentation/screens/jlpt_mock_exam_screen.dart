@@ -41,6 +41,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
   String? _audioUrl;
   bool _audioLoading = false;
   bool _audioPlaying = false;
+  String? _activeMondaiCode;
 
   @override
   void initState() {
@@ -73,6 +74,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     setState(() {
       _template = template;
       _loading = false;
+      _activeMondaiCode = null;
     });
     _startTimer();
     _loadSectionMedia();
@@ -122,6 +124,69 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     return questions;
   }
 
+  Map<String, int> get _questionNoByTemplateQuestionId {
+    final map = <String, int>{};
+    final sorted = _sectionQuestions;
+    for (var i = 0; i < sorted.length; i++) {
+      map[sorted[i].id] = i + 1;
+    }
+    return map;
+  }
+
+  List<JlptMockMondaiModel> get _mondaiItems {
+    final section = _currentSection;
+    if (section == null) return const <JlptMockMondaiModel>[];
+    if (section.mondai.isNotEmpty) return section.mondai;
+
+    // Fallback: derive unique mondai codes from questions (API might omit section.mondai)
+    final seen = <String>{};
+    final items = <JlptMockMondaiModel>[];
+    for (final q in _sectionQuestions) {
+      final code = (q.mondai?.code ?? '').trim();
+      if (code.isEmpty) continue;
+      if (seen.add(code)) {
+        items.add(
+          JlptMockMondaiModel(
+            id: q.mondai?.id ?? '',
+            code: code,
+            titleVi: q.mondai?.titleVi,
+            titleJa: q.mondai?.titleJa,
+            descriptionVi: q.mondai?.descriptionVi,
+            orderIndex: items.length,
+            recommendedQuestionCount: q.mondai?.recommendedQuestionCount,
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  List<JlptMockTemplateQuestionModel> get _activeMondaiQuestions {
+    final items = _mondaiItems;
+    if (items.isEmpty) return _sectionQuestions;
+    final code = (_activeMondaiCode ?? items.first.code).trim();
+    return _sectionQuestions
+        .where((q) => (q.mondai?.code ?? '').trim() == code)
+        .toList();
+  }
+
+  String get _activeMondaiInstruction {
+    // Mirror web behavior: use server-provided instruction if present, otherwise fallback by index.
+    final fallback = const [
+      'のことばの読み方として最もよいものを、1・2・3・4から一つえらびなさい。',
+      'のことばを漢字で書くとき、最もよいものを、1・2・3・4から一つえらびなさい。',
+      '( )に入れるのに最もよいものを、1・2・3・4から一つえらびなさい。',
+      'に意味が最も近いものを、1・2・3・4から一つえらびなさい。',
+      'つぎのことばの使い方として最もよいものを、1・2・3・4から一つえらびなさい。',
+    ];
+
+    final items = _mondaiItems;
+    if (items.isEmpty) return fallback.first;
+    final idx = items.indexWhere((m) => m.code == _activeMondaiCode);
+    final safeIdx = (idx >= 0 ? idx : 0).clamp(0, fallback.length - 1);
+    return fallback[safeIdx];
+  }
+
   String get _countdownText {
     final m = _remaining.inMinutes.remainder(60).toString().padLeft(2, '0');
     final h = _remaining.inHours.toString().padLeft(2, '0');
@@ -132,7 +197,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
   Future<void> _loadSectionMedia() async {
     if (_template == null) return;
     final repo = ref.read(academyRepositoryProvider);
-    final questions = _sectionQuestions;
+    final questions = _activeMondaiQuestions;
     if (questions.isEmpty) return;
 
     setState(() {
@@ -246,6 +311,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
       _submitting = false;
       _sectionOrder = next?.currentSectionOrder ?? (_sectionOrder + 1);
       _endsAtIso = next?.endsAt;
+      _activeMondaiCode = null;
     });
     _startTimer();
     await _audioPlayer.stop();
@@ -277,7 +343,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     }
 
     final currentSection = _currentSection;
-    final questions = _sectionQuestions;
+    final questions = _activeMondaiQuestions;
     final sectionLabel = currentSection?.title.isNotEmpty == true
         ? currentSection!.title
         : 'Phần thi';
@@ -325,6 +391,68 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
               ),
             ),
           ),
+          if (_mondaiItems.isNotEmpty) ...[
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _mondaiItems.map((m) {
+                        final selected = (_activeMondaiCode ?? _mondaiItems.first.code) == m.code;
+                        final label = (m.titleJa ?? m.titleVi ?? m.code).trim();
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            selected: selected,
+                            label: Text(
+                              label.isEmpty ? m.code : label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onSelected: (_) async {
+                              setState(() => _activeMondaiCode = m.code);
+                              await _audioPlayer.stop();
+                              if (mounted) setState(() => _audioPlaying = false);
+                              await _loadSectionMedia();
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.8),
+                      ),
+                    ),
+                    child: Text(
+                      '問題${(_mondaiItems.indexWhere((m) => m.code == (_activeMondaiCode ?? _mondaiItems.first.code)) + 1).clamp(1, _mondaiItems.length)}　＿＿＿$_activeMondaiInstruction',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (_audioLoading)
             const Padding(
               padding: EdgeInsets.only(top: 10),
@@ -379,6 +507,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
               itemBuilder: (context, index) {
                 final q = questions[index];
+                final qNo = _questionNoByTemplateQuestionId[q.id] ?? (index + 1);
                 return Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -390,7 +519,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Câu ${index + 1}',
+                        'Câu $qNo',
                         style: theme.textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: theme.colorScheme.onSurfaceVariant,
@@ -453,7 +582,21 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
                                     : theme.colorScheme.outlineVariant,
                               ),
                             ),
-                            child: Text(opt.contentText),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  selected
+                                      ? Icons.check_circle_rounded
+                                      : Icons.radio_button_unchecked_rounded,
+                                  size: 20,
+                                  color: selected
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(child: Text(opt.contentText)),
+                              ],
+                            ),
                           ),
                         );
                       }),

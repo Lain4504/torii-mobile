@@ -91,9 +91,9 @@
 		<string>fb-messenger-share-api</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>Torii Meet cần quyền truy cập camera để bạn có thể tham gia cuộc họp video.</string>
+	<string>Ứng dụng cần quyền truy cập camera để thực hiện các tính năng video hội thoại và học tập.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Torii Meet cần quyền truy cập micro để bạn có thể gửi và nhận âm thanh trong cuộc họp.</string>
+	<string>Ứng dụng cần quyền truy cập micro để bạn có thể thực hiện hội thoại bằng giọng nói với AI Sensei và giáo viên.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

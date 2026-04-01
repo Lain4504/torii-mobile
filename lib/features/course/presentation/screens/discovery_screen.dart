@@ -2,420 +2,334 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
-import 'package:torii_app/data/models/class_catalog_model.dart';
+import 'package:torii_app/data/models/academy_models.dart';
 
-class CourseDiscoveryScreen extends ConsumerStatefulWidget {
-  const CourseDiscoveryScreen({super.key});
+class DiscoveryScreen extends ConsumerStatefulWidget {
+  const DiscoveryScreen({super.key});
 
   @override
-  ConsumerState<CourseDiscoveryScreen> createState() =>
-      _CourseDiscoveryScreenState();
+  ConsumerState<DiscoveryScreen> createState() => _DiscoveryScreenState();
 }
 
-class _CourseDiscoveryScreenState extends ConsumerState<CourseDiscoveryScreen> {
-  static const List<String> _levels = ['Tất cả', 'N5', 'N4', 'N3', 'N2', 'N1'];
+class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   String _selectedLevel = 'Tất cả';
-  String? _lastUrlLevel;
+  final List<String> _levels = ['Tất cả', 'N5', 'N4', 'N3', 'N2', 'N1'];
 
   @override
   Widget build(BuildContext context) {
-    final rawLevel = GoRouterState.of(context).uri.queryParameters['level'];
-    final urlLevel = (rawLevel == null || rawLevel.trim().isEmpty)
-        ? null
-        : rawLevel.trim().toUpperCase();
-    if (urlLevel != _lastUrlLevel) {
-      _lastUrlLevel = urlLevel;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final nextLevel = _levels.contains(urlLevel) ? urlLevel! : 'Tất cả';
-        if (_selectedLevel == nextLevel) return;
-        setState(() => _selectedLevel = nextLevel);
-      });
-    }
-    final effectiveLevel = _selectedLevel == 'Tất cả'
-        ? urlLevel
-        : _selectedLevel;
-    final level =
-        (effectiveLevel == null ||
-            effectiveLevel.isEmpty ||
-            effectiveLevel == 'TẤT CẢ')
-        ? null
-        : effectiveLevel;
-    final liveAsync = ref.watch(classCatalogLiveProvider(level));
-    final vodAsync = ref.watch(classCatalogVodProvider(level));
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width > 900;
+
+    // Correctly process level for provider
+    final effectiveLevel = _selectedLevel == 'Tất cả' ? null : _selectedLevel;
+    final liveAsync = ref.watch(classCatalogLiveProvider(effectiveLevel));
+    final vodAsync = ref.watch(classCatalogVodProvider(effectiveLevel));
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(context, theme),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: _buildLevelFilter(theme),
+            ),
+          ),
+          _buildSectionHeader(theme, 'Lớp học trực tuyến (LIVE)', 'Khai giảng định kỳ với giáo viên'),
+          _buildProductGrid(liveAsync, isDesktop, true),
+          const SliverToBoxAdapter(child: SizedBox(height: 32)),
+          _buildSectionHeader(theme, 'Khóa học tự học (VOD)', 'Học mọi lúc mọi nơi với video bài giảng'),
+          _buildProductGrid(vodAsync, isDesktop, false),
+          const SliverToBoxAdapter(child: SizedBox(height: 48)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context, ThemeData theme) {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: true,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: theme.colorScheme.surface,
+      surfaceTintColor: Colors.transparent,
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: false,
+        titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         title: Text(
           'Khám phá khóa học',
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: AppTypography.extraBold,
             color: theme.colorScheme.onSurface,
-            fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: theme.colorScheme.surface,
-        elevation: 0,
       ),
-      body: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        children: [
-          Text(
-            'Lọc theo trình độ',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: IconButton(
+            onPressed: () {},
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.search,
+                color: theme.colorScheme.primary,
+                size: 20,
+              ),
             ),
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _levels.map((lv) {
-              final selected = _selectedLevel == lv;
-              return ChoiceChip(
-                selected: selected,
-                label: Text(lv),
-                onSelected: (_) => setState(() => _selectedLevel = lv),
-                selectedColor: AppColors.primary.withValues(alpha: 0.15),
-                labelStyle: TextStyle(
-                  color: selected
-                      ? AppColors.primary
-                      : theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Lớp Live sắp mở',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLevelFilter(ThemeData theme) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: _levels.map((lvl) {
+          final isSelected = _selectedLevel == lvl;
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: ChoiceChip(
+              label: Text(lvl),
+              selected: isSelected,
+              onSelected: (val) {
+                if (val) setState(() => _selectedLevel = lvl);
+              },
+              side: BorderSide.none,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : theme.colorScheme.onSurface,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+              selectedColor: theme.colorScheme.primary,
+              backgroundColor: theme.colorScheme.surfaceVariant.withValues(alpha: 0.5),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Ưu tiên lớp N3, N5 trong kỳ hiện tại.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildList(context, liveAsync, isLive: true),
-          const SizedBox(height: 20),
-          Text(
-            'Khóa VOD',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildList(context, vodAsync, isLive: false),
-        ],
+          );
+        }).toList(),
       ),
     );
   }
 
-  Widget _buildList(
-    BuildContext context,
-    AsyncValue<List<ClassCatalogItemModel>> async, {
-    required bool isLive,
-  }) {
-    return async.when(
-      data: (list) {
-        final sorted = isLive ? _sortLiveUpcoming(list) : list;
-        if (sorted.isEmpty) {
-          return _buildEmptySectionCard(context, isLive: isLive);
+  Widget _buildSectionHeader(ThemeData theme, String title, String subtitle) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductGrid(
+    AsyncValue<List<AcademyProductModel>> asyncValue,
+    bool isDesktop,
+    bool isLive,
+  ) {
+    return asyncValue.when(
+      data: (items) {
+        if (items.isEmpty) {
+          return const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: Center(child: Text('Không có khóa học nào phù hợp.')),
+            ),
+          );
         }
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: sorted.length,
-          itemBuilder: (context, index) =>
-              _buildCourseCard(context, sorted[index], isLive: isLive),
+        return SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          sliver: SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: isDesktop ? 3 : 1,
+              mainAxisSpacing: 24,
+              crossAxisSpacing: 24,
+              childAspectRatio: isDesktop ? 0.85 : 1.1,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => _buildProductCard(context, items[index]),
+              childCount: items.length,
+            ),
+          ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(
-        child: _buildEmptySectionCard(
-          context,
-          isLive: isLive,
-          message: 'Không tải được dữ liệu. Hãy thử lại sau.',
-        ),
+      loading: () => const SliverToBoxAdapter(
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => SliverToBoxAdapter(
+        child: Center(child: Text('Lỗi tải dữ liệu: $e')),
       ),
     );
   }
 
-  Widget _buildEmptySectionCard(
-    BuildContext context, {
-    required bool isLive,
-    String? message,
-  }) {
+  Widget _buildProductCard(BuildContext context, AcademyProductModel item) {
     final theme = Theme.of(context);
-    final title = isLive
-        ? 'Chưa có lớp LIVE phù hợp'
-        : 'Chưa có khóa VOD phù hợp';
-    final desc =
-        message ??
-        'Bạn có thể đổi bộ lọc trình độ hoặc quay lại sau để xem thêm nội dung mới.';
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+    final priceStr = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(item.displayPrice);
+    
+    return GestureDetector(
+      onTap: () {
+        context.push('/course-detail/${item.id}?mode=${item.mode}');
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.primary.withValues(alpha: 0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
-            child: Icon(
-              isLive ? Icons.live_tv_rounded : Icons.ondemand_video_rounded,
-              color: theme.colorScheme.primary,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  desc,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<ClassCatalogItemModel> _sortLiveUpcoming(
-    List<ClassCatalogItemModel> list,
-  ) {
-    final now = DateTime.now();
-    final copied = [...list];
-    copied.sort((a, b) {
-      final pa = _livePriority(a);
-      final pb = _livePriority(b);
-      if (pa != pb) return pa.compareTo(pb);
-      final da = a.openingDate;
-      final db = b.openingDate;
-      if (da == null && db == null) return 0;
-      if (da == null) return 1;
-      if (db == null) return -1;
-      final aPast = da.isBefore(now);
-      final bPast = db.isBefore(now);
-      if (aPast != bPast) return aPast ? 1 : -1;
-      return da.compareTo(db);
-    });
-    return copied;
-  }
-
-  int _livePriority(ClassCatalogItemModel item) {
-    final level = (item.jlptLevel ?? '').toUpperCase();
-    if (level == 'N3') return 0;
-    if (level == 'N5') return 1;
-    return 2;
-  }
-
-  Widget _buildCourseCard(
-    BuildContext context,
-    ClassCatalogItemModel c, {
-    required bool isLive,
-  }) {
-    final priceStr =
-        '${c.catalogPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
-    final thumb =
-        c.thumbnailUrl ?? 'https://picsum.photos/seed/c${c.id}/600/300';
-    final title = c.name.isNotEmpty ? c.name : (c.profileTitle ?? 'Khóa học');
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.04),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
-                child: Image.network(
-                  thumb,
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, error, stackTrace) => Container(
-                    height: 160,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                    child: const Icon(Icons.school, size: 48),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                left: 12,
-                child: Row(
-                  children: [
-                    if (c.jlptLevel != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          c.jlptLevel!,
-                          style: const TextStyle(
-                            color: AppColors.textOnPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 5,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                      child: Image.network(
+                        item.thumbnailUrl ?? 'https://picsum.photos/seed/${item.id}/600/400',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                          child: Icon(Icons.school, size: 48, color: theme.colorScheme.primary),
                         ),
                       ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isLive ? AppColors.error : AppColors.primary,
-                        borderRadius: BorderRadius.circular(12),
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(30),
                       ),
                       child: Text(
-                        isLive ? 'LIVE' : 'VOD',
+                        item.jlptLevel ?? 'N/A',
                         style: const TextStyle(
-                          color: AppColors.textOnPrimary,
-                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                           fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
+                    ),
+                  ),
+                  if (item.isLive && item.startDate != null)
+                    Positioned(
+                      bottom: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Khai giảng: ${DateFormat('dd/MM').format(item.startDate!)}',
+                          style: const TextStyle(color: Colors.white, fontSize: 11),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.name,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (item.discountPrice != null)
+                              Text(
+                                NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(item.price),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                                ),
+                              ),
+                            Text(
+                              priceStr,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Mã: ${c.code}',
-                  style: TextStyle(fontSize: 12, color: AppColors.grey700),
-                ),
-                if (isLive && c.openingDate != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    'Khai giảng: ${DateFormat('dd/MM/yyyy').format(c.openingDate!)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.grey700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      priceStr,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (isLive) {
-                          context.push('/course-live/${c.id}');
-                        } else {
-                          context.push('/course-detail/${c.id}');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Xem chi tiết',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

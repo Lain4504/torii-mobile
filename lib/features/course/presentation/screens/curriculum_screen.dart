@@ -62,7 +62,7 @@ class CurriculumScreen extends ConsumerWidget {
             return const Center(child: Text('Không tìm thấy dữ liệu khóa học'));
           }
 
-          final modules = detail.modules
+          final modules = (detail.modules ?? [])
               .map((m) => CurriculumModuleModel.fromJson(m))
               .toList();
 
@@ -84,11 +84,11 @@ class CurriculumScreen extends ConsumerWidget {
               children: [
                 _buildCourseHeaderCard(
                   theme: theme,
-                  title: detail.item.name.isNotEmpty
-                      ? detail.item.name
-                      : (detail.item.profileTitle ?? ''),
-                  code: detail.item.code,
-                  descriptionHtml: detail.descriptionHtml,
+                  title: detail.name.isNotEmpty
+                      ? detail.name
+                      : '',
+                  code: detail.code ?? '',
+                  descriptionHtml: detail.description,
                   totalLessons: totalLessons,
                   totalModules: totalModules,
                 ),

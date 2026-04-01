@@ -68,8 +68,11 @@ class VoiceAgentNotifier extends StateNotifier<VoiceAgentState> {
     try {
       // 1. Request Mic Permissions
       final status = await Permission.microphone.request();
+      if (status.isPermanentlyDenied) {
+        throw Exception('microphone_permanently_denied');
+      }
       if (!status.isGranted) {
-        throw Exception('Microphone permission is required.');
+        throw Exception('microphone_denied');
       }
 
       // 2. Get credentials

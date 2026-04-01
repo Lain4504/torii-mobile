@@ -60,7 +60,7 @@ class PracticeHomeScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Thẻ ghi nhớ của tôi',
+                          'Thẻ ghi nhớ',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),

@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 
+import '../database/app_database.dart';
 import '../models/academy_models.dart';
-import '../models/class_catalog_model.dart';
+// Removed legacy import
 import '../models/checkout_models.dart';
 import '../models/jlpt_mock_models.dart';
 import '../models/live_schedule_model.dart';
@@ -12,54 +13,43 @@ import '../../core/models/paginated_response.dart';
 
 /// Academy API: course offerings (public), enrollments/me, orders/my, live-sessions/me (lịch học viên)
 class AcademyRepository {
-  const AcademyRepository(this._dio);
+  const AcademyRepository(this._dio, [this._database]);
 
   final Dio _dio;
+  final AppDatabase? _database;
 
-  // ---------- Class catalog (learner) — thay cho course-offerings/public ----------
-  /// GET /api/academy/live-classes/public?mode=LIVE|VOD&level=&month=&q=
-  Future<List<ClassCatalogItemModel>> getPublicClassCatalog({
+  // ---------- Class catalog (learner) ----------
+  /// GET /api/academy/cohorts/public or /api/academy/vod-packages/public
+  Future<List<AcademyProductModel>> getPublicClassCatalog({
     required String mode,
     String? level,
-    String? month,
     String? q,
+    String? month, // Legacy field, might no longer be used by new API
   }) async {
+    final path = mode.toUpperCase() == 'LIVE'
+        ? '/api/academy/cohorts/public'
+        : '/api/academy/vod-packages/public';
+
     final response = await _dio.get<Map<String, dynamic>>(
-      '/api/academy/live-classes/public',
+      path,
       queryParameters: <String, dynamic>{
-        'mode': mode,
-        if (level != null && level.isNotEmpty) 'level': level,
-        if (month != null && month.isNotEmpty) 'month': month,
+        if (level != null && level.isNotEmpty && level != 'Tất cả') 'level': level,
         if (q != null && q.isNotEmpty) 'q': q,
       },
     );
+    
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return [];
+    
     final items = api.data!['items'] as List<dynamic>? ?? [];
     return items.map((e) {
       final raw = Map<String, dynamic>.from(e as Map);
       raw['mode'] = mode.toUpperCase();
-      return ClassCatalogItemModel.fromJson(raw);
+      return AcademyProductModel.fromJson(raw);
     }).toList();
   }
 
-  /// GET /api/academy/live-classes/public/:id?mode=LIVE|VOD
-  Future<ClassCatalogDetailModel?> getPublicClassCatalogById(
-    String id, {
-    required String mode,
-  }) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/api/academy/live-classes/public/$id',
-      queryParameters: <String, dynamic>{'mode': mode},
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return null;
-    final item = api.data!['item'];
-    if (item is! Map) return null;
-    return ClassCatalogDetailModel.fromJson(Map<String, dynamic>.from(item));
-  }
-
-  /// Product details (VOD/LIVE) for curriculum / lesson (enrollment has `productId`/`offeringId`).
+  /// GET /api/academy/cohorts/public/:id or /api/academy/vod-packages/public/:id
   Future<AcademyProductModel?> getPublicProductById(
     String id, {
     String mode = 'LIVE',
@@ -71,13 +61,12 @@ class AcademyRepository {
     final response = await _dio.get<Map<String, dynamic>>(path);
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
     if (!api.success || api.data == null) return null;
-    final raw = api.data!;
-    final item = raw['item'] ?? raw['data'] ?? raw;
-    if (item is Map<String, dynamic>) {
-      return AcademyProductModel.fromJson(item);
-    }
+    
+    final item = api.data!['item'];
     if (item is Map) {
-      return AcademyProductModel.fromJson(item.cast<String, dynamic>());
+      final raw = Map<String, dynamic>.from(item);
+      raw['mode'] = mode.toUpperCase();
+      return AcademyProductModel.fromJson(raw);
     }
     return null;
   }
@@ -97,48 +86,25 @@ class AcademyRepository {
         if (status != null && status.isNotEmpty) 'status': status,
       },
     );
-    final body = response.data ?? {};
-    if (body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to fetch enrollments');
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) {
+      throw Exception(api.message ?? 'Không thể tải danh sách khóa học');
     }
 
-    // API shape: { success, data: { items, total, page, limit, totalPages } }
-    final inner = body['data'];
-    final List<dynamic> items;
-    int total;
-    int totalPages;
-
-    if (inner is Map<String, dynamic>) {
-      items = inner['items'] as List<dynamic>? ?? [];
-      total = (inner['total'] as num?)?.toInt() ?? items.length;
-      totalPages = (inner['totalPages'] as num?)?.toInt() ?? 1;
-    } else {
-      items = body['items'] as List<dynamic>? ?? [];
-      total = (body['total'] as num?)?.toInt() ?? items.length;
-      totalPages = (body['totalPages'] as num?)?.toInt() ?? 1;
-    }
+    final data = api.data!;
+    final items = data['items'] as List<dynamic>? ?? [];
 
     return PaginatedResponse<EnrollmentModel>(
-      data: items
-          .map((e) => EnrollmentModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      total: total,
-      page:
-          (inner is Map<String, dynamic>
-              ? (inner['page'] as num?)?.toInt()
-              : (body['page'] as num?)?.toInt()) ??
-          1,
-      limit:
-          (inner is Map<String, dynamic>
-              ? (inner['limit'] as num?)?.toInt()
-              : (body['limit'] as num?)?.toInt()) ??
-          limit,
-      totalPages: totalPages,
+      data: items.map((e) => EnrollmentModel.fromJson(e as Map<String, dynamic>)).toList(),
+      total: (data['total'] as num? ?? items.length).toInt(),
+      page: (data['page'] as num? ?? page).toInt(),
+      limit: (data['limit'] as num? ?? limit).toInt(),
+      totalPages: (data['totalPages'] as num? ?? 1).toInt(),
     );
   }
 
   // ---------- Orders (my) ----------
-  /// GET /api/academy/orders/my - gateway returns successResponse(result) with result = { data, total, page, limit, totalPages }
+  /// GET /api/academy/orders/my
   Future<PaginatedResponse<OrderModel>> getMyOrders({
     int page = 1,
     int limit = 20,
@@ -154,43 +120,20 @@ class AcademyRepository {
         if (search != null && search.isNotEmpty) 'search': search,
       },
     );
-    final body = response.data ?? {};
-    if (body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to fetch orders');
+    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+    if (!api.success || api.data == null) {
+      throw Exception(api.message ?? 'Không thể tải danh sách đơn hàng');
     }
-    final inner = body['data'];
-    final List<dynamic> data;
-    int total;
-    int totalPages;
-    if (inner is Map<String, dynamic>) {
-      data =
-          inner['data'] as List<dynamic>? ??
-          inner['items'] as List<dynamic>? ??
-          [];
-      total = (inner['total'] as num?)?.toInt() ?? data.length;
-      totalPages = (inner['totalPages'] as num?)?.toInt() ?? 1;
-    } else {
-      data =
-          body['data'] as List<dynamic>? ??
-          body['items'] as List<dynamic>? ??
-          [];
-      total = (body['total'] as num?)?.toInt() ?? data.length;
-      totalPages = (body['totalPages'] as num?)?.toInt() ?? 1;
-    }
+
+    final data = api.data!;
+    final items = data['items'] as List<dynamic>? ?? data['data'] as List<dynamic>? ?? [];
+
     return PaginatedResponse<OrderModel>(
-      data: data
-          .map((e) => OrderModel.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      total: total,
-      page:
-          (body['page'] as num?)?.toInt() ??
-          (inner is Map ? (inner['page'] as num?)?.toInt() : null) ??
-          1,
-      limit:
-          (body['limit'] as num?)?.toInt() ??
-          (inner is Map ? (inner['limit'] as num?)?.toInt() : null) ??
-          limit,
-      totalPages: totalPages,
+      data: items.map((e) => OrderModel.fromJson(e as Map<String, dynamic>)).toList(),
+      total: (data['total'] as num? ?? items.length).toInt(),
+      page: (data['page'] as num? ?? page).toInt(),
+      limit: (data['limit'] as num? ?? limit).toInt(),
+      totalPages: (data['totalPages'] as num? ?? 1).toInt(),
     );
   }
 
@@ -219,55 +162,86 @@ class AcademyRepository {
     return null;
   }
 
-  /// POST /api/academy/orders/preview
-  Future<OrderPreviewModel> previewOrder({
+  /// Preview order: `POST /api/academy/orders/preview`
+  Future<OrderPreviewModel?> previewOrder({
     required String productId,
+    required String mode,
     String? classId,
     String? couponCode,
   }) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/academy/orders/preview',
-      data: <String, dynamic>{
-        'productIds': [productId],
-        if (classId != null && classId.isNotEmpty)
-          'classIdByProduct': {productId: classId},
-        if (couponCode != null && couponCode.trim().isNotEmpty)
-          'couponCode': couponCode.trim(),
-      },
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) {
-      throw Exception(api.message ?? 'Failed to preview order');
+    final isLive = mode.toUpperCase() == 'LIVE';
+    
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/academy/orders/preview',
+        data: <String, dynamic>{
+          if (isLive) 'cohortIds': [productId] else 'vodPackageIds': [productId],
+          if (isLive && classId != null && classId.isNotEmpty)
+            'liveClassIdByCohort': <String, String>{productId: classId},
+          if (couponCode != null && couponCode.trim().isNotEmpty)
+            'couponCode': couponCode.trim(),
+        },
+      );
+
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) {
+        throw Exception(api.message ?? 'Không thể tải thông tin thanh toán');
+      }
+      
+      return OrderPreviewModel.fromJson(api.data!);
+    } on DioException catch (e) {
+      final msg = _extractErrorMessage(e);
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Lỗi hệ thống: $e');
     }
-    final raw = api.data!;
-    return OrderPreviewModel.fromJson(raw);
   }
 
-  /// POST /api/academy/orders/checkout
-  Future<OrderCheckoutResultModel> checkoutOrder({
+  /// Create order: `POST /api/academy/orders/checkout`
+  Future<OrderCheckoutResultModel?> checkoutOrder({
     required String productId,
+    required String mode,
     String? classId,
-    String paymentMethod = 'PAYOS',
+    required String paymentMethod,
     String? couponCode,
     Map<String, dynamic>? metadata,
   }) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/academy/orders/checkout',
-      data: <String, dynamic>{
-        'productIds': [productId],
-        if (classId != null && classId.isNotEmpty)
-          'classIdByProduct': {productId: classId},
-        'paymentMethod': paymentMethod,
-        if (couponCode != null && couponCode.trim().isNotEmpty)
-          'couponCode': couponCode.trim(),
-        if (metadata != null) 'metadata': metadata,
-      },
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) {
-      throw Exception(api.message ?? 'Failed to create order');
+    final isLive = mode.toUpperCase() == 'LIVE';
+    
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/academy/orders/checkout',
+        data: <String, dynamic>{
+          if (isLive) 'cohortIds': [productId] else 'vodPackageIds': [productId],
+          if (isLive && classId != null && classId.isNotEmpty)
+            'liveClassIdByCohort': <String, String>{productId: classId},
+          'paymentMethod': paymentMethod.toUpperCase(),
+          if (couponCode != null && couponCode.trim().isNotEmpty)
+            'couponCode': couponCode.trim(),
+          if (metadata != null) 'metadata': metadata,
+        },
+      );
+
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) {
+        throw Exception(api.message ?? 'Không thể tạo đơn hàng');
+      }
+      
+      return OrderCheckoutResultModel.fromJson(api.data!);
+    } on DioException catch (e) {
+      final msg = _extractErrorMessage(e);
+      throw Exception(msg);
+    } catch (e) {
+      throw Exception('Lỗi hệ thống: $e');
     }
-    return OrderCheckoutResultModel.fromJson(api.data!);
+  }
+
+  String _extractErrorMessage(DioException e) {
+    if (e.response?.data is Map) {
+      final data = e.response!.data as Map;
+      return data['message']?.toString() ?? 'Lỗi kết nối server';
+    }
+    return e.message ?? 'Lỗi kết nối. Vui lòng thử lại.';
   }
 
   /// GET /api/academy/orders/by-code/:orderCode (fulfillment summary for current user)
@@ -439,38 +413,122 @@ class AcademyRepository {
   // ---------- Study sets ----------
   /// GET /api/academy/study-sets
   Future<List<StudySetModel>> getStudySets() async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/api/academy/study-sets',
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return [];
-    final items = api.data!['items'] as List<dynamic>? ?? [];
-    return items
-        .map((e) => StudySetModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/study-sets',
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (api.success && api.data != null) {
+        final items = api.data!['items'] as List<dynamic>? ?? [];
+        final sets = items
+            .map((e) => StudySetModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+        
+        // Background cache update
+        _database?.saveStudySets(sets);
+        
+        return sets;
+      }
+    } catch (e) {
+      // Fallback to cache on error (e.g. offline)
+      if (_database != null) {
+        final cached = await _database!.getStudySets();
+        if (cached != null) return cached;
+      }
+    }
+    return [];
+  }
+
+  /// GET /api/academy/study-set-catalogs
+  Future<List<StudySetModel>> getPublicStudySets({String? q}) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/study-set-catalogs',
+        queryParameters: {
+          if (q != null && q.trim().isNotEmpty) 'q': q,
+        },
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (api.success && api.data != null) {
+        final items = api.data!['items'] as List<dynamic>? ?? [];
+        return items
+            .map((e) => StudySetModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// POST /api/academy/study-set-catalogs/:id/clone
+  Future<StudySetModel?> cloneStudySet(String sourceId) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/academy/study-set-catalogs/$sourceId/clone',
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (api.success && api.data != null) {
+        final item = api.data!['item'];
+        if (item is Map<String, dynamic>) return StudySetModel.fromJson(item);
+      }
+    } catch (_) {}
+    return null;
   }
 
   /// GET /api/academy/study-sets/:id
   Future<Map<String, dynamic>?> getStudySetById(String id) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/api/academy/study-sets/$id',
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return null;
-    return api.data!;
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/study-sets/$id',
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (api.success && api.data != null) {
+        final item = api.data!['item'];
+        if (item is Map) {
+          final res = Map<String, dynamic>.from(item);
+
+          // Injection: Ensure cardCount is accessible at top level (mirrors StudySetModel.fromJson)
+          if (res['cardCount'] == null || res['cardCount'] == 0) {
+            final count = res['_count'];
+            if (count is Map && count.containsKey('setCards')) {
+              res['cardCount'] = (count['setCards'] as num?)?.toInt();
+            }
+          }
+
+          _database?.saveStudySetDetail(id, res);
+          return res;
+        }
+      }
+    } catch (_) {
+      if (_database != null) {
+        return await _database!.getStudySetDetail(id);
+      }
+    }
+    return null;
   }
 
   /// GET /api/academy/study-sets/:id/study
   Future<List<SetCardModel>> getStudyCards(String setId) async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/api/academy/study-sets/$setId/study',
-    );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return [];
-    final items = api.data!['items'] as List<dynamic>? ?? [];
-    return items
-        .map((e) => SetCardModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/study-sets/$setId/study',
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (api.success && api.data != null) {
+        final items = api.data!['items'] as List<dynamic>? ?? [];
+        final cards = items
+            .map((e) => SetCardModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+            
+        _database?.saveStudyCards(setId, cards);
+        return cards;
+      }
+    } catch (_) {
+      if (_database != null) {
+        final cached = await _database!.getStudyCards(setId);
+        if (cached != null) return cached;
+      }
+    }
+    return [];
   }
 
   /// POST /api/academy/set-cards/:id/review - body { quality: 0|1 }
@@ -585,6 +643,20 @@ class AcademyRepository {
       final response = await _dio.patch<Map<String, dynamic>>(
         '/api/academy/study-sets/$setId',
         data: <String, dynamic>{'title': title, 'description': description},
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(
+        response.data ?? {},
+      );
+      return api.success == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteStudySet({required String setId}) async {
+    try {
+      final response = await _dio.delete<Map<String, dynamic>>(
+        '/api/academy/study-sets/$setId',
       );
       final api = ApiResponse<Map<String, dynamic>>.fromJson(
         response.data ?? {},

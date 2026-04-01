@@ -33,6 +33,13 @@ class BlogModel {
   });
 
   factory BlogModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? double.tryParse(v)?.toInt() ?? 0;
+      return int.tryParse(v.toString()) ?? double.tryParse(v.toString())?.toInt() ?? 0;
+    }
+
     return BlogModel(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -45,7 +52,7 @@ class BlogModel {
       publishedAt: json['publishedAt'] != null
           ? DateTime.tryParse(json['publishedAt'].toString())
           : null,
-      viewCount: (json['viewCount'] as num?)?.toInt() ?? 0,
+      viewCount: toInt(json['viewCount']),
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       createdAt: DateTime.parse(json['createdAt'].toString()),
       updatedAt: DateTime.parse(json['updatedAt'].toString()),

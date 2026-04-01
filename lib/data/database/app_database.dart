@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/study_set_models.dart';
 
 /// Kiểu dữ liệu nội bộ lưu trong local storage.
 class UserProfileEntity {
@@ -118,6 +119,74 @@ class AppDatabase {
   Future<void> clearUserProfile() async {
     final prefs = await _prefs;
     await prefs.remove(_userProfileKey);
+  }
+
+  // ---------- Offline Caching for Study Sets ----------
+  
+  static const String _studySetsKey = 'cached_study_sets';
+  static const String _studyCardsPrefix = 'cached_cards_';
+  static const String _studyDetailPrefix = 'cached_detail_';
+
+  Future<void> saveStudySets(List<StudySetModel> sets) async {
+    final prefs = await _prefs;
+    final data = jsonEncode(sets.map((e) => e.toJson()).toList());
+    await prefs.setString(_studySetsKey, data);
+  }
+
+  Future<List<StudySetModel>?> getStudySets() async {
+    final prefs = await _prefs;
+    final data = prefs.getString(_studySetsKey);
+    if (data == null) return null;
+    try {
+      final list = jsonDecode(data) as List;
+      return list.map((e) => StudySetModel.fromJson(Map<String, dynamic>.from(e))).toList();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveStudyCards(String setId, List<SetCardModel> cards) async {
+    final prefs = await _prefs;
+    final data = jsonEncode(cards.map((e) => e.toJson()).toList());
+    await prefs.setString('${_studyCardsPrefix}$setId', data);
+  }
+
+  Future<List<SetCardModel>?> getStudyCards(String setId) async {
+    final prefs = await _prefs;
+    final data = prefs.getString('${_studyCardsPrefix}$setId');
+    if (data == null) return null;
+    try {
+      final list = jsonDecode(data) as List;
+      return list.map((e) => SetCardModel.fromJson(Map<String, dynamic>.from(e))).toList();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveStudySetDetail(String setId, Map<String, dynamic> detail) async {
+    final prefs = await _prefs;
+    await prefs.setString('${_studyDetailPrefix}$setId', jsonEncode(detail));
+  }
+
+  Future<Map<String, dynamic>?> getStudySetDetail(String setId) async {
+    final prefs = await _prefs;
+    final data = prefs.getString('${_studyDetailPrefix}$setId');
+    if (data == null) return null;
+    try {
+      return jsonDecode(data) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> clearStudySetCache() async {
+    final prefs = await _prefs;
+    final keys = prefs.getKeys().where((k) => 
+        k == _studySetsKey || 
+        k.startsWith(_studyCardsPrefix) || 
+        k.startsWith(_studyDetailPrefix)
+    ).toList();
+    for (final k in keys) await prefs.remove(k);
   }
 }
 

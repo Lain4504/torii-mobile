@@ -279,7 +279,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                 }
                                 final useProgress =
                                     !progressDisabled && classId.isNotEmpty;
-                                final modules = detail.modules
+                                final modules = (detail.modules ?? [])
                                     .map(
                                       (m) => CurriculumModuleModel.fromJson(m),
                                     )

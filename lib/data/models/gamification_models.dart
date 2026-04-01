@@ -169,6 +169,13 @@ class LeaderboardUserModel {
   });
 
   factory LeaderboardUserModel.fromJson(Map<String, dynamic> json) {
+    int? toIntNullable(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? double.tryParse(v)?.toInt();
+      return int.tryParse(v.toString()) ?? double.tryParse(v.toString())?.toInt();
+    }
+
     return LeaderboardUserModel(
       id: json['id'] as String,
       displayName: json['displayName'] as String? ?? 'Học viên',
@@ -176,7 +183,7 @@ class LeaderboardUserModel {
       xp: (json['xp'] as num?)?.toInt() ?? (json['totalXp'] as num?)?.toInt() ?? 0,
       level: (json['level'] as num?)?.toInt() ?? 1,
       rank: (json['rank'] as num?)?.toInt() ?? 0,
-      currentStreak: (json['currentStreak'] as num?)?.toInt(),
+      currentStreak: toIntNullable(json['currentStreak']),
     );
   }
 }

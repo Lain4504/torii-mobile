@@ -12,6 +12,17 @@ class JlptMockLevelsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Thi thử JLPT'),
+        leading: IconButton(
+          tooltip: 'Quay lại',
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+              return;
+            }
+            context.go('/practice');
+          },
+          icon: const Icon(Icons.arrow_back_rounded),
+        ),
         actions: [
           IconButton(
             tooltip: 'Lịch sử',
