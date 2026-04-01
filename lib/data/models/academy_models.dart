@@ -39,6 +39,13 @@ class AcademyProductModel {
   });
 
   factory AcademyProductModel.fromJson(Map<String, dynamic> json) {
+    double? toDouble(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v);
+      return double.tryParse(v.toString());
+    }
+
     final cp = json['courseProfile'] as Map<String, dynamic>?;
     final mode = json['mode']?.toString().toUpperCase() ?? 
                 (json['enrollmentCloseAt'] != null ? 'LIVE' : 'VOD');
@@ -48,8 +55,8 @@ class AcademyProductModel {
       code: json['code'] as String?,
       name: (json['name'] ?? cp?['title'] ?? '').toString(),
       description: (json['description'] ?? cp?['description'])?.toString(),
-      price: (json['price'] as num).toDouble(),
-      discountPrice: (json['discountPrice'] as num?)?.toDouble() ?? (json['salePrice'] as num?)?.toDouble(),
+      price: toDouble(json['price']) ?? 0,
+      discountPrice: toDouble(json['discountPrice']) ?? toDouble(json['salePrice']),
       status: json['status'] as String?,
       mode: mode,
       thumbnailUrl: (json['thumbnailUrl'] ?? cp?['thumbnailUrl'])?.toString(),
@@ -105,7 +112,21 @@ class EnrollmentModel {
   });
 
   factory EnrollmentModel.fromJson(Map<String, dynamic> json) {
-    final progressVal = (json['progressPercent'] as num? ?? json['progress'] as num? ?? 0).toDouble();
+    double toDouble(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0;
+      return double.tryParse(v.toString()) ?? 0;
+    }
+
+    int toInt(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? (double.tryParse(v)?.toInt() ?? 0);
+      return int.tryParse(v.toString()) ?? (double.tryParse(v.toString())?.toInt() ?? 0);
+    }
+
+    final progressVal = toDouble(json['progressPercent'] ?? json['progress']);
     
     return EnrollmentModel(
       id: json['id'].toString(),
@@ -121,8 +142,8 @@ class EnrollmentModel {
       thumbnailUrl: json['thumbnailUrl'] as String?,
       instructor: json['instructor'] as Map<String, dynamic>?,
       progress: (progressVal / 100.0).clamp(0.0, 1.0),
-      completedLessons: (json['completedLessons'] as num? ?? 0).toInt(),
-      totalLessons: (json['totalLessons'] as num? ?? 0).toInt(),
+      completedLessons: toInt(json['completedLessons']),
+      totalLessons: toInt(json['totalLessons']),
     );
   }
 
@@ -161,11 +182,18 @@ class OrderModel {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    double toDouble(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0;
+      return double.tryParse(v.toString()) ?? 0;
+    }
+
     return OrderModel(
       id: json['id'].toString(),
       code: json['code'] as String?,
       userId: json['userId'].toString(),
-      amount: (json['grandTotal'] as num? ?? json['amount'] as num).toDouble(),
+      amount: toDouble(json['grandTotal'] ?? json['amount']),
       currency: json['currency'] as String? ?? 'VND',
       status: json['status']?.toString() ?? 'PENDING',
       courseName: json['courseName'] as String?,
@@ -216,12 +244,19 @@ class AcademyFolder {
   });
 
   factory AcademyFolder.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? double.tryParse(v)?.toInt() ?? 0;
+      return int.tryParse(v.toString()) ?? double.tryParse(v.toString())?.toInt() ?? 0;
+    }
+
     return AcademyFolder(
       id: json['id'].toString(),
       name: json['name'].toString(),
       className: json['liveClass']?['name'] as String?,
       classCode: json['liveClass']?['code'] as String?,
-      resourceCount: (json['resourceCount'] as num? ?? 0).toInt(),
+      resourceCount: toInt(json['resourceCount']),
     );
   }
 }

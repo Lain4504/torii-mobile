@@ -33,6 +33,13 @@ class LiveScheduleModel {
   });
 
   factory LiveScheduleModel.fromJson(Map<String, dynamic> json) {
+    int? toIntNullable(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toInt();
+      if (v is String) return int.tryParse(v) ?? double.tryParse(v)?.toInt();
+      return int.tryParse(v.toString()) ?? double.tryParse(v.toString())?.toInt();
+    }
+
     return LiveScheduleModel(
       id: (json['id'] ?? '').toString(),
       classId: json['classId'] as String?,
@@ -50,7 +57,7 @@ class LiveScheduleModel {
       status: json['status'] as String?,
       meetingUrl: json['meetingUrl'] as String?,
       roomId: json['roomId'] as String?,
-      durationMinutes: (json['durationMinutes'] as num?)?.toInt(),
+      durationMinutes: toIntNullable(json['durationMinutes']),
     );
   }
 

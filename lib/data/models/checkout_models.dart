@@ -22,10 +22,17 @@ class OrderPreviewModel {
   });
 
   factory OrderPreviewModel.fromJson(Map<String, dynamic> json) {
+    double toDouble(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0;
+      return double.tryParse(v.toString()) ?? 0;
+    }
+
     return OrderPreviewModel(
-      subTotal: (json['subTotal'] as num).toDouble(),
-      discountTotal: (json['discountTotal'] as num).toDouble(),
-      grandTotal: (json['grandTotal'] as num).toDouble(),
+      subTotal: toDouble(json['subTotal']),
+      discountTotal: toDouble(json['discountTotal']),
+      grandTotal: toDouble(json['grandTotal']),
     );
   }
 }
@@ -99,12 +106,19 @@ class OrderFulfillmentSummaryModel {
   });
 
   factory OrderFulfillmentSummaryModel.fromJson(Map<String, dynamic> json) {
+    double toDouble(dynamic v) {
+      if (v == null) return 0;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0;
+      return double.tryParse(v.toString()) ?? 0;
+    }
+
     return OrderFulfillmentSummaryModel(
       id: json['id'].toString(),
       code: json['code'].toString(),
       status: json['status'].toString(),
       paidAt: json['paidAt'] != null ? DateTime.parse(json['paidAt'].toString()) : null,
-      grandTotal: (json['grandTotal'] as num).toDouble(),
+      grandTotal: toDouble(json['grandTotal']),
       currency: json['currency']?.toString() ?? 'VND',
       items: (json['items'] as List?)
               ?.map((e) => OrderFulfillmentItemModel.fromJson(e as Map<String, dynamic>))
