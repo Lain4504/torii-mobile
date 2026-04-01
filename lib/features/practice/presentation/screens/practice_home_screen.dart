@@ -154,6 +154,73 @@ class PracticeHomeScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () {
+              context.push('/academy/folders');
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: theme.colorScheme.outlineVariant),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      Icons.folder_shared_rounded,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Thư mục của tôi',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Tài liệu học tập & tài nguyên từ giáo viên',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.7),
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.7,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

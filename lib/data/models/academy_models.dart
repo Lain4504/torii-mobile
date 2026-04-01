@@ -252,10 +252,10 @@ class AcademyFolder {
     }
 
     return AcademyFolder(
-      id: json['id'].toString(),
-      name: json['name'].toString(),
-      className: json['liveClass']?['name'] as String?,
-      classCode: json['liveClass']?['code'] as String?,
+      id: (json['folderId'] ?? json['id'] ?? '').toString(),
+      name: (json['folderName'] ?? json['name'] ?? '').toString(),
+      className: (json['liveClass']?['name'] ?? json['vodPackage']?['title'])?.toString(),
+      classCode: (json['liveClass']?['code'] ?? json['vodPackage']?['code'])?.toString(),
       resourceCount: toInt(json['resourceCount']),
     );
   }
@@ -269,7 +269,7 @@ class AcademyResource {
   final AcademyResourceType type;
   final String? url;
   final String? thumbnailUrl;
-  final DateTime createdAt;
+  final DateTime? createdAt;
 
   const AcademyResource({
     required this.id,
@@ -277,7 +277,7 @@ class AcademyResource {
     required this.type,
     this.url,
     this.thumbnailUrl,
-    required this.createdAt,
+    this.createdAt,
   });
 
   factory AcademyResource.fromJson(Map<String, dynamic> json) {
@@ -294,7 +294,7 @@ class AcademyResource {
           ? json['downloadUrl'] as String?
           : json['externalUrl'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
-      createdAt: DateTime.parse(json['createdAt'].toString()),
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
     );
   }
 

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 import 'package:torii_app/data/models/academy_models.dart';
+import 'package:torii_app/data/models/academy_product_detail_model.dart';
 import 'package:torii_app/features/academy/presentation/widgets/resource_item.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -214,7 +216,7 @@ class _EnrolledLiveCourseScreenState
                   SliverFillRemaining(
                     child: TabBarView(
                       children: [
-                        _SyllabusTabPane(classId: widget.classId),
+                        _SyllabusTabPane(classId: widget.classId, productId: widget.productId),
                         _ResourcesTabPane(classId: widget.classId),
                         _PlaceholderTabPane(
                           icon: Icons.forum_outlined,
@@ -622,106 +624,171 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
       false;
 }
 
-class _SyllabusTabPane extends StatelessWidget {
-  const _SyllabusTabPane({required this.classId});
+class _SyllabusTabPane extends ConsumerWidget {
+  const _SyllabusTabPane({required this.classId, this.productId});
 
   final String classId;
+  final String? productId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final hasCurriculum = classId.isNotEmpty;
+    final detailAsync = ref.watch(classCatalogLiveDetailProvider(productId ?? classId));
+    final completedIds = ref.watch(classCompletedLessonIdsProvider(classId)).value ?? const [];
+    final completed = completedIds.toSet();
 
-    if (!hasCurriculum) {
-      return _PlaceholderTabPane(
-        icon: Icons.menu_book_outlined,
-        title: 'Lộ trình',
-        message: 'Lộ trình chưa được cập nhật cho lớp này.',
-      );
-    }
+    return detailAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
+              const SizedBox(height: 16),
+              Text(
+                'Không thể tải lộ trình: $e',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(classCatalogLiveDetailProvider(classId)),
+                child: const Text('Thử lại'),
+              ),
+            ],
+          ),
+        ),
+      ),
+      data: (detail) {
+        if (detail == null || detail.modules == null || detail.modules!.isEmpty) {
+          return _PlaceholderTabPane(
+            icon: Icons.menu_book_outlined,
+            title: 'Lộ trình',
+            message: 'Lộ trình chưa được cập nhật cho lớp này.',
+          );
+        }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        final modules = detail.modules!
+            .map((m) => CurriculumModuleModel.fromJson(m))
+            .toList();
+
+        final lessonOrder = <CurriculumLessonModel>[
+          for (final module in modules) ...module.lessons,
+        ];
+        final lessonIndexById = <String, int>{
+          for (int i = 0; i < lessonOrder.length; i++) lessonOrder[i].id: i,
+        };
+        final trackableOrdered = lessonOrder.where(_isTrackableKind).toList();
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildCurriculumHeader(context, detail),
+              const SizedBox(height: 20),
+              ...modules.map(
+                (module) => _buildModuleItem(
+                  context,
+                  module.title,
+                  module.lessons.map((lesson) {
+                    final idx = lessonIndexById[lesson.id] ?? -1;
+                    final hasNext = idx >= 0 && idx + 1 < lessonOrder.length;
+                    final nextL = hasNext ? lessonOrder[idx + 1] : null;
+
+                    final unlocked = _effectiveLessonUnlocked(
+                      lesson: lesson,
+                      trackableOrdered: trackableOrdered,
+                      completed: completed,
+                    );
+                    final done = _isTrackableKind(lesson) && completed.contains(lesson.id);
+
+                    final status = !unlocked
+                        ? 'Đã khóa'
+                        : (done ? 'Hoàn thành' : 'Chưa học');
+                    final statusColor = !unlocked
+                        ? theme.colorScheme.onSurfaceVariant
+                        : (done
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant);
+
+                    return _buildLessonItem(
+                      context,
+                      title: lesson.title.isNotEmpty ? lesson.title : 'Bài học',
+                      duration: _labelByType(lesson.type),
+                      icon: unlocked ? _iconByType(lesson.type) : Icons.lock_outline_rounded,
+                      status: status,
+                      statusColor: statusColor,
+                      locked: !unlocked,
+                      lesson: _lessonPayload(
+                        classId: classId,
+                        mode: 'LIVE',
+                        lesson: lesson,
+                        nextLesson: nextL,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCurriculumHeader(BuildContext context, AcademyProductModel detail) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: theme.colorScheme.outlineVariant),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
             ),
+            child: Icon(
+              Icons.menu_book_rounded,
+              color: theme.colorScheme.primary,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(
-                        Icons.menu_book_rounded,
-                        color: theme.colorScheme.primary,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Lộ trình / Kho VOD',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Tài liệu video tham khảo theo chương trình học.',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontSize: 13,
-                              height: 1.35,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Lộ trình học tập',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: () =>
-                        context.push('/curriculum/$classId?live=1&mode=LIVE'),
-                    icon: const Icon(Icons.open_in_new, size: 20),
-                    label: const Text(
-                      'Mở lộ trình',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                const SizedBox(height: 4),
+                Text(
+                  'Tài liệu video tham khảo thêm bên cạnh các buổi học trực tiếp.',
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                    height: 1.35,
                   ),
                 ),
               ],
@@ -730,6 +797,176 @@ class _SyllabusTabPane extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildModuleItem(BuildContext context, String title, List<Widget> lessons) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ExpansionTile(
+        title: Text(
+          title,
+          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        initiallyExpanded: true,
+        childrenPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: lessons,
+      ),
+    );
+  }
+
+  Widget _buildLessonItem(
+    BuildContext context, {
+    required String title,
+    required String duration,
+    required IconData icon,
+    required String status,
+    required Color statusColor,
+    required Map<String, dynamic> lesson,
+    required bool locked,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: locked
+            ? () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Hoàn thành bài trước để mở khóa bài này.'),
+                  ),
+                );
+              }
+            : () => context.push('/lesson', extra: lesson),
+        child: Row(
+          children: [
+            Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 22),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    duration,
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                status,
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              locked ? Icons.lock_outline : Icons.chevron_right,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              size: 18,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _isTrackableKind(CurriculumLessonModel l) {
+    final t = l.type.toUpperCase();
+    return t == 'VIDEO' || t == 'READING' || t == 'ARTICLE';
+  }
+
+  bool _effectiveLessonUnlocked({
+    required CurriculumLessonModel lesson,
+    required List<CurriculumLessonModel> trackableOrdered,
+    required Set<String> completed,
+  }) {
+    if (!_isTrackableKind(lesson)) return true;
+    final idx = trackableOrdered.indexWhere((l) => l.id == lesson.id);
+    if (idx <= 0) return true;
+    return completed.contains(trackableOrdered[idx - 1].id);
+  }
+
+  Map<String, dynamic> _lessonPayload({
+    required String classId,
+    required String mode,
+    required CurriculumLessonModel lesson,
+    CurriculumLessonModel? nextLesson,
+  }) {
+    return <String, dynamic>{
+      if (classId.isNotEmpty) 'classId': classId,
+      if (mode.isNotEmpty) 'mode': mode,
+      'id': lesson.id,
+      'title': lesson.title,
+      'type': lesson.type.toLowerCase(),
+      'videoUrl': lesson.videoUrl,
+      'article': <String, dynamic>{
+        'title': lesson.title,
+        'content': lesson.content ?? 'Nội dung bài học đang được cập nhật.',
+      },
+      if (nextLesson != null)
+        'nextLesson': <String, dynamic>{
+          if (classId.isNotEmpty) 'classId': classId,
+          if (mode.isNotEmpty) 'mode': mode,
+          'id': nextLesson.id,
+          'title': nextLesson.title,
+          'type': nextLesson.type.toLowerCase(),
+          'videoUrl': nextLesson.videoUrl,
+          'article': <String, dynamic>{
+            'title': nextLesson.title,
+            'content': nextLesson.content ?? 'Nội dung bài học đang được cập nhật.',
+          },
+        },
+    };
+  }
+
+  IconData _iconByType(String type) {
+    switch (type.toUpperCase()) {
+      case 'READING':
+      case 'ARTICLE':
+        return Icons.article_outlined;
+      case 'QUIZ':
+        return Icons.quiz_rounded;
+      case 'VIDEO':
+      default:
+        return Icons.play_circle_fill;
+    }
+  }
+
+  String _labelByType(String type) {
+    switch (type.toUpperCase()) {
+      case 'READING':
+      case 'ARTICLE':
+        return 'Bài đọc';
+      case 'QUIZ':
+        return 'Quiz';
+      case 'VIDEO':
+      default:
+        return 'Video';
+    }
   }
 }
 

@@ -69,8 +69,6 @@ class ApiClient {
     _dio.interceptors.add(
       QueuedInterceptorsWrapper(
         onRequest: (options, handler) async {
-          // Luôn gửi — gateway cần header này để trả token trong body (mobile),
-          // không phụ thuộc getAccessToken (Keychain iOS có thể ném lỗi trước khi gán header).
           options.headers['x-platform'] = 'mobile';
 
           final tokenService = _tokenService;
@@ -90,17 +88,14 @@ class ApiClient {
           handler.next(options);
         },
         onError: (DioException error, ErrorInterceptorHandler handler) async {
-          // Handle 401 Unauthorized
           final tokenService = _tokenService;
           if (error.response?.statusCode == 401 && tokenService != null) {
-             // Avoid infinite loop if refresh endpoint itself fails
             if (error.requestOptions.path.contains('/auth/refresh')) {
               await tokenService.clearTokens();
               handler.next(error);
               return;
             }
 
-            // If already refreshing, queue this request
             if (_isRefreshing) {
               _failedRequestQueue.add({
                 'handler': handler,
@@ -115,13 +110,10 @@ class ApiClient {
               final refreshToken = await tokenService.getRefreshToken();
               
               if (refreshToken == null) {
-                // No refresh token, logout
                 await _performLogout(handler, error);
                 return;
               }
 
-              // Call refresh endpoint
-              // Create a separate Dio instance to avoid interceptor loops
               final tokenDio = Dio(BaseOptions(
                 baseUrl: _dio.options.baseUrl,
                 headers: {
@@ -146,22 +138,21 @@ class ApiClient {
                     refreshToken: newRefreshToken ?? refreshToken,
                   );
 
-                  // Retry original request
+                  final queue = List<Map<String, dynamic>>.from(_failedRequestQueue);
+                  _failedRequestQueue.clear();
+                  _isRefreshing = false;
+
                   await _retryRequest(error.requestOptions, handler, newAccessToken);
 
-                  // Process queued requests
-                  for (var request in _failedRequestQueue) {
+                  for (var request in queue) {
                     final queuedError = request['error'] as DioException;
                     final queuedHandler = request['handler'] as ErrorInterceptorHandler;
                     await _retryRequest(queuedError.requestOptions, queuedHandler, newAccessToken);
                   }
-                  _failedRequestQueue.clear();
-                } else {
-                  await _performLogout(handler, error);
+                  return;
                 }
-              } else {
-                await _performLogout(handler, error);
               }
+              await _performLogout(handler, error);
             } catch (e) {
               await _performLogout(handler, error);
             } finally {
@@ -176,22 +167,27 @@ class ApiClient {
   }
 
   Future<void> _performLogout(ErrorInterceptorHandler handler, DioException error) async {
+    final queue = List<Map<String, dynamic>>.from(_failedRequestQueue);
+    _failedRequestQueue.clear();
+    _isRefreshing = false;
+
     await _tokenService?.clearTokens();
+    
     try {
       await _onUnauthorizedLogout?.call();
-    } catch (_) {
-      // ignore
-    }
+    } catch (_) {}
     
-    // Reject all queued requests
-    for (var request in _failedRequestQueue) {
+    for (var request in queue) {
       final queuedHandler = request['handler'] as ErrorInterceptorHandler;
       final queuedError = request['error'] as DioException;
-      queuedHandler.next(queuedError);
+      try {
+        queuedHandler.next(queuedError);
+      } catch (_) {}
     }
-    _failedRequestQueue.clear();
     
-    handler.next(error);
+    try {
+      handler.next(error);
+    } catch (_) {}
   }
 
   Future<void> _retryRequest(RequestOptions requestOptions, ErrorInterceptorHandler handler, String newToken) async {

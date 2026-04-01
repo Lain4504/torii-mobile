@@ -126,6 +126,77 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                 ),
               ),
 
+              SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Tài nguyên của tôi',
+                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        InkWell(
+                          onTap: () => context.push('/academy/folders'),
+                          borderRadius: BorderRadius.circular(20),
+                          child: Ink(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: const Icon(
+                                    Icons.folder_shared_rounded,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Thư mục của tôi',
+                                        style: theme.textTheme.titleSmall?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Tài liệu học tập & liên kết từ lớp học',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
               // Cards List Header
               SliverToBoxAdapter(
                 child: detailAsync.when(

@@ -84,53 +84,32 @@ class _SenseiRoleplayTopicPageState
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
-            expandedHeight: 120,
+            expandedHeight: 100,
             floating: true,
             pinned: true,
             elevation: 0,
+            centerTitle: true,
             backgroundColor: theme.colorScheme.surface,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              centerTitle: false,
-              title: Text(
-                'Sensei Roleplay',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: AppTypography.black,
-                  letterSpacing: AppTypography.letterSpacingTight,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              background: Stack(
-                children: [
-                  Positioned.fill(
-                    child: Opacity(
-                      opacity: 0.05,
-                      child: Image.asset(
-                        'assets/images/seigaiha_pattern.png',
-                        repeat: ImageRepeat.repeat,
-                        scale: 2,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          theme.colorScheme.surface.withValues(alpha: 0.8),
-                          theme.colorScheme.surface,
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ],
+            surfaceTintColor: Colors.transparent,
+            title: Text(
+              'Sensei Roleplay',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: AppTypography.bold,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             actions: const [
               SenseiQuotaHeader(),
               SizedBox(width: 8),
             ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Divider(
+                height: 1,
+                thickness: 1,
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -138,11 +117,9 @@ class _SenseiRoleplayTopicPageState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionHeader(theme, 'CHỦ ĐỀ TỰ CHỌN'),
-                  const SizedBox(height: 12),
-                  _buildCustomTopicInput(theme),
-                  const SizedBox(height: 40),
-                  _buildSectionHeader(theme, 'GỢI Ý CHỦ ĐỀ'),
+                  _buildCustomTopicCard(theme),
+                  const SizedBox(height: 32),
+                  _buildSectionHeader(theme, 'CHỦ ĐỀ GỢI Ý'),
                 ],
               ),
             ),
@@ -165,84 +142,131 @@ class _SenseiRoleplayTopicPageState
   }
 
   Widget _buildSectionHeader(ThemeData theme, String title) {
-    return Text(
-      title,
-      style: theme.textTheme.labelLarge?.copyWith(
-        fontWeight: AppTypography.black,
-        color: theme.colorScheme.primary,
-        letterSpacing: 1.2,
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 12),
+      child: Text(
+        title,
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: AppTypography.bold,
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }
 
-  Widget _buildCustomTopicInput(ThemeData theme) {
+  Widget _buildCustomTopicCard(ThemeData theme) {
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.15)),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
+            color: theme.colorScheme.primary.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _topicController,
-              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppTypography.semiBold),
-              decoration: InputDecoration(
-                hintText: 'VD: Phỏng vấn tại Apple...',
-                hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                  fontWeight: AppTypography.regular,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
+                child: Icon(
+                  FontAwesomeIcons.wandMagicSparkles,
+                  size: 16,
+                  color: theme.colorScheme.primary,
                 ),
-                border: InputBorder.none,
               ),
-              onSubmitted: _startRoleplay,
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tạo chủ đề riêng',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: AppTypography.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      'Thực luyện bất kỳ tình huống nào',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: _buildInputActionButton(theme),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _topicController,
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppTypography.semiBold),
+            decoration: InputDecoration(
+              hintText: 'VD: Phỏng vấn xin việc tại Nhật...',
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                fontWeight: AppTypography.regular,
+              ),
+              filled: true,
+              fillColor: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+              ),
+            ),
+            onSubmitted: _startRoleplay,
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: () => _startRoleplay(_topicController.text),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Bắt đầu ngay',
+                    style: TextStyle(fontWeight: AppTypography.bold),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(FontAwesomeIcons.paperPlane, size: 14),
+                ],
+              ),
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildInputActionButton(ThemeData theme) {
-    return GestureDetector(
-      onTap: () => _startRoleplay(_topicController.text),
-      child: Container(
-        height: 48,
-        width: 48,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.8)]),
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Center(
-          child: Icon(
-            FontAwesomeIcons.chevronRight,
-            size: 16,
-            color: Colors.white,
-          ),
-        ),
       ),
     );
   }
@@ -250,6 +274,18 @@ class _SenseiRoleplayTopicPageState
   Widget _buildCategoryCard(RoleplayCategory category, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -257,20 +293,13 @@ class _SenseiRoleplayTopicPageState
           Stack(
             children: [
               Container(
-                height: 140,
+                height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppRadius.xl),
-                  boxShadow: [
-                    BoxShadow(
-                      color: category.gradient.first.withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadius.xl),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -278,16 +307,22 @@ class _SenseiRoleplayTopicPageState
                         category.imagePath,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                          color: theme.colorScheme.surfaceVariant,
-                          child: Icon(Icons.image, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.3)),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [category.gradient.first, category.gradient.last],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          child: Icon(category.icon, color: Colors.white.withAlpha(50), size: 64),
                         ),
                       ),
                       Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              category.gradient.first.withValues(alpha: 0.9),
-                              category.gradient.last.withValues(alpha: 0.6),
+                              category.gradient.first.withValues(alpha: 0.8),
+                              category.gradient.last.withValues(alpha: 0.4),
                             ],
                             begin: Alignment.bottomLeft,
                             end: Alignment.topRight,
@@ -295,37 +330,33 @@ class _SenseiRoleplayTopicPageState
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.lg),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Icon(
-                                category.icon,
-                                size: 18,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
                             Text(
                               category.title,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: AppTypography.black,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: AppTypography.bold,
                                 color: Colors.white,
-                                letterSpacing: AppTypography.letterSpacingTight,
+                                letterSpacing: 0.2,
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                          ),
+                          child: Icon(category.icon, size: 14, color: Colors.white),
                         ),
                       ),
                     ],
@@ -334,13 +365,12 @@ class _SenseiRoleplayTopicPageState
               ),
             ],
           ),
-          const SizedBox(height: 16),
           // Topics Area
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.all(16),
             child: Wrap(
-              spacing: 10,
-              runSpacing: 10,
+              spacing: 8,
+              runSpacing: 8,
               children: category.topics
                   .map((topic) =>
                       _buildTopicChip(topic, category.gradient, theme))
@@ -353,43 +383,39 @@ class _SenseiRoleplayTopicPageState
   }
 
   Widget _buildTopicChip(String topic, List<Color> gradient, ThemeData theme) {
-    return InkWell(
-      onTap: () => _startRoleplay(topic),
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: theme.colorScheme.outlineVariant),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.02),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: gradient),
-                shape: BoxShape.circle,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _startRoleplay(topic),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: gradient),
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              topic,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: AppTypography.bold,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+              const SizedBox(width: 8),
+              Text(
+                topic,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: AppTypography.semiBold,
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
