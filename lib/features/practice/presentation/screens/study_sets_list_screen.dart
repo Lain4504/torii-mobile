@@ -5,6 +5,7 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/core/widgets/base_sheet_wrapper.dart';
 import 'package:torii_app/data/models/study_set_models.dart';
+import 'package:torii_app/features/academy/presentation/screens/my_folders_screen.dart';
 
 class StudySetsListScreen extends ConsumerStatefulWidget {
   const StudySetsListScreen({super.key});
@@ -21,7 +22,7 @@ class _StudySetsListScreenState extends ConsumerState<StudySetsListScreen> with 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -53,6 +54,7 @@ class _StudySetsListScreenState extends ConsumerState<StudySetsListScreen> with 
           tabs: const [
             Tab(text: 'Cá nhân'),
             Tab(text: 'Khám phá'),
+            Tab(text: 'Thư mục'),
           ],
         ),
         actions: [
@@ -104,6 +106,7 @@ class _StudySetsListScreenState extends ConsumerState<StudySetsListScreen> with 
               children: [
                 _buildSetsGrid(ref.watch(studySetsProvider)),
                 _buildSetsGrid(ref.watch(publicStudySetsProvider(_searchQuery))),
+                const MyFoldersScreen(),
               ],
             ),
           ),

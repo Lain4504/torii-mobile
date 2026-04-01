@@ -208,7 +208,7 @@ class MyCoursesScreen extends ConsumerWidget {
 
   void _navigateToCourse(BuildContext context, EnrollmentModel e) {
     if (e.isLive && e.classId.isNotEmpty) {
-      context.push('/enrolled-live/${e.classId}?productId=${e.classId}&title=${Uri.encodeComponent(e.courseTitle)}');
+      context.push('/enrolled-live/${e.classId}?productId=${e.productId}&title=${Uri.encodeComponent(e.courseTitle)}');
     } else if (e.classId.isNotEmpty) {
       context.push('/curriculum/${e.classId}?mode=VOD');
     }
