@@ -98,7 +98,7 @@ class _JlptMockHistoryDetailScreenState
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                     color: data.passMock!
-                        ? Colors.green
+                        ? theme.colorScheme.primary
                         : theme.colorScheme.error,
                   ),
                 ),

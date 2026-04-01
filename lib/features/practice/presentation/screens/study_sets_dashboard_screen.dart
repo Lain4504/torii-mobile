@@ -48,7 +48,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
               data: (data) {
                 if (data == null) return const SizedBox.shrink();
                 final currentUserId = ref.watch(authStateProvider).valueOrNull?.user?.id;
-                final isMine = data['userId'] == currentUserId;
+                final ownerId = (data['userId'] ?? data['item']?['userId'] ?? '').toString();
+                final isMine = currentUserId != null && ownerId == currentUserId.toString();
                 
                 if (!isMine) return const SizedBox.shrink();
 
@@ -84,8 +85,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                   data: (data) {
                     if (data == null) return const SizedBox.shrink();
                     final currentUserId = ref.watch(authStateProvider).valueOrNull?.user?.id;
-                    final userId = (data['userId'] ?? data['item']?['userId'] ?? '').toString();
-                    final isMine = userId == currentUserId;
+                    final ownerId = (data['userId'] ?? data['item']?['userId'] ?? '').toString();
+                    final isMine = currentUserId != null && ownerId == currentUserId.toString();
                     final count = (data['cardCount'] as num?)?.toInt() ?? 
                                   (data['_count']?['setCards'] as num?)?.toInt() ?? 0;
 
@@ -106,7 +107,9 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                           _StudyModeSelectionGrid(
                             setId: widget.initialSetId,
                             cardCount: count,
-                            enabled: isMine,
+                            // Restricted: Only the owner of the study set can play.
+                            // Others must clone the set to their library to study.
+                            enabled: isMine, 
                           ),
                         ],
                       ),
@@ -129,7 +132,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                   data: (data) {
                     if (data == null) return const SizedBox.shrink();
                     final currentUserId = ref.watch(authStateProvider).valueOrNull?.user?.id;
-                    final isMine = data['userId'] == currentUserId;
+                    final ownerId = (data['userId'] ?? data['item']?['userId'] ?? '').toString();
+                    final isMine = currentUserId != null && ownerId == currentUserId;
                     
                     return Padding(
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
@@ -166,7 +170,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                 data: (cards) {
                   if (cards.isEmpty) {
                     final currentUserId = ref.watch(authStateProvider).valueOrNull?.user?.id;
-                    final isMine = detailAsync.valueOrNull?['userId'] == currentUserId;
+                    final ownerId = (detailAsync.valueOrNull?['userId'] ?? detailAsync.valueOrNull?['item']?['userId'] ?? '').toString();
+                    final isMine = currentUserId != null && ownerId == currentUserId.toString();
                     
                     return SliverToBoxAdapter(
                       child: _EmptyCardsState(
@@ -181,7 +186,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                         (context, index) {
                           final card = cards[index];
                           final currentUserId = ref.read(authStateProvider).valueOrNull?.user?.id;
-                          final isMine = detailAsync.valueOrNull?['userId'] == currentUserId;
+                          final ownerId = (detailAsync.valueOrNull?['userId'] ?? detailAsync.valueOrNull?['item']?['userId'] ?? '').toString();
+                          final isMine = currentUserId != null && ownerId == currentUserId.toString();
 
                           return _CardListItem(
                             card: card,

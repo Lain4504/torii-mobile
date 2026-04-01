@@ -32,6 +32,7 @@ class JlptMockTemplateSectionModel {
     required this.durationMinutes,
     required this.orderIndex,
     required this.isListening,
+    this.mondai = const <JlptMockMondaiModel>[],
   });
 
   final String id;
@@ -40,8 +41,19 @@ class JlptMockTemplateSectionModel {
   final int durationMinutes;
   final int orderIndex;
   final bool isListening;
+  final List<JlptMockMondaiModel> mondai;
 
   factory JlptMockTemplateSectionModel.fromJson(Map<String, dynamic> json) {
+    final rawMondai = json['mondai'] as List<dynamic>? ?? const [];
+    final mondai =
+        rawMondai
+            .map(
+              (e) => JlptMockMondaiModel.fromJson(
+                (e as Map).cast<String, dynamic>(),
+              ),
+            )
+            .toList()
+          ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
     return JlptMockTemplateSectionModel(
       id: (json['id'] ?? '').toString(),
       code: (json['code'] ?? '').toString(),
@@ -49,6 +61,40 @@ class JlptMockTemplateSectionModel {
       durationMinutes: (json['durationMinutes'] as num?)?.toInt() ?? 0,
       orderIndex: (json['orderIndex'] as num?)?.toInt() ?? 0,
       isListening: json['isListening'] == true,
+      mondai: mondai,
+    );
+  }
+}
+
+class JlptMockMondaiModel {
+  const JlptMockMondaiModel({
+    required this.id,
+    required this.code,
+    this.titleVi,
+    this.titleJa,
+    this.descriptionVi,
+    required this.orderIndex,
+    this.recommendedQuestionCount,
+  });
+
+  final String id;
+  final String code;
+  final String? titleVi;
+  final String? titleJa;
+  final String? descriptionVi;
+  final int orderIndex;
+  final int? recommendedQuestionCount;
+
+  factory JlptMockMondaiModel.fromJson(Map<String, dynamic> json) {
+    return JlptMockMondaiModel(
+      id: (json['id'] ?? '').toString(),
+      code: (json['code'] ?? '').toString(),
+      titleVi: json['titleVi']?.toString(),
+      titleJa: json['titleJa']?.toString(),
+      descriptionVi: json['descriptionVi']?.toString(),
+      orderIndex: (json['orderIndex'] as num?)?.toInt() ?? 0,
+      recommendedQuestionCount:
+          (json['recommendedQuestionCount'] as num?)?.toInt(),
     );
   }
 }
@@ -124,6 +170,7 @@ class JlptMockTemplateQuestionModel {
     required this.id,
     required this.sectionId,
     required this.mondaiId,
+    this.mondai,
     required this.questionId,
     required this.orderIndex,
     required this.question,
@@ -132,15 +179,20 @@ class JlptMockTemplateQuestionModel {
   final String id;
   final String sectionId;
   final String? mondaiId;
+  final JlptMockMondaiModel? mondai;
   final String questionId;
   final int orderIndex;
   final JlptMockQuestionModel question;
 
   factory JlptMockTemplateQuestionModel.fromJson(Map<String, dynamic> json) {
+    final rawMondai = json['mondai'];
     return JlptMockTemplateQuestionModel(
       id: (json['id'] ?? '').toString(),
       sectionId: (json['sectionId'] ?? '').toString(),
       mondaiId: json['mondaiId']?.toString(),
+      mondai: rawMondai is Map
+          ? JlptMockMondaiModel.fromJson(rawMondai.cast<String, dynamic>())
+          : null,
       questionId: (json['questionId'] ?? '').toString(),
       orderIndex: (json['orderIndex'] as num?)?.toInt() ?? 0,
       question: JlptMockQuestionModel.fromJson(

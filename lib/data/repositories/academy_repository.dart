@@ -487,10 +487,10 @@ class AcademyRepository {
           final res = Map<String, dynamic>.from(item);
 
           // Injection: Ensure cardCount is accessible at top level (mirrors StudySetModel.fromJson)
-          if (!res.containsKey('cardCount') || res['cardCount'] == 0) {
+          if (res['cardCount'] == null || res['cardCount'] == 0) {
             final count = res['_count'];
             if (count is Map && count.containsKey('setCards')) {
-              res['cardCount'] = count['setCards'];
+              res['cardCount'] = (count['setCards'] as num?)?.toInt();
             }
           }
 

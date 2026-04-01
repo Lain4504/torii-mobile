@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 
 class StudySetTestScreen extends ConsumerStatefulWidget {
@@ -19,6 +18,7 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
   bool _locked = false;
   String? _selectedOption;
   final FlutterTts _tts = FlutterTts();
+  bool _ttsReady = false;
   late final Future<List<Map<String, dynamic>>> _quizFuture;
 
   @override
@@ -29,8 +29,13 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
   }
 
   Future<void> _initTts() async {
-    await _tts.setLanguage('ja-JP');
-    await _tts.setSpeechRate(0.45);
+    try {
+      await _tts.setLanguage('ja-JP');
+      await _tts.setSpeechRate(0.45);
+      _ttsReady = true;
+    } catch (_) {
+      _ttsReady = false;
+    }
   }
 
   @override
@@ -40,6 +45,7 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
   }
 
   Future<void> _speak(String text) async {
+    if (!_ttsReady || text.trim().isEmpty) return;
     await _tts.stop();
     await _tts.speak(text);
   }

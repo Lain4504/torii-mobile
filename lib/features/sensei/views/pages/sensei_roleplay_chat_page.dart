@@ -7,7 +7,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_design_system.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../providers/sensei_providers.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -35,6 +34,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
   bool _holdToTalkActive = false;
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterTts _flutterTts = FlutterTts();
+  bool _localTtsReady = false;
   bool _autoPlay = true;
   bool _showTranslation = true;
   String _voiceSelection = 'ja-JP-NanamiNeural'; 
@@ -51,9 +51,14 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
     Future.microtask(() => ref.read(senseiRoleplayProvider(widget.topic).notifier).start());
   }
 
-  void _initTts() async {
-    await _flutterTts.setLanguage("ja-JP");
-    await _flutterTts.setSpeechRate(0.5);
+  Future<void> _initTts() async {
+    try {
+      await _flutterTts.setLanguage("ja-JP");
+      await _flutterTts.setSpeechRate(0.5);
+      _localTtsReady = true;
+    } catch (_) {
+      _localTtsReady = false;
+    }
   }
 
   @override
@@ -180,6 +185,7 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
 
     try {
       if (_voiceSelection == 'system') {
+        if (!_localTtsReady) return;
         await _flutterTts.setSpeechRate(_voiceSpeed * 0.5);
         await _flutterTts.speak(message.content);
         return;
@@ -201,11 +207,13 @@ class _SenseiRoleplayChatPageState extends ConsumerState<SenseiRoleplayChatPage>
         }
       } else {
         // Fallback to local TTS
+        if (!_localTtsReady) return;
         await _flutterTts.setSpeechRate(_voiceSpeed * 0.5);
         await _flutterTts.speak(message.content);
       }
     } catch (e) {
       // Fallback
+      if (!_localTtsReady) return;
       await _flutterTts.setSpeechRate(_voiceSpeed * 0.5);
       await _flutterTts.speak(message.content);
     } finally {

@@ -54,6 +54,7 @@ class AppShell extends ConsumerWidget {
 
     final hideBottomNavForSettingsFlow = _isSettingsHubSubRoute(currentPath);
     final hideBottomNavForCourseFlow = _isCourseFullscreenRoute(currentPath);
+    final hideBottomNavForJlptFlow = currentPath.startsWith('/jlpt-mock');
 
     // Sensei: keep bottom bar only on dashboard (/sensei). Hide on sub-pages.
     final isSenseiRoute = currentPath.startsWith('/sensei');
@@ -77,6 +78,7 @@ class AppShell extends ConsumerWidget {
         isOnLessonRoute ||
         hideBottomNavForSettingsFlow ||
         hideBottomNavForCourseFlow ||
+        hideBottomNavForJlptFlow ||
         isOnStudySetsReview;
 
     return Scaffold(

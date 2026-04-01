@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/study_set_models.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 
 class StudySetPracticeScreen extends ConsumerStatefulWidget {
   final String setId;
@@ -23,6 +22,7 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
   bool _sessionComplete = false;
   final Map<int, bool> _flippedByIndex = {};
   final FlutterTts _tts = FlutterTts();
+  bool _ttsReady = false;
 
   @override
   void initState() {
@@ -32,8 +32,13 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
   }
 
   Future<void> _initTts() async {
-    await _tts.setLanguage('ja-JP');
-    await _tts.setSpeechRate(0.45);
+    try {
+      await _tts.setLanguage('ja-JP');
+      await _tts.setSpeechRate(0.45);
+      _ttsReady = true;
+    } catch (_) {
+      _ttsReady = false;
+    }
   }
 
   @override
@@ -45,6 +50,7 @@ class _StudySetPracticeScreenState extends ConsumerState<StudySetPracticeScreen>
 
   Future<void> _speak(String text) async {
     if (!_autoSpeak) return;
+    if (!_ttsReady) return;
     if (text.trim().isEmpty) return;
     await _tts.stop();
     await _tts.speak(text);
@@ -492,7 +498,6 @@ class _FinishView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
