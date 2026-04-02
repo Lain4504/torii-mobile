@@ -238,21 +238,27 @@ Future<void> _handleRemoteSessionEnded(BuildContext context, WidgetRef ref) asyn
 }
 
 class _BlockingDialogController {
-  final BuildContext _dialogContext;
-  _BlockingDialogController(this._dialogContext);
+  final NavigatorState _navigator;
+  final Route<void> _route;
+  bool _closed = false;
+
+  _BlockingDialogController(this._navigator, this._route);
 
   Future<void> close() async {
-    Navigator.of(_dialogContext).pop();
+    if (_closed) return;
+    _closed = true;
+    if (_route.isActive) {
+      _navigator.removeRoute(_route);
+    }
   }
 }
 
 _BlockingDialogController _showBlockingLoading(BuildContext context, String text) {
-  late BuildContext dialogContext;
-  showDialog<void>(
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final route = DialogRoute<void>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) {
-      dialogContext = ctx;
       return AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         content: Row(
@@ -269,6 +275,7 @@ _BlockingDialogController _showBlockingLoading(BuildContext context, String text
       );
     },
   );
-  return _BlockingDialogController(dialogContext);
+  navigator.push(route);
+  return _BlockingDialogController(navigator, route);
 }
 
