@@ -32,11 +32,19 @@ Map<String, dynamic> _$RoomInfoToJson(_RoomInfo instance) => <String, dynamic>{
 
 _BreakoutRoomFeatures _$BreakoutRoomFeaturesFromJson(
   Map<String, dynamic> json,
-) => _BreakoutRoomFeatures(isActive: json['isActive'] as bool? ?? false);
+) => _BreakoutRoomFeatures(
+  isAllow: json['isAllow'] as bool? ?? false,
+  allowedNumberRooms: (json['allowedNumberRooms'] as num?)?.toInt() ?? 0,
+  isActive: json['isActive'] as bool? ?? false,
+);
 
 Map<String, dynamic> _$BreakoutRoomFeaturesToJson(
   _BreakoutRoomFeatures instance,
-) => <String, dynamic>{'isActive': instance.isActive};
+) => <String, dynamic>{
+  'isAllow': instance.isAllow,
+  'allowedNumberRooms': instance.allowedNumberRooms,
+  'isActive': instance.isActive,
+};
 
 _ChatFeatures _$ChatFeaturesFromJson(Map<String, dynamic> json) =>
     _ChatFeatures(

@@ -17,6 +17,7 @@ import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
 import 'package:torii_app/features/meet/providers/insights_ai_text_chat_provider.dart';
 import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
+import 'package:torii_app/features/meet/providers/breakout_rooms_provider.dart';
 import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/polls_provider.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
@@ -124,6 +125,8 @@ class HandleSystemData {
             ),
           );
           ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(payload.msg);
+          // Web: invalidate My_Rooms. Mobile: refresh myRoom (best-effort).
+          ref?.read(breakoutRoomsProvider.notifier).fetchMyRoom(silent: true);
           if (kDebugMode) {
             print('HandleSystemData: Breakout room invitation - ${payload.msg}');
           }
@@ -132,8 +135,11 @@ class HandleSystemData {
         
       case nats_msg.NatsMsgServerToClientEvents.BREAKOUT_ROOM_ENDED:
         ref?.read(breakoutRoomProvider.notifier).clearInvitation();
+        // Web: invalidate List + My_Rooms. Mobile: refetch list/myRoom (best-effort).
+        ref?.read(breakoutRoomsProvider.notifier).fetchList(silent: true);
+        ref?.read(breakoutRoomsProvider.notifier).fetchMyRoom(silent: true);
         if (kDebugMode) {
-          print('HandleSystemData: Breakout room ended');
+          print('HandleSystemData: Breakout room ended - ${payload.msg}');
         }
         break;
         
