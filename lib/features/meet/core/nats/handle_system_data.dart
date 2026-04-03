@@ -133,7 +133,7 @@ class HandleSystemData {
       case nats_msg.NatsMsgServerToClientEvents.BREAKOUT_ROOM_ENDED:
         ref?.read(breakoutRoomProvider.notifier).clearInvitation();
         if (kDebugMode) {
-          print('HandleSystemData: Breakout room ended');
+          print('HandleSystemData: Breakout room ended - ${payload.msg}');
         }
         break;
         

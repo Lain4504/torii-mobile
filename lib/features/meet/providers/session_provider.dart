@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:torii_app/features/meet/data/models/room_info.dart';
 import 'package:torii_app/features/meet/data/models/user_metadata.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
+import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
 
 part 'session_provider.freezed.dart';
 
@@ -256,6 +257,8 @@ class SessionNotifier extends StateNotifier<SessionState> {
   
   /// Connect to NATS and LiveKit
   /// This initializes the ConnectNats service and starts the connection process
+  /// [keepMeetingRoomVisible]: khi đang đổi phòng trong cùng phiên (breakout ↔ main), tránh reset
+  /// [isStartup] → `true` (sẽ hiện lại màn chọn cam/mic + [JoinMeetingScreen] dùng token phòng chính).
   Future<void> connect({
     required List<String> natsWSUrls,
     required String token,
@@ -268,6 +271,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
     required Function(dynamic) setCurrentMediaServerConn,
     bool initialAudioEnabled = false,
     bool initialVideoEnabled = false,
+    bool keepMeetingRoomVisible = false,
     /// Host/web client kết thúc phòng → [ConnectNats.endSession]; reset session + pop khỏi `/meet`.
     void Function()? onRemoteSessionEnded,
   }) async {
@@ -310,6 +314,9 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
     // Update state with token
     addToken(token);
+    if (keepMeetingRoomVisible) {
+      toggleStartup(false);
+    }
 
     // Open connection
     await _connectNats!.openConn();
@@ -330,7 +337,13 @@ class SessionNotifier extends StateNotifier<SessionState> {
         lk.dispose();
       } catch (_) {}
     }
-    state = SessionState.initial();
+    // Đang ở breakout và còn token phòng cha → sắp reconnect về main; không bật lại màn chọn cam/mic.
+    final bk = ref.read(breakoutRoomProvider);
+    final reconnectingToParent = bk.isInBreakoutRoom &&
+        (bk.parentToken != null && bk.parentToken!.isNotEmpty);
+    state = SessionState.initial().copyWith(
+      isStartup: reconnectingToParent ? false : true,
+    );
   }
 
   /// Ngắt kết nối phiên họp.
@@ -338,9 +351,12 @@ class SessionNotifier extends StateNotifier<SessionState> {
   /// * [userInitiatedLeave]: `true` khi người dùng rời phòng hoặc sau khi host gọi API kết thúc —
   ///   dùng thông điệp giống web, không kích hoạt snackbar lỗi từ [ConnectNats.endSession].
   /// * [sessionEndMessage]: ví dụ web `notifications.user-logged-out`, header `Người dùng đã đăng xuất`.
+  /// * [preserveMeetingRoomUi]: `true` khi chuyển phòng breakout ↔ main — giữ [isStartup]=false
+  ///   (không về [JoinMeetingScreen] chọn cam/mic).
   Future<void> disconnect({
     bool userInitiatedLeave = false,
     String sessionEndMessage = 'notifications.user-logged-out',
+    bool preserveMeetingRoomUi = false,
   }) async {
     if (_connectLivekit != null) {
       await _connectLivekit!.disconnectRoom(true);
@@ -356,6 +372,10 @@ class SessionNotifier extends StateNotifier<SessionState> {
       _connectNats = null;
     }
 
+    if (preserveMeetingRoomUi) {
+      state = SessionState.initial().copyWith(isStartup: false);
+      return;
+    }
     state = SessionState.initial();
   }
 
@@ -366,6 +386,10 @@ class SessionNotifier extends StateNotifier<SessionState> {
     if (roomId.isEmpty) {
       return (ok: false, message: 'Thiếu roomId');
     }
+    final bk = ref.read(breakoutRoomProvider);
+    final isEndingBreakoutRoom = bk.isInBreakoutRoom &&
+        (bk.parentToken?.isNotEmpty ?? false) &&
+        (bk.parentRoomId?.isNotEmpty ?? false);
     final jwt = state.token;
     if (jwt.isEmpty) {
       return (ok: false, message: 'Thiếu token phiên');
@@ -383,6 +407,9 @@ class SessionNotifier extends StateNotifier<SessionState> {
       await disconnect(
         userInitiatedLeave: true,
         sessionEndMessage: 'notifications.room-ended-by-host',
+        // Nếu đang ở breakout thì server sẽ kích hoạt luồng "SESSION_ENDED -> reconnect
+        // về parent room". Giữ isStartup=false để tránh bật lại màn chọn cam/mic.
+        preserveMeetingRoomUi: isEndingBreakoutRoom,
       );
       return (ok: true, message: '');
     } on MeetApiException catch (e) {

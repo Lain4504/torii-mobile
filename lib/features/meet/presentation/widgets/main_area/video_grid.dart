@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
+import '../../../core/livekit/livekit_participant_lookup.dart';
 import '../../../providers/active_speakers_provider.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../providers/livekit_providers.dart';
@@ -21,18 +22,17 @@ class VideoGrid extends ConsumerWidget {
     // Source of truth for who should appear on grid is NATS participant list.
     // LiveKit participant is attached when available to render video/audio state.
     final participantInfos = ref.watch(allParticipantsProvider);
+    // Rebuild khi LiveKit subscribers thay đổi (web: videoSubscribersMap emit).
+    ref.watch(sessionProvider.select((s) => s.totalVideoSubscribers));
     final livekitConn = ref.read(sessionProvider.notifier).livekitConn;
     final localIdentity = livekitConn?.room.localParticipant?.identity;
 
     var tiles = participantInfos.where((p) => p.metadata.isOnline).map((info) {
-      Participant? livekitParticipant;
-      if (livekitConn != null) {
-        if (localIdentity != null && info.userId == localIdentity) {
-          livekitParticipant = livekitConn.room.localParticipant;
-        } else {
-          livekitParticipant = livekitConn.room.remoteParticipants[info.userId];
-        }
-      }
+      final livekitParticipant = resolveLivekitParticipant(
+        room: livekitConn?.room,
+        info: info,
+        localIdentity: localIdentity,
+      );
 
       return _TileData(
         userId: info.userId,

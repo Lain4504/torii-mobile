@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:livekit_client/livekit_client.dart';
@@ -47,7 +49,8 @@ class VideoTile extends ConsumerWidget {
           color: isSpeaking
               ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.8)
               : Theme.of(context).colorScheme.outlineVariant,
-          width: isSpeaking ? 3 : 1,
+          // Strip thu nhỏ: viền nói mỏng hơn để khớp chiều cao ~120px.
+          width: isSpeaking ? (isSmall ? 2.0 : 3.0) : 1,
         ),
         boxShadow: isSpeaking
             ? [
@@ -70,13 +73,14 @@ class VideoTile extends ConsumerWidget {
             // Overlay with name and status
             _buildOverlay(context, ref, isRaisedHand, isSpeaking),
 
-            // Đang nói: chấm pulse (LiveKit ActiveSpeakersChangedEvent).
+            // Đang nói: chấm pulse — strip thu nhỏ dùng kích thước/vị trí nhỏ hơn.
             if (isSpeaking)
               Positioned(
-                top: 12,
-                right: 12,
+                top: isSmall ? 6 : 12,
+                right: isSmall ? 6 : 12,
                 child: _SpeakingPulseDot(
                   color: Theme.of(context).colorScheme.primary,
+                  compact: isSmall,
                 ),
               ),
           ],
@@ -98,28 +102,37 @@ class VideoTile extends ConsumerWidget {
       return _buildAvatarPlaceholder(context);
     }
 
-    TrackPublication? videoPub;
-    for (var pub in participant!.videoTrackPublications) {
-      if (pub.source == TrackSource.camera || pub.kind == TrackType.VIDEO) {
-        videoPub = pub;
-        break;
-      }
-    }
+    // Participant (SDK) emits notifyListeners on mọi track event — cần rebuild khi pub/track đổi.
+    return ListenableBuilder(
+      listenable: participant!,
+      builder: (context, _) {
+        final videoPub = _findCameraPublication(participant!);
 
-    final hasVideo =
-        videoPub != null &&
-        videoPub.track != null &&
-        videoPub.subscribed &&
-        !videoPub.muted;
+        final hasVideo =
+            videoPub != null &&
+            videoPub.track != null &&
+            videoPub.subscribed &&
+            !videoPub.muted;
 
-    if (hasVideo && videoPub.track is VideoTrack) {
-      return VideoTrackRenderer(
-        videoPub.track as VideoTrack,
-        fit: VideoViewFit.cover,
-      );
-    }
+        if (hasVideo && videoPub.track is VideoTrack) {
+          final vt = videoPub.track as VideoTrack;
+          if (videoPub is RemoteTrackPublication) {
+            return _RemoteCameraWithQuality(
+              publication: videoPub,
+              track: vt,
+              fit: VideoViewFit.cover,
+            );
+          }
+          return VideoTrackRenderer(
+            vt,
+            key: ObjectKey(vt.sid),
+            fit: VideoViewFit.cover,
+          );
+        }
 
-    return _buildAvatarPlaceholder(context);
+        return _buildAvatarPlaceholder(context);
+      },
+    );
   }
 
   Widget _buildAvatarPlaceholder(BuildContext context) {
@@ -177,22 +190,23 @@ class VideoTile extends ConsumerWidget {
       child: LayoutBuilder(
         builder: (context, c) {
           final maxW = c.maxWidth;
-          // Tile nhỏ (strip ghim): padding trái/phải đối xứng, action nhỏ hơn — tránh lệch lề.
-          final narrow = isSmall || maxW < 220;
-          final needsTwoLines = isSmall || maxW < 208;
-          final hPad = narrow ? 4.0 : 8.0;
-          final bottomPad = narrow ? 3.0 : 6.0;
-          final topPad = narrow ? 10.0 : 18.0;
-          final actionSize = narrow ? 30.0 : 40.0;
-          final statusIconSize = narrow ? 14.0 : 17.0;
-          final pinIconSize = narrow ? 15.0 : 20.0;
+          // Strip ghim / screen-share: một hàng, bỏ thanh sóng + layout 2 dòng.
+          final stripCompact = isSmall;
+          final narrow = stripCompact || maxW < 220;
+          final needsTwoLines = !stripCompact && (maxW < 208);
+          final hPad = stripCompact ? 4.0 : (narrow ? 4.0 : 8.0);
+          final bottomPad = stripCompact ? 2.0 : (narrow ? 3.0 : 6.0);
+          final topPad = stripCompact ? 4.0 : (narrow ? 10.0 : 18.0);
+          final actionSize = stripCompact ? 22.0 : (narrow ? 30.0 : 40.0);
+          final statusIconSize = stripCompact ? 12.0 : (narrow ? 14.0 : 17.0);
+          final pinIconSize = stripCompact ? 13.0 : (narrow ? 15.0 : 20.0);
 
           final nameStyle = TextStyle(
-            fontSize: narrow ? 11 : 12,
+            fontSize: stripCompact ? 10 : (narrow ? 11 : 12),
             fontWeight: FontWeight.w700,
             color: Colors.white,
-            letterSpacing: 0.15,
-            height: 1.15,
+            letterSpacing: stripCompact ? 0.05 : 0.15,
+            height: stripCompact ? 1.05 : 1.15,
             shadows: const [
               Shadow(blurRadius: 6, color: Colors.black54, offset: Offset(0, 1)),
               Shadow(blurRadius: 2, color: Colors.black87, offset: Offset(0, 0)),
@@ -211,7 +225,7 @@ class VideoTile extends ConsumerWidget {
                       : Theme.of(context).colorScheme.error,
                 ),
                 if (isRaisedHand) ...[
-                  SizedBox(width: narrow ? 3 : 6),
+                  SizedBox(width: stripCompact ? 2 : (narrow ? 3 : 6)),
                   Icon(
                     Icons.back_hand_rounded,
                     size: statusIconSize,
@@ -258,6 +272,26 @@ class VideoTile extends ConsumerWidget {
             );
           }
 
+          /// Ghim / chia sẻ màn hình: chỉ một dòng [mic] [tên…] [ghim], không thanh sóng.
+          Widget stripCompactBar() {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                micHandRow(),
+                SizedBox(width: stripCompact ? 4 : 6),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: nameStyle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                pinButton(),
+              ],
+            );
+          }
+
           return ClipRRect(
             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(19)),
             child: DecoratedBox(
@@ -266,7 +300,11 @@ class VideoTile extends ConsumerWidget {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    Colors.black.withValues(alpha: isSpeaking ? 0.62 : 0.5),
+                    Colors.black.withValues(
+                      alpha: isSpeaking
+                          ? (stripCompact ? 0.55 : 0.62)
+                          : (stripCompact ? 0.42 : 0.5),
+                    ),
                     Colors.black.withValues(alpha: 0.0),
                   ],
                   stops: const [0.0, 1.0],
@@ -274,52 +312,54 @@ class VideoTile extends ConsumerWidget {
               ),
               child: Padding(
                 padding: EdgeInsets.fromLTRB(hPad, topPad, hPad, bottomPad),
-                child: needsTwoLines
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: stripCompact
+                    ? stripCompactBar()
+                    : (needsTwoLines
+                        ? Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  micHandRow(),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      pinButton(),
+                                      qualityCell(),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                name,
+                                style: nameStyle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.left,
+                              ),
+                            ],
+                          )
+                        : Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               micHandRow(),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  pinButton(),
-                                  qualityCell(),
-                                ],
+                              SizedBox(width: narrow ? 6 : 8),
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  style: nameStyle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
+                              pinButton(),
+                              qualityCell(),
                             ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            name,
-                            style: nameStyle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.left,
-                          ),
-                        ],
-                      )
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          micHandRow(),
-                          SizedBox(width: narrow ? 6 : 8),
-                          Expanded(
-                            child: Text(
-                              name,
-                              style: nameStyle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          pinButton(),
-                          qualityCell(),
-                        ],
-                      ),
+                          )),
               ),
             ),
           );
@@ -415,11 +455,76 @@ class VideoTile extends ConsumerWidget {
   }
 }
 
+/// Web `videoElm.tsx`: luôn bind publication **camera**, không lấy track VIDEO đầu tiên
+/// (có thể là screen share — cùng `TrackType.video`).
+TrackPublication? _findCameraPublication(Participant p) {
+  for (final pub in p.videoTrackPublications) {
+    if (pub.source == TrackSource.camera) {
+      return pub;
+    }
+  }
+  for (final pub in p.videoTrackPublications) {
+    if (pub.kind == TrackType.VIDEO &&
+        pub.source != TrackSource.screenShareVideo) {
+      return pub;
+    }
+  }
+  return null;
+}
+
+/// Web `RemoteTrackPublication.setVideoQuality(roomVideoQuality)` — mặc định HIGH như Redux web.
+class _RemoteCameraWithQuality extends StatefulWidget {
+  final RemoteTrackPublication publication;
+  final VideoTrack track;
+  final VideoViewFit fit;
+
+  const _RemoteCameraWithQuality({
+    required this.publication,
+    required this.track,
+    required this.fit,
+  });
+
+  @override
+  State<_RemoteCameraWithQuality> createState() =>
+      _RemoteCameraWithQualityState();
+}
+
+class _RemoteCameraWithQualityState extends State<_RemoteCameraWithQuality> {
+  @override
+  void initState() {
+    super.initState();
+    _applyQuality();
+  }
+
+  @override
+  void didUpdateWidget(covariant _RemoteCameraWithQuality oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.publication.sid != widget.publication.sid ||
+        oldWidget.track.sid != widget.track.sid) {
+      _applyQuality();
+    }
+  }
+
+  void _applyQuality() {
+    unawaited(widget.publication.setVideoQuality(VideoQuality.HIGH));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return VideoTrackRenderer(
+      widget.track,
+      key: ObjectKey(widget.track.sid),
+      fit: widget.fit,
+    );
+  }
+}
+
 /// Chấm sáng pulse khi LiveKit báo participant đang nói.
 class _SpeakingPulseDot extends StatefulWidget {
   final Color color;
+  final bool compact;
 
-  const _SpeakingPulseDot({required this.color});
+  const _SpeakingPulseDot({required this.color, this.compact = false});
 
   @override
   State<_SpeakingPulseDot> createState() => _SpeakingPulseDotState();
@@ -451,22 +556,23 @@ class _SpeakingPulseDotState extends State<_SpeakingPulseDot>
 
   @override
   Widget build(BuildContext context) {
+    final d = widget.compact ? 7.0 : 10.0;
     return AnimatedBuilder(
       animation: _scale,
       builder: (context, child) {
         return Transform.scale(
           scale: _scale.value,
           child: Container(
-            width: 10,
-            height: 10,
+            width: d,
+            height: d,
             decoration: BoxDecoration(
               color: widget.color,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: widget.color.withOpacity(0.65),
-                  blurRadius: 10 * _scale.value,
-                  spreadRadius: 1.5,
+                  blurRadius: (widget.compact ? 6 : 10) * _scale.value,
+                  spreadRadius: widget.compact ? 0.8 : 1.5,
                 ),
               ],
             ),

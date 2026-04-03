@@ -325,7 +325,9 @@ $RoomFeaturesCopyWith<$Res>? get roomFeatures {
 /// @nodoc
 mixin _$BreakoutRoomFeatures {
 
- bool get isActive;
+/// Khớp server/web `roomFeatures.breakoutRoomFeatures.isAllow`
+ bool get isAllow;/// Khớp server/web `roomFeatures.breakoutRoomFeatures.allowedNumberRooms`
+ int get allowedNumberRooms; bool get isActive;
 /// Create a copy of BreakoutRoomFeatures
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -338,16 +340,16 @@ $BreakoutRoomFeaturesCopyWith<BreakoutRoomFeatures> get copyWith => _$BreakoutRo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BreakoutRoomFeatures&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BreakoutRoomFeatures&&(identical(other.isAllow, isAllow) || other.isAllow == isAllow)&&(identical(other.allowedNumberRooms, allowedNumberRooms) || other.allowedNumberRooms == allowedNumberRooms)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isActive);
+int get hashCode => Object.hash(runtimeType,isAllow,allowedNumberRooms,isActive);
 
 @override
 String toString() {
-  return 'BreakoutRoomFeatures(isActive: $isActive)';
+  return 'BreakoutRoomFeatures(isAllow: $isAllow, allowedNumberRooms: $allowedNumberRooms, isActive: $isActive)';
 }
 
 
@@ -358,7 +360,7 @@ abstract mixin class $BreakoutRoomFeaturesCopyWith<$Res>  {
   factory $BreakoutRoomFeaturesCopyWith(BreakoutRoomFeatures value, $Res Function(BreakoutRoomFeatures) _then) = _$BreakoutRoomFeaturesCopyWithImpl;
 @useResult
 $Res call({
- bool isActive
+ bool isAllow, int allowedNumberRooms, bool isActive
 });
 
 
@@ -375,9 +377,11 @@ class _$BreakoutRoomFeaturesCopyWithImpl<$Res>
 
 /// Create a copy of BreakoutRoomFeatures
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isActive = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isAllow = null,Object? allowedNumberRooms = null,Object? isActive = null,}) {
   return _then(_self.copyWith(
-isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+isAllow: null == isAllow ? _self.isAllow : isAllow // ignore: cast_nullable_to_non_nullable
+as bool,allowedNumberRooms: null == allowedNumberRooms ? _self.allowedNumberRooms : allowedNumberRooms // ignore: cast_nullable_to_non_nullable
+as int,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -463,10 +467,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isAllow,  int allowedNumberRooms,  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BreakoutRoomFeatures() when $default != null:
-return $default(_that.isActive);case _:
+return $default(_that.isAllow,_that.allowedNumberRooms,_that.isActive);case _:
   return orElse();
 
 }
@@ -484,10 +488,10 @@ return $default(_that.isActive);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isActive)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isAllow,  int allowedNumberRooms,  bool isActive)  $default,) {final _that = this;
 switch (_that) {
 case _BreakoutRoomFeatures():
-return $default(_that.isActive);case _:
+return $default(_that.isAllow,_that.allowedNumberRooms,_that.isActive);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -504,10 +508,10 @@ return $default(_that.isActive);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isActive)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isAllow,  int allowedNumberRooms,  bool isActive)?  $default,) {final _that = this;
 switch (_that) {
 case _BreakoutRoomFeatures() when $default != null:
-return $default(_that.isActive);case _:
+return $default(_that.isAllow,_that.allowedNumberRooms,_that.isActive);case _:
   return null;
 
 }
@@ -519,9 +523,13 @@ return $default(_that.isActive);case _:
 @JsonSerializable()
 
 class _BreakoutRoomFeatures implements BreakoutRoomFeatures {
-  const _BreakoutRoomFeatures({this.isActive = false});
+  const _BreakoutRoomFeatures({this.isAllow = false, this.allowedNumberRooms = 0, this.isActive = false});
   factory _BreakoutRoomFeatures.fromJson(Map<String, dynamic> json) => _$BreakoutRoomFeaturesFromJson(json);
 
+/// Khớp server/web `roomFeatures.breakoutRoomFeatures.isAllow`
+@override@JsonKey() final  bool isAllow;
+/// Khớp server/web `roomFeatures.breakoutRoomFeatures.allowedNumberRooms`
+@override@JsonKey() final  int allowedNumberRooms;
 @override@JsonKey() final  bool isActive;
 
 /// Create a copy of BreakoutRoomFeatures
@@ -537,16 +545,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BreakoutRoomFeatures&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BreakoutRoomFeatures&&(identical(other.isAllow, isAllow) || other.isAllow == isAllow)&&(identical(other.allowedNumberRooms, allowedNumberRooms) || other.allowedNumberRooms == allowedNumberRooms)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isActive);
+int get hashCode => Object.hash(runtimeType,isAllow,allowedNumberRooms,isActive);
 
 @override
 String toString() {
-  return 'BreakoutRoomFeatures(isActive: $isActive)';
+  return 'BreakoutRoomFeatures(isAllow: $isAllow, allowedNumberRooms: $allowedNumberRooms, isActive: $isActive)';
 }
 
 
@@ -557,7 +565,7 @@ abstract mixin class _$BreakoutRoomFeaturesCopyWith<$Res> implements $BreakoutRo
   factory _$BreakoutRoomFeaturesCopyWith(_BreakoutRoomFeatures value, $Res Function(_BreakoutRoomFeatures) _then) = __$BreakoutRoomFeaturesCopyWithImpl;
 @override @useResult
 $Res call({
- bool isActive
+ bool isAllow, int allowedNumberRooms, bool isActive
 });
 
 
@@ -574,9 +582,11 @@ class __$BreakoutRoomFeaturesCopyWithImpl<$Res>
 
 /// Create a copy of BreakoutRoomFeatures
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isActive = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isAllow = null,Object? allowedNumberRooms = null,Object? isActive = null,}) {
   return _then(_BreakoutRoomFeatures(
-isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+isAllow: null == isAllow ? _self.isAllow : isAllow // ignore: cast_nullable_to_non_nullable
+as bool,allowedNumberRooms: null == allowedNumberRooms ? _self.allowedNumberRooms : allowedNumberRooms // ignore: cast_nullable_to_non_nullable
+as int,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
