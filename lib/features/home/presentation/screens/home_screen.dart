@@ -384,6 +384,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
               ),
+              _buildQuickNavGrid(context),
+              const SizedBox(height: AppSpacing.lg),
               _buildSectionHeader(
                 context,
                 'Khóa học của bạn',
@@ -501,6 +503,97 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           'Khám phá khóa học',
           style: TextStyle(color: theme.colorScheme.primary),
         ),
+      ),
+    );
+  }
+
+  Widget _buildQuickNavGrid(BuildContext context) {
+    final theme = Theme.of(context);
+    final items = [
+      {
+        'label': 'Khóa học',
+        'icon': Icons.menu_book_rounded,
+        'route': '/my-courses',
+        'color': const Color(0xFF6366F1),
+      },
+      {
+        'label': 'Flashcards',
+        'icon': Icons.style_rounded,
+        'route': '/study-sets',
+        'color': const Color(0xFFEC4899),
+      },
+      {
+        'label': 'Bài tập',
+        'icon': Icons.assignment_rounded,
+        'route': '/assignments',
+        'color': const Color(0xFFF59E0B),
+      },
+      {
+        'label': 'Bảng điểm',
+        'icon': Icons.leaderboard_rounded,
+        'route': '/leaderboard',
+        'color': const Color(0xFF10B981),
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Trung tâm học tập',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 4,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.85,
+            children: items.map((item) {
+              final color = item['color'] as Color;
+              return InkWell(
+                onTap: () => context.push(item['route'] as String),
+                borderRadius: BorderRadius.circular(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        item['icon'] as IconData,
+                        color: color,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      item['label'] as String,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }
@@ -635,21 +728,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.xl),
-            ),
-            child: Image.network(
-              e.thumbnailUrl ?? 'https://picsum.photos/seed/jp1/400/200',
-              height: 100,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                height: 100,
-                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                child: const Icon(Icons.school),
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.xl),
+                ),
+                child: Image.network(
+                  e.thumbnailUrl ?? 'https://picsum.photos/seed/jp1/400/200',
+                  height: 100,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 100,
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    child: const Icon(Icons.school),
+                  ),
+                ),
               ),
-            ),
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: e.isLive ? const Color(0xFFFF4842) : Colors.amber.shade700,
+                    borderRadius: BorderRadius.circular(6),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        e.isLive ? Icons.videocam : Icons.play_circle_fill,
+                        color: Colors.white,
+                        size: 10,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        e.isLive ? 'Live' : 'VOD',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
           Padding(
             padding: const EdgeInsets.all(12),

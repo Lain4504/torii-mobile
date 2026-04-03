@@ -301,3 +301,127 @@ class AcademyResource {
   bool get isFile => type == AcademyResourceType.file;
   bool get isLink => type == AcademyResourceType.link;
 }
+
+/// Assessment milestone status in a course
+class AssessmentMilestoneModel {
+  final String id;
+  final String examId;
+  final String title;
+  final String type; // 'QUIZ' | 'MIDTERM' | 'FINAL'
+  final String status; // 'LOCKED' | 'AVAILABLE' | 'IN_PROGRESS' | 'PASSED' | 'FAILED'
+  final double? passingScore;
+  final int? attemptCount;
+  final int? maxAttempts;
+
+  const AssessmentMilestoneModel({
+    required this.id,
+    required this.examId,
+    required this.title,
+    required this.type,
+    required this.status,
+    this.passingScore,
+    this.attemptCount,
+    this.maxAttempts,
+  });
+
+  factory AssessmentMilestoneModel.fromJson(Map<String, dynamic> json) {
+    final examId = json['examId'] ?? (json['exam'] is Map ? json['exam']['id'] : null) ?? 'unknown';
+    return AssessmentMilestoneModel(
+      id: (json['id'] ?? json['assessmentId'] ?? '').toString(),
+      examId: examId.toString(),
+      title: (json['title'] ?? json['examTitle'] ?? (json['exam'] is Map ? json['exam']['title'] : null) ?? '').toString(),
+      type: json['type']?.toString().toUpperCase() ?? 'QUIZ',
+      status: (json['status']?.toString().toUpperCase() ?? 'LOCKED'),
+      passingScore: (json['passingScore'] as num?)?.toDouble(),
+      attemptCount: (json['attemptCount'] as num?)?.toInt(),
+      maxAttempts: (json['maxAttempts'] as num?)?.toInt(),
+    );
+  }
+
+  bool get isLocked => status == 'LOCKED';
+  bool get isPassed => status == 'PASSED';
+  bool get canAttempt => status == 'AVAILABLE' || status == 'IN_PROGRESS' || status == 'FAILED';
+}
+
+/// Assignment for Live Class
+class AssignmentModel {
+  final String id;
+  final String title;
+  final String? description;
+  final DateTime? deadline;
+  final String? status; // 'PENDING' | 'SUBMITTED' | 'GRADED'
+  final double? grade;
+  final String? feedback;
+  final List<String>? attachmentUrls;
+
+  const AssignmentModel({
+    required this.id,
+    required this.title,
+    this.description,
+    this.deadline,
+    this.status,
+    this.grade,
+    this.feedback,
+    this.attachmentUrls,
+  });
+
+  factory AssignmentModel.fromJson(Map<String, dynamic> json) {
+    return AssignmentModel(
+      id: json['id'].toString(),
+      title: json['title'].toString(),
+      description: json['description']?.toString(),
+      deadline: json['deadline'] != null ? DateTime.parse(json['deadline'].toString()) : null,
+      status: json['status']?.toString().toUpperCase(),
+      grade: (json['grade'] as num?)?.toDouble(),
+      feedback: json['feedback']?.toString(),
+      attachmentUrls: (json['attachmentUrls'] as List?)?.map((e) => e.toString()).toList(),
+    );
+  }
+
+  bool get isOverdue => deadline != null && deadline!.isBefore(DateTime.now()) && status != 'SUBMITTED' && status != 'GRADED';
+}
+
+/// Assessment Attempt Question
+class AssessmentQuestionModel {
+  final String id;
+  final String stemText;
+  final String? stemHtml;
+  final List<AssessmentOptionModel> options;
+
+  const AssessmentQuestionModel({
+    required this.id,
+    required this.stemText,
+    this.stemHtml,
+    required this.options,
+  });
+
+  factory AssessmentQuestionModel.fromJson(Map<String, dynamic> json) {
+    final rawOptions = json['options'] as List? ?? [];
+    return AssessmentQuestionModel(
+      id: json['id'].toString(),
+        stemText: (json['stemText'] ?? json['stem'] ?? '').toString(),
+        stemHtml: json['stemHtml']?.toString(),
+        options: rawOptions.map((e) => AssessmentOptionModel.fromJson(e as Map<String, dynamic>)).toList(),
+      );
+    }
+  }
+
+  class AssessmentOptionModel {
+    final String id;
+    final String contentText;
+    final String optionKey;
+
+    const AssessmentOptionModel({
+      required this.id,
+      required this.contentText,
+      required this.optionKey,
+    });
+
+    factory AssessmentOptionModel.fromJson(Map<String, dynamic> json) {
+      return AssessmentOptionModel(
+        id: json['id'].toString(),
+        contentText: (json['contentText'] ?? json['content'] ?? '').toString(),
+        optionKey: (json['optionKey'] ?? '').toString(),
+      );
+    }
+  }
