@@ -104,6 +104,7 @@ Future<void> joinAndSwitchToBreakoutRoom({
     await ref.read(sessionProvider.notifier).disconnect(
           userInitiatedLeave: true,
           sessionEndMessage: 'switch-room',
+          preserveMeetingRoomUi: true,
         );
 
     final subjects = verify.hasNatsSubjects()
@@ -125,6 +126,7 @@ Future<void> joinAndSwitchToBreakoutRoom({
           userId: verify.userId,
           roomStreamName: verify.roomStreamName,
           subjects: subjects,
+          keepMeetingRoomVisible: true,
           setErrorState: (title, message) {
             if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
@@ -134,7 +136,14 @@ Future<void> joinAndSwitchToBreakoutRoom({
               ),
             );
           },
-          setRoomConnectionStatusState: (_) {},
+          setRoomConnectionStatusState: (status) {
+            // Callback này có thể chạy sau khi widget đã dispose (do kết nối lại async),
+            // nên phải guard bằng `context.mounted` để tránh lỗi Riverpod "ref after disposed".
+            if (!context.mounted) return;
+            if (status == 'media-server-conn-established') {
+              ref.read(sessionProvider.notifier).toggleStartup(false);
+            }
+          },
           setCurrentMediaServerConn: (_) {},
           onRemoteSessionEnded: () {
             if (!context.mounted) return;
@@ -192,6 +201,7 @@ Future<void> _handleRemoteSessionEnded(BuildContext context, WidgetRef ref) asyn
       await ref.read(sessionProvider.notifier).disconnect(
             userInitiatedLeave: true,
             sessionEndMessage: 'breakout-ended',
+            preserveMeetingRoomUi: true,
           );
 
       await ref.read(sessionProvider.notifier).connect(
@@ -201,6 +211,7 @@ Future<void> _handleRemoteSessionEnded(BuildContext context, WidgetRef ref) asyn
             userId: verify.userId,
             roomStreamName: verify.roomStreamName,
             subjects: subjects,
+            keepMeetingRoomVisible: true,
             setErrorState: (title, message) {
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -210,14 +221,27 @@ Future<void> _handleRemoteSessionEnded(BuildContext context, WidgetRef ref) asyn
                 ),
               );
             },
-            setRoomConnectionStatusState: (_) {},
+            setRoomConnectionStatusState: (status) {
+              if (!context.mounted) return;
+              if (status == 'media-server-conn-established') {
+                ref.read(sessionProvider.notifier).toggleStartup(false);
+              }
+            },
             setCurrentMediaServerConn: (_) {},
             onRemoteSessionEnded: () {
               if (!context.mounted) return;
+              // Trong luồng "breakout ended -> quay về main", SESSION_ENDED có thể đến trễ.
+              // Chỉ thoát khi đã rời khỏi trạng thái breakout (để tránh nhảy sang LiveSchedule sai).
+              final bkNow = ref.read(breakoutRoomProvider);
+              if (bkNow.isInBreakoutRoom) return;
               navigateOutOfMeet(context);
             },
           );
 
+      // Quan trọng: luôn clear invitation khi breakout kết thúc và ta tự quay lại main.
+      // Nếu không, lần invitation tiếp theo (có thể cùng roomId như trước) sẽ không bắn
+      // _showBreakoutInvitation do điều kiện "next != previous".
+      ref.read(breakoutRoomProvider.notifier).clearInvitation();
       ref.read(breakoutRoomProvider.notifier).clearBreakoutSession();
       await dialog.close();
       if (!context.mounted) return;
@@ -227,6 +251,7 @@ Future<void> _handleRemoteSessionEnded(BuildContext context, WidgetRef ref) asyn
     } catch (e) {
       await dialog.close();
       if (!context.mounted) return;
+      ref.read(breakoutRoomProvider.notifier).clearInvitation();
       ref.read(breakoutRoomProvider.notifier).clearBreakoutSession();
       navigateOutOfMeet(context);
     }

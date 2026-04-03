@@ -22,7 +22,8 @@ class MeetingRoomScreen extends ConsumerWidget {
     // Listen for breakout room invitations
     ref.listen(breakoutRoomProvider, (previous, next) {
       if (next.receivedInvitationFor != null && 
-          next.receivedInvitationFor != previous?.receivedInvitationFor) {
+          (previous == null ||
+              next.invitationSeq != previous.invitationSeq)) {
         _showBreakoutInvitation(context, ref, next.receivedInvitationFor!);
       }
     });

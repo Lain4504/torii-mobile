@@ -8,12 +8,16 @@ class BreakoutRoomState {
   final String? parentToken;
   final String? parentRoomId;
   final bool isInBreakoutRoom;
+  /// Tăng mỗi lần nhận invitation mới (dù cùng roomId).
+  /// Mục tiêu: listener UI không phụ thuộc so sánh chuỗi roomId.
+  final int invitationSeq;
   
   const BreakoutRoomState({
     this.receivedInvitationFor,
     this.parentToken,
     this.parentRoomId,
     this.isInBreakoutRoom = false,
+    this.invitationSeq = 0,
   });
   
   BreakoutRoomState copyWith({
@@ -21,12 +25,14 @@ class BreakoutRoomState {
     String? parentToken,
     String? parentRoomId,
     bool? isInBreakoutRoom,
+    int? invitationSeq,
   }) {
     return BreakoutRoomState(
       receivedInvitationFor: receivedInvitationFor ?? this.receivedInvitationFor,
       parentToken: parentToken ?? this.parentToken,
       parentRoomId: parentRoomId ?? this.parentRoomId,
       isInBreakoutRoom: isInBreakoutRoom ?? this.isInBreakoutRoom,
+      invitationSeq: invitationSeq ?? this.invitationSeq,
     );
   }
 }
@@ -35,7 +41,11 @@ class BreakoutRoomNotifier extends StateNotifier<BreakoutRoomState> {
   BreakoutRoomNotifier() : super(const BreakoutRoomState());
   
   void updateReceivedInvitationFor(String roomId) {
-    state = state.copyWith(receivedInvitationFor: roomId);
+    // Increment để UI chắc chắn re-open khi invitation mới về (dù cùng roomId).
+    state = state.copyWith(
+      receivedInvitationFor: roomId,
+      invitationSeq: state.invitationSeq + 1,
+    );
   }
   
   void clearInvitation() {

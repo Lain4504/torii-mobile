@@ -30,6 +30,10 @@ class HandleRoomData {
   Map<String, dynamic>? _currentRoom;
   String? _welcomeMessage;
   bool _checkedPreloadedWhiteboardFile = false;
+  // Cache trạng thái để tránh đọc provider trong lúc cập nhật metadata
+  // (tránh lỗi Riverpod "provider cannot depend on itself").
+  bool _lastIsRecording = false;
+  bool _lastIsActiveRtmp = false;
   
   HandleRoomData({
     required this.roomId,
@@ -141,28 +145,24 @@ class HandleRoomData {
   
   /// Show recording notification
   void _showRecordingNotification(RoomInfo metadata) {
-    // Get current recording status from provider
-    final session = ref?.read(sessionProvider);
-    final isActiveRecording = session?.isActiveRecording ?? false;
-    
-    if (!isActiveRecording && metadata.isRecording) {
+    final next = metadata.isRecording;
+    if (!_lastIsRecording && next) {
       _showNotification('Phiên họp đang được ghi âm/ghi hình', 'info');
-    } else if (isActiveRecording && !metadata.isRecording) {
+    } else if (_lastIsRecording && !next) {
       _showNotification('Phiên họp đã dừng ghi âm/ghi hình', 'info');
     }
+    _lastIsRecording = next;
   }
   
   /// Show RTMP broadcasting notification
   void _showRTMPNotification(RoomInfo metadata) {
-    // Get current RTMP status from provider
-    final session = ref?.read(sessionProvider);
-    final isActiveRtmp = session?.isActiveRtmpBroadcasting ?? false;
-    
-    if (!isActiveRtmp && metadata.isActiveRtmp) {
+    final next = metadata.isActiveRtmp;
+    if (!_lastIsActiveRtmp && next) {
       _showNotification('Đã bắt đầu phát sóng trực tiếp (RTMP)', 'info');
-    } else if (isActiveRtmp && !metadata.isActiveRtmp) {
+    } else if (_lastIsActiveRtmp && !next) {
       _showNotification('Đã dừng phát sóng trực tiếp (RTMP)', 'info');
     }
+    _lastIsActiveRtmp = next;
   }
   
   /// Publish welcome message as system chat
@@ -210,15 +210,7 @@ class HandleRoomData {
     
     // Wait for user info to be updated
     await Future.delayed(const Duration(seconds: 2));
-    
-    // Check if current user is presenter
-    final isPresenter = ref?.read(sessionProvider).currentUser?.metadata?.isPresenter ?? false;
-    
-    if (!isPresenter) {
-      _checkedPreloadedWhiteboardFile = true;
-      return;
-    }
-    
+
     final whiteboard = metadata.roomFeatures?.whiteboardFeatures;
     if (whiteboard == null || whiteboard.preloadFile.isEmpty) {
       _checkedPreloadedWhiteboardFile = true;

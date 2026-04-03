@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/session_provider.dart';
+import '../../../providers/breakout_room_provider.dart';
 import '../../navigation/meet_exit_navigation.dart';
 import 'control_button.dart';
 
@@ -71,6 +72,15 @@ class LeaveButton extends ConsumerWidget {
             backgroundColor: AppColors.error,
           ),
         );
+        return;
+      }
+      // Nếu đang ở breakout room thì khi kết thúc server sẽ gửi SESSION_ENDED,
+      // app tự reconnect về parent room. Không navigateOutOfMeet() để tránh nhảy sang LiveSchedule.
+      final bk = ref.read(breakoutRoomProvider);
+      final isEndingBreakout = bk.isInBreakoutRoom &&
+          (bk.parentToken?.isNotEmpty ?? false) &&
+          (bk.parentRoomId?.isNotEmpty ?? false);
+      if (isEndingBreakout) {
         return;
       }
       navigateOutOfMeet(context);

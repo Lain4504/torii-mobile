@@ -494,7 +494,12 @@ class ConnectNats {
       case nats_msg.NatsMsgServerToClientEvents.ROOM_METADATA_UPDATE:
         if (payload.msg.isNotEmpty) {
           try {
-            final roomInfo = nats_msg.NatsKvRoomInfo.fromJson(_normalizeJson(payload.msg));
+            // Some servers emit `metadata` as nested object instead of JSON string.
+            // NatsKvRoomInfo expects metadata string; normalize before protobuf parse.
+            final normalizedRoomInfoJson =
+                _normalizeNatsKvRoomInfoPayload(payload.msg);
+            final roomInfo =
+                nats_msg.NatsKvRoomInfo.fromJson(_normalizeJson(normalizedRoomInfoJson));
             handleRoomData.handleRoomMetadataUpdate(roomInfo);
           } catch (e) {
             if (kDebugMode) {
@@ -1695,6 +1700,71 @@ class ConnectNats {
       return jsonStr;
     } catch (e) {
       if (kDebugMode) print('ConnectNats: Error in _normalizeJson - $e');
+      return jsonStr;
+    }
+  }
+
+  /// Ensure ROOM_METADATA_UPDATE payload has `metadata` as JSON string.
+  /// Server can send:
+  /// - {"metadata":"{\"room_title\":\"...\"}"}  (ok)
+  /// - {"metadata":{"room_title":"..."}}        (needs conversion)
+  String _normalizeRoomInfoMetadataPayload(String jsonStr) {
+    try {
+      final decoded = jsonDecode(jsonStr);
+      if (decoded is! Map<String, dynamic>) return jsonStr;
+      final metadata = decoded['metadata'];
+      if (metadata is Map || metadata is List) {
+        decoded['metadata'] = jsonEncode(metadata);
+      }
+      return jsonEncode(decoded);
+    } catch (_) {
+      return jsonStr;
+    }
+  }
+
+  /// Full normalization for [NatsKvRoomInfo] JSON before protobuf [mergeFromJson].
+  String _normalizeNatsKvRoomInfoPayload(String jsonStr) {
+    try {
+      var step = _normalizeRoomInfoMetadataPayload(jsonStr);
+      var decoded = jsonDecode(step);
+      if (decoded is! Map<String, dynamic>) return step;
+
+      // Bare room metadata (room_title/roomTitle, room_features, …) mistaken for KV room row.
+      final hasRoomKey =
+          decoded.containsKey('room_id') || decoded.containsKey('roomId');
+      final looksLikeInnerMetadata = decoded.containsKey('room_title') ||
+          decoded.containsKey('roomTitle') ||
+          decoded.containsKey('room_features') ||
+          decoded.containsKey('roomFeatures');
+      if (!hasRoomKey && looksLikeInnerMetadata) {
+        decoded = <String, dynamic>{'metadata': jsonEncode(decoded)};
+        step = jsonEncode(decoded);
+      }
+
+      // Int64 fields sometimes arrive as quoted numbers ("7200") → protobuf JSON parse error.
+      const numericKeys = <String>{
+        'db_table_id',
+        'empty_timeout',
+        'max_participants',
+        'created_at',
+        'dbTableId',
+        'emptyTimeout',
+        'maxParticipants',
+        'createdAt',
+      };
+      final out = Map<String, dynamic>.from(decoded);
+      out.forEach((key, value) {
+        if (!numericKeys.contains(key)) return;
+        if (value is String) {
+          final n = int.tryParse(value.trim());
+          if (n != null) {
+            out[key] = n;
+          }
+        }
+      });
+      // Luôn dùng [out] (đã bọc bare-metadata / ép số) — không fallback [step] để tránh mất bước bọc.
+      return jsonEncode(out);
+    } catch (_) {
       return jsonStr;
     }
   }
