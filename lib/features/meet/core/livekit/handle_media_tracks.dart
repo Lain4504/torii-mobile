@@ -85,10 +85,11 @@ class HandleMediaTracks {
     }
   }
 
-  /// Handle remote track unsubscribed
+  /// Handle remote track unsubscribed / unpublished
   /// Matches: trackUnsubscribed() in HandleMediaTracks.ts
+  /// [track] có thể null khi [TrackUnpublishedEvent] (track đã gỡ).
   void trackUnsubscribed(
-    Track track,
+    Track? track,
     TrackPublication publication,
     RemoteParticipant participant,
   ) {
@@ -96,7 +97,7 @@ class HandleMediaTracks {
     _removeSpeaker(publication, participant);
 
     if (kDebugMode) {
-      print(
+        print(
         'HandleMediaTracks: Track unsubscribed - ${publication.source.name} from ${participant.identity}',
       );
     }
