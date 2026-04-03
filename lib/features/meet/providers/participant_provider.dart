@@ -26,6 +26,9 @@ class ParticipantInfo {
   final bool hasAudioTrack;
   final bool hasVideoTrack;
 
+  /// Remote camera stream paused by server (dynacast / bandwidth) — [HandleMediaTracks.trackStreamStateChanged]
+  final bool videoTrackPaused;
+
   const ParticipantInfo({
     required this.userId,
     required this.sid,
@@ -35,6 +38,7 @@ class ParticipantInfo {
     this.visibility,
     this.hasAudioTrack = true,
     this.hasVideoTrack = true,
+    this.videoTrackPaused = false,
   });
 
   ParticipantInfo copyWith({
@@ -46,6 +50,7 @@ class ParticipantInfo {
     String? visibility,
     bool? hasAudioTrack,
     bool? hasVideoTrack,
+    bool? videoTrackPaused,
   }) {
     return ParticipantInfo(
       userId: userId ?? this.userId,
@@ -56,6 +61,7 @@ class ParticipantInfo {
       visibility: visibility ?? this.visibility,
       hasAudioTrack: hasAudioTrack ?? this.hasAudioTrack,
       hasVideoTrack: hasVideoTrack ?? this.hasVideoTrack,
+      videoTrackPaused: videoTrackPaused ?? this.videoTrackPaused,
     );
   }
 }
@@ -127,6 +133,8 @@ class ParticipantNotifier extends StateNotifier<ParticipantState> {
       visibility: changes['visibility'] as String? ?? participant.visibility,
       hasAudioTrack: changes['hasAudioTrack'] as bool? ?? participant.hasAudioTrack,
       hasVideoTrack: changes['hasVideoTrack'] as bool? ?? participant.hasVideoTrack,
+      videoTrackPaused:
+          changes['videoTrackPaused'] as bool? ?? participant.videoTrackPaused,
     );
     state = state.copyWith(participants: newParticipants);
   }

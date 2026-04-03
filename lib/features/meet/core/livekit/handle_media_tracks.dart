@@ -16,6 +16,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/active_speakers_provider.dart';
+import 'package:torii_app/features/meet/providers/session_provider.dart';
 
 // Types
 import 'livekit_types.dart';
@@ -108,7 +109,7 @@ class HandleMediaTracks {
   void trackSubscriptionFailed(
     String sid,
     Exception? error,
-    RemoteParticipant participant,
+    RemoteParticipant? participant,
   ) {
     if (kDebugMode) {
       print(
@@ -116,13 +117,15 @@ class HandleMediaTracks {
       );
     }
 
-    // Show notification
-    ref
-        .read(roomSettingsProvider.notifier)
-        .addUserNotification(
+    final label = participant != null
+        ? (participant.name.isNotEmpty
+            ? participant.name
+            : participant.identity)
+        : sid;
+
+    ref.read(roomSettingsProvider.notifier).addUserNotification(
           UserNotification(
-            message:
-                'Không thể đăng ký track từ ${participant.name ?? participant.identity}',
+            message: 'Không thể đăng ký track từ $label',
             typeOption: 'error',
           ),
         );
@@ -231,11 +234,48 @@ class HandleMediaTracks {
     }
   }
 
+  /// Web HandleMediaTracks._shouldAddWebcam — quyền xem webcam theo roomFeatures (bỏ nhánh recorder/recordWebcam vì chưa có trong UserMetadata mobile).
+  bool _shouldAddWebcam(Participant participant) {
+    final session = ref.read(sessionProvider);
+    final currentUser = session.currentUser;
+    if (currentUser != null && participant.identity == currentUser.userId) {
+      return true;
+    }
+
+    final user =
+        ref.read(participantProvider).participants[participant.identity];
+    if (user == null) {
+      return true;
+    }
+
+    final features = session.currentRoom.metadata?.roomFeatures;
+    if (features == null) {
+      return true;
+    }
+
+    final adminOnly = features.adminOnlyWebcams;
+    final allowView = features.allowViewOtherWebcams;
+    final isAdminViewer = currentUser?.metadata?.isAdmin ?? false;
+
+    if ((adminOnly || !allowView) && !isAdminViewer) {
+      return user.metadata.isAdmin;
+    }
+    return true;
+  }
+
   /// Add subscriber for track
   /// Matches: addSubscriber() in HandleMediaTracks.ts
   void _addSubscriber(TrackPublication track, Participant participant) {
     switch (track.source) {
       case TrackSource.camera:
+        if (participant is RemoteParticipant && !_shouldAddWebcam(participant)) {
+          if (kDebugMode) {
+            print(
+              'HandleMediaTracks: Skip video subscriber (webcam policy) — ${participant.identity}',
+            );
+          }
+          break;
+        }
         connectLivekit.addVideoSubscriber(participant);
 
         // Update participant video track state
@@ -336,11 +376,10 @@ class HandleMediaTracks {
       return;
     }
 
-    // Check if participant exists and is online
-    final existUser = ref
-        .read(participantProvider)
-        .participants[participant.identity];
-    if (existUser == null || !existUser.metadata.isOnline) {
+    // Chỉ chặn khi user đã có trong list và offline (đồng bộ addVideoSubscriber).
+    final existUser =
+        ref.read(participantProvider).participants[participant.identity];
+    if (existUser != null && !existUser.metadata.isOnline) {
       return;
     }
 
@@ -355,7 +394,9 @@ class HandleMediaTracks {
         .read(activeSpeakersProvider.notifier)
         .addOrUpdateSpeaker(
           userId: participant.identity,
-          name: participant.name ?? participant.identity,
+          name: participant.name.isNotEmpty
+              ? participant.name
+              : participant.identity,
           isSpeaking: false,
           audioLevel: 0.0,
         );

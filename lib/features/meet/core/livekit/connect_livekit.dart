@@ -284,12 +284,9 @@ class ConnectLivekit implements IConnectLivekit {
           addScreenShareTrack(event.participant.identity, event.publication);
         }
       })
+      // Web chỉ móc HandleMediaTracks vào TrackUnpublished, không phải TrackUnsubscribed
+      // (tránh gọi removeSubscriber hai lần cho cùng một track).
       ..on<TrackUnsubscribedEvent>((event) {
-        handleMediaTracks.trackUnsubscribed(
-          event.track,
-          event.publication,
-          event.participant,
-        );
         _rebuildAudioVideoSubscribersFromRoom();
         if (event.publication.source == TrackSource.screenShareVideo ||
             event.publication.source == TrackSource.screenShareAudio) {
@@ -334,6 +331,7 @@ class ConnectLivekit implements IConnectLivekit {
         }
       })
       ..on<TrackMutedEvent>((event) {
+        handleMediaTracks.trackMuted(event.publication, event.participant);
         if (event.participant.identity == localUserId &&
             event.publication.source == TrackSource.microphone) {
           ref.read(bottomIconsProvider.notifier).updateMicStatus(true);
@@ -345,6 +343,7 @@ class ConnectLivekit implements IConnectLivekit {
         _rebuildAudioVideoSubscribersFromRoom();
       })
       ..on<TrackUnmutedEvent>((event) {
+        handleMediaTracks.trackUnmuted(event.publication, event.participant);
         if (event.participant.identity == localUserId &&
             event.publication.source == TrackSource.microphone) {
           ref.read(bottomIconsProvider.notifier).updateMicStatus(false);
@@ -354,6 +353,32 @@ class ConnectLivekit implements IConnectLivekit {
           ref.read(bottomIconsProvider.notifier).updateWebcamStatus(false);
         }
         _rebuildAudioVideoSubscribersFromRoom();
+      })
+      ..on<TrackSubscriptionExceptionEvent>((event) {
+        handleMediaTracks.trackSubscriptionFailed(
+          event.sid ?? '',
+          null,
+          event.participant,
+        );
+      })
+      ..on<TrackStreamStateUpdatedEvent>((event) {
+        handleMediaTracks.trackStreamStateChanged(
+          event.publication,
+          event.streamState,
+          event.participant,
+        );
+      })
+      ..on<ParticipantConnectionQualityUpdatedEvent>((event) {
+        if (event.participant.identity == localUserId) {
+          _localUserConnectionQualityChanged(event.connectionQuality);
+        } else {
+          ref
+              .read(participantProvider.notifier)
+              .updateParticipant(
+                userId: event.participant.identity,
+                changes: {'connectionQuality': event.connectionQuality.name},
+              );
+        }
       })
       ..on<ActiveSpeakersChangedEvent>(_onActiveSpeakersChanged);
 
@@ -482,11 +507,26 @@ class ConnectLivekit implements IConnectLivekit {
   /// Matches: initiateParticipants() in ConnectLivekit.ts
   Future<void> _initiateParticipants() async {
     _rebuildTrackSubscribersFromRoom();
+    // Web initiateParticipants chỉ addVideoSubscriber từ room; mobile đã rebuild map.
+    // Vẫn đồng bộ HandleMediaTracks (hasVideoTrack / screenShare / v.v.) nếu SDK không bắn lại TrackSubscribed cho track đã có.
+    _syncHandleMediaTracksFromExistingRoom();
 
     if (kDebugMode) {
       print(
         'ConnectLivekit: Initialized ${_room.remoteParticipants.length} participants',
       );
+    }
+  }
+
+  /// Đồng bộ provider với mọi remote track đã subscribed khi vừa connect (bù event).
+  void _syncHandleMediaTracksFromExistingRoom() {
+    for (final p in _room.remoteParticipants.values) {
+      for (final pub in p.trackPublications.values) {
+        if (!pub.subscribed) continue;
+        final t = pub.track;
+        if (t == null) continue;
+        handleMediaTracks.trackSubscribed(t, pub, p);
+      }
     }
   }
 
