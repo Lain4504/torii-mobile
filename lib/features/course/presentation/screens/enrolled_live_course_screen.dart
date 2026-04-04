@@ -32,43 +32,16 @@ class _EnrolledLiveCourseScreenState
     extends ConsumerState<EnrolledLiveCourseScreen> {
   String? _joiningSessionId;
   late PageController _swiperController;
-  late DateTime _currentWeekStart;
-  late DateTime _selectedDate;
 
   @override
   void initState() {
     super.initState();
     _swiperController = PageController(viewportFraction: 0.88);
-    final now = DateTime.now();
-    _currentWeekStart = _getStartOfWeek(now);
-    _selectedDate = now;
-    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.invalidate(liveSchedulesProvider);
     });
   }
-
-  DateTime _getStartOfWeek(DateTime date) {
-    // weekday is 1 (Mon) to 7 (Sun). 
-    // We want Monday as start.
-    return date.subtract(Duration(days: date.weekday - 1));
-  }
-
-  void _nextWeek() {
-    setState(() {
-      _currentWeekStart = _currentWeekStart.add(const Duration(days: 7));
-      _selectedDate = _selectedDate.add(const Duration(days: 7));
-    });
-  }
-
-  void _previousWeek() {
-    setState(() {
-      _currentWeekStart = _currentWeekStart.subtract(const Duration(days: 7));
-      _selectedDate = _selectedDate.subtract(const Duration(days: 7));
-    });
-  }
-
 
   @override
   void dispose() {
@@ -168,7 +141,7 @@ class _EnrolledLiveCourseScreenState
           ),
         ),
         data: (all) {
-          
+          final nearest = _nearestSessions(all, widget.classId);
 
           return DefaultTabController(
             length: 5,
@@ -180,8 +153,31 @@ class _EnrolledLiveCourseScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 16),
-                        _buildSectionHeader('Nội dung học tập'),
+                        _buildInfoBanner(),
+                        const SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            'Buổi học gần nhất',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildLiveSwiper(nearest),
+                        const SizedBox(height: 24),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            'Nội dung học tập',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -228,8 +224,17 @@ class _EnrolledLiveCourseScreenState
                           message:
                               'Phần hỏi đáp sẽ được mở trong các phiên bản tiếp theo.',
                         ),
-                        _AssignmentsTabPane(classId: widget.classId),
-                        _QuizzesTabPane(classId: widget.classId),
+                        _PlaceholderTabPane(
+                          icon: Icons.assignment_outlined,
+                          title: 'Bài tập',
+                          message: 'Bài tập sẽ được giao qua từng buổi học.',
+                        ),
+                        _PlaceholderTabPane(
+                          icon: Icons.quiz_outlined,
+                          title: 'Quiz',
+                          message:
+                              'Bài quiz sẽ được cập nhật theo tiến độ khóa học.',
+                        ),
                       ],
                     ),
                   ),
@@ -242,311 +247,114 @@ class _EnrolledLiveCourseScreenState
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildInfoBanner() {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: theme.colorScheme.primary.withValues(alpha: 0.15),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.videocam_outlined,
+              color: theme.colorScheme.primary,
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Trọng tâm là các buổi học trực tiếp. Tài liệu video trong lộ trình chỉ hỗ trợ thêm.',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 13,
+                  height: 1.4,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLiveSwiper(List<LiveScheduleModel> sessions) {
+    return SizedBox(
+      height: 220,
+      child: sessions.isEmpty
+          ? _buildEmptySwiperCard()
+          : PageView.builder(
+              controller: _swiperController,
+              padEnds: true,
+              itemCount: sessions.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: _LiveSessionSwiperCard(
+                    session: sessions[index],
+                    joining: _joiningSessionId == sessions[index].id,
+                    onJoin: () => _onJoin(sessions[index]),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
+  Widget _buildEmptySwiperCard() {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Text(
-        title,
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: theme.colorScheme.onSurface,
-          letterSpacing: 0.2,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWeeklyScheduleStrip(List<LiveScheduleModel> allSessions) {
-    final theme = Theme.of(context);
-    final weekDays = List.generate(7, (i) => _currentWeekStart.add(Duration(days: i)));
-    final endOfWeek = weekDays.last;
-    
-    final rangeStr = "${DateFormat('dd/MM').format(_currentWeekStart)} — ${DateFormat('dd/MM').format(endOfWeek)}";
-    final now = DateTime.now();
-    final todayStr = DateFormat('yyyy-MM-dd').format(now);
-    final selStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
-
-    // Get days in this week that have sessions for dot indicators
-    final daysInWeekWithSessions = <String>{};
-    for (final day in weekDays) {
-      final dStr = DateFormat('yyyy-MM-dd').format(day);
-      final hasSession = allSessions.any((s) => 
-        s.classId == widget.classId && 
-        s.startAt != null && 
-        DateFormat('yyyy-MM-dd').format(s.startAt!.toLocal()) == dStr
-      );
-      if (hasSession) daysInWeekWithSessions.add(dStr);
-    }
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.calendar_month_outlined,
-                            color: theme.colorScheme.primary, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Lịch biểu trong tuần',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: theme.colorScheme.onSurface,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'DỮ LIỆU ĐƯỢC CẬP NHẬT TRỰC TIẾP',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                        letterSpacing: 0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildNavButton(Icons.chevron_left, _previousWeek),
-                  const SizedBox(width: 4),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest
-                          .withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      rangeStr,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 11),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  _buildNavButton(Icons.chevron_right, _nextWeek),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: theme.colorScheme.outlineVariant),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(7, (index) {
-              final day = weekDays[index];
-              final dStr = DateFormat('yyyy-MM-dd').format(day);
-              final isSelected = dStr == selStr;
-              final isToday = dStr == todayStr;
-              final weekday = _getViWeekday(day.weekday);
-              final dayNum = DateFormat('dd').format(day);
-              final hasSession = daysInWeekWithSessions.contains(dStr);
-
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedDate = day;
-                    });
-                  },
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        weekday,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                          color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isSelected ? theme.colorScheme.primary : (isToday ? theme.colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          dayNum,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      if (hasSession)
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                        )
-                      else
-                        const SizedBox(height: 4),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSelectedDaySessions(List<LiveScheduleModel> allSessions) {
-    final theme = Theme.of(context);
-    final selStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
-    final sessions = allSessions.where((s) {
-      if (s.classId != widget.classId || s.startAt == null) return false;
-      return DateFormat('yyyy-MM-dd').format(s.startAt!.toLocal()) == selStr;
-    }).toList();
-
-    // Sort by start time
-    sessions.sort((a, b) => (a.startAt ?? DateTime.now()).compareTo(b.startAt ?? DateTime.now()));
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Lịch học: ${_getViWeekday(_selectedDate.weekday)}, ${DateFormat('dd/MM').format(_selectedDate)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  letterSpacing: 0.2,
-                ),
-              ),
-              if (sessions.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    '${sessions.length} buổi',
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (sessions.isEmpty)
-             Container(
-               width: double.infinity,
-               padding: const EdgeInsets.symmetric(vertical: 32),
-               decoration: BoxDecoration(
-                 color: theme.colorScheme.surface.withValues(alpha: 0.5),
-                 borderRadius: BorderRadius.circular(20),
-                 border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
-               ),
-               child: Column(
-                 children: [
-                   Icon(
-                     Icons.auto_awesome_outlined,
-                     size: 32,
-                     color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.15),
-                   ),
-                   const SizedBox(height: 8),
-                   Text(
-                     'Không có lịch học cho ngày này',
-                     style: TextStyle(
-                       color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                       fontSize: 12,
-                       fontWeight: FontWeight.w600,
-                     ),
-                   ),
-                 ],
-               ),
-             )
-          else
-            Column(
-              children: sessions.map((s) => _LiveSessionRowCard(
-                session: s,
-                joining: _joiningSessionId == s.id,
-                onJoin: () => _onJoin(s),
-              )).toList(),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavButton(IconData icon, VoidCallback onTap) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: theme.colorScheme.outlineVariant),
-          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 20, color: theme.colorScheme.onSurface),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.calendar_today_outlined,
+                size: 40,
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.6,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Chưa có buổi live trong khung thời gian',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
-  }
-
-  String _getViWeekday(int weekday) {
-    switch (weekday) {
-      case 1: return 'THỨ 2';
-      case 2: return 'THỨ 3';
-      case 3: return 'THỨ 4';
-      case 4: return 'THỨ 5';
-      case 5: return 'THỨ 6';
-      case 6: return 'THỨ 7';
-      case 7: return 'CN';
-      default: return '';
-    }
   }
 }
 
-class _LiveSessionRowCard extends StatelessWidget {
-  const _LiveSessionRowCard({
+class _LiveSessionSwiperCard extends StatelessWidget {
+  const _LiveSessionSwiperCard({
     required this.session,
     required this.joining,
     required this.onJoin,
@@ -559,125 +367,232 @@ class _LiveSessionRowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final df = DateFormat('dd/MM');
     final timeFmt = DateFormat('HH:mm');
     final start = session.startAt;
-    final timeStr = start != null ? timeFmt.format(start.toLocal()) : '—';
+    final dateStr = start != null ? df.format(start) : '—';
+    final timeStr = start != null ? timeFmt.format(start) : '—';
     final state = session.uiStateAt(DateTime.now());
     final isLive = state == LiveScheduleUiState.live;
     final canJoin = session.canAttemptJoin;
 
-    String statusText;
-    Color statusColor;
-    if (state == LiveScheduleUiState.live) {
-      statusText = 'ĐANG DIỄN RA';
-      statusColor = Colors.red;
-    } else if (state == LiveScheduleUiState.joinable) {
-      statusText = 'CÓ THỂ VÀO HỌC';
-      statusColor = Colors.green;
-    } else if (state == LiveScheduleUiState.scheduled) {
-      statusText = 'SẮP DIỄN RA';
-      statusColor = theme.colorScheme.primary;
-    } else {
-      statusText = 'ĐÃ KẾT THÚC';
-      statusColor = Colors.grey;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isLive ? theme.colorScheme.primary.withValues(alpha: 0.08) : theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isLive ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
-          width: isLive ? 1.5 : 1,
+    return Material(
+      color: theme.colorScheme.surface,
+      elevation: 0,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isLive
+                ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                : theme.colorScheme.outlineVariant,
+            width: isLive ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color:
+                  (isLive
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface)
+                      .withValues(alpha: 0.08),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        boxShadow: isLive ? [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ] : null,
-      ),
-      child: InkWell(
-        onTap: (!canJoin || joining) ? null : onJoin,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-               Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: isLive ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.videocam_rounded,
-                  color: isLive ? theme.colorScheme.onPrimary : theme.colorScheme.primary,
-                  size: 20,
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 4,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (session.courseThumbnail != null &&
+                      session.courseThumbnail!.isNotEmpty)
+                    Image.network(
+                      session.courseThumbnail!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          _thumbnailPlaceholder(context),
+                    )
+                  else
+                    _thumbnailPlaceholder(context),
+                  if (isLive)
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.error,
+                          borderRadius: BorderRadius.circular(999),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.error.withValues(
+                                alpha: 0.5,
+                              ),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Đang diễn ra',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  Positioned(
+                    left: 12,
+                    top: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            dateStr,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 11,
+                            ),
+                          ),
+                          Text(
+                            timeStr,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.95),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
+            ),
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      session.title ?? 'Buổi học trực tuyến',
-                      style: const TextStyle(
+                      session.title ?? 'Buổi học',
+                      style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
-                        fontSize: 14,
+                        height: 1.2,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.access_time_filled, size: 12, color: theme.colorScheme.onSurfaceVariant),
-                        const SizedBox(width: 4),
-                        Text(
-                          timeStr,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurfaceVariant,
+                    if ((session.instructorName ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'GV: ${session.instructorName}',
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const Spacer(),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: ElevatedButton(
+                        onPressed: (!canJoin || joining) ? null : onJoin,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            statusText,
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              color: statusColor,
-                            ),
-                          ),
-                        ),
-                      ],
+                        child: joining
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: theme.colorScheme.onPrimary,
+                                ),
+                              )
+                            : Text(
+                                canJoin ? 'Vào học ngay' : 'Chưa tới giờ',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                ),
+                              ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              if (joining)
-                const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2.5),
-                )
-              else if (canJoin)
-                Icon(
-                  Icons.play_circle_fill_rounded,
-                  size: 32,
-                  color: theme.colorScheme.primary,
-                ),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _thumbnailPlaceholder(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.primary.withValues(alpha: 0.15),
+            theme.colorScheme.primary.withValues(alpha: 0.05),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.videocam_rounded,
+          size: 48,
+          color: theme.colorScheme.primary.withValues(alpha: 0.5),
         ),
       ),
     );
@@ -718,11 +633,8 @@ class _SyllabusTabPane extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final effectiveProductId = (productId != null && productId!.trim().isNotEmpty)
-        ? productId!.trim()
-        : classId;
-    final detailAsync = ref.watch(classCatalogLiveDetailProvider(effectiveProductId));
-    final completedIds = ref.watch(classCompletedLessonIdsProvider((classId: classId, mode: 'LIVE', productId: productId))).value ?? const [];
+    final detailAsync = ref.watch(classCatalogLiveDetailProvider(productId ?? classId));
+    final completedIds = ref.watch(classCompletedLessonIdsProvider(classId)).value ?? const [];
     final completed = completedIds.toSet();
 
     return detailAsync.when(
@@ -742,7 +654,7 @@ class _SyllabusTabPane extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.invalidate(classCatalogLiveDetailProvider(effectiveProductId)),
+                onPressed: () => ref.invalidate(classCatalogLiveDetailProvider(classId)),
                 child: const Text('Thử lại'),
               ),
             ],
@@ -750,7 +662,7 @@ class _SyllabusTabPane extends ConsumerWidget {
         ),
       ),
       data: (detail) {
-        if (detail == null || detail.modules.isEmpty) {
+        if (detail == null || detail.modules == null || detail.modules!.isEmpty) {
           return _PlaceholderTabPane(
             icon: Icons.menu_book_outlined,
             title: 'Lộ trình',
@@ -758,7 +670,9 @@ class _SyllabusTabPane extends ConsumerWidget {
           );
         }
 
-        final modules = detail.modules;
+        final modules = detail.modules!
+            .map((m) => CurriculumModuleModel.fromJson(m))
+            .toList();
 
         final lessonOrder = <CurriculumLessonModel>[
           for (final module in modules) ...module.lessons,
@@ -826,7 +740,7 @@ class _SyllabusTabPane extends ConsumerWidget {
     );
   }
 
-  Widget _buildCurriculumHeader(BuildContext context, AcademyProductDetailModel detail) {
+  Widget _buildCurriculumHeader(BuildContext context, AcademyProductModel detail) {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(18),
@@ -870,11 +784,7 @@ class _SyllabusTabPane extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  (detail.description ?? '').isNotEmpty 
-                    ? _stripHtml(detail.description!)
-                    : 'Tài liệu video tham khảo thêm bên cạnh các buổi học trực tiếp.',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  'Tài liệu video tham khảo thêm bên cạnh các buổi học trực tiếp.',
                   style: TextStyle(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontSize: 12,
@@ -889,49 +799,23 @@ class _SyllabusTabPane extends ConsumerWidget {
     );
   }
 
-  String _stripHtml(String h) {
-    return h
-        .replaceAll(RegExp(r'<[^>]*>'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-  }
-
   Widget _buildModuleItem(BuildContext context, String title, List<Widget> lessons) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.colorScheme.outlineVariant),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ExpansionTile(
+        title: Text(
+          title,
+          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
-        child: Theme(
-          data: theme.copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            title: Text(
-              title,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            initiallyExpanded: true,
-            childrenPadding: EdgeInsets.zero,
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            children: [
-              const Divider(height: 1),
-              ...lessons,
-            ],
-          ),
-        ),
+        initiallyExpanded: true,
+        childrenPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        children: lessons,
       ),
     );
   }
@@ -960,81 +844,51 @@ class _SyllabusTabPane extends ConsumerWidget {
                 );
               }
             : () => context.push('/lesson', extra: lesson),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Left Icon
-              Container(
-                width: 32,
-                alignment: Alignment.centerLeft,
-                child: Icon(
-                  icon,
-                  color: locked 
-                    ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
-                    : theme.colorScheme.onSurfaceVariant,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 4),
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: locked 
-                          ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
-                          : theme.colorScheme.onSurface,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      duration,
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Status Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
+        child: Row(
+          children: [
+            Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 22),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    duration,
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                status,
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              // Right side: only show chevron if not locked
-              if (!locked) ...[
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  size: 20,
-                ),
-              ],
-            ],
-          ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              locked ? Icons.lock_outline : Icons.chevron_right,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              size: 18,
+            ),
+          ],
         ),
       ),
     );
@@ -1064,7 +918,6 @@ class _SyllabusTabPane extends ConsumerWidget {
   }) {
     return <String, dynamic>{
       if (classId.isNotEmpty) 'classId': classId,
-      if (productId != null && productId!.isNotEmpty) 'productId': productId,
       if (mode.isNotEmpty) 'mode': mode,
       'id': lesson.id,
       'title': lesson.title,
@@ -1188,264 +1041,6 @@ class _ResourcesTabPane extends ConsumerWidget {
         );
       }
     }
-  }
-}
-
-class _AssignmentsTabPane extends ConsumerWidget {
-  const _AssignmentsTabPane({required this.classId});
-
-  final String classId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final assignmentsAsync = ref.watch(assignmentsProvider(classId));
-
-    return assignmentsAsync.when(
-      data: (list) {
-        if (list.isEmpty) {
-          return const _PlaceholderTabPane(
-            icon: Icons.assignment_outlined,
-            title: 'Bài tập',
-            message: 'Bài tập sẽ được giao qua từng buổi học.',
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: list.length,
-          itemBuilder: (context, index) {
-            final assignment = list[index];
-            return _buildAssignmentCard(context, ref, assignment);
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Lỗi: $e')),
-    );
-  }
-
-  Widget _buildAssignmentCard(BuildContext context, WidgetRef ref, AssignmentModel assignment) {
-    final theme = Theme.of(context);
-    final isSubmitted = assignment.status == 'SUBMITTED' || assignment.status == 'GRADED';
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: ListTile(
-        onTap: () => _showSubmitDialog(context, ref, assignment),
-        title: Text(assignment.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: assignment.deadline != null 
-          ? Text('Hạn nộp: ${DateFormat('dd/MM/yyyy').format(assignment.deadline!)}')
-          : null,
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: isSubmitted ? Colors.green.withValues(alpha: 0.1) : theme.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            isSubmitted ? (assignment.status == 'GRADED' ? 'Đã chấm' : 'Đã nộp') : 'Chưa nộp',
-            style: TextStyle(
-              color: isSubmitted ? Colors.green : theme.colorScheme.primary,
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showSubmitDialog(BuildContext context, WidgetRef ref, AssignmentModel assignment) {
-    if (assignment.status == 'GRADED') {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(assignment.title),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Điểm: ${assignment.grade}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
-              if (assignment.feedback != null) ...[
-                const SizedBox(height: 12),
-                const Text('Nhận xét:', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(assignment.feedback!),
-              ],
-            ],
-          ),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng'))],
-        ),
-      );
-      return;
-    }
-
-    final contentController = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 20),
-            Text('Nộp bài tập', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(assignment.title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 20),
-            Expanded(
-              child: TextField(
-                controller: contentController,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                decoration: InputDecoration(
-                  hintText: 'Nhập nội dung bài làm của bạn...',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  alignLabelWithHint: true,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (contentController.text.trim().isEmpty) return;
-                  final repo = ref.read(academyRepositoryProvider);
-                  final success = await repo.submitAssignment(
-                    classId: classId,
-                    assignmentId: assignment.id,
-                    content: contentController.text,
-                  );
-                  if (success) {
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nộp bài thành công!')));
-                      ref.invalidate(assignmentsProvider(classId));
-                    }
-                  }
-                },
-                child: const Text('Gửi bài làm', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _QuizzesTabPane extends ConsumerWidget {
-  const _QuizzesTabPane({required this.classId});
-
-  final String classId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final statusAsync = ref.watch(assessmentStatusProvider(classId));
-
-    return statusAsync.when(
-      data: (list) {
-        if (list.isEmpty) {
-          return const _PlaceholderTabPane(
-            icon: Icons.quiz_outlined,
-            title: 'Quiz',
-            message: 'Bài quiz sẽ được cập nhật theo tiến độ khóa học.',
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: list.length,
-          itemBuilder: (context, index) {
-            final milestone = list[index];
-            return _buildMilestoneCard(context, milestone);
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Lỗi: $e')),
-    );
-  }
-
-  Widget _buildMilestoneCard(BuildContext context, AssessmentMilestoneModel milestone) {
-    final theme = Theme.of(context);
-    final isLocked = milestone.isLocked;
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: ListTile(
-        onTap: isLocked ? null : () {
-          final examPath = milestone.examId.isNotEmpty && milestone.examId != 'null' ? milestone.examId : 'unknown';
-          context.push('/quiz/$examPath?classId=$classId&assessmentId=${milestone.id}');
-        },
-        leading: Icon(
-          isLocked ? Icons.lock_outline : Icons.quiz_outlined,
-          color: isLocked ? theme.colorScheme.outline : theme.colorScheme.primary,
-        ),
-        title: Text(milestone.title, style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: isLocked ? theme.colorScheme.outline : theme.colorScheme.onSurface,
-        )),
-        trailing: _buildStatusBadge(milestone),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(AssessmentMilestoneModel milestone) {
-    Color color;
-    String text;
-    
-    switch (milestone.status) {
-      case 'PASSED':
-        color = Colors.green;
-        text = 'Hoàn thành';
-        break;
-      case 'FAILED':
-        color = Colors.red;
-        text = 'Thử lại';
-        break;
-      case 'IN_PROGRESS':
-        color = Colors.blue;
-        text = 'Đang làm';
-        break;
-      case 'LOCKED':
-        color = Colors.grey;
-        text = 'Đã khóa';
-        break;
-      default:
-        color = Colors.orange;
-        text = 'Bắt đầu';
-    }
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(text, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-    );
   }
 }
 

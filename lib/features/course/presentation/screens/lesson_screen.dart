@@ -165,19 +165,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       return;
     }
     final repo = ref.read(academyRepositoryProvider);
-    final mode = (lesson['mode'] ?? 'VOD').toString().toUpperCase();
-    final productIdRaw = (lesson['productId'] ?? '').toString();
-    final productId = productIdRaw.isNotEmpty ? productIdRaw : null;
     final ok = await repo.completeClassLesson(
       classId: classId,
-      productId: productId,
       lessonId: lessonId,
-      mode: mode,
     );
     if (!mounted) return;
     if (ok) {
-      ref.invalidate(classCompletedLessonIdsProvider((classId: classId, mode: mode, productId: productId)));
-      ref.invalidate(assessmentStatusProvider(classId));
+      ref.invalidate(classCompletedLessonIdsProvider(classId));
       if (!silent) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đã đánh dấu hoàn thành.')),
@@ -285,16 +279,16 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                 }
                                 final useProgress =
                                     !progressDisabled && classId.isNotEmpty;
-                                final modules = detail.modules;
+                                final modules = (detail.modules ?? [])
+                                    .map(
+                                      (m) => CurriculumModuleModel.fromJson(m),
+                                    )
+                                    .toList();
                                 final completedIds = useProgress
                                     ? (ref
                                               .watch(
                                                 classCompletedLessonIdsProvider(
-                                                  (
-                                                    classId: classId,
-                                                    mode: (lesson['mode'] ?? 'VOD').toString().toUpperCase(),
-                                                    productId: (lesson['productId']?.toString() ?? '').isNotEmpty ? lesson['productId'].toString() : null
-                                                  ),
+                                                  classId,
                                                 ),
                                               )
                                               .value ??

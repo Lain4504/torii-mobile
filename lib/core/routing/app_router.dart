@@ -63,8 +63,6 @@ import '../../features/academy/presentation/screens/folder_resources_screen.dart
 import '../widgets/app_shell.dart';
 import '../../features/meet/presentation/screens/landing/meet_entry_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_survey_screen.dart';
-import '../../features/academy/presentation/screens/quiz_screen.dart';
-import '../../features/academy/presentation/screens/assignment_list_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -181,25 +179,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/',
                 builder: (context, state) => const HomeScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'assignments',
-                    builder: (context, state) => const AssignmentListScreen(),
-                  ),
-                  GoRoute(
-                    path: 'quiz/:examId',
-                    builder: (context, state) {
-                      final examId = state.pathParameters['examId'] ?? '';
-                      final classId = state.uri.queryParameters['classId'] ?? '';
-                      final assessmentId = state.uri.queryParameters['assessmentId'];
-                      return QuizScreen(
-                        examId: examId,
-                        classId: classId,
-                        assessmentId: assessmentId,
-                      );
-                    },
-                  ),
-                ],
               ),
             ],
           ),
@@ -260,10 +239,8 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final live = state.uri.queryParameters['live'] == '1';
                   final mode = (state.uri.queryParameters['mode'] ?? '')
                       .toUpperCase();
-                  final productId = state.uri.queryParameters['productId'];
                   return CurriculumScreen(
                     classId: state.pathParameters['classId'] ?? '',
-                    productId: productId,
                     mode: mode == 'LIVE' ? 'LIVE' : 'VOD',
                     progressDisabled: live,
                   );
