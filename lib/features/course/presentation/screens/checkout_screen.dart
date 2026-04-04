@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/checkout_models.dart';
 import 'package:torii_app/data/models/academy_models.dart';
+import 'package:torii_app/data/models/academy_product_detail_model.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
@@ -42,12 +43,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
-  void _schedulePreview(AcademyProductModel item) {
+  void _schedulePreview(AcademyProductDetailModel item) {
     _couponDebounce?.cancel();
     _couponDebounce = Timer(const Duration(milliseconds: 500), () => _previewNow(item));
   }
 
-  Future<void> _previewNow(AcademyProductModel item) async {
+  Future<void> _previewNow(AcademyProductDetailModel item) async {
     if (_previewing) return;
     setState(() {
       _previewing = true;
@@ -69,7 +70,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
   }
 
-  Future<void> _handleCheckout(AcademyProductModel item) async {
+  Future<void> _handleCheckout(AcademyProductDetailModel item) async {
     setState(() => _processing = true);
     try {
       final repo = ref.read(academyRepositoryProvider);
@@ -160,7 +161,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _buildSummary(ThemeData theme, AcademyProductModel item) {
+  Widget _buildSummary(ThemeData theme, AcademyProductDetailModel item) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -173,7 +174,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
-              item.thumbnailUrl ?? '',
+              item.product.thumbnailUrl ?? '',
               width: 80,
               height: 80,
               fit: BoxFit.cover,
@@ -188,7 +189,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 Text(item.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15), maxLines: 2),
                 const SizedBox(height: 8),
                 Text(
-                  NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(item.displayPrice),
+                  NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(item.product.displayPrice),
                   style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
                 ),
               ],
@@ -199,7 +200,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _buildCouponInput(ThemeData theme, AcademyProductModel item) {
+  Widget _buildCouponInput(ThemeData theme, AcademyProductDetailModel item) {
     return Row(
       children: [
         Expanded(
@@ -218,8 +219,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _buildOrderTotals(ThemeData theme, AcademyProductModel item) {
-    final subTotal = _preview?.subTotal ?? item.displayPrice;
+  Widget _buildOrderTotals(ThemeData theme, AcademyProductDetailModel item) {
+    final subTotal = _preview?.subTotal ?? item.product.displayPrice;
     final discount = _preview?.discountTotal ?? 0;
     final total = _preview?.grandTotal ?? subTotal;
 
@@ -249,7 +250,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
-  Widget _buildBottomBar(ThemeData theme, AcademyProductModel item, double padding) {
+  Widget _buildBottomBar(ThemeData theme, AcademyProductDetailModel item, double padding) {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(

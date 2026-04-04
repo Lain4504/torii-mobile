@@ -89,9 +89,9 @@ class LeaderboardScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              if (top3.length > 1) _buildTopUser(theme, top3[1], 2, theme.colorScheme.onSurfaceVariant),
-              if (top3.isNotEmpty) _buildTopUser(theme, top3[0], 1, Colors.amber), // Gold color for #1
-              if (top3.length > 2) _buildTopUser(theme, top3[2], 3, Colors.brown), // Bronze color for #3
+              if (top3.length > 1) Expanded(child: _buildTopUser(theme, top3[1], 2, theme.colorScheme.onSurfaceVariant)),
+              if (top3.isNotEmpty) Expanded(child: _buildTopUser(theme, top3[0], 1, Colors.amber)), // Gold color for #1
+              if (top3.length > 2) Expanded(child: _buildTopUser(theme, top3[2], 3, Colors.brown)), // Bronze color for #3
             ],
           ),
         ),
@@ -146,7 +146,13 @@ class LeaderboardScreen extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Text(u.displayName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(
+          u.displayName,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+        ),
         Text('${u.xp} XP', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
       ],
     );

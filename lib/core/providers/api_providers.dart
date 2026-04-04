@@ -9,6 +9,7 @@ import '../../data/repositories/gamification_repository.dart'
 import '../../data/repositories/comment_repository.dart';
 import '../../data/models/blog_model.dart';
 import '../../data/models/academy_models.dart';
+import '../../data/models/academy_product_detail_model.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/models/gamification_models.dart';
 import '../../data/models/live_schedule_model.dart';
@@ -113,15 +114,15 @@ final classCatalogVodProvider = FutureProvider.autoDispose
     });
 
 final classCatalogLiveDetailProvider = FutureProvider.autoDispose
-    .family<AcademyProductModel?, String>((ref, classId) async {
+    .family<AcademyProductDetailModel?, String>((ref, classId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicProductById(classId, mode: 'LIVE');
+      return repo.getPublicProductDetailById(classId, mode: 'LIVE');
     });
 
 final classCatalogVodDetailProvider = FutureProvider.autoDispose
-    .family<AcademyProductModel?, String>((ref, classId) async {
+    .family<AcademyProductDetailModel?, String>((ref, classId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicProductById(classId, mode: 'VOD');
+      return repo.getPublicProductDetailById(classId, mode: 'VOD');
     });
 
 final myEnrollmentsProvider =
@@ -141,12 +142,15 @@ final myEnrollmentsProvider =
 
 /// Tiến độ bài học theo lớp (`lessonId` đã hoàn thành) — cần `classId` từ enrollment.
 final classCompletedLessonIdsProvider = FutureProvider.autoDispose
-    .family<List<String>, String>((ref, classId) async {
+    .family<List<String>, ({String classId, String mode, String? productId})>((ref, arg) async {
+      final classId = arg.classId;
+      final mode = arg.mode;
+      final productId = arg.productId;
       if (!_personalizedApisAllowed(ref) || classId.isEmpty) {
         return const [];
       }
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getCompletedLessonIds(classId);
+      return repo.getCompletedLessonIds(classId, mode: mode, productId: productId);
     });
 
 final myOrdersProvider = FutureProvider<PaginatedResponse<OrderModel>>((
@@ -276,4 +280,23 @@ final folderResourcesByClassProvider =
   }
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getFolderResourcesByClass(classId);
+});
+
+// ---------- Assessment & Assignments ----------
+final assessmentStatusProvider = FutureProvider.autoDispose
+    .family<List<AssessmentMilestoneModel>, String>((ref, classId) async {
+  if (!_authenticatedAcademyUser(ref) || classId.isEmpty) {
+    return const [];
+  }
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getAssessmentStatus(classId);
+});
+
+final assignmentsProvider = FutureProvider.autoDispose
+    .family<List<AssignmentModel>, String>((ref, classId) async {
+  if (!_authenticatedAcademyUser(ref) || classId.isEmpty) {
+    return const [];
+  }
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getAssignments(classId);
 });

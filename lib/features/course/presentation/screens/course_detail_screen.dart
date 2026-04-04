@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
+import 'package:torii_app/data/models/academy_product_detail_model.dart';
 
 class CourseDetailScreen extends ConsumerStatefulWidget {
   const CourseDetailScreen({super.key, required this.id, this.mode = 'VOD'});
@@ -58,8 +59,8 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
     );
   }
 
-  Widget _buildContent(BuildContext context, ThemeData theme, AcademyProductModel item, double bottomPadding) {
-    final priceStr = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(item.displayPrice);
+  Widget _buildContent(BuildContext context, ThemeData theme, AcademyProductDetailModel item, double bottomPadding) {
+    final priceStr = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(item.product.displayPrice);
     
     return CustomScrollView(
       slivers: [
@@ -71,7 +72,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
             background: Hero(
               tag: 'course_image_${item.id}',
               child: Image.network(
-                item.thumbnailUrl ?? 'https://picsum.photos/seed/detail/${item.id}/800/600',
+                item.product.thumbnailUrl ?? 'https://picsum.photos/seed/detail/${item.id}/800/600',
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: theme.colorScheme.primaryContainer,
@@ -99,10 +100,10 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
               children: [
                 Row(
                   children: [
-                    if (item.jlptLevel != null)
-                      _buildBadge(theme, 'JLPT ${item.jlptLevel}', theme.colorScheme.primary),
+                    if (item.product.jlptLevel != null)
+                      _buildBadge(theme, 'JLPT ${item.product.jlptLevel}', theme.colorScheme.primary),
                     const SizedBox(width: 8),
-                    _buildBadge(theme, item.mode ?? 'VOD', Colors.orange),
+                    _buildBadge(theme, item.mode, Colors.orange),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -136,16 +137,16 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                         ),
                       ],
                     ),
-                    if (item.instructor != null)
+                    if (item.product.instructor != null)
                       Row(
                         children: [
                           CircleAvatar(
                             radius: 18,
-                            backgroundImage: NetworkImage(item.instructor!['avatarUrl'] ?? ''),
+                            backgroundImage: NetworkImage(item.product.instructor!['avatarUrl'] ?? ''),
                           ),
                           const SizedBox(width: 10),
                           Text(
-                            item.instructor!['displayName'] ?? 'Giảng viên',
+                            item.product.instructor!['displayName'] ?? 'Giảng viên',
                             style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ],
@@ -169,10 +170,10 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                 const SizedBox(height: 32),
                 _buildSectionTitle(theme, 'Chương trình giảng dạy'),
                 const SizedBox(height: 16),
-                if (item.modules == null || item.modules!.isEmpty)
+                if (item.modules.isEmpty)
                   _buildEmptyCurriculum(theme)
                 else
-                  ...item.modules!.map((m) => _buildModuleTile(context, theme, m)),
+                  ...item.modules.map((m) => _buildModuleTile(context, theme, m)),
                 SizedBox(height: bottomPadding + 40),
               ],
             ),
@@ -331,7 +332,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
     );
   }
 
-  Widget _buildBottomAction(BuildContext context, ThemeData theme, AcademyProductModel item, double padding) {
+  Widget _buildBottomAction(BuildContext context, ThemeData theme, AcademyProductDetailModel item, double padding) {
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
@@ -362,7 +363,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                   }
                   final targetId = item.id;
                   final classSlug = item.isLive ? '&classId=$_selectedLiveClassId' : '';
-                  context.push('/checkout/$targetId?mode=${item.mode}$classSlug');
+                  context.push('/checkout/$targetId?mode=${item.product.mode}$classSlug');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.primary,
