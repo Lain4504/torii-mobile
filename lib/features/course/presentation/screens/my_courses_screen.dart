@@ -118,61 +118,19 @@ class MyCoursesScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                      child: Image.network(
-                        e.thumbnailUrl ?? 'https://picsum.photos/seed/enrolled${e.id}/600/300',
-                        height: 140,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 140,
-                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                          child: const Icon(Icons.school, size: 48),
-                        ),
-                      ),
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: Image.network(
+                    e.thumbnailUrl ?? 'https://picsum.photos/seed/enrolled${e.id}/600/300',
+                    height: 140,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 140,
+                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                      child: const Icon(Icons.school, size: 48),
                     ),
-                    Positioned(
-                      top: 12,
-                      left: 12,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: e.isLive ? const Color(0xFFFF4842) : Colors.amber.shade700,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              e.isLive ? Icons.videocam : Icons.play_circle_fill,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              e.isLive ? 'Live' : 'VOD',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16),

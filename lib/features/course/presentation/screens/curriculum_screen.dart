@@ -3,20 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
-import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/academy_product_detail_model.dart';
 
 class CurriculumScreen extends ConsumerWidget {
   const CurriculumScreen({
     super.key,
     required this.classId,
-    this.productId,
     this.mode = 'VOD',
     this.progressDisabled = false,
   });
 
   final String classId;
-  final String? productId;
   final String mode;
 
   /// Khi `true`, không tính tiến độ + không mở khóa theo thứ tự.
@@ -29,20 +26,10 @@ class CurriculumScreen extends ConsumerWidget {
         : ref.watch(classCatalogVodDetailProvider(classId));
     final useProgress = !progressDisabled && classId.isNotEmpty;
     final completedIds = useProgress
-        ? (ref.watch(classCompletedLessonIdsProvider((classId: classId, mode: mode, productId: productId))).value ??
+        ? (ref.watch(classCompletedLessonIdsProvider(classId)).value ??
               const [])
         : const <String>[];
     final completed = completedIds.toSet();
-    final assessmentsAsync = useProgress
-        ? ref.watch(assessmentStatusProvider(classId))
-        : const AsyncValue.data(<AssessmentMilestoneModel>[]);
-    final assessments = assessmentsAsync.value ?? [];
-    final assessmentsByExamId = <String, AssessmentMilestoneModel>{};
-    for (final a in assessments) {
-      assessmentsByExamId[a.examId] = a;
-      assessmentsByExamId[a.id] = a;
-    }
-    
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -75,7 +62,9 @@ class CurriculumScreen extends ConsumerWidget {
             return const Center(child: Text('Không tìm thấy dữ liệu khóa học'));
           }
 
-          final modules = detail.modules;
+          final modules = (detail.modules ?? [])
+              .map((m) => CurriculumModuleModel.fromJson(m))
+              .toList();
 
           final lessonOrder = <CurriculumLessonModel>[
             for (final module in modules) ...module.lessons,
@@ -99,7 +88,7 @@ class CurriculumScreen extends ConsumerWidget {
                       ? detail.name
                       : '',
                   code: detail.code ?? '',
-                  descriptionHtml: detail.description ?? '',
+                  descriptionHtml: detail.description,
                   totalLessons: totalLessons,
                   totalModules: totalModules,
                 ),
@@ -123,9 +112,22 @@ class CurriculumScreen extends ConsumerWidget {
                           lesson: lesson,
                           trackableOrdered: trackableOrdered,
                           completed: completed,
-                          assessmentsByExamId: assessmentsByExamId,
                           useProgress: useProgress,
                         );
+                        final done =
+                            useProgress &&
+                            _isTrackableKind(lesson) &&
+                            completed.contains(lesson.id);
+
+                        final status = !unlocked
+                            ? 'Đã khóa'
+                            : (done ? 'Hoàn thành' : 'Chưa học');
+                        final statusColor = !unlocked
+                            ? AppColors.textTertiary
+                            : (done
+                                  ? AppColors.success
+                                  : AppColors.textTertiary);
+
                         return _buildLessonItem(
                           context,
                           title: lesson.title.isNotEmpty
@@ -135,18 +137,8 @@ class CurriculumScreen extends ConsumerWidget {
                           icon: unlocked
                               ? _iconByType(lesson.type)
                               : Icons.lock_outline_rounded,
-                          status: _lessonStatus(
-                            lesson,
-                            completed,
-                            assessmentsByExamId,
-                            unlocked,
-                          ),
-                          statusColor: _lessonStatusColor(
-                            lesson,
-                            completed,
-                            assessmentsByExamId,
-                            unlocked,
-                          ),
+                          status: status,
+                          statusColor: statusColor,
                           locked: !unlocked,
                           lesson: _lessonPayload(
                             classId: classId,
@@ -154,7 +146,6 @@ class CurriculumScreen extends ConsumerWidget {
                             progressDisabled: progressDisabled,
                             lesson: lesson,
                             nextLesson: nextL,
-                            assessmentId: lesson.type.toLowerCase() == 'quiz' ? assessmentsByExamId[lesson.id]?.id : null,
                           ),
                         );
                       }).toList(),
@@ -287,20 +278,11 @@ class CurriculumScreen extends ConsumerWidget {
             ? () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Hãy hoàn thành nội dung trước đó để mở khóa.'),
+                    content: Text('Hoàn thành bài trước để mở khóa bài này.'),
                   ),
                 );
               }
-            : () {
-                if (lesson['type'] == 'quiz') {
-                  final assId = lesson['assessmentId'] ?? '';
-                  context.push(
-                    '/quiz/${lesson['id']}?classId=${lesson['classId']}${assId.isNotEmpty ? '&assessmentId=$assId' : ''}',
-                  );
-                } else {
-                  context.push('/lesson', extra: lesson);
-                }
-              },
+            : () => context.push('/lesson', extra: lesson),
         child: Row(
           children: [
             Icon(icon, color: AppColors.textTertiary, size: 24),
@@ -350,67 +332,20 @@ class CurriculumScreen extends ConsumerWidget {
 
 bool _isTrackableKind(CurriculumLessonModel l) {
   final t = l.type.toUpperCase();
-  return t == 'VIDEO' || t == 'READING' || t == 'ARTICLE' || t == 'QUIZ';
+  return t == 'VIDEO' || t == 'READING' || t == 'ARTICLE';
 }
 
 bool _effectiveLessonUnlocked({
   required CurriculumLessonModel lesson,
   required List<CurriculumLessonModel> trackableOrdered,
   required Set<String> completed,
-  required Map<String, AssessmentMilestoneModel> assessmentsByExamId,
   required bool useProgress,
 }) {
+  if (!_isTrackableKind(lesson)) return true;
   if (!useProgress) return true;
   final idx = trackableOrdered.indexWhere((l) => l.id == lesson.id);
   if (idx <= 0) return true;
-  
-  final prev = trackableOrdered[idx - 1];
-  if (prev.type.toUpperCase() == 'QUIZ') {
-    final quizStatus = assessmentsByExamId[prev.id];
-    return quizStatus?.isPassed ?? false;
-  }
-  
-  return completed.contains(prev.id);
-}
-
-String _lessonStatus(
-  CurriculumLessonModel lesson,
-  Set<String> completed,
-  Map<String, AssessmentMilestoneModel> assessmentsByExamId,
-  bool unlocked,
-) {
-  if (!unlocked) return 'Đã khóa';
-  if (lesson.type.toUpperCase() == 'QUIZ') {
-    final assessment = assessmentsByExamId[lesson.id];
-    if (assessment == null) return 'Bắt đầu';
-    switch (assessment.status) {
-      case 'PASSED': return 'Hoàn thành';
-      case 'FAILED': return 'Thử lại';
-      case 'IN_PROGRESS': return 'Đang làm';
-      default: return 'Bắt đầu';
-    }
-  }
-  return completed.contains(lesson.id) ? 'Hoàn thành' : 'Chưa học';
-}
-
-Color _lessonStatusColor(
-  CurriculumLessonModel lesson,
-  Set<String> completed,
-  Map<String, AssessmentMilestoneModel> assessmentsByExamId,
-  bool unlocked,
-) {
-  if (!unlocked) return AppColors.textTertiary;
-  if (lesson.type.toUpperCase() == 'QUIZ') {
-    final assessment = assessmentsByExamId[lesson.id];
-    if (assessment == null) return AppColors.textTertiary;
-    switch (assessment.status) {
-      case 'PASSED': return AppColors.success;
-      case 'FAILED': return AppColors.error;
-      case 'IN_PROGRESS': return AppColors.primary;
-      default: return AppColors.textTertiary;
-    }
-  }
-  return completed.contains(lesson.id) ? AppColors.success : AppColors.textTertiary;
+  return completed.contains(trackableOrdered[idx - 1].id);
 }
 
 Map<String, dynamic> _lessonPayload({
@@ -419,14 +354,11 @@ Map<String, dynamic> _lessonPayload({
   required CurriculumLessonModel lesson,
   CurriculumLessonModel? nextLesson,
   bool progressDisabled = false,
-  String? assessmentId,
 }) {
   return <String, dynamic>{
     if (classId.isNotEmpty) 'classId': classId,
-    'productId': classId, // Cho VOD, productId chính là classId (vodPackageId)
     if (mode.isNotEmpty) 'mode': mode,
     if (progressDisabled) 'progressDisabled': true,
-    if (assessmentId != null) 'assessmentId': assessmentId,
     'id': lesson.id,
     'title': lesson.title,
     'type': lesson.type.toLowerCase(),
