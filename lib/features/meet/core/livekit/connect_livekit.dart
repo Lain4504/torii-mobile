@@ -260,6 +260,8 @@ class ConnectLivekit implements IConnectLivekit {
       ..on<RoomReconnectedEvent>((_) {
         // Sau reconnect, đồng bộ nút mic/cam với trạng thái track thật (tránh UI lệch).
         _syncFooterIconsFromLocalParticipant();
+        // Rebuild đầy đủ sau reconnect để tránh lệch state
+        _rebuildTrackSubscribersFromRoom();
       })
       ..on<ParticipantConnectedEvent>((_) {
         _rebuildTrackSubscribersFromRoom();
@@ -267,23 +269,69 @@ class ConnectLivekit implements IConnectLivekit {
       ..on<ParticipantDisconnectedEvent>((_) {
         _rebuildTrackSubscribersFromRoom();
       })
-      ..on<TrackSubscribedEvent>((_) {
-        _rebuildTrackSubscribersFromRoom();
+      ..on<TrackSubscribedEvent>((event) {
+        // Web ConnectLivekit: RoomEvent.TrackSubscribed → HandleMediaTracks.trackSubscribed
+        handleMediaTracks.trackSubscribed(
+          event.track,
+          event.publication,
+          event.participant,
+        );
+        // Không rebuild toàn bộ screenShare map ở đây (dễ gây lag khi screen share bật/tắt).
+        // Screen share sẽ được cập nhật theo event riêng bên dưới.
+        _rebuildAudioVideoSubscribersFromRoom();
+        if (event.publication.source == TrackSource.screenShareVideo ||
+            event.publication.source == TrackSource.screenShareAudio) {
+          addScreenShareTrack(event.participant.identity, event.publication);
+        }
       })
-      ..on<TrackUnsubscribedEvent>((_) {
-        _rebuildTrackSubscribersFromRoom();
+      ..on<TrackUnsubscribedEvent>((event) {
+        handleMediaTracks.trackUnsubscribed(
+          event.track,
+          event.publication,
+          event.participant,
+        );
+        _rebuildAudioVideoSubscribersFromRoom();
+        if (event.publication.source == TrackSource.screenShareVideo ||
+            event.publication.source == TrackSource.screenShareAudio) {
+          removeScreenShareTrack(event.participant.identity);
+        }
       })
       ..on<TrackPublishedEvent>((_) {
-        _rebuildTrackSubscribersFromRoom();
+        _rebuildAudioVideoSubscribersFromRoom();
       })
-      ..on<TrackUnpublishedEvent>((_) {
-        _rebuildTrackSubscribersFromRoom();
+      ..on<TrackUnpublishedEvent>((event) {
+        handleMediaTracks.trackUnsubscribed(
+          event.publication.track,
+          event.publication,
+          event.participant,
+        );
+        _rebuildAudioVideoSubscribersFromRoom();
+        if (event.publication.source == TrackSource.screenShareVideo ||
+            event.publication.source == TrackSource.screenShareAudio) {
+          removeScreenShareTrack(event.participant.identity);
+        }
       })
-      ..on<LocalTrackPublishedEvent>((_) {
-        _rebuildTrackSubscribersFromRoom();
+      ..on<LocalTrackPublishedEvent>((event) {
+        handleMediaTracks.localTrackPublished(
+          event.publication,
+          event.participant,
+        );
+        _rebuildAudioVideoSubscribersFromRoom();
+        if (event.publication.source == TrackSource.screenShareVideo ||
+            event.publication.source == TrackSource.screenShareAudio) {
+          addScreenShareTrack(event.participant.identity, event.publication);
+        }
       })
-      ..on<LocalTrackUnpublishedEvent>((_) {
-        _rebuildTrackSubscribersFromRoom();
+      ..on<LocalTrackUnpublishedEvent>((event) {
+        handleMediaTracks.localTrackUnpublished(
+          event.publication,
+          event.participant,
+        );
+        _rebuildAudioVideoSubscribersFromRoom();
+        if (event.publication.source == TrackSource.screenShareVideo ||
+            event.publication.source == TrackSource.screenShareAudio) {
+          removeScreenShareTrack(event.participant.identity);
+        }
       })
       ..on<TrackMutedEvent>((event) {
         if (event.participant.identity == localUserId &&
@@ -294,7 +342,7 @@ class ConnectLivekit implements IConnectLivekit {
             event.publication.source == TrackSource.camera) {
           ref.read(bottomIconsProvider.notifier).updateWebcamStatus(true);
         }
-        _rebuildTrackSubscribersFromRoom();
+        _rebuildAudioVideoSubscribersFromRoom();
       })
       ..on<TrackUnmutedEvent>((event) {
         if (event.participant.identity == localUserId &&
@@ -305,13 +353,53 @@ class ConnectLivekit implements IConnectLivekit {
             event.publication.source == TrackSource.camera) {
           ref.read(bottomIconsProvider.notifier).updateWebcamStatus(false);
         }
-        _rebuildTrackSubscribersFromRoom();
+        _rebuildAudioVideoSubscribersFromRoom();
       })
       ..on<ActiveSpeakersChangedEvent>(_onActiveSpeakersChanged);
 
     if (kDebugMode) {
       print('ConnectLivekit: Event listeners registered');
     }
+  }
+
+  /// Rebuild chỉ audio/video subscriber maps (không đụng tới screenShareTracksMap).
+  /// Mục tiêu: tránh rebuild toàn bộ track map khi screen share bật/tắt,
+  /// gây trễ UI vì `pub.track`/room state cập nhật không đồng bộ ngay lập tức.
+  void _rebuildAudioVideoSubscribersFromRoom() {
+    _audioSubscribersMap.clear();
+    _videoSubscribersMap.clear();
+
+    final local = _room.localParticipant;
+    if (local != null) {
+      for (final pub in local.trackPublications.values) {
+        if (!pub.subscribed || pub.muted) continue;
+        if (pub.source == TrackSource.camera) {
+          _videoSubscribersMap[local.identity] = local;
+          continue;
+        }
+        if (pub.track == null) continue;
+        if (pub.source == TrackSource.microphone) {
+          // local audio không render theo logic mobile (giữ consistent với addAudioSubscriber)
+        }
+      }
+    }
+
+    for (final p in _room.remoteParticipants.values) {
+      for (final pub in p.trackPublications.values) {
+        if (!pub.subscribed || pub.muted) continue;
+        if (pub.source == TrackSource.camera) {
+          _videoSubscribersMap[p.identity] = p;
+          continue;
+        }
+        if (pub.track == null) continue;
+        if (pub.source == TrackSource.microphone) {
+          _audioSubscribersMap[p.identity] = p;
+        }
+      }
+    }
+
+    _syncAudioSubscribers();
+    _syncVideoSubscribers();
   }
 
   /// Web `AudioActivityManager` + Redux: cập nhật ai đang nói từ server LiveKit.
@@ -564,7 +652,7 @@ class ConnectLivekit implements IConnectLivekit {
 
     final userId = participant.identity;
     final existUser = ref.read(participantProvider).participants[userId];
-    if (existUser == null || !existUser.metadata.isOnline) {
+    if (existUser != null && !existUser.metadata.isOnline) {
       return;
     }
 
@@ -610,10 +698,11 @@ class ConnectLivekit implements IConnectLivekit {
       return;
     }
 
-    final existUser = ref
-        .read(participantProvider)
-        .participants[participant.identity];
-    if (existUser == null || !existUser.metadata.isOnline) {
+    final existUser =
+        ref.read(participantProvider).participants[participant.identity];
+    // Chỉ chặn khi NATS đã biết user và đánh dấu offline. Bỏ chặn `existUser == null`
+    // để tránh race: track subscribe trước khi REQ_JOINED_USERS_LIST/reconcile (giống hậu quả web).
+    if (existUser != null && !existUser.metadata.isOnline) {
       return;
     }
 
@@ -667,10 +756,12 @@ class ConnectLivekit implements IConnectLivekit {
           _screenShareTracksMap.putIfAbsent(local.identity, () => []).add(pub);
           continue;
         }
-        if (!pub.subscribed || pub.track == null || pub.muted) continue;
+        if (!pub.subscribed || pub.muted) continue;
         if (pub.source == TrackSource.camera) {
           _videoSubscribersMap[local.identity] = local;
+          continue;
         }
+        if (pub.track == null) continue;
       }
     }
 
@@ -681,11 +772,14 @@ class ConnectLivekit implements IConnectLivekit {
           _screenShareTracksMap.putIfAbsent(p.identity, () => []).add(pub);
           continue;
         }
-        if (!pub.subscribed || pub.track == null || pub.muted) continue;
+        if (!pub.subscribed || pub.muted) continue;
+        if (pub.source == TrackSource.camera) {
+          _videoSubscribersMap[p.identity] = p;
+          continue;
+        }
+        if (pub.track == null) continue;
         if (pub.source == TrackSource.microphone) {
           _audioSubscribersMap[p.identity] = p;
-        } else if (pub.source == TrackSource.camera) {
-          _videoSubscribersMap[p.identity] = p;
         }
       }
     }

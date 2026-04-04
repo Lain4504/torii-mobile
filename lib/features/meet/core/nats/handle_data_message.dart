@@ -19,13 +19,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart' as data_msg;
 import 'package:torii_app/features/meet/data/models/chat_message.dart';
-import 'package:torii_app/features/meet/data/models/poll.dart';
 import 'package:torii_app/features/meet/providers/whiteboard_provider.dart';
 import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/polls_provider.dart';
-import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'connect_nats.dart';
 
@@ -113,11 +111,10 @@ class HandleDataMessage {
         break;
       
       // Breakout rooms
-      case data_msg.DataMsgBodyType.PUSH_JOIN_BREAKOUT_ROOM:
-        if (payload.toUserId == connectNats.userId) {
-          _handleBreakoutRoomInvitation(payload.message);
-        }
-        break;
+      // NOTE:
+      // Breakout room invitation is handled via NATS system event:
+      // NatsMsgServerToClientEvents.JOIN_BREAKOUT_ROOM (see HandleSystemData).
+      // Keep a single source of truth to match web behavior and avoid duplicate invites.
       
       default:
         if (kDebugMode) {
@@ -367,10 +364,8 @@ class HandleDataMessage {
   
   void _handleConnectionQualityChange(data_msg.DataChannelMessage payload) {
     try {
-      final body = jsonDecode(payload.message) as Map<String, dynamic>;
-      
-      // Dispatch to participant provider
-      // TODO: Update connection quality in provider
+      // TODO: Map connection quality to provider when UI needs it.
+      jsonDecode(payload.message);
     } catch (e) {
       // Ignored
     }
@@ -383,15 +378,7 @@ class HandleDataMessage {
   // ============================================================================
   // BREAKOUT ROOM HANDLER
   // ============================================================================
-  
-  void _handleBreakoutRoomInvitation(String roomId) {
-    // Dispatch to breakout room provider
-    ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(roomId);
-    
-    if (kDebugMode) {
-      print('HandleDataMessage: Received breakout room invitation for $roomId');
-    }
-  }
+  // (intentionally empty: handled by HandleSystemData)
   
   // ============================================================================
   // SPEECH SUBTITLE HANDLER
@@ -409,7 +396,6 @@ class HandleDataMessage {
       
       // Parse transcription result
       final data = jsonDecode(message) as Map<String, dynamic>;
-      final isPartial = data['isPartial'] as bool? ?? false;
       final fromUserName = data['fromUserName'] as String? ?? '';
       final sourceLang = data['lang'] as String? ?? '';
       final text = data['text'] as String? ?? '';
@@ -426,7 +412,8 @@ class HandleDataMessage {
       }
       
       final now = DateTime.now();
-      final result = {
+      // TODO: Wire subtitle output to speechServicesProvider when implemented.
+      final _ = {
         'text': displayText,
         'from': fromUserName,
         'time': '${now.hour}:${now.minute}:${now.second}',

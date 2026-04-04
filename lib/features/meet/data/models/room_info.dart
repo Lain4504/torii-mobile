@@ -25,6 +25,10 @@ abstract class RoomInfo with _$RoomInfo {
 @freezed
 abstract class BreakoutRoomFeatures with _$BreakoutRoomFeatures {
   const factory BreakoutRoomFeatures({
+    /// Khớp server/web `roomFeatures.breakoutRoomFeatures.isAllow`
+    @Default(false) bool isAllow,
+    /// Khớp server/web `roomFeatures.breakoutRoomFeatures.allowedNumberRooms`
+    @Default(0) int allowedNumberRooms,
     @Default(false) bool isActive,
   }) = _BreakoutRoomFeatures;
 
