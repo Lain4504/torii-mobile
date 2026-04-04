@@ -170,6 +170,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      GoRoute(
+        path: '/assignments',
+        builder: (context, state) => const AssignmentListScreen(),
+      ),
+
+      GoRoute(
+        path: '/quiz/:examId',
+        builder: (context, state) {
+          final examId = state.pathParameters['examId'] ?? '';
+          final classId = state.uri.queryParameters['classId'] ?? '';
+          final assessmentId = state.uri.queryParameters['assessmentId'];
+          return QuizScreen(
+            examId: examId,
+            classId: classId,
+            assessmentId: assessmentId,
+          );
+        },
+      ),
+
+
       // Shell với AppShell làm layout chung + bottom nav
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -181,25 +201,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/',
                 builder: (context, state) => const HomeScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'assignments',
-                    builder: (context, state) => const AssignmentListScreen(),
-                  ),
-                  GoRoute(
-                    path: 'quiz/:examId',
-                    builder: (context, state) {
-                      final examId = state.pathParameters['examId'] ?? '';
-                      final classId = state.uri.queryParameters['classId'] ?? '';
-                      final assessmentId = state.uri.queryParameters['assessmentId'];
-                      return QuizScreen(
-                        examId: examId,
-                        classId: classId,
-                        assessmentId: assessmentId,
-                      );
-                    },
-                  ),
-                ],
               ),
             ],
           ),
