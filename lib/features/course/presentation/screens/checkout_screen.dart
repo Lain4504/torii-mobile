@@ -8,6 +8,7 @@ import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/checkout_models.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/academy_product_detail_model.dart';
+import 'package:torii_app/data/models/live_product_detail_model.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
@@ -188,10 +189,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
               children: [
                 Text(item.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15), maxLines: 2),
                 const SizedBox(height: 8),
-                Text(
-                  NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(item.product.displayPrice),
-                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
-                ),
+                Builder(builder: (context) {
+                  double displayPrice = item.product.displayPrice;
+                  if (widget.mode == 'LIVE' && widget.classId != null) {
+                    final selectedClass = item.siblingClasses.where((c) => c.id == widget.classId).firstOrNull;
+                    if (selectedClass != null && (selectedClass.price != null || selectedClass.discountPrice != null)) {
+                      displayPrice = selectedClass.displayPrice;
+                    }
+                  }
+                  return Text(
+                    NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(displayPrice),
+                    style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
+                  );
+                }),
               ],
             ),
           ),
@@ -220,7 +230,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Widget _buildOrderTotals(ThemeData theme, AcademyProductDetailModel item) {
-    final subTotal = _preview?.subTotal ?? item.product.displayPrice;
+    double basePrice = item.product.displayPrice;
+    if (widget.mode == 'LIVE' && widget.classId != null) {
+      final selectedClass = item.siblingClasses.where((c) => c.id == widget.classId).firstOrNull;
+      if (selectedClass != null && (selectedClass.price != null || selectedClass.discountPrice != null)) {
+        basePrice = selectedClass.displayPrice;
+      }
+    }
+    
+    final subTotal = _preview?.subTotal ?? basePrice;
     final discount = _preview?.discountTotal ?? 0;
     final total = _preview?.grandTotal ?? subTotal;
 

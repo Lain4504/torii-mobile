@@ -7,11 +7,18 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/academy_product_detail_model.dart';
+import 'package:torii_app/data/models/live_product_detail_model.dart';
 
 class CourseDetailScreen extends ConsumerStatefulWidget {
-  const CourseDetailScreen({super.key, required this.id, this.mode = 'VOD'});
+  const CourseDetailScreen({
+    super.key, 
+    required this.id, 
+    this.mode = 'VOD',
+    this.classId,
+  });
   final String id;
   final String mode;
+  final String? classId;
 
   @override
   ConsumerState<CourseDetailScreen> createState() => _CourseDetailScreenState();
@@ -36,9 +43,9 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
         data: (item) {
           if (item == null) return const Center(child: Text('Không tìm thấy thông tin khóa học'));
           
-          // Auto-select first class if not selected
-          if (item.isLive && _selectedLiveClassId == null && item.liveClasses != null && item.liveClasses!.isNotEmpty) {
-            _selectedLiveClassId = (item.liveClasses!.first as Map)['id']?.toString();
+          // Auto-select class from widget.classId or first class
+          if (item.isLive && _selectedLiveClassId == null && item.siblingClasses.isNotEmpty) {
+            _selectedLiveClassId = widget.classId ?? item.siblingClasses.first.id;
           }
 
           return Stack(
@@ -60,7 +67,14 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
   }
 
   Widget _buildContent(BuildContext context, ThemeData theme, AcademyProductDetailModel item, double bottomPadding) {
-    final priceStr = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(item.product.displayPrice);
+    double displayPrice = item.product.displayPrice;
+    if (item.isLive && _selectedLiveClassId != null) {
+      final selectedClass = item.siblingClasses.where((c) => c.id == _selectedLiveClassId).firstOrNull;
+      if (selectedClass != null && (selectedClass.price != null || selectedClass.discountPrice != null)) {
+        displayPrice = selectedClass.displayPrice;
+      }
+    }
+    final priceStr = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(displayPrice);
     
     return CustomScrollView(
       slivers: [
@@ -153,14 +167,14 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                       ),
                   ],
                 ),
-                if (item.isLive && item.liveClasses != null && item.liveClasses!.isNotEmpty) ...[
+                if (item.isLive && item.siblingClasses.isNotEmpty) ...[
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Divider(height: 1),
                   ),
                   _buildSectionTitle(theme, 'Lịch học (Vui lòng chọn lớp)'),
                   const SizedBox(height: 12),
-                  ...item.liveClasses!.map((lc) => _buildLiveClassTile(theme, lc)),
+                  ...item.siblingClasses.map((lc) => _buildLiveClassTile(theme, lc)),
                 ],
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 24),
@@ -204,10 +218,9 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
     );
   }
 
-  Widget _buildLiveClassTile(ThemeData theme, dynamic lc) {
-    final classMap = Map<String, dynamic>.from(lc as Map);
-    final classId = classMap['id']?.toString();
-    final name = classMap['name']?.toString() ?? 'Lớp học';
+  Widget _buildLiveClassTile(ThemeData theme, LiveClassModel lc) {
+    final classId = lc.id;
+    final name = lc.name;
     final isSelected = _selectedLiveClassId == classId;
     
     return GestureDetector(
@@ -235,13 +248,24 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                  if (lc.price != null || lc.discountPrice != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(lc.displayPrice),
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       Icon(Icons.calendar_today, size: 12, color: theme.colorScheme.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Text(
-                        'Khai giảng: ${classMap['startDate'] != null ? DateFormat('dd/MM/yyyy').format(DateTime.parse(classMap['startDate'].toString())) : 'Đang cập nhật'}',
+                        'Khai giảng: ${lc.openingDate != null ? DateFormat('dd/MM/yyyy').format(lc.openingDate!) : 'Đang cập nhật'}',
                         style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
@@ -298,9 +322,8 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
     );
   }
 
-  Widget _buildModuleTile(BuildContext context, ThemeData theme, dynamic module) {
-    final mod = Map<String, dynamic>.from(module as Map);
-    final lessons = mod['lessons'] is List ? mod['lessons'] as List : [];
+  Widget _buildModuleTile(BuildContext context, ThemeData theme, CurriculumModuleModel module) {
+    final lessons = module.lessons;
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -311,18 +334,17 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
       ),
       child: ExpansionTile(
         title: Text(
-          mod['title']?.toString() ?? 'Chương',
+          module.title,
           style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
         ),
         subtitle: Text('${lessons.length} bài học', style: const TextStyle(fontSize: 12)),
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         childrenPadding: const EdgeInsets.only(bottom: 12),
-        children: lessons.map((l) {
-          final lesson = Map<String, dynamic>.from(l as Map);
+        children: lessons.map((lesson) {
           return ListTile(
             leading: Icon(Icons.play_circle_fill, size: 20, color: theme.colorScheme.primary),
             title: Text(
-              lesson['title']?.toString() ?? 'Bài học',
+              lesson.title,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
             dense: true,

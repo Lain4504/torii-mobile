@@ -1,10 +1,12 @@
 /// Academic product (VOD Package / Cohort) from Gateway API
 class AcademyProductModel {
   final String id;
+  final String? cohortId;
+  final String? liveClassId;
   final String? code;
   final String name;
   final String? description;
-  final double price;
+  final double? price;
   final double? discountPrice;
   final String? status;
   final String mode; // 'LIVE' | 'VOD'
@@ -20,10 +22,12 @@ class AcademyProductModel {
 
   const AcademyProductModel({
     required this.id,
+    this.cohortId,
+    this.liveClassId,
     this.code,
     required this.name,
     this.description,
-    required this.price,
+    this.price,
     this.discountPrice,
     this.status,
     required this.mode,
@@ -46,32 +50,48 @@ class AcademyProductModel {
       return double.tryParse(v.toString());
     }
 
-    final cp = json['courseProfile'] as Map<String, dynamic>?;
-    final mode = json['mode']?.toString().toUpperCase() ?? 
-                (json['enrollmentCloseAt'] != null ? 'LIVE' : 'VOD');
+    final item = json['item'] as Map<String, dynamic>?;
+    final source = item ?? json;
+
+    final cohort = source['cohort'] as Map<String, dynamic>?;
+    final cp = (source['courseProfile'] ?? cohort?['courseProfile']) as Map<String, dynamic>?;
     
+    final mode = source['mode']?.toString().toUpperCase() ?? 
+                (source['enrollmentCloseAt'] != null || cohort != null || source['liveClasses'] != null ? 'LIVE' : 'VOD');
+    
+    final cohortId = (source['cohortId'] ?? (mode == 'LIVE' ? source['id'] : cohort?['id']))?.toString();
+    final liveClassId = (mode == 'LIVE' && source['cohortId'] != null) ? source['id']?.toString() : null;
+
     return AcademyProductModel(
-      id: json['id'].toString(),
-      code: json['code'] as String?,
-      name: (json['name'] ?? cp?['title'] ?? '').toString(),
-      description: (json['description'] ?? cp?['description'])?.toString(),
-      price: toDouble(json['price']) ?? 0,
-      discountPrice: toDouble(json['discountPrice']) ?? toDouble(json['salePrice']),
-      status: json['status'] as String?,
+      id: cohortId ?? source['id'].toString(),
+      cohortId: cohortId,
+      liveClassId: liveClassId,
+      code: (source['code'] ?? cohort?['code'])?.toString(),
+      name: (source['name'] ?? cp?['title'] ?? '').toString(),
+      description: (source['description'] ?? cp?['description'])?.toString(),
+      price: toDouble(source['price']),
+      discountPrice: toDouble(source['discountPrice']) ?? toDouble(source['salePrice']),
+      status: (source['status'] ?? cohort?['status'])?.toString(),
       mode: mode,
-      thumbnailUrl: (json['thumbnailUrl'] ?? cp?['thumbnailUrl'])?.toString(),
-      courseProfileId: (json['courseProfileId'] ?? cp?['id'])?.toString(),
+      thumbnailUrl: (source['thumbnailUrl'] ?? cp?['thumbnailUrl'])?.toString(),
+      courseProfileId: (source['courseProfileId'] ?? cp?['id'])?.toString(),
       jlptLevel: cp?['level'] as String?,
-      startDate: json['startDate'] != null ? DateTime.parse(json['startDate'].toString()) : null,
-      endDate: json['endDate'] != null ? DateTime.parse(json['endDate'].toString()) : null,
-      enrollmentCloseAt: json['enrollmentCloseAt'] != null ? DateTime.parse(json['enrollmentCloseAt'].toString()) : null,
-      instructor: json['instructor'] as Map<String, dynamic>?,
-      modules: json['modules'] as List?,
-      liveClasses: json['liveClasses'] as List?,
+      startDate: (source['startDate'] ?? cohort?['startDate']) != null 
+          ? DateTime.tryParse((source['startDate'] ?? cohort?['startDate']).toString()) 
+          : null,
+      endDate: (source['endDate'] ?? cohort?['endDate']) != null 
+          ? DateTime.tryParse((source['endDate'] ?? cohort?['endDate']).toString()) 
+          : null,
+      enrollmentCloseAt: (source['enrollmentCloseAt'] ?? cohort?['enrollmentCloseAt']) != null 
+          ? DateTime.tryParse((source['enrollmentCloseAt'] ?? cohort?['enrollmentCloseAt']).toString()) 
+          : null,
+      instructor: (source['instructor'] ?? cohort?['instructor']) as Map<String, dynamic>?,
+      modules: (source['modules'] ?? cp?['modules']) as List?,
+      liveClasses: source['liveClasses'] as List?,
     );
   }
 
-  double get displayPrice => discountPrice ?? price;
+  double get displayPrice => discountPrice ?? price ?? 0;
   bool get isLive => mode == 'LIVE';
 }
 

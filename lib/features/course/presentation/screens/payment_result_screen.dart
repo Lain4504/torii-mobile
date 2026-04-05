@@ -27,7 +27,7 @@ class PaymentResultScreen extends ConsumerWidget {
         ),
         backgroundColor: AppColors.surface,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary), onPressed: () => context.go('/discovery')),
       ),
       body: asyncSummary.when(
         data: (summary) {
@@ -163,7 +163,7 @@ class PaymentResultScreen extends ConsumerWidget {
             Text(text, textAlign: TextAlign.center),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.go('/discovery'),
               child: const Text('Quay lại'),
             ),
           ],
