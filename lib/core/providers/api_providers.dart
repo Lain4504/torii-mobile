@@ -52,6 +52,7 @@ final academyRepositoryProvider = Provider<AcademyRepository>((ref) {
   return AcademyRepository(
     ref.watch(dioForApiProvider),
     ref.watch(appDatabaseProvider),
+    ref.watch(tokenServiceProvider),
   );
 });
 
