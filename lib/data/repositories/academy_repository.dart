@@ -11,13 +11,26 @@ import '../models/live_session_join_result.dart';
 import '../models/study_set_models.dart';
 import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
+import '../../services/auth/token_service.dart';
 
 /// Academy API: course offerings (public), enrollments/me, orders/my, live-sessions/me (lịch học viên)
 class AcademyRepository {
-  const AcademyRepository(this._dio, [this._database]);
+  const AcademyRepository(this._dio, [this._database, this._tokenService]);
 
   final Dio _dio;
   final AppDatabase? _database;
+  final TokenService? _tokenService;
+
+  Future<Map<String, String>> _getRequestHeaders() async {
+    final headers = <String, String>{};
+    if (_tokenService != null) {
+      final token = await _tokenService!.getAccessToken();
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    }
+    return headers;
+  }
 
   // ---------- Class catalog (learner) ----------
   /// GET /api/academy/cohorts/public or /api/academy/vod-packages/public
@@ -187,18 +200,22 @@ class AcademyRepository {
     required String mode,
     String? classId,
     String? couponCode,
+    Map<String, dynamic>? metadata,
   }) async {
     final isLive = mode.toUpperCase() == 'LIVE';
     
     try {
+      final headers = await _getRequestHeaders();
       final response = await _dio.post<Map<String, dynamic>>(
         '/api/academy/orders/preview',
+        options: Options(headers: headers),
         data: <String, dynamic>{
           if (isLive) 'cohortIds': [productId] else 'vodPackageIds': [productId],
           if (isLive && classId != null && classId.isNotEmpty)
             'liveClassIdByCohort': <String, String>{productId: classId},
           if (couponCode != null && couponCode.trim().isNotEmpty)
             'couponCode': couponCode.trim(),
+          if (metadata != null) 'metadata': metadata,
         },
       );
 
@@ -228,8 +245,10 @@ class AcademyRepository {
     final isLive = mode.toUpperCase() == 'LIVE';
     
     try {
+      final headers = await _getRequestHeaders();
       final response = await _dio.post<Map<String, dynamic>>(
         '/api/academy/orders/checkout',
+        options: Options(headers: headers),
         data: <String, dynamic>{
           if (isLive) 'cohortIds': [productId] else 'vodPackageIds': [productId],
           if (isLive && classId != null && classId.isNotEmpty)
@@ -252,6 +271,51 @@ class AcademyRepository {
       throw Exception(msg);
     } catch (e) {
       throw Exception('Lỗi hệ thống: $e');
+    }
+  }
+
+  /// Check gift recipient: `GET /api/academy/enrollments/check-gift-recipient`
+  Future<GiftRecipientCheckResult?> checkGiftRecipient({
+    required String recipientEmail,
+    required String courseId,
+  }) async {
+    try {
+      final headers = await _getRequestHeaders();
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/enrollments/check-gift-recipient',
+        options: Options(headers: headers),
+        queryParameters: {
+          'recipientEmail': recipientEmail,
+          'courseId': courseId,
+        },
+      );
+
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) {
+        return GiftRecipientCheckResult(
+          isEnrolled: false, 
+          isRegistered: false, 
+          hasError: true,
+          message: api.message ?? 'Không thể xác thực người nhận',
+        );
+      }
+
+      return GiftRecipientCheckResult.fromJson(api.data!);
+    } on DioException catch (e) {
+      final msg = _extractErrorMessage(e);
+      return GiftRecipientCheckResult(
+        isEnrolled: false, 
+        isRegistered: false, 
+        hasError: true,
+        message: msg,
+      );
+    } catch (e) {
+      return GiftRecipientCheckResult(
+        isEnrolled: false, 
+        isRegistered: false, 
+        hasError: true,
+        message: 'Lỗi hệ thống: $e',
+      );
     }
   }
 

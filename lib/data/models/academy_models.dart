@@ -437,11 +437,36 @@ class AssessmentQuestionModel {
       required this.optionKey,
     });
 
-    factory AssessmentOptionModel.fromJson(Map<String, dynamic> json) {
-      return AssessmentOptionModel(
-        id: json['id'].toString(),
-        contentText: (json['contentText'] ?? json['content'] ?? '').toString(),
-        optionKey: (json['optionKey'] ?? '').toString(),
-      );
-    }
+  factory AssessmentOptionModel.fromJson(Map<String, dynamic> json) {
+    return AssessmentOptionModel(
+      id: json['id'].toString(),
+      contentText: (json['contentText'] ?? json['content'] ?? '').toString(),
+      optionKey: (json['optionKey'] ?? '').toString(),
+    );
   }
+}
+
+/// Gift Recipient Check Result
+class GiftRecipientCheckResult {
+  final bool isEnrolled;
+  final bool isRegistered;
+  final String? message;
+  final bool hasError;
+
+  GiftRecipientCheckResult({
+    required this.isEnrolled,
+    required this.isRegistered,
+    this.message,
+    this.hasError = false,
+  });
+
+  factory GiftRecipientCheckResult.fromJson(Map<String, dynamic> json) {
+    return GiftRecipientCheckResult(
+      isEnrolled: json['isEnrolled'] as bool? ?? false,
+      isRegistered: json['isRegistered'] as bool? ?? false,
+      message: json['message']?.toString(),
+      hasError: json['hasError'] as bool? ?? false,
+    );
+  }
+}
+

@@ -45,23 +45,6 @@ class ApiClient {
     // ==========================================
     _dio.interceptors.add(CookieManager(_cookieJar));
 
-    // ==========================================
-    // 1. LOGGING INTERCEPTOR
-    // ==========================================
-    if (kDebugMode) {
-      _dio.interceptors.add(
-        PrettyDioLogger(
-          requestHeader: true,
-          requestBody: true,
-          responseBody: true,
-          responseHeader: false,
-          error: true,
-          compact: true,
-          maxWidth: 90,
-          filter: (options, args) => true,
-        ),
-      );
-    }
 
     // ==========================================
     // 2. AUTH INTERCEPTOR (Token injection + Refresh)
@@ -164,6 +147,24 @@ class ApiClient {
         },
       ),
     );
+
+    // ==========================================
+    // 3. LOGGING INTERCEPTOR (Priority Low to see all headers)
+    // ==========================================
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        PrettyDioLogger(
+          requestHeader: true,
+          requestBody: true,
+          responseBody: true,
+          responseHeader: false,
+          error: true,
+          compact: true,
+          maxWidth: 90,
+          filter: (options, args) => true,
+        ),
+      );
+    }
   }
 
   Future<void> _performLogout(ErrorInterceptorHandler handler, DioException error) async {

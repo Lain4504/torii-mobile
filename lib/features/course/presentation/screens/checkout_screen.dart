@@ -9,6 +9,7 @@ import 'package:torii_app/data/models/checkout_models.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/academy_product_detail_model.dart';
 import 'package:torii_app/data/models/live_product_detail_model.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
@@ -37,10 +38,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String? _previewError;
   bool _scheduledInitialPreview = false;
 
+  // Gifting state
+  bool _isGift = false;
+  final TextEditingController _recipientEmailController = TextEditingController();
+  final TextEditingController _giftMessageController = TextEditingController();
+  GiftRecipientCheckResult? _giftCheckResult;
+  bool _checkingGift = false;
+  Timer? _giftDebounce;
+  String? _lastCheckedEmail;
+
   @override
   void dispose() {
     _couponDebounce?.cancel();
+    _giftDebounce?.cancel();
     _couponController.dispose();
+    _recipientEmailController.dispose();
+    _giftMessageController.dispose();
     super.dispose();
   }
 
@@ -62,12 +75,76 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         mode: widget.mode,
         classId: widget.mode == 'LIVE' ? widget.classId : null,
         couponCode: _couponController.text,
+        metadata: _isGift ? {
+          'isGift': true,
+          'recipientEmail': _recipientEmailController.text.trim(),
+          'giftMessage': _giftMessageController.text.trim(),
+        } : null,
       );
       if (mounted) setState(() => _preview = res);
     } catch (e) {
       if (mounted) setState(() => _previewError = e.toString());
     } finally {
       if (mounted) setState(() => _previewing = false);
+    }
+  }
+
+  void _onRecipientEmailChanged(AcademyProductDetailModel item) {
+    _giftCheckResult = null;
+    _giftDebounce?.cancel();
+    _lastCheckedEmail = null;
+    final email = _recipientEmailController.text.trim().toLowerCase();
+    
+    if (email.isEmpty || !email.contains('@')) {
+      if (mounted) setState(() => _checkingGift = false);
+      return;
+    }
+
+    final currentUser = ref.read(authStateProvider).asData?.value.user;
+    if (currentUser != null && email == currentUser.email.toLowerCase()) {
+      if (mounted) {
+        setState(() {
+          _checkingGift = false;
+          _giftCheckResult = GiftRecipientCheckResult(
+            isEnrolled: true, 
+            isRegistered: true,
+            message: 'Bạn không thể tự tặng khóa học cho chính mình',
+          );
+        });
+      }
+      return;
+    }
+    
+    
+    _giftDebounce = Timer(const Duration(milliseconds: 1000), () => _checkRecipient(item));
+  }
+
+  Future<void> _checkRecipient(AcademyProductDetailModel item) async {
+    final email = _recipientEmailController.text.trim().toLowerCase();
+    if (email.isEmpty || email == _lastCheckedEmail) {
+      if (mounted) setState(() => _checkingGift = false);
+      return;
+    }
+
+    _lastCheckedEmail = email;
+    if (mounted) setState(() => _checkingGift = true);
+    
+    try {
+      final repo = ref.read(academyRepositoryProvider);
+      final res = await repo.checkGiftRecipient(
+        recipientEmail: email,
+        courseId: item.id,
+      );
+      if (mounted) {
+        setState(() {
+          _giftCheckResult = res;
+          _checkingGift = false;
+        });
+        // Trigger preview after gift check to update totals if needed
+        _previewNow(item);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _checkingGift = false);
     }
   }
 
@@ -81,7 +158,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         classId: widget.mode == 'LIVE' ? widget.classId : null,
         paymentMethod: 'PAYOS',
         couponCode: _couponController.text,
-        metadata: {'isGift': false},
+        metadata: {
+          'isGift': _isGift,
+          if (_isGift) 'recipientEmail': _recipientEmailController.text.trim(),
+          if (_isGift) 'giftMessage': _giftMessageController.text.trim(),
+        },
       );
 
       if (mounted) setState(() => _processing = false);
@@ -141,6 +222,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 children: [
                   _buildSummary(theme, item),
                   const SizedBox(height: 32),
+                  _buildGiftingSection(theme, item),
+                  const SizedBox(height: 32),
                   const Text('Mã giảm giá', style: TextStyle(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 12),
                   _buildCouponInput(theme, item),
@@ -159,6 +242,83 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Lỗi: $e')),
       ),
+    );
+  }
+
+  Widget _buildGiftingSection(ThemeData theme, AcademyProductDetailModel item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Mua làm quà tặng', style: TextStyle(fontWeight: FontWeight.w800)),
+            Switch(
+              value: _isGift,
+              onChanged: (val) {
+                setState(() => _isGift = val);
+                if (val) {
+                  _previewNow(item);
+                }
+              },
+            ),
+          ],
+        ),
+        if (_isGift) ...[
+          const SizedBox(height: 12),
+          TextField(
+            controller: _recipientEmailController,
+            decoration: InputDecoration(
+              hintText: 'Email người nhận...',
+              filled: true,
+              fillColor: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              prefixIcon: const Icon(Icons.email_outlined, size: 20),
+              suffixIcon: _checkingGift ? const SizedBox(width: 20, height: 20, child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2))) : null,
+            ),
+            keyboardType: TextInputType.emailAddress,
+            onChanged: (_) => _onRecipientEmailChanged(item),
+          ),
+          if (_giftCheckResult != null && !_giftCheckResult!.hasError) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  (_giftCheckResult!.hasError || _giftCheckResult!.isEnrolled) ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+                  size: 16,
+                  color: (_giftCheckResult!.hasError || _giftCheckResult!.isEnrolled) ? theme.colorScheme.error : Colors.green,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _giftCheckResult!.message ?? (_giftCheckResult!.isEnrolled 
+                        ? 'Người nhận đã sở hữu khóa học này'
+                        : (_giftCheckResult!.isRegistered ? 'Người nhận đã có tài khoản Torii' : 'Người nhận chưa có tài khoản (Hệ thống sẽ tự động tạo)')),
+                    style: TextStyle(
+                      fontSize: 12, 
+                      color: (_giftCheckResult!.hasError || _giftCheckResult!.isEnrolled) ? theme.colorScheme.error : Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 16),
+          TextField(
+            controller: _giftMessageController,
+            decoration: InputDecoration(
+              hintText: 'Lời nhắn gửi kèm (tùy chọn)...',
+              filled: true,
+              fillColor: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              prefixIcon: const Icon(Icons.chat_bubble_outline, size: 20),
+            ),
+            maxLines: 2,
+            onChanged: (_) => _schedulePreview(item),
+          ),
+        ],
+      ],
     );
   }
 
@@ -269,6 +429,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Widget _buildBottomBar(ThemeData theme, AcademyProductDetailModel item, double padding) {
+    final isEmailValid = !_isGift || (_recipientEmailController.text.contains('@') && _giftCheckResult != null && !_giftCheckResult!.isEnrolled);
+    
     return Align(
       alignment: Alignment.bottomCenter,
       child: Container(
@@ -278,7 +440,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           width: double.infinity,
           height: 52,
           child: ElevatedButton(
-            onPressed: _processing || _previewing ? null : () => _handleCheckout(item),
+            onPressed: (_processing || _previewing || !isEmailValid) ? null : () => _handleCheckout(item),
             style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: theme.colorScheme.onPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
             child: Text(_processing ? 'Đang xử lý...' : 'Thanh toán ngay', style: const TextStyle(fontWeight: FontWeight.w800)),
           ),
