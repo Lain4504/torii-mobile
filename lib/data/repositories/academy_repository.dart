@@ -28,7 +28,7 @@ class AcademyRepository {
     String? month, // Legacy field, might no longer be used by new API
   }) async {
     final path = mode.toUpperCase() == 'LIVE'
-        ? '/api/academy/cohorts/public'
+        ? '/api/academy/live-classes/public'
         : '/api/academy/vod-packages/public';
 
     final response = await _dio.get<Map<String, dynamic>>(
@@ -258,7 +258,13 @@ class AcademyRepository {
   String _extractErrorMessage(DioException e) {
     if (e.response?.data is Map) {
       final data = e.response!.data as Map;
-      return data['message']?.toString() ?? 'Lỗi kết nối server';
+      // Handle ApiResponse format: { success: false, message: "...", data: { ... } }
+      if (data.containsKey('message')) return data['message'].toString();
+      if (data['data'] is Map && (data['data'] as Map).containsKey('message')) {
+        return data['data']['message'].toString();
+      }
+      if (data.containsKey('error')) return data['error'].toString();
+      return 'Lỗi kết nối server (Code: ${e.response?.statusCode})';
     }
     return e.message ?? 'Lỗi kết nối. Vui lòng thử lại.';
   }

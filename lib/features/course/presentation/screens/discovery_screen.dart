@@ -197,7 +197,8 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
     
     return GestureDetector(
       onTap: () {
-        context.push('/course-detail/${item.id}?mode=${item.mode}');
+        final classSlug = item.liveClassId != null ? '&classId=${item.liveClassId}' : '';
+        context.push('/course-detail/${item.id}?mode=${item.mode}$classSlug');
       },
       child: Container(
         decoration: BoxDecoration(
@@ -293,7 +294,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (item.discountPrice != null)
+                            if (item.discountPrice != null && item.price != null)
                               Text(
                                 NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(item.price),
                                 style: theme.textTheme.bodySmall?.copyWith(

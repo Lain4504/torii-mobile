@@ -37,6 +37,8 @@ class LiveClassModel {
   final DateTime? enrollmentCloseAt;
   final String? instructorName;
   final String? instructorAvatarUrl;
+  final double? price;
+  final double? discountPrice;
   final LiveEnrollmentSummary? liveEnrollment;
 
   const LiveClassModel({
@@ -51,6 +53,8 @@ class LiveClassModel {
     this.enrollmentCloseAt,
     this.instructorName,
     this.instructorAvatarUrl,
+    this.price,
+    this.discountPrice,
     this.liveEnrollment,
   });
 
@@ -80,6 +84,13 @@ class LiveClassModel {
         ? (maxStudents - activeEnrollmentCount).clamp(0, maxStudents)
         : null;
 
+    double? toDouble(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v);
+      return double.tryParse(v.toString());
+    }
+
     return LiveClassModel(
       id: (json['id'] as String?) ?? '',
       code: (json['code'] as String?) ?? '',
@@ -92,6 +103,8 @@ class LiveClassModel {
       enrollmentCloseAt: enrollmentCloseAt,
       instructorName: displayName,
       instructorAvatarUrl: avatarUrl,
+      price: toDouble(json['price']),
+      discountPrice: toDouble(json['discountPrice']),
       liveEnrollment: LiveEnrollmentSummary(
         activeEnrollmentCount: activeEnrollmentCount,
         maxStudents: maxStudents,
@@ -100,6 +113,8 @@ class LiveClassModel {
       ),
     );
   }
+
+  double get displayPrice => discountPrice ?? price ?? 0;
 
   bool get isLive => mode.toUpperCase() == 'LIVE';
 

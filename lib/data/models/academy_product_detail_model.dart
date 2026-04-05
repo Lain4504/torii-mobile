@@ -76,9 +76,10 @@ class AcademyProductDetailModel {
       );
     }
 
+    final source = json['item'] is Map ? json['item'] as Map : json;
     final instructorName = _findInstructorName(json);
 
-    final rawSiblingClasses = json['siblingClasses'] ?? json['classes'];
+    final rawSiblingClasses = source['siblingClasses'] ?? source['classes'] ?? source['liveClasses'];
     final siblingClasses = (rawSiblingClasses is List)
         ? rawSiblingClasses
             .whereType<Map>()
