@@ -38,6 +38,7 @@ import '../../features/profile/presentation/screens/achievements_screen.dart';
 import '../../features/profile/presentation/screens/rewards_store_screen.dart';
 import '../../features/profile/presentation/screens/coupons_screen.dart';
 import '../../features/profile/presentation/screens/two_factor_settings_screen.dart';
+import '../../features/profile/presentation/screens/tickets_screen.dart';
 import '../../features/sensei/views/pages/sensei_dashboard_page.dart';
 import '../../features/sensei/views/pages/sensei_chat_page.dart';
 import '../../features/sensei/views/pages/sensei_translate_page.dart';
@@ -436,6 +437,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
+              ),
+              GoRoute(
+                path: '/support',
+                builder: (context, state) => const TicketsScreen(),
               ),
               GoRoute(
                 path: '/linked-accounts',

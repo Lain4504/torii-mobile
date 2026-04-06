@@ -14,6 +14,7 @@ bool _isSettingsHubSubRoute(String path) {
       path == '/my-coupons' ||
       path == '/security-2fa' ||
       path == '/notifications' ||
+      path == '/support' ||
       path == '/orders' ||
       path.startsWith('/order-detail/');
 }

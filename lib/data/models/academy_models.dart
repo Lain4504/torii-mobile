@@ -184,7 +184,7 @@ class OrderModel {
   final String? courseName;
   final String? courseThumbnail;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? updatedAt;
   final Map<String, dynamic>? metadata;
 
   const OrderModel({
@@ -197,7 +197,7 @@ class OrderModel {
     this.courseName,
     this.courseThumbnail,
     required this.createdAt,
-    required this.updatedAt,
+    this.updatedAt,
     this.metadata,
   });
 
@@ -210,16 +210,16 @@ class OrderModel {
     }
 
     return OrderModel(
-      id: json['id'].toString(),
+      id: json['id']?.toString() ?? '',
       code: json['code'] as String?,
-      userId: json['userId'].toString(),
+      userId: json['userId']?.toString() ?? '',
       amount: toDouble(json['grandTotal'] ?? json['amount']),
       currency: json['currency'] as String? ?? 'VND',
       status: json['status']?.toString() ?? 'PENDING',
-      courseName: json['courseName'] as String?,
+      courseName: json['courseName'] ?? json['description'],
       courseThumbnail: json['courseThumbnail'] as String?,
-      createdAt: DateTime.parse(json['createdAt'].toString()),
-      updatedAt: DateTime.parse(json['updatedAt'].toString()),
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'].toString()) : DateTime.now(),
+      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'].toString()) : null,
       metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }

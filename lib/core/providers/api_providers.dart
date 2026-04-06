@@ -127,7 +127,7 @@ final classCatalogVodDetailProvider = FutureProvider.autoDispose
     });
 
 final myEnrollmentsProvider =
-    FutureProvider<PaginatedResponse<EnrollmentModel>>((ref) async {
+    FutureProvider.autoDispose<PaginatedResponse<EnrollmentModel>>((ref) async {
       if (!_personalizedApisAllowed(ref)) {
         return const PaginatedResponse<EnrollmentModel>(
           data: [],
@@ -154,7 +154,7 @@ final classCompletedLessonIdsProvider = FutureProvider.autoDispose
       return repo.getCompletedLessonIds(classId, mode: mode, productId: productId);
     });
 
-final myOrdersProvider = FutureProvider<PaginatedResponse<OrderModel>>((
+final myOrdersProvider = FutureProvider.autoDispose<PaginatedResponse<OrderModel>>((
   ref,
 ) async {
   final repo = ref.watch(academyRepositoryProvider);

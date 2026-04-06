@@ -99,16 +99,8 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsTile(
                 icon: Icons.help_outline_rounded,
                 title: 'Trợ giúp',
-                onTap: () {
-                  // TODO: add help route
-                },
+                onTap: () => context.push('/support'),
               ),
-              _SettingsTile(
-                icon: Icons.article_outlined,
-                title: 'Điều khoản sử dụng',
-                onTap: () {
-                  // TODO: add terms route
-                },
               ),
             ],
           ),

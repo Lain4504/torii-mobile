@@ -57,7 +57,19 @@ class OrderListScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error))),
+          error: (e, _) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Lỗi: $e', style: TextStyle(color: theme.colorScheme.error), textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => ref.invalidate(myOrdersProvider),
+                  child: const Text('Thử lại'),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
