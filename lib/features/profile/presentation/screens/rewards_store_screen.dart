@@ -90,7 +90,7 @@ class RewardsStoreScreen extends ConsumerWidget {
                   final r = rewards[index - 1];
                   final name = (r['title'] ?? r['name'] ?? 'Quà tặng') as String;
                   final desc = (r['description'] ?? '') as String;
-                  final cost = (r['cost'] ?? r['pointsRequired'] ?? 0) as num;
+                  final cost = (r['costPoints'] ?? r['cost'] ?? r['requiredPoints'] ?? 0) as num;
                   final canRedeem = points >= cost;
 
                   return Container(

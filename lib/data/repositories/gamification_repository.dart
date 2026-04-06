@@ -50,14 +50,26 @@ class GamificationRepository {
 
   /// GET /api/gamification/rewards
   Future<List<Map<String, dynamic>>> getAvailableRewards() async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/gamification/rewards');
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return [];
-    final raw = api.data!;
-    final list = raw['rewards'] as List<dynamic>? ?? raw['items'] as List<dynamic>? ?? [];
-    return list
-        .map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{})
-        .toList();
+    final response = await _dio.get<dynamic>('/api/gamification/rewards');
+    final rawData = response.data;
+    if (rawData == null) return [];
+
+    List<dynamic> list = [];
+    final dataNode = (rawData is Map && rawData.containsKey('data') && rawData['data'] != null) 
+        ? rawData['data'] 
+        : rawData;
+
+    if (dataNode is List) {
+      list = dataNode;
+    } else if (dataNode is Map) {
+      list = dataNode['rewards'] as List<dynamic>? ?? 
+             dataNode['items'] as List<dynamic>? ?? 
+             dataNode['data'] as List<dynamic>? ?? [];
+    } else if (rawData is Map && rawData.containsKey('items') && rawData['items'] != null) {
+      list = rawData['items'] as List<dynamic>;
+    }
+
+    return list.whereType<Map<String, dynamic>>().toList();
   }
 
   /// POST /api/gamification/redeem - body: { rewardId: string }
@@ -73,22 +85,50 @@ class GamificationRepository {
 
   /// GET /api/gamification/achievements - returns { achievements: [...] }
   Future<List<AchievementModel>> getAchievements() async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/gamification/achievements');
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return [];
-    final list = api.data!['achievements'] as List<dynamic>? ?? [];
+    final response = await _dio.get<dynamic>('/api/gamification/achievements');
+    final rawData = response.data;
+    if (rawData == null) return [];
+
+    List<dynamic> list = [];
+    final dataNode = (rawData is Map && rawData.containsKey('data') && rawData['data'] != null) 
+        ? rawData['data'] 
+        : rawData;
+
+    if (dataNode is List) {
+      list = dataNode;
+    } else if (dataNode is Map) {
+      list = dataNode['achievements'] as List<dynamic>? ?? 
+             dataNode['items'] as List<dynamic>? ?? 
+             dataNode['data'] as List<dynamic>? ?? [];
+    } else if (rawData is Map && rawData.containsKey('items') && rawData['items'] != null) {
+      list = rawData['items'] as List<dynamic>;
+    }
+
     return list.map((e) => AchievementModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   /// GET /api/academy/coupons/my-coupons
   Future<List<Map<String, dynamic>>> getMyCoupons() async {
-    final response = await _dio.get<Map<String, dynamic>>('/api/academy/coupons/my-coupons');
-    final api = ApiResponse<List<dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return [];
-    final list = api.data!;
-    return list
-        .map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{})
-        .toList();
+    final response = await _dio.get<dynamic>('/api/academy/coupons/my-coupons');
+    final rawData = response.data;
+    if (rawData == null) return [];
+
+    List<dynamic> list = [];
+    final dataNode = (rawData is Map && rawData.containsKey('data') && rawData['data'] != null) 
+        ? rawData['data'] 
+        : rawData;
+
+    if (dataNode is List) {
+      list = dataNode;
+    } else if (dataNode is Map) {
+      list = dataNode['coupons'] as List<dynamic>? ?? 
+             dataNode['items'] as List<dynamic>? ?? 
+             dataNode['data'] as List<dynamic>? ?? [];
+    } else if (rawData is Map && rawData.containsKey('items') && rawData['items'] != null) {
+      list = rawData['items'] as List<dynamic>;
+    }
+
+    return list.whereType<Map<String, dynamic>>().toList();
   }
 
   Future<LeaderboardData?> getLeaderboard({String type = 'global'}) async {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -99,16 +98,7 @@ class SettingsScreen extends ConsumerWidget {
               _SettingsTile(
                 icon: Icons.help_outline_rounded,
                 title: 'Trợ giúp',
-                onTap: () {
-                  // TODO: add help route
-                },
-              ),
-              _SettingsTile(
-                icon: Icons.article_outlined,
-                title: 'Điều khoản sử dụng',
-                onTap: () {
-                  // TODO: add terms route
-                },
+                onTap: () => context.push('/support'),
               ),
             ],
           ),
@@ -124,10 +114,10 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
         ],
-        ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 Future<void> _onLogoutTap(BuildContext context, WidgetRef ref) async {

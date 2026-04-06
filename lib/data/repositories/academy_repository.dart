@@ -118,20 +118,44 @@ class AcademyRepository {
         if (status != null && status.isNotEmpty) 'status': status,
       },
     );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) {
-      throw Exception(api.message ?? 'Không thể tải danh sách khóa học');
+    final rawData = response.data ?? {};
+    final bool hasDataField = rawData.containsKey('data') && rawData['data'] != null;
+    final bool hasItemsField = rawData.containsKey('items') && rawData['items'] != null;
+    
+    if (rawData['success'] == false || (!rawData.containsKey('success') && !hasDataField && !hasItemsField)) {
+      throw Exception('${rawData['message'] ?? 'Lỗi danh sách khóa học'}. RAW: $rawData');
     }
 
-    final data = api.data!;
-    final items = data['items'] as List<dynamic>? ?? [];
+    final dataList = hasDataField ? rawData['data'] : rawData;
+    List<dynamic> items = [];
+    int total = 0;
+    int respPage = page;
+    int respLimit = limit;
+    int totalPages = 1;
+
+    if (dataList is Map) {
+      items = dataList['items'] as List<dynamic>? ?? dataList['data'] as List<dynamic>? ?? [];
+      total = (dataList['total'] as num? ?? items.length).toInt();
+      respPage = (dataList['page'] as num? ?? page).toInt();
+      respLimit = (dataList['limit'] as num? ?? limit).toInt();
+      totalPages = (dataList['totalPages'] as num? ?? 1).toInt();
+    } else if (dataList is List) {
+      items = dataList;
+      total = items.length;
+    } else if (hasItemsField) {
+      items = rawData['items'] as List<dynamic>? ?? [];
+      total = (rawData['total'] as num? ?? items.length).toInt();
+      respPage = (rawData['page'] as num? ?? page).toInt();
+      respLimit = (rawData['limit'] as num? ?? limit).toInt();
+      totalPages = (rawData['totalPages'] as num? ?? 1).toInt();
+    }
 
     return PaginatedResponse<EnrollmentModel>(
       data: items.map((e) => EnrollmentModel.fromJson(e as Map<String, dynamic>)).toList(),
-      total: (data['total'] as num? ?? items.length).toInt(),
-      page: (data['page'] as num? ?? page).toInt(),
-      limit: (data['limit'] as num? ?? limit).toInt(),
-      totalPages: (data['totalPages'] as num? ?? 1).toInt(),
+      total: total,
+      page: respPage,
+      limit: respLimit,
+      totalPages: totalPages,
     );
   }
 
@@ -152,20 +176,44 @@ class AcademyRepository {
         if (search != null && search.isNotEmpty) 'search': search,
       },
     );
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) {
-      throw Exception(api.message ?? 'Không thể tải danh sách đơn hàng');
+    final rawData = response.data ?? {};
+    final bool hasDataField = rawData.containsKey('data') && rawData['data'] != null;
+    final bool hasItemsField = rawData.containsKey('items') && rawData['items'] != null;
+
+    if (rawData['success'] == false || (!rawData.containsKey('success') && !hasDataField && !hasItemsField)) {
+      throw Exception('${rawData['message'] ?? 'Lỗi danh sách đơn hàng'}. RAW: $rawData');
     }
 
-    final data = api.data!;
-    final items = data['items'] as List<dynamic>? ?? data['data'] as List<dynamic>? ?? [];
+    final dataList = hasDataField ? rawData['data'] : rawData;
+    List<dynamic> items = [];
+    int total = 0;
+    int respPage = page;
+    int respLimit = limit;
+    int totalPages = 1;
+
+    if (dataList is Map) {
+      items = dataList['items'] as List<dynamic>? ?? dataList['data'] as List<dynamic>? ?? [];
+      total = (dataList['total'] as num? ?? items.length).toInt();
+      respPage = (dataList['page'] as num? ?? page).toInt();
+      respLimit = (dataList['limit'] as num? ?? limit).toInt();
+      totalPages = (dataList['totalPages'] as num? ?? 1).toInt();
+    } else if (dataList is List) {
+      items = dataList;
+      total = items.length;
+    } else if (hasItemsField) {
+      items = rawData['items'] as List<dynamic>? ?? [];
+      total = (rawData['total'] as num? ?? items.length).toInt();
+      respPage = (rawData['page'] as num? ?? page).toInt();
+      respLimit = (rawData['limit'] as num? ?? limit).toInt();
+      totalPages = (rawData['totalPages'] as num? ?? 1).toInt();
+    }
 
     return PaginatedResponse<OrderModel>(
       data: items.map((e) => OrderModel.fromJson(e as Map<String, dynamic>)).toList(),
-      total: (data['total'] as num? ?? items.length).toInt(),
-      page: (data['page'] as num? ?? page).toInt(),
-      limit: (data['limit'] as num? ?? limit).toInt(),
-      totalPages: (data['totalPages'] as num? ?? 1).toInt(),
+      total: total,
+      page: respPage,
+      limit: respLimit,
+      totalPages: totalPages,
     );
   }
 
