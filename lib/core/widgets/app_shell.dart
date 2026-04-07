@@ -84,7 +84,7 @@ class AppShell extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      extendBody: true,
+      extendBody: false,
       body: navigationShell,
       bottomNavigationBar: shouldHideBottomNav
           ? null

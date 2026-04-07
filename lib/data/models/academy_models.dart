@@ -373,6 +373,8 @@ class AssignmentModel {
   final double? grade;
   final String? feedback;
   final List<String>? attachmentUrls;
+  final String? classAssessmentId;
+  final String? assignmentTemplateId;
 
   const AssignmentModel({
     required this.id,
@@ -383,18 +385,32 @@ class AssignmentModel {
     this.grade,
     this.feedback,
     this.attachmentUrls,
+    this.classAssessmentId,
+    this.assignmentTemplateId,
   });
 
   factory AssignmentModel.fromJson(Map<String, dynamic> json) {
+    final assignmentData = json['assignment'] as Map<String, dynamic>?;
+    final count = json['_count'] as Map<String, dynamic>?;
+    final submissionCount = (count?['submissions'] as num?)?.toInt() ?? 0;
+    
+    // Fallback status if not provided directly
+    String? status = json['status']?.toString().toUpperCase();
+    if (status == null && submissionCount > 0) {
+      status = 'SUBMITTED';
+    }
+
     return AssignmentModel(
       id: json['id'].toString(),
-      title: json['title'].toString(),
-      description: json['description']?.toString(),
+      title: (json['title'] ?? assignmentData?['title'] ?? '').toString(),
+      description: (json['description'] ?? assignmentData?['instructions'])?.toString(),
       deadline: json['deadline'] != null ? DateTime.parse(json['deadline'].toString()) : null,
-      status: json['status']?.toString().toUpperCase(),
+      status: status,
       grade: (json['grade'] as num?)?.toDouble(),
       feedback: json['feedback']?.toString(),
       attachmentUrls: (json['attachmentUrls'] as List?)?.map((e) => e.toString()).toList(),
+      classAssessmentId: (json['classAssessmentId'] ?? json['id'])?.toString(),
+      assignmentTemplateId: (json['assignmentTemplateId'] ?? json['assignmentId'] ?? assignmentData?['id'])?.toString(),
     );
   }
 
@@ -404,21 +420,27 @@ class AssignmentModel {
 /// Assessment Attempt Question
 class AssessmentQuestionModel {
   final String id;
+  final String? examQuestionId;  // ID của câu hỏi trong exam, dùng khi submit
   final String stemText;
   final String? stemHtml;
   final List<AssessmentOptionModel> options;
 
   const AssessmentQuestionModel({
     required this.id,
+    this.examQuestionId,
     required this.stemText,
     this.stemHtml,
     required this.options,
   });
 
+  /// ID dùng để submit answer - ưu tiên examQuestionId nếu có
+  String get submitId => examQuestionId ?? id;
+
   factory AssessmentQuestionModel.fromJson(Map<String, dynamic> json) {
     final rawOptions = json['options'] as List? ?? [];
     return AssessmentQuestionModel(
       id: json['id'].toString(),
+      examQuestionId: json['examQuestionId']?.toString(),
         stemText: (json['stemText'] ?? json['stem'] ?? '').toString(),
         stemHtml: json['stemHtml']?.toString(),
         options: rawOptions.map((e) => AssessmentOptionModel.fromJson(e as Map<String, dynamic>)).toList(),
