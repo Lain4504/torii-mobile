@@ -64,14 +64,30 @@ class _ExamResultScreenState extends ConsumerState<ExamResultScreen> {
     }
 
     final theme = Theme.of(context);
-    final title = _examData?['title'] ?? 'Bài kiểm tra';
-    final score = _attemptData!['score'] ?? _attemptData!['actualScore'] ?? 0;
-    final maxScore = _attemptData!['totalScore'] ?? 100;
     
-    var percentage = 0.0;
-    if (maxScore > 0) percentage = (score / maxScore) * 100;
+    // API trả về { "item": {...} }, cần lấy đúng nested object
+    final attemptItem = _attemptData!['item'] ?? _attemptData!;
+    final examItem = _examData?['item'] ?? _examData;
+    
+    final title = examItem?['title'] ?? attemptItem['exam']?['title'] ?? 'Bài kiểm tra';
+    
+    // Parse score/maxScore/percentage từ API (có thể là string hoặc int)
+    final rawScore = attemptItem['score'] ?? attemptItem['actualScore'];
+    final rawMaxScore = attemptItem['maxScore'] ?? attemptItem['totalScore'];
+    final rawPercentage = attemptItem['percentage'];
+    
+    final score = rawScore is num ? rawScore.toDouble() : double.tryParse(rawScore?.toString() ?? '') ?? 0.0;
+    final maxScore = rawMaxScore is num ? rawMaxScore.toDouble() : double.tryParse(rawMaxScore?.toString() ?? '') ?? 100.0;
+    
+    // Ưu tiên dùng percentage từ API nếu có
+    var percentage = rawPercentage is num 
+        ? rawPercentage.toDouble() 
+        : double.tryParse(rawPercentage?.toString() ?? '') ?? 0.0;
+    if (percentage == 0 && maxScore > 0) {
+      percentage = (score / maxScore) * 100;
+    }
 
-    final isPassed = _attemptData!['isPassed'] ?? _attemptData!['passed'] ?? false;
+    final isPassed = attemptItem['isPassed'] ?? attemptItem['passed'] ?? false;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

@@ -89,7 +89,7 @@ class CurriculumScreen extends ConsumerWidget {
           final totalModules = modules.length;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

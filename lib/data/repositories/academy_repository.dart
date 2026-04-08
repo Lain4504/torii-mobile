@@ -1233,8 +1233,12 @@ class AcademyRepository {
                          if (section['questions'] is List) {
                              for (final q in section['questions']) {
                                  // Cấu trúc lồng nhau: q['question'] chứa nội dung câu hỏi
+                                 // Nhưng cần giữ lại examQuestionId (q['id']) để submit đúng
                                  if (q['question'] != null) {
-                                     flatQuestions.add(q['question']);
+                                     final questionData = Map<String, dynamic>.from(q['question']);
+                                     // Thêm examQuestionId để dùng khi submit
+                                     questionData['examQuestionId'] = q['id'];
+                                     flatQuestions.add(questionData);
                                  } else {
                                      flatQuestions.add(q);
                                  }
@@ -1254,17 +1258,40 @@ class AcademyRepository {
     return null;
   }
 
-  /// POST /api/academy/exam-attempts/submit
-  Future<Map<String, dynamic>?> submitAssessmentAttempt({
+  /// POST /api/academy/exam-attempts/save-draft
+  /// Lưu câu trả lời vào database trước khi submit
+  Future<bool> saveDraftAnswers({
     required String attemptId,
-    required Map<String, String> answers,
+    required Map<String, String> draftAnswers,
   }) async {
     try {
+      // Backend expects: { attemptId, draftAnswers: { questionId: optionId } }
+      // Key = question.id (ID gốc), Value = option.id hoặc optionKey
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/academy/exam-attempts/save-draft',
+        data: {
+          'attemptId': attemptId,
+          'draftAnswers': draftAnswers,
+        },
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      return api.success == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// POST /api/academy/exam-attempts/submit
+  /// Backend tính điểm dựa trên draftAnswers đã lưu trước đó
+  Future<Map<String, dynamic>?> submitAssessmentAttempt({
+    required String attemptId,
+  }) async {
+    try {
+      // Chỉ gửi attemptId, backend dùng draftAnswers đã save
       final response = await _dio.post<Map<String, dynamic>>(
         '/api/academy/exam-attempts/submit',
         data: {
           'attemptId': attemptId,
-          'answers': answers,
         },
       );
       final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
@@ -1326,6 +1353,8 @@ class AcademyRepository {
     required String classId,
     required String assignmentId,
     required String content,
+    String? classAssessmentId,
+    String? assignmentTemplateId,
     List<String>? fileUrls,
   }) async {
     try {
@@ -1334,6 +1363,8 @@ class AcademyRepository {
         data: {
           'classId': classId,
           'liveClassAssignmentId': assignmentId,
+          'classAssessmentId': classAssessmentId,
+          'assignmentTemplateId': assignmentTemplateId,
           'content': content,
           if (fileUrls != null) 'fileUrls': fileUrls,
           'status': 'SUBMITTED',

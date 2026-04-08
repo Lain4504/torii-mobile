@@ -1330,6 +1330,8 @@ class _AssignmentsTabPane extends ConsumerWidget {
                   final success = await repo.submitAssignment(
                     classId: classId,
                     assignmentId: assignment.id,
+                    classAssessmentId: assignment.classAssessmentId,
+                    assignmentTemplateId: assignment.assignmentTemplateId,
                     content: contentController.text,
                   );
                   if (success) {

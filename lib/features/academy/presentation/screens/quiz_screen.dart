@@ -25,6 +25,7 @@ class QuizScreen extends ConsumerStatefulWidget {
 class _QuizScreenState extends ConsumerState<QuizScreen> {
   bool _loading = true;
   bool _submitting = false;
+  bool _startingQuiz = false; // Guard để tránh gọi startQuiz nhiều lần
   String? _attemptId;
   List<AssessmentQuestionModel> _questions = [];
   final Map<String, String> _selectedAnswers = {};
@@ -73,6 +74,10 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   }
 
   Future<void> _startQuiz() async {
+    // Guard để tránh gọi nhiều lần
+    if (_startingQuiz || _attemptId != null) return;
+    _startingQuiz = true;
+    
     setState(() {
       _loading = true;
       _errorMessage = null;
@@ -141,9 +146,25 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
     try {
       final repo = ref.read(academyRepositoryProvider);
+      
+      // Bước 1: Lưu draft trước (backend yêu cầu)
+      final saved = await repo.saveDraftAnswers(
+        attemptId: _attemptId!,
+        draftAnswers: _selectedAnswers,
+      );
+      
+      if (!saved) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Lỗi khi lưu bài. Vui lòng thử lại.')),
+          );
+        }
+        return;
+      }
+      
+      // Bước 2: Submit - backend tính điểm dựa trên draft
       final result = await repo.submitAssessmentAttempt(
         attemptId: _attemptId!,
-        answers: _selectedAnswers,
       );
 
       if (!mounted) return;
