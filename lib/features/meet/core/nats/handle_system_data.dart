@@ -124,6 +124,8 @@ class HandleSystemData {
             ),
           );
           ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(payload.msg);
+          // Web invalidates My_Rooms on invitation; mobile bumps refresh to allow UI refetch immediately.
+          ref?.read(breakoutRoomProvider.notifier).bumpRoomsRefresh();
           if (kDebugMode) {
             print('HandleSystemData: Breakout room invitation - ${payload.msg}');
           }
@@ -132,6 +134,8 @@ class HandleSystemData {
         
       case nats_msg.NatsMsgServerToClientEvents.BREAKOUT_ROOM_ENDED:
         ref?.read(breakoutRoomProvider.notifier).clearInvitation();
+        // Web invalidates List + My_Rooms on ended; mobile bumps refresh to refetch immediately.
+        ref?.read(breakoutRoomProvider.notifier).bumpRoomsRefresh();
         if (kDebugMode) {
           print('HandleSystemData: Breakout room ended - ${payload.msg}');
         }

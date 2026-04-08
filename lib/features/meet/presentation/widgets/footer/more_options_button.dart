@@ -5,6 +5,7 @@ import '../settings/settings_bottom_sheet.dart';
 import '../translation/translation_bottom_sheet.dart';
 import '../insights_ai/insights_ai_bottom_sheet.dart';
 import '../waiting_room/waiting_room_bottom_sheet.dart';
+import '../breakout_rooms/breakout_rooms_bottom_sheet.dart';
 import 'control_button.dart';
 import '../../../providers/whiteboard_provider.dart';
 import '../../../providers/session_provider.dart';
@@ -28,6 +29,14 @@ class MoreOptionsButton extends ConsumerWidget {
   void _showOptionsMenu(BuildContext context, WidgetRef ref) {
     final isAdmin =
         ref.read(sessionProvider).currentUser?.metadata?.isAdmin ?? false;
+    final breakoutAllowed = ref
+            .read(sessionProvider)
+            .currentRoom
+            .metadata
+            ?.roomFeatures
+            ?.breakoutRoomFeatures
+            ?.isAllow ==
+        true;
 
     showModalBottomSheet(
       context: context,
@@ -105,6 +114,28 @@ class MoreOptionsButton extends ConsumerWidget {
                 );
               },
             ),
+            if (isAdmin && breakoutAllowed)
+              _buildMenuItem(
+                context,
+                icon: Icons.meeting_room_outlined,
+                title: 'Breakout Rooms',
+                onTap: () {
+                  Navigator.pop(context);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) {
+                      final mq = MediaQuery.of(context);
+                      return SizedBox(
+                        height:
+                            (mq.size.height * 0.80).clamp(320.0, mq.size.height),
+                        child: const BreakoutRoomsBottomSheet(),
+                      );
+                    },
+                  );
+                },
+              ),
             if (isAdmin)
               _buildMenuItem(
                 context,

@@ -747,6 +747,49 @@ class MeetApiService {
 
   // --- Breakout room: mobile chỉ tham gia phòng nhóm khi nhận NATS (POST /api/breakoutRoom/join) ---
 
+  /// Admin tạo breakout rooms (POST /api/breakoutRoom/create).
+  Future<breakout_room.BreakoutRoomRes> createBreakoutRooms(
+    breakout_room.CreateBreakoutRoomsReq req,
+  ) async {
+    try {
+      return await _postProto(
+        path: '/api/breakoutRoom/create',
+        request: req,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to create breakout rooms', originalError: e);
+    }
+  }
+
+  /// List all breakout rooms in the current parent room (GET /api/breakoutRoom/listRooms).
+  Future<breakout_room.BreakoutRoomRes> getBreakoutRooms() async {
+    try {
+      final response = await _dio.get('/api/breakoutRoom/listRooms');
+      return breakout_room.BreakoutRoomRes.fromBuffer(response.data as List<int>);
+    } on DioException catch (e) {
+      throw _handleDioError(e, 'getBreakoutRooms');
+    } catch (e) {
+      if (e is MeetApiException) rethrow;
+      throw MeetApiException('Failed to get breakout rooms', originalError: e);
+    }
+  }
+
+  /// Get my assigned breakout room info (GET /api/breakoutRoom/myRooms).
+  Future<breakout_room.BreakoutRoomRes> getMyBreakoutRoom() async {
+    try {
+      final response = await _dio.get('/api/breakoutRoom/myRooms');
+      return breakout_room.BreakoutRoomRes.fromBuffer(response.data as List<int>);
+    } on DioException catch (e) {
+      throw _handleDioError(e, 'getMyBreakoutRoom');
+    } catch (e) {
+      if (e is MeetApiException) rethrow;
+      throw MeetApiException('Failed to get my breakout room', originalError: e);
+    }
+  }
+
   Future<breakout_room.BreakoutRoomRes> joinBreakoutRoom(
     breakout_room.JoinBreakoutRoomReq req,
   ) async {
@@ -760,6 +803,72 @@ class MeetApiService {
       rethrow;
     } catch (e) {
       throw MeetApiException('Failed to join breakout room', originalError: e);
+    }
+  }
+
+  /// End a single breakout room (POST /api/breakoutRoom/endRoom).
+  Future<breakout_room.BreakoutRoomRes> endBreakoutRoom(
+    breakout_room.EndBreakoutRoomReq req,
+  ) async {
+    try {
+      return await _postProto(
+        path: '/api/breakoutRoom/endRoom',
+        request: req,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to end breakout room', originalError: e);
+    }
+  }
+
+  /// End all breakout rooms (POST /api/breakoutRoom/endAllRooms).
+  Future<breakout_room.BreakoutRoomRes> endAllBreakoutRooms() async {
+    try {
+      return await _postProto(
+        path: '/api/breakoutRoom/endAllRooms',
+        request: null,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to end all breakout rooms', originalError: e);
+    }
+  }
+
+  /// Increase breakout room duration (POST /api/breakoutRoom/increaseDuration).
+  Future<breakout_room.BreakoutRoomRes> increaseBreakoutRoomDuration(
+    breakout_room.IncreaseBreakoutRoomDurationReq req,
+  ) async {
+    try {
+      return await _postProto(
+        path: '/api/breakoutRoom/increaseDuration',
+        request: req,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to increase breakout room duration', originalError: e);
+    }
+  }
+
+  /// Broadcast a message to all breakout rooms (POST /api/breakoutRoom/sendMsg).
+  Future<breakout_room.BreakoutRoomRes> broadcastBreakoutRoomMessage(
+    breakout_room.BroadcastBreakoutRoomMsgReq req,
+  ) async {
+    try {
+      return await _postProto(
+        path: '/api/breakoutRoom/sendMsg',
+        request: req,
+        fromBuffer: (bytes) => breakout_room.BreakoutRoomRes.fromBuffer(bytes),
+      );
+    } on MeetApiException {
+      rethrow;
+    } catch (e) {
+      throw MeetApiException('Failed to broadcast breakout room message', originalError: e);
     }
   }
 }

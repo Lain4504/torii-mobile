@@ -11,6 +11,8 @@ class BreakoutRoomState {
   /// Tăng mỗi lần nhận invitation mới (dù cùng roomId).
   /// Mục tiêu: listener UI không phụ thuộc so sánh chuỗi roomId.
   final int invitationSeq;
+  /// Tăng khi danh sách breakout rooms cần được refetch (event-driven).
+  final int roomsRefreshSeq;
   
   const BreakoutRoomState({
     this.receivedInvitationFor,
@@ -18,6 +20,7 @@ class BreakoutRoomState {
     this.parentRoomId,
     this.isInBreakoutRoom = false,
     this.invitationSeq = 0,
+    this.roomsRefreshSeq = 0,
   });
   
   BreakoutRoomState copyWith({
@@ -26,6 +29,7 @@ class BreakoutRoomState {
     String? parentRoomId,
     bool? isInBreakoutRoom,
     int? invitationSeq,
+    int? roomsRefreshSeq,
   }) {
     return BreakoutRoomState(
       receivedInvitationFor: receivedInvitationFor ?? this.receivedInvitationFor,
@@ -33,6 +37,7 @@ class BreakoutRoomState {
       parentRoomId: parentRoomId ?? this.parentRoomId,
       isInBreakoutRoom: isInBreakoutRoom ?? this.isInBreakoutRoom,
       invitationSeq: invitationSeq ?? this.invitationSeq,
+      roomsRefreshSeq: roomsRefreshSeq ?? this.roomsRefreshSeq,
     );
   }
 }
@@ -50,6 +55,11 @@ class BreakoutRoomNotifier extends StateNotifier<BreakoutRoomState> {
   
   void clearInvitation() {
     state = state.copyWith(receivedInvitationFor: null);
+  }
+
+  /// Signal UI to refetch breakout rooms list/my room.
+  void bumpRoomsRefresh() {
+    state = state.copyWith(roomsRefreshSeq: state.roomsRefreshSeq + 1);
   }
 
   /// Khi chuyển sang breakout room: lưu snapshot phiên phòng chính để có thể quay lại.
