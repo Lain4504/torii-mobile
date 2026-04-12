@@ -49,9 +49,12 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       _autoMarkedComplete = false;
     }
 
-    final oldClassId = (oldWidget.lesson?['deliveryTargetId'] ?? '').toString();
-    final newClassId = (widget.lesson?['deliveryTargetId'] ?? '').toString();
-    if (oldClassId.isNotEmpty && oldClassId != newClassId) {
+    final oldDeliveryTargetId =
+        (oldWidget.lesson?['deliveryTargetId'] ?? '').toString();
+    final newDeliveryTargetId =
+        (widget.lesson?['deliveryTargetId'] ?? '').toString();
+    if (oldDeliveryTargetId.isNotEmpty &&
+        oldDeliveryTargetId != newDeliveryTargetId) {
       _refreshDiscussionIfPossible();
     }
     if (oldWidget.lesson?['videoUrl'] != widget.lesson?['videoUrl'] ||
@@ -67,8 +70,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     if (_autoMarkedComplete) return;
     final lesson = widget.lesson ?? const <String, dynamic>{};
     if (lesson['progressDisabled'] == true) return;
-    final classId = (lesson['deliveryTargetId'] ?? '').toString();
-    if (classId.isEmpty) return;
+    final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
+    if (deliveryTargetId.isEmpty) return;
     final type = (lesson['type'] ?? '').toString();
     if (!_isTrackableType(type)) return;
     final dur = c.value.duration;
@@ -143,13 +146,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
 
   Future<void> _markComplete({bool silent = false}) async {
     final lesson = widget.lesson ?? const <String, dynamic>{};
-    final classId = (lesson['deliveryTargetId'] ?? '').toString();
+    final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
     final lessonId = (lesson['id'] ?? '').toString();
-    if (classId.isEmpty || lessonId.isEmpty) {
+    if (deliveryTargetId.isEmpty || lessonId.isEmpty) {
       if (!silent && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Thiếu thông tin lớp học để lưu tiến độ.'),
+            content: Text('Thiếu deliveryTargetId / lesson để lưu tiến độ.'),
           ),
         );
       }
@@ -169,18 +172,22 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final productIdRaw = (lesson['productId'] ?? '').toString();
     final productId = productIdRaw.isNotEmpty ? productIdRaw : null;
     final ok = await repo.completeClassLesson(
-      deliveryTargetId: classId,
+      deliveryTargetId: deliveryTargetId,
       productId: productId,
       lessonId: lessonId,
       mode: mode,
     );
     if (!mounted) return;
     if (ok) {
-      ref.invalidate(classCompletedLessonIdsProvider((deliveryTargetId: classId, mode: mode, productId: productId)));
+      ref.invalidate(classCompletedLessonIdsProvider((
+        deliveryTargetId: deliveryTargetId,
+        mode: mode,
+        productId: productId,
+      )));
       final enrollmentIdRaw = lesson['enrollmentId'];
       final enrollmentId = enrollmentIdRaw is String ? enrollmentIdRaw : null;
       ref.invalidate(assessmentStatusProvider(
-        assessmentStatusCacheKey(classId, enrollmentId),
+        assessmentStatusCacheKey(deliveryTargetId, enrollmentId),
       ));
       if (!silent) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -205,8 +212,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
 
   void _openSyllabusSheet() {
     final lesson = widget.lesson ?? const <String, dynamic>{};
-    final classId = (lesson['deliveryTargetId'] ?? '').toString();
-    if (classId.isEmpty) return;
+    final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
+    if (deliveryTargetId.isEmpty) return;
     final progressDisabled = lesson['progressDisabled'] == true;
     final currentLessonId = (lesson['id'] ?? '').toString();
 
@@ -264,10 +271,14 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                         ((lesson['mode'] ?? 'VOD').toString().toUpperCase() ==
                                     'LIVE'
                                 ? ref.watch(
-                                    classCatalogLiveDetailProvider(classId),
+                                    classCatalogLiveDetailProvider(
+                                      deliveryTargetId,
+                                    ),
                                   )
                                 : ref.watch(
-                                    classCatalogVodDetailProvider(classId),
+                                    classCatalogVodDetailProvider(
+                                      deliveryTargetId,
+                                    ),
                                   ))
                             .when(
                               loading: () => const Center(
@@ -288,14 +299,16 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                   );
                                 }
                                 final useProgress =
-                                    !progressDisabled && classId.isNotEmpty;
+                                    !progressDisabled &&
+                                    deliveryTargetId.isNotEmpty;
                                 final modules = detail.modules;
                                 final completedIds = useProgress
                                     ? (ref
                                               .watch(
                                                 classCompletedLessonIdsProvider(
                                                   (
-                                                    deliveryTargetId: classId,
+                                                    deliveryTargetId:
+                                                        deliveryTargetId,
                                                     mode: (lesson['mode'] ?? 'VOD').toString().toUpperCase(),
                                                     productId: (lesson['productId']?.toString() ?? '').isNotEmpty ? lesson['productId'].toString() : null
                                                   ),
@@ -433,9 +446,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                                   final payload =
                                                       _syllabusLessonPayload(
                                                         deliveryTargetId:
-                                                            classId.isNotEmpty
-                                                            ? classId
-                                                            : null,
+                                                            deliveryTargetId
+                                                                    .isNotEmpty
+                                                                ? deliveryTargetId
+                                                                : null,
                                                         productId: (lesson['productId'] ?? '').toString().isNotEmpty
                                                             ? lesson['productId'].toString()
                                                             : null,
@@ -487,7 +501,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final typeUpper = typeRaw.toUpperCase();
     final article = lesson['article'] as Map<String, dynamic>?;
     final nextLesson = lesson['nextLesson'] as Map<String, dynamic>?;
-    final classId = (lesson['deliveryTargetId'] ?? '').toString();
+    final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
     final progressDisabled = lesson['progressDisabled'] == true;
     final videoUrl = lesson['videoUrl'] as String?;
     final isVideo = typeUpper == 'VIDEO';
@@ -516,7 +530,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
               Icons.list_alt_outlined,
               color: AppColors.textPrimary,
             ),
-            onPressed: classId.isEmpty ? null : _openSyllabusSheet,
+            onPressed: deliveryTargetId.isEmpty ? null : _openSyllabusSheet,
           ),
         ],
       ),
@@ -604,9 +618,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                       Expanded(
                         child: OutlinedButton(
                           onPressed:
-                              classId.isEmpty || !_isTrackableType(typeRaw)
-                              ? null
-                              : () => _markComplete(),
+                              deliveryTargetId.isEmpty ||
+                                      !_isTrackableType(typeRaw)
+                                  ? null
+                                  : () => _markComplete(),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(

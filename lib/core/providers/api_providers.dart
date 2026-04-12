@@ -115,15 +115,15 @@ final classCatalogVodProvider = FutureProvider.autoDispose
     });
 
 final classCatalogLiveDetailProvider = FutureProvider.autoDispose
-    .family<AcademyProductDetailModel?, String>((ref, classId) async {
+    .family<AcademyProductDetailModel?, String>((ref, catalogProductId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicProductDetailById(classId, mode: 'LIVE');
+      return repo.getPublicProductDetailById(catalogProductId, mode: 'LIVE');
     });
 
 final classCatalogVodDetailProvider = FutureProvider.autoDispose
-    .family<AcademyProductDetailModel?, String>((ref, classId) async {
+    .family<AcademyProductDetailModel?, String>((ref, catalogProductId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicProductDetailById(classId, mode: 'VOD');
+      return repo.getPublicProductDetailById(catalogProductId, mode: 'VOD');
     });
 
 final myEnrollmentsProvider =
@@ -274,13 +274,17 @@ final folderResourcesProvider =
   return repo.getFolderResources(folderId);
 });
 
+/// Tài nguyên theo phạm vi giao hàng (path gateway: `.../live-classes/:deliveryScopeId/...`).
 final folderResourcesByClassProvider =
-    FutureProvider.family<List<AcademyResource>, String>((ref, classId) async {
-  if (!_authenticatedAcademyUser(ref) || classId.isEmpty) {
+    FutureProvider.family<List<AcademyResource>, String>((
+  ref,
+  liveClassId,
+) async {
+  if (!_authenticatedAcademyUser(ref) || liveClassId.isEmpty) {
     return const [];
   }
   final repo = ref.watch(academyRepositoryProvider);
-  return repo.getFolderResourcesByClass(classId);
+  return repo.getFolderResourcesForDeliveryScope(liveClassId);
 });
 
 // ---------- Assessment & Assignments ----------
@@ -316,10 +320,10 @@ final assessmentStatusProvider = FutureProvider.autoDispose
 });
 
 final assignmentsProvider = FutureProvider.autoDispose
-    .family<List<AssignmentModel>, String>((ref, classId) async {
-  if (!_authenticatedAcademyUser(ref) || classId.isEmpty) {
+    .family<List<AssignmentModel>, String>((ref, liveClassId) async {
+  if (!_authenticatedAcademyUser(ref) || liveClassId.isEmpty) {
     return const [];
   }
   final repo = ref.watch(academyRepositoryProvider);
-  return repo.getAssignments(classId);
+  return repo.getAssignments(liveClassId);
 });

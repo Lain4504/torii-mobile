@@ -133,7 +133,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final repo = ref.read(academyRepositoryProvider);
       final res = await repo.checkGiftRecipient(
         recipientEmail: email,
-        courseId: item.id,
+        commerceTargetId: item.id,
       );
       if (mounted) {
         setState(() {

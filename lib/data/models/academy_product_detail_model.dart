@@ -14,7 +14,7 @@ class AcademyProductDetailModel {
     this.siblingClasses = const [],
   });
 
-  // Proxy getters for backward compatibility with AcademyProductModel
+  // Getter tiện dùng (cùng dữ liệu với AcademyProductModel)
   bool get isLive => product.isLive;
   String get name => product.name;
   String? get code => product.code;
@@ -48,8 +48,8 @@ class AcademyProductDetailModel {
         if (m != null) return m;
       }
       
-      // 3. Inside item or offering
-      final item = map['item'] ?? map['offering'] ?? map['product'];
+      // 3. Trong item / product
+      final item = map['item'] ?? map['product'];
       if (item is Map) {
         final m = findModules(item);
         if (m != null) return m;
@@ -164,7 +164,7 @@ class CurriculumLessonModel {
 }
 
 String? _findInstructorName(Map<String, dynamic> json) {
-  final product = json['product'] ?? json['offering'] ?? json;
+  final product = json['product'] ?? json;
   final instructor = product['instructor'] ?? product['class']?['instructor'];
   if (instructor is Map) {
     final name = instructor['displayName'];

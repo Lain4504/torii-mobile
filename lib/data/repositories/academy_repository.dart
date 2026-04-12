@@ -13,7 +13,7 @@ import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 import '../../services/auth/token_service.dart';
 
-/// Academy API: course offerings (public), enrollments/me, orders/my, live-sessions/me (lịch học viên)
+/// Academy API: catalog (cohort / vod package), enrollments/me, orders, live-sessions/me.
 class AcademyRepository {
   const AcademyRepository(this._dio, [this._database, this._tokenService]);
 
@@ -323,9 +323,10 @@ class AcademyRepository {
   }
 
   /// Check gift recipient: `GET /api/academy/enrollments/check-gift-recipient`
+  /// [commerceTargetId]: cohort UUID (LIVE) hoặc vodPackage UUID — gateway vẫn dùng query `courseId`.
   Future<GiftRecipientCheckResult?> checkGiftRecipient({
     required String recipientEmail,
-    required String courseId,
+    required String commerceTargetId,
   }) async {
     try {
       final headers = await _getRequestHeaders();
@@ -334,7 +335,7 @@ class AcademyRepository {
         options: Options(headers: headers),
         queryParameters: {
           'recipientEmail': recipientEmail,
-          'courseId': courseId,
+          'courseId': commerceTargetId,
         },
       );
 
@@ -834,22 +835,19 @@ class AcademyRepository {
     return items.map((e) => (e as Map).cast<String, dynamic>()).toList();
   }
 
-  /// GET /api/academy/classes/:classId/progress — lessonId đã hoàn thành (parity web-learner).
-  /// API trả `{ modules: [{ lessons: [{ id, isCompleted }] }] }` — không có `lessons` phẳng.
-  /// GET /api/academy/classes/:classId/progress — lessonId đã hoàn thành (parity web-learner).
-  /// API trả `{ modules: [{ lessons: [{ id, isCompleted }] }] }` — không có `lessons` phẳng.
+  /// Lesson đã hoàn thành — parity web-learner:
+  /// LIVE: `GET /api/academy/live-classes/:liveClassId/completed-lessons`
+  /// VOD: `GET /api/academy/vod-packages/:vodPackageId/completed-lessons`
+  /// (Gateway trả `data` là `string[]` lessonId; nhánh parse map giữ phòng hờ.)
   Future<List<String>> getCompletedLessonIds(
     String deliveryTargetId, {
     String mode = 'LIVE',
     String? productId,
   }) async {
     final isLive = mode.toUpperCase() == 'LIVE';
-    final effectiveId = (isLive && productId != null && productId.isNotEmpty)
-        ? productId
-        : deliveryTargetId;
     final path = isLive
         ? '/api/academy/live-classes/$deliveryTargetId/completed-lessons'
-        : '/api/academy/vod-packages/$effectiveId/progress';
+        : '/api/academy/vod-packages/$deliveryTargetId/completed-lessons';
 
     try {
       final response = await _dio.get<Map<String, dynamic>>(
@@ -861,24 +859,21 @@ class AcademyRepository {
       );
       final body = response.data ?? {};
       final data = body['data'] ?? body;
-      
-      // If the API directly returns a list of completed strings
+
       if (data is List) {
-        print('=== SUCCESS: getCompletedLessonIds found IDs from List: $data ===');
         return data.map((e) => e.toString()).toList();
       }
 
       if (data is! Map) return [];
-      
+
       final content = data['item'] ?? data;
       final profile = content['courseProfile'] ?? content;
-      
+
       final out = <String>{};
 
       void addFromLessonMap(Map<String, dynamic> map) {
         final completed = map['isCompleted'] == true;
         final id = map['lessonId']?.toString() ?? map['id']?.toString();
-        print('    -> Lesson map id: $id, isCompleted: $completed');
         if (completed && id != null && id.isNotEmpty) out.add(id);
       }
 
@@ -890,26 +885,23 @@ class AcademyRepository {
       }
       final modules = profile['modules'] ?? content['modules'];
       if (modules is List) {
-        print('-> modules found: ${modules.length}');
         for (final m in modules) {
           if (m is! Map) continue;
           final modLessons = m['lessons'];
           if (modLessons is! List) continue;
-          print('  -> modLessons length for module ${m['title'] ?? m['id']}: ${modLessons.length}');
           for (final l in modLessons) {
             if (l is Map) addFromLessonMap(Map<String, dynamic>.from(l));
           }
         }
       }
-      print('=== SUCCESS: getCompletedLessonIds found IDs: $out ===');
       return out.toList();
-    } catch (e, st) {
-      print('=== ERROR: getCompletedLessonIds ===\n$e\n$st');
+    } catch (_) {
       return [];
     }
   }
 
-  /// POST /api/academy/classes/:classId/lessons/:lessonId/complete
+  /// LIVE: `POST .../live-classes/:liveClassId/lessons/:lessonId/complete`
+  /// VOD: `POST .../vod-packages/:vodPackageId/lessons/:lessonId/complete`
   Future<bool> completeClassLesson({
     required String deliveryTargetId,
     required String lessonId,
@@ -1076,12 +1068,13 @@ class AcademyRepository {
   }
 
   // ---------- Academy Resource & My Folders ----------
-  /// GET /api/academy/my-folders/live-classes
-  Future<List<AcademyFolder>> getMyFolders({String? classId}) async {
+  /// GET /api/academy/my-folders/live-classes — query `deliveryScopeId` (UUID liveClass hoặc vodPackage).
+  Future<List<AcademyFolder>> getMyFolders({String? deliveryScopeId}) async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/api/academy/my-folders/live-classes',
       queryParameters: <String, dynamic>{
-        if (classId != null && classId.isNotEmpty) 'classId': classId,
+        if (deliveryScopeId != null && deliveryScopeId.isNotEmpty)
+          'deliveryScopeId': deliveryScopeId,
       },
     );
     final body = response.data ?? {};
@@ -1126,9 +1119,12 @@ class AcademyRepository {
     return null;
   }
 
-  Future<List<AcademyResource>> getFolderResourcesByClass(String classId) async {
+  /// GET /api/academy/my-folders/live-classes/:deliveryScopeId/resources
+  Future<List<AcademyResource>> getFolderResourcesForDeliveryScope(
+    String liveClassOrVodPackageId,
+  ) async {
     final response = await _dio.get<Map<String, dynamic>>(
-      '/api/academy/my-folders/live-classes/$classId/resources',
+      '/api/academy/my-folders/live-classes/$liveClassOrVodPackageId/resources',
     );
     final body = response.data ?? {};
     if (body['success'] != true) return [];
@@ -1335,7 +1331,7 @@ class AcademyRepository {
   }
 
   // ---------- Assignments (Live Class) ----------
-  /// GET /api/academy/live-classes/{{classId}}/assignments
+  /// GET /api/academy/live-classes/:liveClassId/assignments
   Future<List<AssignmentModel>> getAssignments(String liveClassId) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(

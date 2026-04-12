@@ -219,12 +219,12 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
   }
 
   Widget _buildLiveClassTile(ThemeData theme, LiveClassModel lc) {
-    final classId = lc.id;
+    final liveClassId = lc.id;
     final name = lc.name;
-    final isSelected = _selectedLiveClassId == classId;
-    
+    final isSelected = _selectedLiveClassId == liveClassId;
+
     return GestureDetector(
-      onTap: () => setState(() => _selectedLiveClassId = classId),
+      onTap: () => setState(() => _selectedLiveClassId = liveClassId),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
