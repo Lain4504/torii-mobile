@@ -828,15 +828,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: e.classId.isEmpty ? null : () {
+                    onPressed: e.deliveryTargetId.isEmpty ? null : () {
                       if (e.mode.toUpperCase() == 'LIVE') {
                         final title = Uri.encodeQueryComponent(e.courseTitle);
                         context.push(
-                          '/enrolled-live/${e.classId}?productId=${e.productId}&title=$title',
+                          '/enrolled-live/${e.deliveryTargetId}?productId=${e.productId}&title=$title&enrollmentId=${e.id}',
                         );
                       } else {
                         context.push(
-                          '/curriculum/${e.classId}?mode=${e.mode}',
+                          '/curriculum/${e.deliveryTargetId}?mode=${e.mode}&enrollmentId=${e.id}',
                         );
                       }
                     },

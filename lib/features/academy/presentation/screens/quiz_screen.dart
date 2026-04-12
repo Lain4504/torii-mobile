@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'exam_result_screen.dart';
@@ -10,12 +9,15 @@ class QuizScreen extends ConsumerStatefulWidget {
   const QuizScreen({
     super.key,
     required this.examId,
-    required this.classId,
+    required this.deliveryTargetId,
+    required this.enrollmentId,
     this.assessmentId,
   });
 
   final String examId;
-  final String classId;
+  /// Dùng để invalidate đúng cache trạng thái assessment (cùng delivery target).
+  final String deliveryTargetId;
+  final String enrollmentId;
   final String? assessmentId;
 
   @override
@@ -86,10 +88,19 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     try {
       final repo = ref.read(academyRepositoryProvider);
       final resolvedExamId = (widget.examId == 'unknown' || widget.examId.isEmpty) ? null : widget.examId;
+      if (widget.enrollmentId.isEmpty) {
+        setState(() {
+          _loading = false;
+          _errorMessage =
+              'Thiếu mã ghi danh. Hãy mở quiz từ khóa học đã ghi danh.';
+        });
+        return;
+      }
+
       final result = await repo.startAssessmentAttempt(
         examId: resolvedExamId,
         assessmentId: widget.assessmentId,
-        classId: widget.classId,
+        enrollmentId: widget.enrollmentId,
       );
 
       if (result == null) {
@@ -171,17 +182,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
       if (result != null) {
         // Refresh status so curriculum updates
-        ref.invalidate(assessmentStatusProvider(widget.classId));
-
-        final score = result['score'] ?? result['actualScore'];
-        final totalScore = result['totalScore'];
-        final isPassed = result['isPassed'] ?? result['passed'];
-        final totalCorrect = result['totalCorrect'] ?? result['correctItemsCount'] ?? result['numOfCorrectQuestions'];
-
-        String resultText = 'Bạn đã nộp bài kiểm tra thành công!\n\n';
-        if (score != null) resultText += 'Điểm số: $score${totalScore != null ? '/$totalScore' : ''}\n';
-        if (totalCorrect != null) resultText += 'Số câu đúng: $totalCorrect/${_questions.length}\n';
-        if (isPassed != null) resultText += 'Kết quả: ${isPassed ? 'Đạt' : 'Chưa đạt'}\n';
+        ref.invalidate(assessmentStatusProvider(
+          assessmentStatusCacheKey(
+            widget.deliveryTargetId,
+            widget.enrollmentId,
+          ),
+        ));
 
         Navigator.pushReplacement(
   context,
@@ -257,7 +263,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         children: [
           LinearProgressIndicator(
             value: _questions.isEmpty ? 0 : _selectedAnswers.length / _questions.length,
-            backgroundColor: theme.colorScheme.surfaceVariant,
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
           ),
           if (_questions.isEmpty)
             Expanded(

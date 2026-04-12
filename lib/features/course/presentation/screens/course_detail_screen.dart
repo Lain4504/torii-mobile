@@ -14,11 +14,11 @@ class CourseDetailScreen extends ConsumerStatefulWidget {
     super.key, 
     required this.id, 
     this.mode = 'VOD',
-    this.classId,
+    this.initialLiveClassId,
   });
   final String id;
   final String mode;
-  final String? classId;
+  final String? initialLiveClassId;
 
   @override
   ConsumerState<CourseDetailScreen> createState() => _CourseDetailScreenState();
@@ -43,9 +43,9 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
         data: (item) {
           if (item == null) return const Center(child: Text('Không tìm thấy thông tin khóa học'));
           
-          // Auto-select class from widget.classId or first class
+          // Auto-select class from deep link or first class
           if (item.isLive && _selectedLiveClassId == null && item.siblingClasses.isNotEmpty) {
-            _selectedLiveClassId = widget.classId ?? item.siblingClasses.first.id;
+            _selectedLiveClassId = widget.initialLiveClassId ?? item.siblingClasses.first.id;
           }
 
           return Stack(
@@ -384,7 +384,7 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                     return;
                   }
                   final targetId = item.id;
-                  final classSlug = item.isLive ? '&classId=$_selectedLiveClassId' : '';
+                  final classSlug = item.isLive ? '&liveClassId=$_selectedLiveClassId' : '';
                   context.push('/checkout/$targetId?mode=${item.product.mode}$classSlug');
                 },
                 style: ElevatedButton.styleFrom(

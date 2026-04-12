@@ -49,8 +49,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       _autoMarkedComplete = false;
     }
 
-    final oldClassId = (oldWidget.lesson?['classId'] ?? '').toString();
-    final newClassId = (widget.lesson?['classId'] ?? '').toString();
+    final oldClassId = (oldWidget.lesson?['deliveryTargetId'] ?? '').toString();
+    final newClassId = (widget.lesson?['deliveryTargetId'] ?? '').toString();
     if (oldClassId.isNotEmpty && oldClassId != newClassId) {
       _refreshDiscussionIfPossible();
     }
@@ -67,7 +67,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     if (_autoMarkedComplete) return;
     final lesson = widget.lesson ?? const <String, dynamic>{};
     if (lesson['progressDisabled'] == true) return;
-    final classId = (lesson['classId'] ?? '').toString();
+    final classId = (lesson['deliveryTargetId'] ?? '').toString();
     if (classId.isEmpty) return;
     final type = (lesson['type'] ?? '').toString();
     if (!_isTrackableType(type)) return;
@@ -143,7 +143,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
 
   Future<void> _markComplete({bool silent = false}) async {
     final lesson = widget.lesson ?? const <String, dynamic>{};
-    final classId = (lesson['classId'] ?? '').toString();
+    final classId = (lesson['deliveryTargetId'] ?? '').toString();
     final lessonId = (lesson['id'] ?? '').toString();
     if (classId.isEmpty || lessonId.isEmpty) {
       if (!silent && mounted) {
@@ -169,15 +169,19 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final productIdRaw = (lesson['productId'] ?? '').toString();
     final productId = productIdRaw.isNotEmpty ? productIdRaw : null;
     final ok = await repo.completeClassLesson(
-      classId: classId,
+      deliveryTargetId: classId,
       productId: productId,
       lessonId: lessonId,
       mode: mode,
     );
     if (!mounted) return;
     if (ok) {
-      ref.invalidate(classCompletedLessonIdsProvider((classId: classId, mode: mode, productId: productId)));
-      ref.invalidate(assessmentStatusProvider(classId));
+      ref.invalidate(classCompletedLessonIdsProvider((deliveryTargetId: classId, mode: mode, productId: productId)));
+      final enrollmentIdRaw = lesson['enrollmentId'];
+      final enrollmentId = enrollmentIdRaw is String ? enrollmentIdRaw : null;
+      ref.invalidate(assessmentStatusProvider(
+        assessmentStatusCacheKey(classId, enrollmentId),
+      ));
       if (!silent) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đã đánh dấu hoàn thành.')),
@@ -201,7 +205,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
 
   void _openSyllabusSheet() {
     final lesson = widget.lesson ?? const <String, dynamic>{};
-    final classId = (lesson['classId'] ?? '').toString();
+    final classId = (lesson['deliveryTargetId'] ?? '').toString();
     if (classId.isEmpty) return;
     final progressDisabled = lesson['progressDisabled'] == true;
     final currentLessonId = (lesson['id'] ?? '').toString();
@@ -291,7 +295,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                               .watch(
                                                 classCompletedLessonIdsProvider(
                                                   (
-                                                    classId: classId,
+                                                    deliveryTargetId: classId,
                                                     mode: (lesson['mode'] ?? 'VOD').toString().toUpperCase(),
                                                     productId: (lesson['productId']?.toString() ?? '').isNotEmpty ? lesson['productId'].toString() : null
                                                   ),
@@ -428,9 +432,12 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                                   }
                                                   final payload =
                                                       _syllabusLessonPayload(
-                                                        classId:
+                                                        deliveryTargetId:
                                                             classId.isNotEmpty
                                                             ? classId
+                                                            : null,
+                                                        productId: (lesson['productId'] ?? '').toString().isNotEmpty
+                                                            ? lesson['productId'].toString()
                                                             : null,
                                                         mode:
                                                             (lesson['mode'] ??
@@ -480,7 +487,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final typeUpper = typeRaw.toUpperCase();
     final article = lesson['article'] as Map<String, dynamic>?;
     final nextLesson = lesson['nextLesson'] as Map<String, dynamic>?;
-    final classId = (lesson['classId'] ?? '').toString();
+    final classId = (lesson['deliveryTargetId'] ?? '').toString();
     final progressDisabled = lesson['progressDisabled'] == true;
     final videoUrl = lesson['videoUrl'] as String?;
     final isVideo = typeUpper == 'VIDEO';
@@ -1175,7 +1182,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     try {
       final repo = ref.read(commentRepositoryProvider);
       final topics = await repo.getDiscussionTopics(
-        classId: lessonId,
+        discussionEntityId: lessonId,
         page: 1,
         limit: 100,
       );
@@ -1206,7 +1213,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     await ref
         .read(commentRepositoryProvider)
         .createTopic(
-          classId: lessonId,
+          discussionEntityId: lessonId,
           userId: userId,
           title: title,
           content: content,
@@ -1229,7 +1236,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     await ref
         .read(commentRepositoryProvider)
         .replyToTopic(
-          classId: lessonId,
+          discussionEntityId: lessonId,
           userId: userId,
           parentId: topicId,
           content: content,
@@ -1573,12 +1580,17 @@ bool _syllabusEffectiveUnlocked({
 Map<String, dynamic> _syllabusLessonPayload({
   required CurriculumLessonModel lesson,
   CurriculumLessonModel? nextLesson,
-  String? classId,
+  String? deliveryTargetId,
+  String? productId,
   String? mode,
   bool progressDisabled = false,
 }) {
+  final effectiveProductId = (productId != null && productId.isNotEmpty)
+      ? productId
+      : deliveryTargetId;
   return <String, dynamic>{
-    if (classId != null && classId.isNotEmpty) 'classId': classId,
+    if (deliveryTargetId != null && deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+    if (effectiveProductId != null && effectiveProductId.isNotEmpty) 'productId': effectiveProductId,
     if (mode != null && mode.isNotEmpty) 'mode': mode,
     if (progressDisabled) 'progressDisabled': true,
     'id': lesson.id,
@@ -1591,7 +1603,8 @@ Map<String, dynamic> _syllabusLessonPayload({
     },
     if (nextLesson != null)
       'nextLesson': <String, dynamic>{
-        if (classId != null && classId.isNotEmpty) 'classId': classId,
+        if (deliveryTargetId != null && deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+        if (effectiveProductId != null && effectiveProductId.isNotEmpty) 'productId': effectiveProductId,
         if (mode != null && mode.isNotEmpty) 'mode': mode,
         if (progressDisabled) 'progressDisabled': true,
         'id': nextLesson.id,

@@ -80,11 +80,11 @@ extension AcademyProductModelLearnerDisplay on AcademyProductModel {
     return computeLearnerProductDisplay(
       productName: name,
       mode: mode,
-      className: className,
-      courseProfileTitle: courseProfileTitle,
-      cohortName: cohortName,
-      cohortCode: cohortCode,
-      cohortOpeningDate: cohortStartDate,
+      className: null,
+      courseProfileTitle: null,
+      cohortName: null,
+      cohortCode: code,
+      cohortOpeningDate: startDate,
       classesForProduct: liveClasses,
     );
   }

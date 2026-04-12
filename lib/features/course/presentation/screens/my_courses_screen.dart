@@ -249,10 +249,14 @@ class MyCoursesScreen extends ConsumerWidget {
   }
 
   void _navigateToCourse(BuildContext context, EnrollmentModel e) {
-    if (e.isLive && e.classId.isNotEmpty) {
-      context.push('/enrolled-live/${e.classId}?productId=${e.productId}&title=${Uri.encodeComponent(e.courseTitle)}');
-    } else if (e.classId.isNotEmpty) {
-      context.push('/curriculum/${e.classId}?mode=VOD');
+    if (e.isLive && e.deliveryTargetId.isNotEmpty) {
+      context.push(
+        '/enrolled-live/${e.deliveryTargetId}?productId=${e.productId}&title=${Uri.encodeComponent(e.courseTitle)}&enrollmentId=${e.id}',
+      );
+    } else if (e.deliveryTargetId.isNotEmpty) {
+      context.push(
+        '/curriculum/${e.deliveryTargetId}?mode=VOD&enrollmentId=${e.id}',
+      );
     }
   }
 }

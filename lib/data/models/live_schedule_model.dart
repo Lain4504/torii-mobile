@@ -1,7 +1,7 @@
 /// Buổi live trên lịch — map từ `GET /api/academy/live-sessions/me` (đồng bộ web-learner).
 class LiveScheduleModel {
   final String id;
-  final String? classId;
+  final String? liveClassId;
   final String? title;
   final DateTime? startAt;
   final DateTime? endAt;
@@ -18,7 +18,7 @@ class LiveScheduleModel {
 
   const LiveScheduleModel({
     required this.id,
-    this.classId,
+    this.liveClassId,
     this.title,
     this.startAt,
     this.endAt,
@@ -42,7 +42,7 @@ class LiveScheduleModel {
 
     return LiveScheduleModel(
       id: (json['id'] ?? '').toString(),
-      classId: json['classId'] as String?,
+      liveClassId: json['liveClassId'] as String?,
       title: json['title'] as String? ?? json['name'] as String?,
       startAt: json['startAt'] != null
           ? DateTime.tryParse(json['startAt'].toString())
@@ -63,7 +63,7 @@ class LiveScheduleModel {
 
   LiveScheduleModel copyWith({
     String? id,
-    String? classId,
+    String? liveClassId,
     String? title,
     DateTime? startAt,
     DateTime? endAt,
@@ -78,7 +78,7 @@ class LiveScheduleModel {
   }) {
     return LiveScheduleModel(
       id: id ?? this.id,
-      classId: classId ?? this.classId,
+      liveClassId: liveClassId ?? this.liveClassId,
       title: title ?? this.title,
       startAt: startAt ?? this.startAt,
       endAt: endAt ?? this.endAt,

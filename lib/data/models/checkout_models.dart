@@ -1,11 +1,11 @@
 class OrderPreviewRequest {
   final String productId;
-  final String? classId;
+  final String? liveClassId;
   final String? couponCode;
 
   const OrderPreviewRequest({
     required this.productId,
-    this.classId,
+    this.liveClassId,
     this.couponCode,
   });
 }
@@ -61,17 +61,17 @@ class OrderFulfillmentItemModel {
   final String productId;
   final String productCode;
   final String productName;
-  final List<String> expectedClassIds;
-  final List<String> enrolledClassIds;
-  final List<String> missingClassIds;
+  final List<String> expectedLiveClassIds;
+  final List<String> enrolledLiveClassIds;
+  final List<String> missingLiveClassIds;
 
   const OrderFulfillmentItemModel({
     required this.productId,
     required this.productCode,
     required this.productName,
-    required this.expectedClassIds,
-    required this.enrolledClassIds,
-    required this.missingClassIds,
+    required this.expectedLiveClassIds,
+    required this.enrolledLiveClassIds,
+    required this.missingLiveClassIds,
   });
 
   factory OrderFulfillmentItemModel.fromJson(Map<String, dynamic> json) {
@@ -79,9 +79,15 @@ class OrderFulfillmentItemModel {
       productId: json['productId'].toString(),
       productCode: json['productCode'].toString(),
       productName: json['productName'].toString(),
-      expectedClassIds: List<String>.from(json['expectedClassIds'] ?? []),
-      enrolledClassIds: List<String>.from(json['enrolledClassIds'] ?? []),
-      missingClassIds: List<String>.from(json['missingClassIds'] ?? []),
+      expectedLiveClassIds: List<String>.from(
+        json['expectedLiveClassIds'] ?? [],
+      ),
+      enrolledLiveClassIds: List<String>.from(
+        json['enrolledLiveClassIds'] ?? [],
+      ),
+      missingLiveClassIds: List<String>.from(
+        json['missingLiveClassIds'] ?? [],
+      ),
     );
   }
 }

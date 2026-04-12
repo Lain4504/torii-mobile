@@ -246,7 +246,7 @@ class AcademyRepository {
   Future<OrderPreviewModel?> previewOrder({
     required String productId,
     required String mode,
-    String? classId,
+    String? liveClassId,
     String? couponCode,
     Map<String, dynamic>? metadata,
   }) async {
@@ -259,8 +259,8 @@ class AcademyRepository {
         options: Options(headers: headers),
         data: <String, dynamic>{
           if (isLive) 'cohortIds': [productId] else 'vodPackageIds': [productId],
-          if (isLive && classId != null && classId.isNotEmpty)
-            'liveClassIdByCohort': <String, String>{productId: classId},
+          if (isLive && liveClassId != null && liveClassId.isNotEmpty)
+            'liveClassIdByCohort': <String, String>{productId: liveClassId},
           if (couponCode != null && couponCode.trim().isNotEmpty)
             'couponCode': couponCode.trim(),
           if (metadata != null) 'metadata': metadata,
@@ -285,7 +285,7 @@ class AcademyRepository {
   Future<OrderCheckoutResultModel?> checkoutOrder({
     required String productId,
     required String mode,
-    String? classId,
+    String? liveClassId,
     required String paymentMethod,
     String? couponCode,
     Map<String, dynamic>? metadata,
@@ -299,8 +299,8 @@ class AcademyRepository {
         options: Options(headers: headers),
         data: <String, dynamic>{
           if (isLive) 'cohortIds': [productId] else 'vodPackageIds': [productId],
-          if (isLive && classId != null && classId.isNotEmpty)
-            'liveClassIdByCohort': <String, String>{productId: classId},
+          if (isLive && liveClassId != null && liveClassId.isNotEmpty)
+            'liveClassIdByCohort': <String, String>{productId: liveClassId},
           'paymentMethod': paymentMethod.toUpperCase(),
           if (couponCode != null && couponCode.trim().isNotEmpty)
             'couponCode': couponCode.trim(),
@@ -505,7 +505,7 @@ class AcademyRepository {
 
   LiveScheduleModel _liveScheduleFromSessionRow(Map<String, dynamic> json) {
     final id = (json['id'] ?? '').toString();
-    final classId = (json['classId'] ?? json['liveClassId'])?.toString();
+    final liveClassId = json['liveClassId']?.toString();
     final sessionDate = json['sessionDate']?.toString() ?? '';
     final startTime = json['startTime']?.toString() ?? '00:00';
     final endTime = json['endTime']?.toString() ?? '00:00';
@@ -532,7 +532,7 @@ class AcademyRepository {
 
     return LiveScheduleModel(
       id: id,
-      classId: classId,
+      liveClassId: liveClassId,
       title: title,
       startAt: startAt,
       endAt: endAt,
@@ -839,16 +839,16 @@ class AcademyRepository {
   /// GET /api/academy/classes/:classId/progress — lessonId đã hoàn thành (parity web-learner).
   /// API trả `{ modules: [{ lessons: [{ id, isCompleted }] }] }` — không có `lessons` phẳng.
   Future<List<String>> getCompletedLessonIds(
-    String classId, {
+    String deliveryTargetId, {
     String mode = 'LIVE',
     String? productId,
   }) async {
     final isLive = mode.toUpperCase() == 'LIVE';
     final effectiveId = (isLive && productId != null && productId.isNotEmpty)
         ? productId
-        : classId;
+        : deliveryTargetId;
     final path = isLive
-        ? '/api/academy/live-classes/$classId/completed-lessons'
+        ? '/api/academy/live-classes/$deliveryTargetId/completed-lessons'
         : '/api/academy/vod-packages/$effectiveId/progress';
 
     try {
@@ -911,7 +911,7 @@ class AcademyRepository {
 
   /// POST /api/academy/classes/:classId/lessons/:lessonId/complete
   Future<bool> completeClassLesson({
-    required String classId,
+    required String deliveryTargetId,
     required String lessonId,
     String? productId,
     String mode = 'LIVE',
@@ -919,14 +919,13 @@ class AcademyRepository {
     final isLive = mode.toUpperCase() == 'LIVE';
 
     final path = isLive
-        ? '/api/academy/live-classes/$classId/lessons/$lessonId/complete'
-        : '/api/academy/vod-packages/$classId/lessons/$lessonId/complete';
+        ? '/api/academy/live-classes/$deliveryTargetId/lessons/$lessonId/complete'
+        : '/api/academy/vod-packages/$deliveryTargetId/lessons/$lessonId/complete';
 
     try {
       final response = await _dio.post<dynamic>(
         path,
-        data: {
-          'classId': classId,
+        data: <String, dynamic>{
           if (productId != null) 'productId': productId,
         },
       );
@@ -1160,14 +1159,19 @@ class AcademyRepository {
   }
 
   // ---------- Assessment Plans (Quiz/Midterm/Final) ----------
-  /// GET /api/academy/assessment-plans/learner/status?classId={{classId}}
+  /// GET /api/academy/assessment-plans/learner/status?deliveryTargetId=
   Future<List<AssessmentMilestoneModel>> getAssessmentStatus(
-    String classId,
-  ) async {
+    String deliveryTargetId, {
+    String? enrollmentId,
+  }) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
         '/api/academy/assessment-plans/learner/status',
-        queryParameters: {'classId': classId},
+        queryParameters: {
+          'deliveryTargetId': deliveryTargetId,
+          if (enrollmentId != null && enrollmentId.isNotEmpty)
+            'enrollmentId': enrollmentId,
+        },
       );
       final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
       if (api.success && api.data != null) {
@@ -1186,7 +1190,7 @@ class AcademyRepository {
   Future<Map<String, dynamic>?> startAssessmentAttempt({
     String? examId,
     String? assessmentId,
-    required String classId,
+    required String enrollmentId,
   }) async {
     try {
       // Dùng endpoint thực tế từ web: /api/academy/exam-attempts/start
@@ -1195,7 +1199,7 @@ class AcademyRepository {
       final response = await _dio.post<Map<String, dynamic>>(
         path,
         data: {
-          'classId': classId,
+          'enrollmentId': enrollmentId,
           if (examId != null) 'examId': examId,
           if (assessmentId != null) 'assessmentId': assessmentId,
         },
@@ -1332,10 +1336,10 @@ class AcademyRepository {
 
   // ---------- Assignments (Live Class) ----------
   /// GET /api/academy/live-classes/{{classId}}/assignments
-  Future<List<AssignmentModel>> getAssignments(String classId) async {
+  Future<List<AssignmentModel>> getAssignments(String liveClassId) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
-        '/api/academy/live-classes/$classId/assignments',
+        '/api/academy/live-classes/$liveClassId/assignments',
       );
       final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
       if (api.success && api.data != null) {
@@ -1350,7 +1354,7 @@ class AcademyRepository {
 
   /// POST /api/academy/assignment-submissions
   Future<bool> submitAssignment({
-    required String classId,
+    required String liveClassId,
     required String assignmentId,
     required String content,
     String? classAssessmentId,
@@ -1361,7 +1365,7 @@ class AcademyRepository {
       final response = await _dio.post<Map<String, dynamic>>(
         '/api/academy/assignment-submissions',
         data: {
-          'classId': classId,
+          'liveClassId': liveClassId,
           'liveClassAssignmentId': assignmentId,
           'classAssessmentId': classAssessmentId,
           'assignmentTemplateId': assignmentTemplateId,

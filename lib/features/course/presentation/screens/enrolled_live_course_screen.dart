@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 import 'package:torii_app/data/models/academy_models.dart';
@@ -10,18 +9,21 @@ import 'package:torii_app/data/models/academy_product_detail_model.dart';
 import 'package:torii_app/features/academy/presentation/widgets/resource_item.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Khóa LIVE đã ghi danh: swiper 3 buổi gần nhất + tabs syllabus (parity web LiveClassDashboard).
+/// Khóa LIVE đã ghi danh: lịch tuần + tabs syllabus / tài liệu / bài tập / quiz.
 class EnrolledLiveCourseScreen extends ConsumerStatefulWidget {
   const EnrolledLiveCourseScreen({
     super.key,
-    required this.classId,
+    required this.liveClassId,
     this.productId,
     this.courseTitle,
+    this.enrollmentId,
   });
 
-  final String classId;
+  final String liveClassId;
   final String? productId;
   final String? courseTitle;
+  /// UUID ghi danh — bắt buộc để quiz/API attempt theo đúng khóa.
+  final String? enrollmentId;
 
   @override
   ConsumerState<EnrolledLiveCourseScreen> createState() =>
@@ -31,14 +33,12 @@ class EnrolledLiveCourseScreen extends ConsumerStatefulWidget {
 class _EnrolledLiveCourseScreenState
     extends ConsumerState<EnrolledLiveCourseScreen> {
   String? _joiningSessionId;
-  late PageController _swiperController;
   late DateTime _currentWeekStart;
   late DateTime _selectedDate;
 
   @override
   void initState() {
     super.initState();
-    _swiperController = PageController(viewportFraction: 0.88);
     final now = DateTime.now();
     _currentWeekStart = _getStartOfWeek(now);
     _selectedDate = now;
@@ -70,12 +70,6 @@ class _EnrolledLiveCourseScreenState
   }
 
 
-  @override
-  void dispose() {
-    _swiperController.dispose();
-    super.dispose();
-  }
-
   Future<void> _onJoin(LiveScheduleModel session) async {
     if (_joiningSessionId != null) return;
     setState(() => _joiningSessionId = session.id);
@@ -98,40 +92,6 @@ class _EnrolledLiveCourseScreenState
     } finally {
       if (mounted) setState(() => _joiningSessionId = null);
     }
-  }
-
-  /// Lấy 3 buổi live gần nhất: ưu tiên đang diễn ra > có thể vào > sắp tới > đã kết thúc.
-  static List<LiveScheduleModel> _nearestSessions(
-    List<LiveScheduleModel> all,
-    String classId,
-  ) {
-    final now = DateTime.now();
-    final filtered = all.where((s) => s.classId == classId).toList();
-    int _priority(LiveScheduleUiState s) {
-      switch (s) {
-        case LiveScheduleUiState.live:
-          return 0;
-        case LiveScheduleUiState.joinable:
-          return 1;
-        case LiveScheduleUiState.scheduled:
-          return 2;
-        case LiveScheduleUiState.ended:
-          return 3;
-      }
-    }
-
-    filtered.sort((a, b) {
-      final ap = _priority(a.uiStateAt(now));
-      final bp = _priority(b.uiStateAt(now));
-      if (ap != bp) return ap.compareTo(bp);
-      final as = a.startAt;
-      final bs = b.startAt;
-      if (as == null && bs == null) return 0;
-      if (as == null) return 1;
-      if (bs == null) return -1;
-      return as.compareTo(bs);
-    });
-    return filtered.take(3).toList();
   }
 
   @override
@@ -168,8 +128,6 @@ class _EnrolledLiveCourseScreenState
           ),
         ),
         data: (all) {
-          
-
           return DefaultTabController(
             length: 5,
             child: RefreshIndicator(
@@ -181,6 +139,11 @@ class _EnrolledLiveCourseScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 16),
+                        _buildSectionHeader('Lịch học'),
+                        const SizedBox(height: 8),
+                        _buildWeeklyScheduleStrip(all),
+                        _buildSelectedDaySessions(all),
+                        const SizedBox(height: 20),
                         _buildSectionHeader('Nội dung học tập'),
                       ],
                     ),
@@ -220,16 +183,19 @@ class _EnrolledLiveCourseScreenState
                   SliverFillRemaining(
                     child: TabBarView(
                       children: [
-                        _SyllabusTabPane(classId: widget.classId, productId: widget.productId),
-                        _ResourcesTabPane(classId: widget.classId),
+                        _SyllabusTabPane(liveClassId: widget.liveClassId, productId: widget.productId),
+                        _ResourcesTabPane(liveClassId: widget.liveClassId),
                         _PlaceholderTabPane(
                           icon: Icons.forum_outlined,
                           title: 'Hỏi đáp',
                           message:
                               'Phần hỏi đáp sẽ được mở trong các phiên bản tiếp theo.',
                         ),
-                        _AssignmentsTabPane(classId: widget.classId),
-                        _QuizzesTabPane(classId: widget.classId),
+                        _AssignmentsTabPane(liveClassId: widget.liveClassId),
+                        _QuizzesTabPane(
+                          liveClassId: widget.liveClassId,
+                          enrollmentId: widget.enrollmentId,
+                        ),
                       ],
                     ),
                   ),
@@ -272,7 +238,7 @@ class _EnrolledLiveCourseScreenState
     for (final day in weekDays) {
       final dStr = DateFormat('yyyy-MM-dd').format(day);
       final hasSession = allSessions.any((s) => 
-        s.classId == widget.classId && 
+        s.liveClassId == widget.liveClassId && 
         s.startAt != null && 
         DateFormat('yyyy-MM-dd').format(s.startAt!.toLocal()) == dStr
       );
@@ -431,7 +397,7 @@ class _EnrolledLiveCourseScreenState
     final theme = Theme.of(context);
     final selStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
     final sessions = allSessions.where((s) {
-      if (s.classId != widget.classId || s.startAt == null) return false;
+      if (s.liveClassId != widget.liveClassId || s.startAt == null) return false;
       return DateFormat('yyyy-MM-dd').format(s.startAt!.toLocal()) == selStr;
     }).toList();
 
@@ -710,9 +676,9 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class _SyllabusTabPane extends ConsumerWidget {
-  const _SyllabusTabPane({required this.classId, this.productId});
+  const _SyllabusTabPane({required this.liveClassId, this.productId});
 
-  final String classId;
+  final String liveClassId;
   final String? productId;
 
   @override
@@ -720,9 +686,9 @@ class _SyllabusTabPane extends ConsumerWidget {
     final theme = Theme.of(context);
     final effectiveProductId = (productId != null && productId!.trim().isNotEmpty)
         ? productId!.trim()
-        : classId;
+        : liveClassId;
     final detailAsync = ref.watch(classCatalogLiveDetailProvider(effectiveProductId));
-    final completedIds = ref.watch(classCompletedLessonIdsProvider((classId: classId, mode: 'LIVE', productId: productId))).value ?? const [];
+    final completedIds = ref.watch(classCompletedLessonIdsProvider((deliveryTargetId: liveClassId, mode: 'LIVE', productId: productId))).value ?? const [];
     final completed = completedIds.toSet();
 
     return detailAsync.when(
@@ -809,7 +775,7 @@ class _SyllabusTabPane extends ConsumerWidget {
                       statusColor: statusColor,
                       locked: !unlocked,
                       lesson: _lessonPayload(
-                        classId: classId,
+                        deliveryTargetId: liveClassId,
                         mode: 'LIVE',
                         lesson: lesson,
                         nextLesson: nextL,
@@ -1057,14 +1023,17 @@ class _SyllabusTabPane extends ConsumerWidget {
   }
 
   Map<String, dynamic> _lessonPayload({
-    required String classId,
+    required String deliveryTargetId,
     required String mode,
     required CurriculumLessonModel lesson,
     CurriculumLessonModel? nextLesson,
   }) {
+    final effectiveProductId = (productId != null && productId!.isNotEmpty)
+        ? productId!
+        : deliveryTargetId;
     return <String, dynamic>{
-      if (classId.isNotEmpty) 'classId': classId,
-      if (productId != null && productId!.isNotEmpty) 'productId': productId,
+      if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+      'productId': effectiveProductId,
       if (mode.isNotEmpty) 'mode': mode,
       'id': lesson.id,
       'title': lesson.title,
@@ -1076,7 +1045,8 @@ class _SyllabusTabPane extends ConsumerWidget {
       },
       if (nextLesson != null)
         'nextLesson': <String, dynamic>{
-          if (classId.isNotEmpty) 'classId': classId,
+          if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+          'productId': effectiveProductId,
           if (mode.isNotEmpty) 'mode': mode,
           'id': nextLesson.id,
           'title': nextLesson.title,
@@ -1118,13 +1088,13 @@ class _SyllabusTabPane extends ConsumerWidget {
 }
 
 class _ResourcesTabPane extends ConsumerWidget {
-  const _ResourcesTabPane({required this.classId});
+  const _ResourcesTabPane({required this.liveClassId});
 
-  final String classId;
+  final String liveClassId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final resourcesAsync = ref.watch(folderResourcesByClassProvider(classId));
+    final resourcesAsync = ref.watch(folderResourcesByClassProvider(liveClassId));
 
     return resourcesAsync.when(
       data: (resources) {
@@ -1192,13 +1162,13 @@ class _ResourcesTabPane extends ConsumerWidget {
 }
 
 class _AssignmentsTabPane extends ConsumerWidget {
-  const _AssignmentsTabPane({required this.classId});
+  const _AssignmentsTabPane({required this.liveClassId});
 
-  final String classId;
+  final String liveClassId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final assignmentsAsync = ref.watch(assignmentsProvider(classId));
+    final assignmentsAsync = ref.watch(assignmentsProvider(liveClassId));
 
     return assignmentsAsync.when(
       data: (list) {
@@ -1328,7 +1298,7 @@ class _AssignmentsTabPane extends ConsumerWidget {
                   if (contentController.text.trim().isEmpty) return;
                   final repo = ref.read(academyRepositoryProvider);
                   final success = await repo.submitAssignment(
-                    classId: classId,
+                    liveClassId: liveClassId,
                     assignmentId: assignment.id,
                     classAssessmentId: assignment.classAssessmentId,
                     assignmentTemplateId: assignment.assignmentTemplateId,
@@ -1338,7 +1308,7 @@ class _AssignmentsTabPane extends ConsumerWidget {
                     if (context.mounted) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nộp bài thành công!')));
-                      ref.invalidate(assignmentsProvider(classId));
+                      ref.invalidate(assignmentsProvider(liveClassId));
                     }
                   }
                 },
@@ -1353,13 +1323,19 @@ class _AssignmentsTabPane extends ConsumerWidget {
 }
 
 class _QuizzesTabPane extends ConsumerWidget {
-  const _QuizzesTabPane({required this.classId});
+  const _QuizzesTabPane({
+    required this.liveClassId,
+    this.enrollmentId,
+  });
 
-  final String classId;
+  final String liveClassId;
+  final String? enrollmentId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statusAsync = ref.watch(assessmentStatusProvider(classId));
+    final statusAsync = ref.watch(assessmentStatusProvider(
+      assessmentStatusCacheKey(liveClassId, enrollmentId),
+    ));
 
     return statusAsync.when(
       data: (list) {
@@ -1399,7 +1375,18 @@ class _QuizzesTabPane extends ConsumerWidget {
       child: ListTile(
         onTap: isLocked ? null : () {
           final examPath = milestone.examId.isNotEmpty && milestone.examId != 'null' ? milestone.examId : 'unknown';
-          context.push('/quiz/$examPath?classId=$classId&assessmentId=${milestone.id}');
+          final eid = enrollmentId ?? '';
+          if (eid.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Thiếu mã ghi danh. Hãy vào khóa từ "Khóa học của tôi".'),
+              ),
+            );
+            return;
+          }
+          context.push(
+            '/quiz/$examPath?deliveryTargetId=$liveClassId&enrollmentId=$eid&assessmentId=${milestone.id}',
+          );
         },
         leading: Icon(
           isLocked ? Icons.lock_outline : Icons.quiz_outlined,

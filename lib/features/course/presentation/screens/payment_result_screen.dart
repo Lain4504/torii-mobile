@@ -96,7 +96,7 @@ class PaymentResultScreen extends ConsumerWidget {
                         Text(it.productName, style: const TextStyle(fontWeight: FontWeight.w800)),
                         const SizedBox(height: 4),
                         Text('Mã: ${it.productCode}', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
-                        if (it.missingClassIds.isNotEmpty) ...[
+                        if (it.missingLiveClassIds.isNotEmpty) ...[
                           const SizedBox(height: 6),
                           Text('Đang cấp quyền lớp học...', style: TextStyle(color: AppColors.grey700, fontSize: 12)),
                         ],

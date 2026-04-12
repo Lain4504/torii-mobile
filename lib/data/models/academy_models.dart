@@ -167,7 +167,8 @@ class EnrollmentModel {
     );
   }
 
-  String get classId => liveClassId ?? vodPackageId ?? '';
+  /// UUID lớp live hoặc gói VOD dùng cho route/API (không dùng tên classId legacy).
+  String get deliveryTargetId => liveClassId ?? vodPackageId ?? '';
   bool get isLive => type == 'live' || type == 'LIVE';
   String get mode => type.toUpperCase();
   String get productId => cohortId ?? vodPackageId ?? '';
