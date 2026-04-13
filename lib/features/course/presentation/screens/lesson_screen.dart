@@ -30,6 +30,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   List<CommentModel> _topics = [];
   String? _expandedTopicId;
   final Map<String, String> _replyDrafts = {};
+  Future<AcademyProductDetailModel?>? _syllabusDetailFuture;
+  String _syllabusCacheKey = '';
 
   @override
   void initState() {
@@ -40,6 +42,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshDiscussionIfPossible();
     });
+    _prepareSyllabusDetail();
   }
 
   @override
@@ -57,11 +60,31 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
         oldDeliveryTargetId != newDeliveryTargetId) {
       _refreshDiscussionIfPossible();
     }
+    final oldMode = (oldWidget.lesson?['mode'] ?? 'VOD').toString().toUpperCase();
+    final newMode = (widget.lesson?['mode'] ?? 'VOD').toString().toUpperCase();
+    if (oldDeliveryTargetId != newDeliveryTargetId || oldMode != newMode) {
+      _prepareSyllabusDetail();
+    }
     if (oldWidget.lesson?['videoUrl'] != widget.lesson?['videoUrl'] ||
         oldWidget.lesson?['type'] != widget.lesson?['type']) {
       _disposeVideo();
       _initVideo();
     }
+  }
+
+  void _prepareSyllabusDetail() {
+    final lesson = widget.lesson ?? const <String, dynamic>{};
+    final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
+    final mode = (lesson['mode'] ?? 'VOD').toString().toUpperCase();
+    final cacheKey = '$mode::$deliveryTargetId';
+    if (deliveryTargetId.isEmpty || cacheKey == _syllabusCacheKey) return;
+    _syllabusCacheKey = cacheKey;
+
+    final repo = ref.read(academyRepositoryProvider);
+    _syllabusDetailFuture = repo.getPublicProductDetailById(
+      deliveryTargetId,
+      mode: mode,
+    );
   }
 
   void _onVideoProgress() {
@@ -267,219 +290,192 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                   ),
                   const Divider(height: 1),
                   Expanded(
-                    child:
-                        ((lesson['mode'] ?? 'VOD').toString().toUpperCase() ==
-                                    'LIVE'
-                                ? ref.watch(
-                                    classCatalogLiveDetailProvider(
-                                      deliveryTargetId,
+                    child: FutureBuilder<AcademyProductDetailModel?>(
+                      future: _syllabusDetailFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Lỗi: ${snapshot.error}',
+                              style: const TextStyle(color: AppColors.error),
+                            ),
+                          );
+                        }
+                        final detail = snapshot.data;
+                        if (detail == null) {
+                          return const Center(
+                            child: Text('Không có dữ liệu lộ trình'),
+                          );
+                        }
+
+                        final useProgress =
+                            !progressDisabled && deliveryTargetId.isNotEmpty;
+                        final modules = detail.modules;
+                        final completedIds = useProgress
+                            ? (ref
+                                      .watch(
+                                        classCompletedLessonIdsProvider((
+                                          deliveryTargetId: deliveryTargetId,
+                                          mode: (lesson['mode'] ?? 'VOD')
+                                              .toString()
+                                              .toUpperCase(),
+                                          productId: (lesson['productId']
+                                                          ?.toString() ??
+                                                      '')
+                                                  .isNotEmpty
+                                              ? lesson['productId'].toString()
+                                              : null,
+                                        )),
+                                      )
+                                      .value ??
+                                  const [])
+                            : const <String>[];
+                        final completed = completedIds.toSet();
+                        final lessonOrder = <CurriculumLessonModel>[
+                          for (final m in modules) ...m.lessons,
+                        ];
+                        final lessonIndexById = <String, int>{
+                          for (int i = 0; i < lessonOrder.length; i++)
+                            lessonOrder[i].id: i,
+                        };
+                        final trackableOrdered = lessonOrder
+                            .where(_syllabusIsTrackable)
+                            .toList();
+
+                        return ListView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          children: [
+                            for (final module in modules)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Theme(
+                                  data: Theme.of(ctx).copyWith(
+                                    dividerColor: Colors.transparent,
+                                  ),
+                                  child: ExpansionTile(
+                                    tilePadding: EdgeInsets.zero,
+                                    initiallyExpanded: true,
+                                    title: Text(
+                                      module.title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 15,
+                                      ),
                                     ),
-                                  )
-                                : ref.watch(
-                                    classCatalogVodDetailProvider(
-                                      deliveryTargetId,
-                                    ),
-                                  ))
-                            .when(
-                              loading: () => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                              error: (e, _) => Center(
-                                child: Text(
-                                  'Lỗi: $e',
-                                  style: const TextStyle(
-                                    color: AppColors.error,
+                                    children: module.lessons.map((cl) {
+                                      final idx = lessonIndexById[cl.id] ?? -1;
+                                      final hasNext = idx >= 0 &&
+                                          idx + 1 < lessonOrder.length;
+                                      final nextL =
+                                          hasNext ? lessonOrder[idx + 1] : null;
+                                      final unlocked = _syllabusEffectiveUnlocked(
+                                        lesson: cl,
+                                        trackableOrdered: trackableOrdered,
+                                        completed: completed,
+                                        useProgress: useProgress,
+                                      );
+                                      final done = useProgress &&
+                                          _syllabusIsTrackable(cl) &&
+                                          completed.contains(cl.id);
+                                      final isCurrent = cl.id == currentLessonId;
+                                      return ListTile(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: 0,
+                                        ),
+                                        leading: Icon(
+                                          unlocked
+                                              ? _syllabusIconForType(cl.type)
+                                              : Icons.lock_outline_rounded,
+                                          color: isCurrent
+                                              ? AppColors.primary
+                                              : AppColors.textTertiary,
+                                          size: 22,
+                                        ),
+                                        title: Text(
+                                          cl.title.isNotEmpty
+                                              ? cl.title
+                                              : 'Bài học',
+                                          style: TextStyle(
+                                            fontWeight: isCurrent
+                                                ? FontWeight.w900
+                                                : FontWeight.w600,
+                                            color: isCurrent
+                                                ? AppColors.primary
+                                                : AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          unlocked
+                                              ? (done
+                                                  ? 'Đã hoàn thành'
+                                                  : (isCurrent
+                                                      ? 'Đang xem'
+                                                      : _syllabusLabelForType(
+                                                          cl.type,
+                                                        )))
+                                              : 'Đã khóa',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: done
+                                                ? AppColors.success
+                                                : AppColors.textTertiary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        onTap: () {
+                                          if (!unlocked) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Hoàn thành bài trước để mở khóa.',
+                                                ),
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                          final payload = _syllabusLessonPayload(
+                                            deliveryTargetId:
+                                                deliveryTargetId.isNotEmpty
+                                                ? deliveryTargetId
+                                                : null,
+                                            productId: (lesson['productId'] ??
+                                                        '')
+                                                    .toString()
+                                                    .isNotEmpty
+                                                ? lesson['productId'].toString()
+                                                : null,
+                                            mode:
+                                                (lesson['mode'] ?? 'VOD')
+                                                    .toString(),
+                                            progressDisabled: progressDisabled,
+                                            lesson: cl,
+                                            nextLesson: nextL,
+                                          );
+                                          Navigator.of(
+                                            ctx,
+                                            rootNavigator: true,
+                                          ).pop();
+                                          context.pushReplacement(
+                                            '/lesson',
+                                            extra: payload,
+                                          );
+                                        },
+                                      );
+                                    }).toList(),
                                   ),
                                 ),
                               ),
-                              data: (detail) {
-                                if (detail == null) {
-                                  return const Center(
-                                    child: Text('Không có dữ liệu lộ trình'),
-                                  );
-                                }
-                                final useProgress =
-                                    !progressDisabled &&
-                                    deliveryTargetId.isNotEmpty;
-                                final modules = detail.modules;
-                                final completedIds = useProgress
-                                    ? (ref
-                                              .watch(
-                                                classCompletedLessonIdsProvider(
-                                                  (
-                                                    deliveryTargetId:
-                                                        deliveryTargetId,
-                                                    mode: (lesson['mode'] ?? 'VOD').toString().toUpperCase(),
-                                                    productId: (lesson['productId']?.toString() ?? '').isNotEmpty ? lesson['productId'].toString() : null
-                                                  ),
-                                                ),
-                                              )
-                                              .value ??
-                                          const [])
-                                    : const <String>[];
-                                final completed = completedIds.toSet();
-                                final lessonOrder = <CurriculumLessonModel>[
-                                  for (final m in modules) ...m.lessons,
-                                ];
-                                final lessonIndexById = <String, int>{
-                                  for (int i = 0; i < lessonOrder.length; i++)
-                                    lessonOrder[i].id: i,
-                                };
-                                final trackableOrdered = lessonOrder
-                                    .where(_syllabusIsTrackable)
-                                    .toList();
-
-                                return ListView(
-                                  controller: scrollController,
-                                  padding: const EdgeInsets.fromLTRB(
-                                    16,
-                                    8,
-                                    16,
-                                    24,
-                                  ),
-                                  children: [
-                                    for (final module in modules)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 12,
-                                        ),
-                                        child: Theme(
-                                          data: Theme.of(ctx).copyWith(
-                                            dividerColor: Colors.transparent,
-                                          ),
-                                          child: ExpansionTile(
-                                            tilePadding: EdgeInsets.zero,
-                                            initiallyExpanded: true,
-                                            title: Text(
-                                              module.title,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w800,
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                            children: module.lessons.map((cl) {
-                                              final idx =
-                                                  lessonIndexById[cl.id] ?? -1;
-                                              final hasNext =
-                                                  idx >= 0 &&
-                                                  idx + 1 < lessonOrder.length;
-                                              final nextL = hasNext
-                                                  ? lessonOrder[idx + 1]
-                                                  : null;
-                                              final unlocked =
-                                                  _syllabusEffectiveUnlocked(
-                                                    lesson: cl,
-                                                    trackableOrdered:
-                                                        trackableOrdered,
-                                                    completed: completed,
-                                                    useProgress: useProgress,
-                                                  );
-                                              final done =
-                                                  useProgress &&
-                                                  _syllabusIsTrackable(cl) &&
-                                                  completed.contains(cl.id);
-                                              final isCurrent =
-                                                  cl.id == currentLessonId;
-                                              return ListTile(
-                                                contentPadding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 4,
-                                                      vertical: 0,
-                                                    ),
-                                                leading: Icon(
-                                                  unlocked
-                                                      ? _syllabusIconForType(
-                                                          cl.type,
-                                                        )
-                                                      : Icons
-                                                            .lock_outline_rounded,
-                                                  color: isCurrent
-                                                      ? AppColors.primary
-                                                      : AppColors.textTertiary,
-                                                  size: 22,
-                                                ),
-                                                title: Text(
-                                                  cl.title.isNotEmpty
-                                                      ? cl.title
-                                                      : 'Bài học',
-                                                  style: TextStyle(
-                                                    fontWeight: isCurrent
-                                                        ? FontWeight.w900
-                                                        : FontWeight.w600,
-                                                    color: isCurrent
-                                                        ? AppColors.primary
-                                                        : AppColors.textPrimary,
-                                                  ),
-                                                ),
-                                                subtitle: Text(
-                                                  unlocked
-                                                      ? (done
-                                                            ? 'Đã hoàn thành'
-                                                            : (isCurrent
-                                                                  ? 'Đang xem'
-                                                                  : _syllabusLabelForType(
-                                                                      cl.type,
-                                                                    )))
-                                                      : 'Đã khóa',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: done
-                                                        ? AppColors.success
-                                                        : AppColors
-                                                              .textTertiary,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                                onTap: () {
-                                                  if (!unlocked) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      const SnackBar(
-                                                        content: Text(
-                                                          'Hoàn thành bài trước để mở khóa.',
-                                                        ),
-                                                      ),
-                                                    );
-                                                    return;
-                                                  }
-                                                  final payload =
-                                                      _syllabusLessonPayload(
-                                                        deliveryTargetId:
-                                                            deliveryTargetId
-                                                                    .isNotEmpty
-                                                                ? deliveryTargetId
-                                                                : null,
-                                                        productId: (lesson['productId'] ?? '').toString().isNotEmpty
-                                                            ? lesson['productId'].toString()
-                                                            : null,
-                                                        mode:
-                                                            (lesson['mode'] ??
-                                                                    'VOD')
-                                                                .toString(),
-                                                        progressDisabled:
-                                                            progressDisabled,
-                                                        lesson: cl,
-                                                        nextLesson: nextL,
-                                                      );
-                                                  Navigator.of(
-                                                    ctx,
-                                                    rootNavigator: true,
-                                                  ).pop();
-                                                  context.pushReplacement(
-                                                    '/lesson',
-                                                    extra: payload,
-                                                  );
-                                                },
-                                              );
-                                            }).toList(),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                );
-                              },
-                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
