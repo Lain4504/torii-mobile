@@ -34,13 +34,28 @@ class TicketRepository {
     String priority = 'NORMAL',
     String category = 'TECHNICAL',
   }) async {
+    final normalizedTitle = title.trim();
+    final normalizedContent = content.trim();
+    final normalizedCategory = category.trim().isEmpty
+        ? 'TECHNICAL'
+        : category.trim().toUpperCase();
+    final normalizedPriority = priority.trim().isEmpty
+        ? 'NORMAL'
+        : priority.trim().toUpperCase();
+
     final response = await _dio.post<dynamic>(
       '/api/tickets',
       data: <String, dynamic>{
-        'title': title,
-        'content': content,
-        'priority': priority,
-        'category': category,
+        // New backend contract
+        'subject': normalizedTitle,
+        'description': normalizedContent,
+        // Omit `type` until we have exact TicketType enum from backend.
+        // Sending an unknown enum (e.g. TECHNICAL) causes 400.
+        // Keep old keys for backward compatibility
+        'title': normalizedTitle,
+        'content': normalizedContent,
+        'priority': normalizedPriority,
+        'category': normalizedCategory,
       },
     );
     
