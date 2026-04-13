@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_design_system.dart';
@@ -14,7 +15,10 @@ class SenseiVoiceAgentPage extends ConsumerStatefulWidget {
   ConsumerState<SenseiVoiceAgentPage> createState() => _SenseiVoiceAgentPageState();
 }
 
-class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> with TickerProviderStateMixin {
+class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage>
+  with TickerProviderStateMixin, WidgetsBindingObserver {
+  static const _graphName = 'japanese_tutor';
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   late AnimationController _waveController;
@@ -22,6 +26,8 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     // Animation cho vòng sáng
     _pulseController = AnimationController(
       vsync: this,
@@ -40,12 +46,24 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
 
     // Bắt đầu kết nối sau khi build xong frame đầu tiên
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(voiceAgentProvider.notifier).connect('japanese_tutor');
+      ref.read(voiceAgentProvider.notifier).connect(_graphName);
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final notifier = ref.read(voiceAgentProvider.notifier);
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      unawaited(notifier.onAppPaused());
+    } else if (state == AppLifecycleState.resumed) {
+      unawaited(notifier.onAppResumed());
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(ref.read(voiceAgentProvider.notifier).disconnect());
     _pulseController.dispose();
     _waveController.dispose();
     super.dispose();
@@ -131,7 +149,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
                               ] else if (voiceState.error!.contains('microphone_denied')) ...[
                                 const SizedBox(height: 12),
                                 ElevatedButton.icon(
-                                  onPressed: () => voiceNotifier.connect('japanese_tutor'),
+                                  onPressed: () => voiceNotifier.connect(_graphName),
                                   icon: const Icon(Icons.refresh_rounded, size: 18),
                                   label: const Text('Thử lại'),
                                   style: ElevatedButton.styleFrom(visualDensity: VisualDensity.compact),
@@ -327,7 +345,7 @@ class _SenseiVoiceAgentPageState extends ConsumerState<SenseiVoiceAgentPage> wit
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: state.isConnecting ? null : () => notifier.connect('japanese_tutor'),
+          onPressed: state.isConnecting ? null : () => notifier.connect(_graphName),
           style: ElevatedButton.styleFrom(
             backgroundColor: theme.colorScheme.primary,
             foregroundColor: theme.colorScheme.onPrimary,
