@@ -329,7 +329,12 @@ class AssessmentMilestoneModel {
   final String examId;
   final String title;
   final String type; // 'QUIZ' | 'MIDTERM' | 'FINAL'
+  final String kind; // 'LESSON_CHECKPOINT' | 'MODULE_CHECKPOINT' | 'FINAL_EXAM' ...
   final String status; // 'LOCKED' | 'AVAILABLE' | 'IN_PROGRESS' | 'PASSED' | 'FAILED'
+  final bool isRequired;
+  final String? triggerLessonId;
+  final String? moduleId;
+  final double? percentage;
   final double? passingScore;
   final int? attemptCount;
   final int? maxAttempts;
@@ -339,7 +344,12 @@ class AssessmentMilestoneModel {
     required this.examId,
     required this.title,
     required this.type,
+    required this.kind,
     required this.status,
+    this.isRequired = false,
+    this.triggerLessonId,
+    this.moduleId,
+    this.percentage,
     this.passingScore,
     this.attemptCount,
     this.maxAttempts,
@@ -352,7 +362,12 @@ class AssessmentMilestoneModel {
       examId: examId.toString(),
       title: (json['title'] ?? json['examTitle'] ?? (json['exam'] is Map ? json['exam']['title'] : null) ?? '').toString(),
       type: json['type']?.toString().toUpperCase() ?? 'QUIZ',
+      kind: (json['kind'] ?? json['type'] ?? '').toString().toUpperCase(),
       status: (json['status']?.toString().toUpperCase() ?? 'LOCKED'),
+      isRequired: json['isRequired'] == true,
+      triggerLessonId: json['triggerLessonId']?.toString(),
+      moduleId: json['moduleId']?.toString(),
+      percentage: (json['percentage'] as num?)?.toDouble(),
       passingScore: (json['passingScore'] as num?)?.toDouble(),
       attemptCount: (json['attemptCount'] as num?)?.toInt(),
       maxAttempts: (json['maxAttempts'] as num?)?.toInt(),
@@ -376,6 +391,11 @@ class AssignmentModel {
   final List<String>? attachmentUrls;
   final String? classAssessmentId;
   final String? assignmentTemplateId;
+  final DateTime? submittedAt;
+  final DateTime? gradedAt;
+  final String? submittedText;
+  final String? submittedUrl;
+  final List<String>? submittedFileUrls;
 
   const AssignmentModel({
     required this.id,
@@ -388,7 +408,41 @@ class AssignmentModel {
     this.attachmentUrls,
     this.classAssessmentId,
     this.assignmentTemplateId,
+    this.submittedAt,
+    this.gradedAt,
+    this.submittedText,
+    this.submittedUrl,
+    this.submittedFileUrls,
   });
+
+  AssignmentModel copyWith({
+    String? status,
+    double? grade,
+    String? feedback,
+    DateTime? submittedAt,
+    DateTime? gradedAt,
+    String? submittedText,
+    String? submittedUrl,
+    List<String>? submittedFileUrls,
+  }) {
+    return AssignmentModel(
+      id: id,
+      title: title,
+      description: description,
+      deadline: deadline,
+      status: status ?? this.status,
+      grade: grade ?? this.grade,
+      feedback: feedback ?? this.feedback,
+      attachmentUrls: attachmentUrls,
+      classAssessmentId: classAssessmentId,
+      assignmentTemplateId: assignmentTemplateId,
+      submittedAt: submittedAt ?? this.submittedAt,
+      gradedAt: gradedAt ?? this.gradedAt,
+      submittedText: submittedText ?? this.submittedText,
+      submittedUrl: submittedUrl ?? this.submittedUrl,
+      submittedFileUrls: submittedFileUrls ?? this.submittedFileUrls,
+    );
+  }
 
   factory AssignmentModel.fromJson(Map<String, dynamic> json) {
     final assignmentData = json['assignment'] as Map<String, dynamic>?;
@@ -401,17 +455,85 @@ class AssignmentModel {
       status = 'SUBMITTED';
     }
 
+    DateTime? parseDt(dynamic v) {
+      if (v == null) return null;
+      if (v is DateTime) return v;
+      return DateTime.tryParse(v.toString());
+    }
+
+    // Optional: backend may embed my submission under different keys.
+    final submissionRaw =
+        json['mySubmission'] ?? json['submission'] ?? json['latestSubmission'];
+    Map<String, dynamic>? submission;
+    if (submissionRaw is Map<String, dynamic>) {
+      submission = submissionRaw;
+    } else if (submissionRaw is Map) {
+      submission = submissionRaw.cast<String, dynamic>();
+    }
+
+    String? submittedText;
+    String? submittedUrl;
+    List<String>? submittedFileUrls;
+    DateTime? submittedAt;
+    DateTime? gradedAt;
+    double? grade;
+    String? feedback;
+
+    if (submission != null) {
+      status = (submission['status'] ?? status)?.toString().toUpperCase();
+      submittedAt = parseDt(submission['submittedAt'] ?? submission['createdAt']);
+      gradedAt = parseDt(submission['gradedAt']);
+      final rawGrade = submission['grade'] ?? submission['score'];
+      if (rawGrade is num) grade = rawGrade.toDouble();
+      if (rawGrade is String) grade = double.tryParse(rawGrade);
+      feedback = submission['feedback']?.toString();
+      final fileUrls = submission['fileUrls'];
+      if (fileUrls is List) {
+        submittedFileUrls = fileUrls.map((e) => e.toString()).toList();
+      }
+      final content = submission['content'];
+      if (content is Map) {
+        final m = content.cast<String, dynamic>();
+        final url = m['url']?.toString();
+        final text = m['text']?.toString();
+        if (url != null && url.trim().isNotEmpty) submittedUrl = url.trim();
+        if (text != null && text.trim().isNotEmpty) submittedText = text.trim();
+      } else if (content is String) {
+        final v = content.trim();
+        if (v.startsWith('http://') || v.startsWith('https://')) {
+          submittedUrl = v;
+        } else {
+          submittedText = v;
+        }
+      }
+    }
+
+    // Allow fields at assignment-level if API already denormalized them there.
+    submittedAt ??= parseDt(json['submittedAt']);
+    gradedAt ??= parseDt(json['gradedAt']);
+    feedback ??= json['feedback']?.toString();
+    final rawGradeTop = json['grade'];
+    if (grade == null) {
+      if (rawGradeTop is num) grade = rawGradeTop.toDouble();
+      if (rawGradeTop is String) grade = double.tryParse(rawGradeTop);
+    }
+
     return AssignmentModel(
       id: json['id'].toString(),
       title: (json['title'] ?? assignmentData?['title'] ?? '').toString(),
       description: (json['description'] ?? assignmentData?['instructions'])?.toString(),
       deadline: json['deadline'] != null ? DateTime.parse(json['deadline'].toString()) : null,
       status: status,
-      grade: (json['grade'] as num?)?.toDouble(),
-      feedback: json['feedback']?.toString(),
+      grade: grade,
+      feedback: feedback,
       attachmentUrls: (json['attachmentUrls'] as List?)?.map((e) => e.toString()).toList(),
       classAssessmentId: (json['classAssessmentId'] ?? json['id'])?.toString(),
       assignmentTemplateId: (json['assignmentTemplateId'] ?? json['assignmentId'] ?? assignmentData?['id'])?.toString(),
+      submittedAt: submittedAt,
+      gradedAt: gradedAt,
+      submittedText: submittedText,
+      submittedUrl: submittedUrl,
+      submittedFileUrls: submittedFileUrls,
     );
   }
 

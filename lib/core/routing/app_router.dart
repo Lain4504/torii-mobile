@@ -291,7 +291,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final titleRaw = state.uri.queryParameters['title'];
                   final enrollmentId = state.uri.queryParameters['enrollmentId'];
                   final courseTitle = titleRaw != null && titleRaw.isNotEmpty
-                      ? Uri.decodeQueryComponent(titleRaw)
+                      ? titleRaw
                       : null;
                   return EnrolledLiveCourseScreen(
                     liveClassId: liveClassId,

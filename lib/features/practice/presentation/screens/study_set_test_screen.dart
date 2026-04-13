@@ -19,13 +19,29 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
   String? _selectedOption;
   final FlutterTts _tts = FlutterTts();
   bool _ttsReady = false;
-  late final Future<List<Map<String, dynamic>>> _quizFuture;
+  late Future<List<Map<String, dynamic>>> _quizFuture;
 
   @override
   void initState() {
     super.initState();
-    _quizFuture = ref.read(academyRepositoryProvider).getStudySetTestQuiz(widget.setId, count: 10);
+    _quizFuture = _loadQuiz();
     _initTts();
+  }
+
+  Future<List<Map<String, dynamic>>> _loadQuiz() {
+    return ref
+        .read(academyRepositoryProvider)
+        .getStudySetTestQuiz(widget.setId, count: 10);
+  }
+
+  void _retryWithFreshQuiz() {
+    setState(() {
+      _index = 0;
+      _correct = 0;
+      _locked = false;
+      _selectedOption = null;
+      _quizFuture = _loadQuiz();
+    });
   }
 
   Future<void> _initTts() async {
@@ -107,14 +123,7 @@ class _StudySetTestScreenState extends ConsumerState<StudySetTestScreen> {
               return _QuizResultView(
                 correct: _correct,
                 total: questions.length,
-                onRetry: () {
-                   setState(() {
-                     _index = 0;
-                     _correct = 0;
-                     _locked = false;
-                     _selectedOption = null;
-                   });
-                },
+                onRetry: _retryWithFreshQuiz,
               );
            }
 
