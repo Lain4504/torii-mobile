@@ -136,6 +136,7 @@ class CurriculumLessonModel {
   final String type;
   final int orderIndex;
   final String? videoUrl;
+  final String? videoFileId;
   final String? content;
 
   const CurriculumLessonModel({
@@ -145,6 +146,7 @@ class CurriculumLessonModel {
     required this.type,
     required this.orderIndex,
     this.videoUrl,
+    this.videoFileId,
     this.content,
   });
 
@@ -157,10 +159,98 @@ class CurriculumLessonModel {
       orderIndex: (json['orderIndex'] is num)
           ? (json['orderIndex'] as num).toInt()
           : int.tryParse((json['orderIndex'] ?? '').toString()) ?? 0,
-      videoUrl: json['videoUrl'] as String?,
+      videoUrl: _extractLessonVideoUrl(json),
+      videoFileId: _extractLessonVideoFileId(json),
       content: json['content'] as String?,
     );
   }
+}
+
+String? _asNonEmptyString(dynamic value) {
+  if (value == null) return null;
+  final text = value.toString().trim();
+  return text.isEmpty ? null : text;
+}
+
+String? _firstNonEmptyString(Iterable<dynamic> values) {
+  for (final value in values) {
+    final text = _asNonEmptyString(value);
+    if (text != null) return text;
+  }
+  return null;
+}
+
+String? _extractLessonVideoUrl(Map<String, dynamic> json) {
+  final direct = _firstNonEmptyString([
+    json['videoUrl'],
+    json['videoURL'],
+    json['video_url'],
+    json['playbackUrl'],
+    json['streamUrl'],
+    json['hlsUrl'],
+    json['signedUrl'],
+    json['url'],
+  ]);
+  if (direct != null) return direct;
+
+  final video = json['video'];
+  if (video is String) {
+    final url = _asNonEmptyString(video);
+    if (url != null) return url;
+  }
+
+  if (video is Map) {
+    final videoMap = Map<String, dynamic>.from(video);
+    final nested = _firstNonEmptyString([
+      videoMap['videoUrl'],
+      videoMap['playbackUrl'],
+      videoMap['streamUrl'],
+      videoMap['hlsUrl'],
+      videoMap['signedUrl'],
+      videoMap['url'],
+    ]);
+    if (nested != null) return nested;
+
+    final file = videoMap['file'];
+    if (file is Map) {
+      return _firstNonEmptyString([
+        file['signedUrl'],
+        file['url'],
+      ]);
+    }
+  }
+
+  return null;
+}
+
+String? _extractLessonVideoFileId(Map<String, dynamic> json) {
+  final direct = _firstNonEmptyString([
+    json['videoFileId'],
+    json['fileId'],
+    json['storageFileId'],
+  ]);
+  if (direct != null) return direct;
+
+  final video = json['video'];
+  if (video is Map) {
+    final videoMap = Map<String, dynamic>.from(video);
+    final nested = _firstNonEmptyString([
+      videoMap['videoFileId'],
+      videoMap['fileId'],
+      videoMap['storageFileId'],
+    ]);
+    if (nested != null) return nested;
+
+    final file = videoMap['file'];
+    if (file is Map) {
+      return _firstNonEmptyString([
+        file['id'],
+        file['fileId'],
+      ]);
+    }
+  }
+
+  return null;
 }
 
 String? _findInstructorName(Map<String, dynamic> json) {

@@ -110,6 +110,31 @@ class AcademyRepository {
     }
   }
 
+  /// GET learner/private detail first, fallback to public detail.
+  ///
+  /// Why: some gateways hide lesson media fields on `/public/:id`.
+  Future<AcademyProductDetailModel?> getLearnerProductDetailById(
+    String id, {
+    String mode = 'LIVE',
+  }) async {
+    final path = mode.toUpperCase() == 'LIVE'
+        ? '/api/academy/cohorts/$id'
+        : '/api/academy/vod-packages/$id';
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(path);
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (api.success && api.data != null) {
+        return AcademyProductDetailModel.fromJson(api.data!);
+      }
+    } on DioException catch (_) {
+      // Ignore and fallback to public detail.
+    } catch (_) {
+      // Ignore and fallback to public detail.
+    }
+
+    return getPublicProductDetailById(id, mode: mode);
+  }
+
   // ---------- Enrollments (me) ----------
   /// GET /api/academy/enrollments/me
   Future<PaginatedResponse<EnrollmentModel>> getMyEnrollments({

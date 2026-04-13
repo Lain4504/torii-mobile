@@ -117,13 +117,13 @@ final classCatalogVodProvider = FutureProvider.autoDispose
 final classCatalogLiveDetailProvider = FutureProvider.autoDispose
     .family<AcademyProductDetailModel?, String>((ref, catalogProductId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicProductDetailById(catalogProductId, mode: 'LIVE');
+      return repo.getLearnerProductDetailById(catalogProductId, mode: 'LIVE');
     });
 
 final classCatalogVodDetailProvider = FutureProvider.autoDispose
     .family<AcademyProductDetailModel?, String>((ref, catalogProductId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicProductDetailById(catalogProductId, mode: 'VOD');
+      return repo.getLearnerProductDetailById(catalogProductId, mode: 'VOD');
     });
 
 final myEnrollmentsProvider =
