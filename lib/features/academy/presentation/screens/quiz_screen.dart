@@ -308,10 +308,56 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         ],      ),
       body: Column(
         children: [
-          LinearProgressIndicator(
-            value: _questions.isEmpty ? 0 : _selectedAnswers.length / _questions.length,
-            backgroundColor: theme.colorScheme.surfaceContainerHighest,
-          ),
+          if (_questions.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Tiến độ',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${_selectedAnswers.length}/${_questions.length}',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      minHeight: 6,
+                      value: _questions.isEmpty
+                          ? 0
+                          : _selectedAnswers.length / _questions.length,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            LinearProgressIndicator(
+              value: 0,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            ),
           if (_questions.isEmpty)
             Expanded(
               child: Center(

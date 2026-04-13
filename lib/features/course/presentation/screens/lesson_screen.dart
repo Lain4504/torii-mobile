@@ -75,14 +75,18 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   void _prepareSyllabusDetail() {
     final lesson = widget.lesson ?? const <String, dynamic>{};
     final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
+    final productId = (lesson['productId'] ?? '').toString();
+    // Với LIVE, API detail public cần product-level id (cohortId),
+    // không phải deliveryTargetId (thường là liveClassId).
+    final detailId = productId.isNotEmpty ? productId : deliveryTargetId;
     final mode = (lesson['mode'] ?? 'VOD').toString().toUpperCase();
-    final cacheKey = '$mode::$deliveryTargetId';
-    if (deliveryTargetId.isEmpty || cacheKey == _syllabusCacheKey) return;
+    final cacheKey = '$mode::$detailId';
+    if (detailId.isEmpty || cacheKey == _syllabusCacheKey) return;
     _syllabusCacheKey = cacheKey;
 
     final repo = ref.read(academyRepositoryProvider);
     _syllabusDetailFuture = repo.getPublicProductDetailById(
-      deliveryTargetId,
+      detailId,
       mode: mode,
     );
   }
@@ -1259,6 +1263,137 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     await _refreshDiscussionIfPossible();
   }
 
+  Future<void> _openCreateTopicSheet() async {
+    final titleCtrl = TextEditingController();
+    final contentCtrl = TextEditingController();
+    var isSubmitting = false;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (sheetCtx, setSheetState) {
+            final bottomInset = MediaQuery.of(sheetCtx).viewInsets.bottom;
+            final canSubmit =
+                titleCtrl.text.trim().isNotEmpty &&
+                contentCtrl.text.trim().isNotEmpty &&
+                !isSubmitting;
+
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + bottomInset),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: AppColors.grey300,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Đặt câu hỏi',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: titleCtrl,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) => setSheetState(() {}),
+                        decoration: const InputDecoration(
+                          labelText: 'Tiêu đề',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: contentCtrl,
+                        minLines: 4,
+                        maxLines: 7,
+                        onChanged: (_) => setSheetState(() {}),
+                        decoration: const InputDecoration(
+                          labelText: 'Nội dung',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: isSubmitting
+                                  ? null
+                                  : () => Navigator.of(sheetCtx).pop(),
+                              child: const Text('Hủy'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: canSubmit
+                                  ? () async {
+                                      setSheetState(() => isSubmitting = true);
+                                      try {
+                                        await _createTopic(
+                                          title: titleCtrl.text.trim(),
+                                          content: contentCtrl.text.trim(),
+                                        );
+                                        if (mounted && sheetCtx.mounted) {
+                                          Navigator.of(sheetCtx).pop();
+                                        }
+                                      } finally {
+                                        if (sheetCtx.mounted) {
+                                          setSheetState(
+                                            () => isSubmitting = false,
+                                          );
+                                        }
+                                      }
+                                    }
+                                  : null,
+                              child: isSubmitting
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Text('Gửi'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    titleCtrl.dispose();
+    contentCtrl.dispose();
+  }
+
   Widget _buildDiscussionTab() {
     final lessonId = (widget.lesson?['id'] ?? '').toString();
     final authState = ref.watch(authStateProvider).valueOrNull;
@@ -1325,60 +1460,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () async {
-                  String title = '';
-                  String content = '';
-                  await showDialog(
-                    context: context,
-                    builder: (ctx) {
-                      final titleCtrl = TextEditingController();
-                      final contentCtrl = TextEditingController();
-                      return AlertDialog(
-                        title: const Text('Đặt câu hỏi'),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              TextField(
-                                controller: titleCtrl,
-                                decoration: const InputDecoration(
-                                  labelText: 'Tiêu đề',
-                                ),
-                              ),
-                              TextField(
-                                controller: contentCtrl,
-                                decoration: const InputDecoration(
-                                  labelText: 'Nội dung',
-                                ),
-                                minLines: 3,
-                                maxLines: 6,
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(ctx).pop(),
-                            child: const Text('Hủy'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              title = titleCtrl.text;
-                              content = contentCtrl.text;
-                              Navigator.of(ctx).pop();
-                            },
-                            child: const Text('Gửi'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-
-                  if (title.trim().isEmpty || content.trim().isEmpty) return;
-                  await _createTopic(
-                    title: title.trim(),
-                    content: content.trim(),
-                  );
-                },
+                onPressed: _openCreateTopicSheet,
                 child: const Text('Đặt câu hỏi'),
               ),
             ],

@@ -94,13 +94,20 @@ class AcademyRepository {
     final path = mode.toUpperCase() == 'LIVE'
         ? '/api/academy/cohorts/public/$id'
         : '/api/academy/vod-packages/public/$id';
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(path);
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) return null;
 
-    final response = await _dio.get<Map<String, dynamic>>(path);
-    final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-    if (!api.success || api.data == null) return null;
-    
-    final data = api.data!;
-    return AcademyProductDetailModel.fromJson(data);
+      final data = api.data!;
+      return AcademyProductDetailModel.fromJson(data);
+    } on DioException catch (e) {
+      // Không throw để tránh crash UI (ví dụ deliveryTargetId không phải cohortId).
+      if (e.response?.statusCode == 404) return null;
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   // ---------- Enrollments (me) ----------
@@ -469,8 +476,10 @@ class AcademyRepository {
         roomId: m['roomId']?.toString(),
         roomTitle: m['roomTitle']?.toString(),
       );
-    } catch (_) {
-      return null;
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e));
+    } catch (e) {
+      throw Exception('Không thể vào phòng. Vui lòng thử lại sau.');
     }
   }
 

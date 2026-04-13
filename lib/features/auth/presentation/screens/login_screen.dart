@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:torii_app/features/auth/models/auth_state.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
@@ -96,6 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: Text(
                       'Torii Nihongo',
                       style: theme.textTheme.titleLarge?.copyWith(
+                        fontSize: 28,
                         fontWeight: FontWeight.w800,
                         color: theme.colorScheme.primary,
                         letterSpacing: 0.4,
@@ -338,9 +338,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 18),
                   _buildSocialButton(
-                    icon: Icons.facebook,
+                    leading: const FaIcon(
+                      FontAwesomeIcons.facebookF,
+                      size: 20,
+                      color: Color(0xFF1877F2),
+                    ),
                     label: 'Đăng nhập với Facebook',
-                    iconColor: const Color(0xFF1877F2),
                     onPressed: () async {
                       setState(() => _isLoading = true);
                       await ref
