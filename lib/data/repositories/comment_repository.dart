@@ -16,14 +16,14 @@ class CommentRepository {
   final Dio _dio;
 
   Future<List<CommentModel>> getDiscussionTopics({
-    required String classId,
+    required String discussionEntityId,
     int page = 1,
     int limit = 50,
   }) async {
     final response = await _dio.get<Map<String, dynamic>>(
       '/api/comments',
       queryParameters: <String, dynamic>{
-        'entityId': classId,
+        'entityId': discussionEntityId,
         'targetType': 'DISCUSSION',
         'page': page,
         'limit': limit,
@@ -43,7 +43,7 @@ class CommentRepository {
   }
 
   Future<CommentModel> createTopic({
-    required String classId,
+    required String discussionEntityId,
     required String userId,
     required String title,
     required String content,
@@ -52,7 +52,7 @@ class CommentRepository {
       '/api/comments',
       data: <String, dynamic>{
         'targetType': 'DISCUSSION',
-        'entityId': classId,
+        'entityId': discussionEntityId,
         'userId': userId,
         'content': '${title.trim()}\n\n${content.trim()}',
       },
@@ -69,7 +69,7 @@ class CommentRepository {
   }
 
   Future<CommentModel> replyToTopic({
-    required String classId,
+    required String discussionEntityId,
     required String userId,
     required String parentId,
     required String content,
@@ -78,7 +78,7 @@ class CommentRepository {
       '/api/comments',
       data: <String, dynamic>{
         'targetType': 'DISCUSSION',
-        'entityId': classId,
+        'entityId': discussionEntityId,
         'userId': userId,
         'parentId': parentId,
         'content': content.trim(),

@@ -32,9 +32,11 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
       final repo = ref.read(academyRepositoryProvider);
       
       for (final enrollment in liveEnrollments) {
-        final assignments = await repo.getAssignments(enrollment.classId);
-        _assignmentsByClass[enrollment.classId] = assignments;
-        _classTitles[enrollment.classId] = enrollment.courseTitle;
+        final lc = enrollment.liveClassId;
+        if (lc == null || lc.isEmpty) continue;
+        final assignments = await repo.getAssignments(lc);
+        _assignmentsByClass[lc] = assignments;
+        _classTitles[lc] = enrollment.courseTitle;
       }
     } catch (_) {
       // Handle error
@@ -47,7 +49,7 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final allAssignments = _assignmentsByClass.entries.expand((e) {
-      return e.value.map((a) => {'classId': e.key, 'assignment': a, 'courseTitle': _classTitles[e.key] ?? ''});
+      return e.value.map((a) => {'liveClassId': e.key, 'assignment': a, 'courseTitle': _classTitles[e.key] ?? ''});
     }).toList();
 
     return Scaffold(
@@ -71,8 +73,8 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
                     final item = allAssignments[index];
                     final assignment = item['assignment'] as AssignmentModel;
                     final courseTitle = item['courseTitle'] as String;
-                    final classId = item['classId'] as String;
-                    return _buildAssignmentCard(context, assignment, courseTitle, classId);
+                    final liveClassId = item['liveClassId'] as String;
+                    return _buildAssignmentCard(context, assignment, courseTitle, liveClassId);
                   },
                 ),
     );
@@ -94,7 +96,7 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
     );
   }
 
-  Widget _buildAssignmentCard(BuildContext context, AssignmentModel assignment, String courseTitle, String classId) {
+  Widget _buildAssignmentCard(BuildContext context, AssignmentModel assignment, String courseTitle, String liveClassId) {
     final theme = Theme.of(context);
     final isSubmitted = assignment.status == 'SUBMITTED' || assignment.status == 'GRADED';
     final isGraded = assignment.status == 'GRADED';
@@ -108,7 +110,7 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: InkWell(
-        onTap: () => _showSubmitDialog(context, assignment, classId),
+        onTap: () => _showSubmitDialog(context, assignment, liveClassId),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -207,7 +209,7 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
     );
   }
 
-  void _showSubmitDialog(BuildContext context, AssignmentModel assignment, String classId) {
+  void _showSubmitDialog(BuildContext context, AssignmentModel assignment, String liveClassId) {
     if (assignment.status == 'GRADED') {
       showDialog(
         context: context,
@@ -275,7 +277,7 @@ class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
                   if (contentController.text.trim().isEmpty) return;
                   final repo = ref.read(academyRepositoryProvider);
                   final success = await repo.submitAssignment(
-                    classId: classId,
+                    liveClassId: liveClassId,
                     assignmentId: assignment.id,
                     classAssessmentId: assignment.classAssessmentId,
                     assignmentTemplateId: assignment.assignmentTemplateId,

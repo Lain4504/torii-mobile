@@ -1,7 +1,7 @@
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/live_product_detail_model.dart';
 
-/// Đồng bộ quy tắc với web-learner (`learner-offering-display.ts`).
+/// Đồng bộ quy tắc hiển thị giá/ngày với web-learner (`learner-product-display`).
 /// Synchronization of rules with web-learner (`compute-learner-product-display.ts`).
 class LearnerProductDisplay {
   const LearnerProductDisplay({
@@ -80,11 +80,11 @@ extension AcademyProductModelLearnerDisplay on AcademyProductModel {
     return computeLearnerProductDisplay(
       productName: name,
       mode: mode,
-      className: className,
-      courseProfileTitle: courseProfileTitle,
-      cohortName: cohortName,
-      cohortCode: cohortCode,
-      cohortOpeningDate: cohortStartDate,
+      className: null,
+      courseProfileTitle: null,
+      cohortName: null,
+      cohortCode: code,
+      cohortOpeningDate: startDate,
       classesForProduct: liveClasses,
     );
   }

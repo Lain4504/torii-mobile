@@ -197,7 +197,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
     
     return GestureDetector(
       onTap: () {
-        final classSlug = item.liveClassId != null ? '&classId=${item.liveClassId}' : '';
+        final classSlug = item.liveClassId != null ? '&liveClassId=${item.liveClassId}' : '';
         context.push('/course-detail/${item.id}?mode=${item.mode}$classSlug');
       },
       child: Container(

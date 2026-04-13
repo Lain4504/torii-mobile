@@ -9,14 +9,16 @@ import 'package:torii_app/data/models/academy_product_detail_model.dart';
 class CurriculumScreen extends ConsumerWidget {
   const CurriculumScreen({
     super.key,
-    required this.classId,
+    required this.deliveryTargetId,
     this.productId,
+    this.enrollmentId,
     this.mode = 'VOD',
     this.progressDisabled = false,
   });
 
-  final String classId;
+  final String deliveryTargetId;
   final String? productId;
+  final String? enrollmentId;
   final String mode;
 
   /// Khi `true`, không tính tiến độ + không mở khóa theo thứ tự.
@@ -25,16 +27,18 @@ class CurriculumScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detailAsync = mode == 'LIVE'
-        ? ref.watch(classCatalogLiveDetailProvider(classId))
-        : ref.watch(classCatalogVodDetailProvider(classId));
-    final useProgress = !progressDisabled && classId.isNotEmpty;
+        ? ref.watch(classCatalogLiveDetailProvider(deliveryTargetId))
+        : ref.watch(classCatalogVodDetailProvider(deliveryTargetId));
+    final useProgress = !progressDisabled && deliveryTargetId.isNotEmpty;
     final completedIds = useProgress
-        ? (ref.watch(classCompletedLessonIdsProvider((classId: classId, mode: mode, productId: productId))).value ??
+        ? (ref.watch(classCompletedLessonIdsProvider((deliveryTargetId: deliveryTargetId, mode: mode, productId: productId))).value ??
               const [])
         : const <String>[];
     final completed = completedIds.toSet();
     final assessmentsAsync = useProgress
-        ? ref.watch(assessmentStatusProvider(classId))
+        ? ref.watch(assessmentStatusProvider(
+            assessmentStatusCacheKey(deliveryTargetId, enrollmentId),
+          ))
         : const AsyncValue.data(<AssessmentMilestoneModel>[]);
     final assessments = assessmentsAsync.value ?? [];
     final assessmentsByExamId = <String, AssessmentMilestoneModel>{};
@@ -128,6 +132,7 @@ class CurriculumScreen extends ConsumerWidget {
                         );
                         return _buildLessonItem(
                           context,
+                          enrollmentId: enrollmentId,
                           title: lesson.title.isNotEmpty
                               ? lesson.title
                               : 'Bài học',
@@ -149,7 +154,9 @@ class CurriculumScreen extends ConsumerWidget {
                           ),
                           locked: !unlocked,
                           lesson: _lessonPayload(
-                            classId: classId,
+                            deliveryTargetId: deliveryTargetId,
+                            productId: productId,
+                            enrollmentId: enrollmentId,
                             mode: mode,
                             progressDisabled: progressDisabled,
                             lesson: lesson,
@@ -271,6 +278,7 @@ class CurriculumScreen extends ConsumerWidget {
 
   Widget _buildLessonItem(
     BuildContext context, {
+    String? enrollmentId,
     required String title,
     required String duration,
     required IconData icon,
@@ -294,8 +302,20 @@ class CurriculumScreen extends ConsumerWidget {
             : () {
                 if (lesson['type'] == 'quiz') {
                   final assId = lesson['assessmentId'] ?? '';
+                  final eid = (enrollmentId ?? lesson['enrollmentId'] ?? '')
+                      .toString();
+                  if (eid.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Thiếu mã ghi danh. Mở lộ trình từ "Khóa học của tôi".',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
                   context.push(
-                    '/quiz/${lesson['id']}?classId=${lesson['classId']}${assId.isNotEmpty ? '&assessmentId=$assId' : ''}',
+                    '/quiz/${lesson['id']}?deliveryTargetId=${lesson['deliveryTargetId']}&enrollmentId=$eid${assId.toString().isNotEmpty ? '&assessmentId=$assId' : ''}',
                   );
                 } else {
                   context.push('/lesson', extra: lesson);
@@ -414,16 +434,22 @@ Color _lessonStatusColor(
 }
 
 Map<String, dynamic> _lessonPayload({
-  required String classId,
+  required String deliveryTargetId,
+  String? productId,
+  String? enrollmentId,
   required String mode,
   required CurriculumLessonModel lesson,
   CurriculumLessonModel? nextLesson,
   bool progressDisabled = false,
   String? assessmentId,
 }) {
+  final effectiveProductId =
+      (productId != null && productId.isNotEmpty) ? productId : deliveryTargetId;
   return <String, dynamic>{
-    if (classId.isNotEmpty) 'classId': classId,
-    'productId': classId, // Cho VOD, productId chính là classId (vodPackageId)
+    if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+    if (enrollmentId != null && enrollmentId.isNotEmpty)
+      'enrollmentId': enrollmentId,
+    'productId': effectiveProductId,
     if (mode.isNotEmpty) 'mode': mode,
     if (progressDisabled) 'progressDisabled': true,
     if (assessmentId != null) 'assessmentId': assessmentId,
@@ -437,7 +463,10 @@ Map<String, dynamic> _lessonPayload({
     },
     if (nextLesson != null)
       'nextLesson': <String, dynamic>{
-        if (classId.isNotEmpty) 'classId': classId,
+        if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+        if (enrollmentId != null && enrollmentId.isNotEmpty)
+          'enrollmentId': enrollmentId,
+        'productId': effectiveProductId,
         if (mode.isNotEmpty) 'mode': mode,
         if (progressDisabled) 'progressDisabled': true,
         'id': nextLesson.id,

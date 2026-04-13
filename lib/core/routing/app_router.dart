@@ -180,11 +180,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/quiz/:examId',
         builder: (context, state) {
           final examId = state.pathParameters['examId'] ?? '';
-          final classId = state.uri.queryParameters['classId'] ?? '';
+          final deliveryTargetId =
+              state.uri.queryParameters['deliveryTargetId'] ?? '';
+          final enrollmentId = state.uri.queryParameters['enrollmentId'] ?? '';
           final assessmentId = state.uri.queryParameters['assessmentId'];
           return QuizScreen(
             examId: examId,
-            classId: classId,
+            deliveryTargetId: deliveryTargetId,
+            enrollmentId: enrollmentId,
             assessmentId: assessmentId,
           );
         },
@@ -217,7 +220,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
                   final mode = state.uri.queryParameters['mode'] ?? 'VOD';
-                  return CourseDetailScreen(id: id, mode: mode);
+                  final initialLiveClassId =
+                      state.uri.queryParameters['liveClassId'];
+                  return CourseDetailScreen(
+                    id: id,
+                    mode: mode,
+                    initialLiveClassId: initialLiveClassId,
+                  );
                 },
               ),
               // Removed redundant /course-live route
@@ -226,12 +235,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/checkout/:productId',
                 builder: (context, state) {
                   final productId = state.pathParameters['productId'] ?? '';
-                  final classId = state.uri.queryParameters['classId'];
+                  final liveClassId = state.uri.queryParameters['liveClassId'];
                   final mode = (state.uri.queryParameters['mode'] ?? 'VOD')
                       .toUpperCase();
                   return CheckoutScreen(
                     productId: productId,
-                    classId: classId,
+                    liveClassId: liveClassId,
                     mode: mode == 'LIVE' ? 'LIVE' : 'VOD',
                   );
                 },
@@ -257,33 +266,38 @@ final routerProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
-                path: '/curriculum/:classId',
+                path: '/curriculum/:deliveryTargetId',
                 builder: (context, state) {
                   final live = state.uri.queryParameters['live'] == '1';
                   final mode = (state.uri.queryParameters['mode'] ?? '')
                       .toUpperCase();
                   final productId = state.uri.queryParameters['productId'];
+                  final enrollmentId = state.uri.queryParameters['enrollmentId'];
                   return CurriculumScreen(
-                    classId: state.pathParameters['classId'] ?? '',
+                    deliveryTargetId:
+                        state.pathParameters['deliveryTargetId'] ?? '',
                     productId: productId,
+                    enrollmentId: enrollmentId,
                     mode: mode == 'LIVE' ? 'LIVE' : 'VOD',
                     progressDisabled: live,
                   );
                 },
               ),
               GoRoute(
-                path: '/enrolled-live/:classId',
+                path: '/enrolled-live/:liveClassId',
                 builder: (context, state) {
-                  final classId = state.pathParameters['classId'] ?? '';
+                  final liveClassId = state.pathParameters['liveClassId'] ?? '';
                   final productId = state.uri.queryParameters['productId'];
                   final titleRaw = state.uri.queryParameters['title'];
+                  final enrollmentId = state.uri.queryParameters['enrollmentId'];
                   final courseTitle = titleRaw != null && titleRaw.isNotEmpty
                       ? Uri.decodeQueryComponent(titleRaw)
                       : null;
                   return EnrolledLiveCourseScreen(
-                    classId: classId,
+                    liveClassId: liveClassId,
                     productId: productId,
                     courseTitle: courseTitle,
+                    enrollmentId: enrollmentId,
                   );
                 },
               ),

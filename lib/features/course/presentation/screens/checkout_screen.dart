@@ -16,12 +16,12 @@ class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({
     super.key,
     required this.productId,
-    this.classId,
+    this.liveClassId,
     required this.mode,
   });
 
   final String productId;
-  final String? classId;
+  final String? liveClassId;
   final String mode;
 
   @override
@@ -73,7 +73,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final res = await repo.previewOrder(
         productId: item.id,
         mode: widget.mode,
-        classId: widget.mode == 'LIVE' ? widget.classId : null,
+        liveClassId: widget.mode == 'LIVE' ? widget.liveClassId : null,
         couponCode: _couponController.text,
         metadata: _isGift ? {
           'isGift': true,
@@ -133,7 +133,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final repo = ref.read(academyRepositoryProvider);
       final res = await repo.checkGiftRecipient(
         recipientEmail: email,
-        courseId: item.id,
+        commerceTargetId: item.id,
       );
       if (mounted) {
         setState(() {
@@ -155,7 +155,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       final result = await repo.checkoutOrder(
         productId: item.id,
         mode: widget.mode,
-        classId: widget.mode == 'LIVE' ? widget.classId : null,
+        liveClassId: widget.mode == 'LIVE' ? widget.liveClassId : null,
         paymentMethod: 'PAYOS',
         couponCode: _couponController.text,
         metadata: {
@@ -351,8 +351,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 const SizedBox(height: 8),
                 Builder(builder: (context) {
                   double displayPrice = item.product.displayPrice;
-                  if (widget.mode == 'LIVE' && widget.classId != null) {
-                    final selectedClass = item.siblingClasses.where((c) => c.id == widget.classId).firstOrNull;
+                  if (widget.mode == 'LIVE' && widget.liveClassId != null) {
+                    final selectedClass = item.siblingClasses.where((c) => c.id == widget.liveClassId).firstOrNull;
                     if (selectedClass != null && (selectedClass.price != null || selectedClass.discountPrice != null)) {
                       displayPrice = selectedClass.displayPrice;
                     }
@@ -391,8 +391,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   Widget _buildOrderTotals(ThemeData theme, AcademyProductDetailModel item) {
     double basePrice = item.product.displayPrice;
-    if (widget.mode == 'LIVE' && widget.classId != null) {
-      final selectedClass = item.siblingClasses.where((c) => c.id == widget.classId).firstOrNull;
+    if (widget.mode == 'LIVE' && widget.liveClassId != null) {
+      final selectedClass = item.siblingClasses.where((c) => c.id == widget.liveClassId).firstOrNull;
       if (selectedClass != null && (selectedClass.price != null || selectedClass.discountPrice != null)) {
         basePrice = selectedClass.displayPrice;
       }

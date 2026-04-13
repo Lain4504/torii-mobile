@@ -115,15 +115,15 @@ final classCatalogVodProvider = FutureProvider.autoDispose
     });
 
 final classCatalogLiveDetailProvider = FutureProvider.autoDispose
-    .family<AcademyProductDetailModel?, String>((ref, classId) async {
+    .family<AcademyProductDetailModel?, String>((ref, catalogProductId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicProductDetailById(classId, mode: 'LIVE');
+      return repo.getPublicProductDetailById(catalogProductId, mode: 'LIVE');
     });
 
 final classCatalogVodDetailProvider = FutureProvider.autoDispose
-    .family<AcademyProductDetailModel?, String>((ref, classId) async {
+    .family<AcademyProductDetailModel?, String>((ref, catalogProductId) async {
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getPublicProductDetailById(classId, mode: 'VOD');
+      return repo.getPublicProductDetailById(catalogProductId, mode: 'VOD');
     });
 
 final myEnrollmentsProvider =
@@ -141,17 +141,17 @@ final myEnrollmentsProvider =
       return repo.getMyEnrollments(limit: 50);
     });
 
-/// Tiến độ bài học theo lớp (`lessonId` đã hoàn thành) — cần `classId` từ enrollment.
+/// Tiến độ bài học — `deliveryTargetId` là liveClassId hoặc vodPackageId từ enrollment.
 final classCompletedLessonIdsProvider = FutureProvider.autoDispose
-    .family<List<String>, ({String classId, String mode, String? productId})>((ref, arg) async {
-      final classId = arg.classId;
+    .family<List<String>, ({String deliveryTargetId, String mode, String? productId})>((ref, arg) async {
+      final deliveryTargetId = arg.deliveryTargetId;
       final mode = arg.mode;
       final productId = arg.productId;
-      if (!_personalizedApisAllowed(ref) || classId.isEmpty) {
+      if (!_personalizedApisAllowed(ref) || deliveryTargetId.isEmpty) {
         return const [];
       }
       final repo = ref.watch(academyRepositoryProvider);
-      return repo.getCompletedLessonIds(classId, mode: mode, productId: productId);
+      return repo.getCompletedLessonIds(deliveryTargetId, mode: mode, productId: productId);
     });
 
 final myOrdersProvider = FutureProvider.autoDispose<PaginatedResponse<OrderModel>>((
@@ -274,30 +274,56 @@ final folderResourcesProvider =
   return repo.getFolderResources(folderId);
 });
 
+/// Tài nguyên theo phạm vi giao hàng (path gateway: `.../live-classes/:deliveryScopeId/...`).
 final folderResourcesByClassProvider =
-    FutureProvider.family<List<AcademyResource>, String>((ref, classId) async {
-  if (!_authenticatedAcademyUser(ref) || classId.isEmpty) {
+    FutureProvider.family<List<AcademyResource>, String>((
+  ref,
+  liveClassId,
+) async {
+  if (!_authenticatedAcademyUser(ref) || liveClassId.isEmpty) {
     return const [];
   }
   final repo = ref.watch(academyRepositoryProvider);
-  return repo.getFolderResourcesByClass(classId);
+  return repo.getFolderResourcesForDeliveryScope(liveClassId);
 });
 
 // ---------- Assessment & Assignments ----------
+/// Key cho [assessmentStatusProvider]: có enrollmentId thì trạng thái quiz tách theo từng ghi danh.
+String assessmentStatusCacheKey(String deliveryTargetId, [String? enrollmentId]) {
+  final id = enrollmentId?.trim();
+  if (id == null || id.isEmpty) return deliveryTargetId;
+  return '$deliveryTargetId::$id';
+}
+
+({String deliveryTargetId, String? enrollmentId}) _parseAssessmentStatusKey(
+  String key,
+) {
+  final idx = key.indexOf('::');
+  if (idx < 0) return (deliveryTargetId: key, enrollmentId: null);
+  final dt = key.substring(0, idx);
+  final eid = key.substring(idx + 2);
+  return (deliveryTargetId: dt, enrollmentId: eid.isEmpty ? null : eid);
+}
+
 final assessmentStatusProvider = FutureProvider.autoDispose
-    .family<List<AssessmentMilestoneModel>, String>((ref, classId) async {
-  if (!_authenticatedAcademyUser(ref) || classId.isEmpty) {
+    .family<List<AssessmentMilestoneModel>, String>((ref, key) async {
+  if (!_authenticatedAcademyUser(ref) || key.isEmpty) {
     return const [];
   }
+  final parsed = _parseAssessmentStatusKey(key);
+  if (parsed.deliveryTargetId.isEmpty) return const [];
   final repo = ref.watch(academyRepositoryProvider);
-  return repo.getAssessmentStatus(classId);
+  return repo.getAssessmentStatus(
+    parsed.deliveryTargetId,
+    enrollmentId: parsed.enrollmentId,
+  );
 });
 
 final assignmentsProvider = FutureProvider.autoDispose
-    .family<List<AssignmentModel>, String>((ref, classId) async {
-  if (!_authenticatedAcademyUser(ref) || classId.isEmpty) {
+    .family<List<AssignmentModel>, String>((ref, liveClassId) async {
+  if (!_authenticatedAcademyUser(ref) || liveClassId.isEmpty) {
     return const [];
   }
   final repo = ref.watch(academyRepositoryProvider);
-  return repo.getAssignments(classId);
+  return repo.getAssignments(liveClassId);
 });

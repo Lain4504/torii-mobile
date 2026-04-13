@@ -36,7 +36,8 @@ class _ToriiAppState extends ConsumerState<ToriiApp> {
               return;
            }
         } else if (message.data['type'] == 'course') {
-           final id = message.data['courseId'];
+           // Payload FCM/backend — thường là catalog product id (cohort / vod package).
+           final id = message.data['courseId'] ?? message.data['productId'];
            if (id != null) {
               router.push('/course-detail/$id');
               return;
