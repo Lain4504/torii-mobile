@@ -546,6 +546,9 @@ class AssessmentQuestionModel {
   final String? examQuestionId;  // ID của câu hỏi trong exam, dùng khi submit
   final String stemText;
   final String? stemHtml;
+  final String? categoryType;
+  final String? mediaUrl;
+  final String? readingPassage;
   final List<AssessmentOptionModel> options;
 
   const AssessmentQuestionModel({
@@ -553,6 +556,9 @@ class AssessmentQuestionModel {
     this.examQuestionId,
     required this.stemText,
     this.stemHtml,
+    this.categoryType,
+    this.mediaUrl,
+    this.readingPassage,
     required this.options,
   });
 
@@ -566,6 +572,9 @@ class AssessmentQuestionModel {
       examQuestionId: json['examQuestionId']?.toString(),
         stemText: (json['stemText'] ?? json['stem'] ?? '').toString(),
         stemHtml: json['stemHtml']?.toString(),
+        categoryType: (json['categoryType'] ?? json['category'])?.toString(),
+        mediaUrl: json['mediaUrl']?.toString(),
+        readingPassage: json['readingPassage']?.toString(),
         options: rawOptions.map((e) => AssessmentOptionModel.fromJson(e as Map<String, dynamic>)).toList(),
       );
     }

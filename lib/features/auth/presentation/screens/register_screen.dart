@@ -265,7 +265,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 18),
                   _buildSocialButton(
                     'Đăng ký với Facebook',
-                    icon: Icons.facebook,
+                    leading: const FaIcon(
+                      FontAwesomeIcons.facebookF,
+                      size: 20,
+                      color: Color(0xFF1877F2),
+                    ),
                     onPressed: () async {
                       setState(() => _isLoading = true);
                       await ref
@@ -288,7 +292,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         );
                       }
                     },
-                    iconColor: const Color(0xFF1877F2),
                   ),
                   const SizedBox(height: 10),
                   _buildSocialButton(

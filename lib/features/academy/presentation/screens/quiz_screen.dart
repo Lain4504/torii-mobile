@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
@@ -36,16 +37,33 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   Timer? _timer;
   DateTime? _deadlineAt;
   Duration _remainingTime = Duration.zero;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  String? _playingQuestionId;
+  StreamSubscription<void>? _audioCompleteSub;
+  StreamSubscription<PlayerState>? _audioStateSub;
 
   @override
   void initState() {
     super.initState();
+    _audioCompleteSub = _audioPlayer.onPlayerComplete.listen((_) {
+      if (!mounted) return;
+      setState(() => _playingQuestionId = null);
+    });
+    _audioStateSub = _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (!mounted) return;
+      if (state != PlayerState.playing && _playingQuestionId != null) {
+        setState(() => _playingQuestionId = null);
+      }
+    });
     _startQuiz();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _audioCompleteSub?.cancel();
+    _audioStateSub?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -208,6 +226,35 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     }
   }
 
+  bool _isAudioUrl(String? url) {
+    if (url == null || url.isEmpty) return false;
+    return RegExp(r'\.(mp3|wav|m4a|aac|ogg)(\?|#|$)', caseSensitive: false)
+        .hasMatch(url);
+  }
+
+  bool _isListeningQuestion(AssessmentQuestionModel question) {
+    final category = (question.categoryType ?? '').toUpperCase();
+    if (category == 'LISTENING') return true;
+    return _isAudioUrl(question.mediaUrl) && category != 'READING';
+  }
+
+  Future<void> _toggleAudio(AssessmentQuestionModel question) async {
+    final url = question.mediaUrl;
+    if (url == null || url.isEmpty || !_isAudioUrl(url)) return;
+
+    final isCurrent = _playingQuestionId == question.id;
+    final state = _audioPlayer.state;
+    if (isCurrent && state == PlayerState.playing) {
+      await _audioPlayer.pause();
+      if (mounted) setState(() => _playingQuestionId = null);
+      return;
+    }
+
+    await _audioPlayer.stop();
+    await _audioPlayer.play(UrlSource(url));
+    if (mounted) setState(() => _playingQuestionId = question.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -261,10 +308,56 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         ],      ),
       body: Column(
         children: [
-          LinearProgressIndicator(
-            value: _questions.isEmpty ? 0 : _selectedAnswers.length / _questions.length,
-            backgroundColor: theme.colorScheme.surfaceContainerHighest,
-          ),
+          if (_questions.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Tiến độ',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${_selectedAnswers.length}/${_questions.length}',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      minHeight: 6,
+                      value: _questions.isEmpty
+                          ? 0
+                          : _selectedAnswers.length / _questions.length,
+                      backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            LinearProgressIndicator(
+              value: 0,
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            ),
           if (_questions.isEmpty)
             Expanded(
               child: Center(
@@ -348,6 +441,57 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           ),
           const SizedBox(height: 12),
           Text(question.stemText, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, height: 1.4)),
+          if (_isListeningQuestion(question) && _isAudioUrl(question.mediaUrl)) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => _toggleAudio(question),
+                    icon: Icon(
+                      _playingQuestionId == question.id
+                          ? Icons.pause_circle_filled_rounded
+                          : Icons.play_circle_fill_rounded,
+                      color: theme.colorScheme.primary,
+                      size: 30,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Nghe audio và chọn đáp án đúng',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (question.mediaUrl != null &&
+              question.mediaUrl!.isNotEmpty &&
+              !_isAudioUrl(question.mediaUrl)) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                question.mediaUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 120,
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.broken_image_outlined),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           ...question.options.map((option) {
             final isSelected = _selectedAnswers[question.id] == option.id;

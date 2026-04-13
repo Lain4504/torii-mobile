@@ -154,9 +154,26 @@ class _LiveScheduleScreenState extends ConsumerState<LiveScheduleScreen> {
           ? '/meet?access_token=$tokenQ&roomId=${Uri.encodeQueryComponent(room)}'
           : '/meet?access_token=$tokenQ';
       context.push(path);
+    } catch (e) {
+      if (!mounted) return;
+      final msg = _friendlyJoinErrorMessage(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
     } finally {
       if (mounted) setState(() => _joiningSessionId = null);
     }
+  }
+
+  String _friendlyJoinErrorMessage(String raw) {
+    final lower = raw.toLowerCase();
+    if (lower.contains('phòng học chưa được giảng viên khởi tạo')) {
+      return 'Lớp học chưa mở phòng. Vui lòng đợi giảng viên bắt đầu buổi học rồi thử lại.';
+    }
+    if (lower.contains('chưa tới giờ') || lower.contains('không trong thời gian')) {
+      return 'Chưa đến thời gian vào lớp. Bạn thử lại gần giờ học nhé.';
+    }
+    return 'Hiện chưa thể vào lớp. Vui lòng thử lại sau ít phút.';
   }
 
   /// Bottom sheet xác nhận — cùng pattern [StudySetsDashboardScreen] (handle + padding + nút 44px, radius 14).

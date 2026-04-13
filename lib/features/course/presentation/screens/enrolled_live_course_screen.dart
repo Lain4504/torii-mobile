@@ -6,9 +6,7 @@ import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/academy_product_detail_model.dart';
-import 'package:torii_app/data/models/comment_model.dart';
 import 'package:torii_app/features/academy/presentation/widgets/resource_item.dart';
-import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Khóa LIVE đã ghi danh: lịch tuần + tabs syllabus / tài liệu / bài tập / quiz.
@@ -91,9 +89,26 @@ class _EnrolledLiveCourseScreenState
           ? '/meet?access_token=$tokenQ&roomId=${Uri.encodeQueryComponent(room)}'
           : '/meet?access_token=$tokenQ';
       context.push(path);
+    } catch (e) {
+      if (!mounted) return;
+      final msg = _friendlyJoinErrorMessage(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
     } finally {
       if (mounted) setState(() => _joiningSessionId = null);
     }
+  }
+
+  String _friendlyJoinErrorMessage(String raw) {
+    final lower = raw.toLowerCase();
+    if (lower.contains('phòng học chưa được giảng viên khởi tạo')) {
+      return 'Lớp học chưa mở phòng. Vui lòng đợi giảng viên bắt đầu buổi học rồi thử lại.';
+    }
+    if (lower.contains('chưa tới giờ') || lower.contains('không trong thời gian')) {
+      return 'Chưa đến thời gian vào lớp. Bạn thử lại gần giờ học nhé.';
+    }
+    return 'Hiện chưa thể vào lớp. Vui lòng thử lại sau ít phút.';
   }
 
   @override
@@ -131,7 +146,7 @@ class _EnrolledLiveCourseScreenState
         ),
         data: (all) {
           return DefaultTabController(
-            length: 5,
+            length: 4,
             child: RefreshIndicator(
               onRefresh: () async => ref.invalidate(liveSchedulesProvider),
               child: CustomScrollView(
@@ -174,7 +189,6 @@ class _EnrolledLiveCourseScreenState
                           tabs: const [
                             Tab(text: 'Lộ trình'),
                             Tab(text: 'Tài liệu'),
-                            Tab(text: 'Hỏi đáp'),
                             Tab(text: 'Bài tập'),
                             Tab(text: 'Quiz'),
                           ],
@@ -191,7 +205,6 @@ class _EnrolledLiveCourseScreenState
                           enrollmentId: widget.enrollmentId,
                         ),
                         _ResourcesTabPane(liveClassId: widget.liveClassId),
-                        _LiveDiscussionTabPane(liveClassId: widget.liveClassId),
                         _AssignmentsTabPane(liveClassId: widget.liveClassId),
                         _QuizzesTabPane(
                           liveClassId: widget.liveClassId,
@@ -1750,446 +1763,6 @@ class _AssignmentsTabPane extends ConsumerWidget {
         );
       }
     }
-  }
-}
-
-class _LiveDiscussionTabPane extends ConsumerStatefulWidget {
-  const _LiveDiscussionTabPane({required this.liveClassId});
-
-  final String liveClassId;
-
-  @override
-  ConsumerState<_LiveDiscussionTabPane> createState() => _LiveDiscussionTabPaneState();
-}
-
-class _LiveDiscussionTabPaneState extends ConsumerState<_LiveDiscussionTabPane> {
-  bool _loading = false;
-  String? _error;
-  List<CommentModel> _topics = const [];
-  String? _expandedTopicId;
-  final Map<String, TextEditingController> _replyCtrls = {};
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
-  }
-
-  @override
-  void dispose() {
-    for (final c in _replyCtrls.values) {
-      c.dispose();
-    }
-    _replyCtrls.clear();
-    super.dispose();
-  }
-
-  TextEditingController _replyCtrlFor(String topicId) {
-    return _replyCtrls.putIfAbsent(topicId, () => TextEditingController());
-  }
-
-  Future<void> _refresh() async {
-    final authState = ref.read(authStateProvider).valueOrNull;
-    final isAuthed = authState != null && authState.isAuthenticated && authState.user != null;
-    if (!isAuthed) return;
-
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final repo = ref.read(commentRepositoryProvider);
-      final topics = await repo.getDiscussionTopics(
-        discussionEntityId: widget.liveClassId,
-        page: 1,
-        limit: 100,
-      );
-      if (!mounted) return;
-      setState(() {
-        _topics = topics;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
-    }
-  }
-
-  Future<void> _createTopic({
-    required String title,
-    required String content,
-  }) async {
-    final authState = ref.read(authStateProvider).valueOrNull;
-    final userId = authState?.user?.id;
-    if (userId == null) return;
-    await ref.read(commentRepositoryProvider).createTopic(
-          discussionEntityId: widget.liveClassId,
-          userId: userId,
-          title: title,
-          content: content,
-        );
-    await _refresh();
-  }
-
-  Future<void> _replyToTopic({
-    required String topicId,
-    required String content,
-  }) async {
-    final authState = ref.read(authStateProvider).valueOrNull;
-    final userId = authState?.user?.id;
-    if (userId == null) return;
-    await ref.read(commentRepositoryProvider).replyToTopic(
-          discussionEntityId: widget.liveClassId,
-          userId: userId,
-          parentId: topicId,
-          content: content,
-        );
-    _replyCtrlFor(topicId).clear();
-    await _refresh();
-  }
-
-  String _topicTitleFrom(String content) {
-    return content
-        .split('\n')
-        .firstWhere((e) => e.trim().isNotEmpty, orElse: () => 'Không có tiêu đề')
-        .trim();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final authState = ref.watch(authStateProvider).valueOrNull;
-    final isAuthed = authState != null && authState.isAuthenticated && authState.user != null;
-
-    if (!isAuthed) {
-      return Center(
-        child: Text(
-          'Đăng nhập để xem và trả lời thảo luận.',
-          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-        ),
-      );
-    }
-
-    if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'Không thể tải thảo luận: $_error',
-            style: TextStyle(color: theme.colorScheme.error),
-          ),
-        ),
-      );
-    }
-
-    if (_topics.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.forum_outlined,
-                size: 52,
-                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Chưa có thảo luận nào',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Hãy đặt câu hỏi để nhận phản hồi từ giảng viên / trợ giảng.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  String title = '';
-                  String content = '';
-                  await showDialog(
-                    context: context,
-                    builder: (ctx) {
-                      final titleCtrl = TextEditingController();
-                      final contentCtrl = TextEditingController();
-                      return AlertDialog(
-                        title: const Text('Đặt câu hỏi'),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              TextField(
-                                controller: titleCtrl,
-                                decoration: const InputDecoration(labelText: 'Tiêu đề'),
-                              ),
-                              TextField(
-                                controller: contentCtrl,
-                                decoration: const InputDecoration(labelText: 'Nội dung'),
-                                minLines: 3,
-                                maxLines: 6,
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(ctx).pop(),
-                            child: const Text('Hủy'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              title = titleCtrl.text;
-                              content = contentCtrl.text;
-                              Navigator.of(ctx).pop();
-                            },
-                            child: const Text('Gửi'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                  if (title.trim().isEmpty || content.trim().isEmpty) return;
-                  await _createTopic(title: title.trim(), content: content.trim());
-                },
-                child: const Text('Đặt câu hỏi'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _topics.length + 1,
-        itemBuilder: (ctx, i) {
-          if (i == 0) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Hỏi đáp (${_topics.length})',
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: () async {
-                      String title = '';
-                      String content = '';
-                      await showDialog(
-                        context: context,
-                        builder: (ctx) {
-                          final titleCtrl = TextEditingController();
-                          final contentCtrl = TextEditingController();
-                          return AlertDialog(
-                            title: const Text('Đặt câu hỏi'),
-                            content: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  TextField(
-                                    controller: titleCtrl,
-                                    decoration: const InputDecoration(labelText: 'Tiêu đề'),
-                                  ),
-                                  TextField(
-                                    controller: contentCtrl,
-                                    decoration: const InputDecoration(labelText: 'Nội dung'),
-                                    minLines: 3,
-                                    maxLines: 6,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(),
-                                child: const Text('Hủy'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  title = titleCtrl.text;
-                                  content = contentCtrl.text;
-                                  Navigator.of(ctx).pop();
-                                },
-                                child: const Text('Gửi'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                      if (title.trim().isEmpty || content.trim().isEmpty) return;
-                      await _createTopic(title: title.trim(), content: content.trim());
-                    },
-                    icon: const Icon(Icons.add_comment_outlined, size: 18),
-                    label: const Text('Đặt câu hỏi'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final topic = _topics[i - 1];
-          final expanded = _expandedTopicId == topic.id;
-          final topicTitle = _topicTitleFrom(topic.content);
-          final replyCtrl = _replyCtrlFor(topic.id);
-
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _expandedTopicId = expanded ? null : topic.id;
-                      });
-                    },
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            topicTitle,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        if (topic.status == 'ANSWERED')
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: const Text(
-                              'Đã trả lời',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                color: Colors.green,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    topic.content,
-                    style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.85)),
-                  ),
-
-                  if (!expanded) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      (topic.replyCount > 0) ? '${topic.replyCount} phản hồi' : 'Chưa có phản hồi',
-                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
-                    ),
-                  ],
-
-                  if (expanded) ...[
-                    const SizedBox(height: 12),
-                    if (topic.replies.isEmpty)
-                      Text(
-                        'Chưa có phản hồi nào.',
-                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                      )
-                    else ...[
-                      const Text(
-                        'Phản hồi',
-                        style: TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: topic.replies.map((r) => _DiscussionReplyBubble(reply: r)).toList(),
-                      ),
-                    ],
-
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Trả lời',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: replyCtrl,
-                      minLines: 3,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        hintText: 'Viết câu trả lời...',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            final text = replyCtrl.text.trim();
-                            if (text.isEmpty) return;
-                            await _replyToTopic(topicId: topic.id, content: text);
-                          },
-                          child: const Text('Gửi trả lời'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _DiscussionReplyBubble extends StatelessWidget {
-  const _DiscussionReplyBubble({required this.reply});
-
-  final CommentModel reply;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.colorScheme.outlineVariant),
-        ),
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              reply.author?.displayName ?? 'Unknown',
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              reply.content,
-              style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.85)),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

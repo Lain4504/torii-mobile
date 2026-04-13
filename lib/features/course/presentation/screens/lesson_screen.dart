@@ -21,6 +21,7 @@ class LessonScreen extends ConsumerStatefulWidget {
 class _LessonScreenState extends ConsumerState<LessonScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  int _activeTabIndex = 0;
   VideoPlayerController? _videoController;
   ChewieController? _chewieController;
   bool _autoMarkedComplete = false;
@@ -30,16 +31,21 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   List<CommentModel> _topics = [];
   String? _expandedTopicId;
   final Map<String, String> _replyDrafts = {};
+  bool _isCreateTopicSheetOpen = false;
+  Future<AcademyProductDetailModel?>? _syllabusDetailFuture;
+  String _syllabusCacheKey = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
     _initVideo();
     // Load discussions after first render to make sure `widget.lesson` and providers are ready.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshDiscussionIfPossible();
     });
+    _prepareSyllabusDetail();
   }
 
   @override
@@ -57,11 +63,35 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
         oldDeliveryTargetId != newDeliveryTargetId) {
       _refreshDiscussionIfPossible();
     }
+    final oldMode = (oldWidget.lesson?['mode'] ?? 'VOD').toString().toUpperCase();
+    final newMode = (widget.lesson?['mode'] ?? 'VOD').toString().toUpperCase();
+    if (oldDeliveryTargetId != newDeliveryTargetId || oldMode != newMode) {
+      _prepareSyllabusDetail();
+    }
     if (oldWidget.lesson?['videoUrl'] != widget.lesson?['videoUrl'] ||
         oldWidget.lesson?['type'] != widget.lesson?['type']) {
       _disposeVideo();
       _initVideo();
     }
+  }
+
+  void _prepareSyllabusDetail() {
+    final lesson = widget.lesson ?? const <String, dynamic>{};
+    final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
+    final productId = (lesson['productId'] ?? '').toString();
+    // Với LIVE, API detail public cần product-level id (cohortId),
+    // không phải deliveryTargetId (thường là liveClassId).
+    final detailId = productId.isNotEmpty ? productId : deliveryTargetId;
+    final mode = (lesson['mode'] ?? 'VOD').toString().toUpperCase();
+    final cacheKey = '$mode::$detailId';
+    if (detailId.isEmpty || cacheKey == _syllabusCacheKey) return;
+    _syllabusCacheKey = cacheKey;
+
+    final repo = ref.read(academyRepositoryProvider);
+    _syllabusDetailFuture = repo.getPublicProductDetailById(
+      detailId,
+      mode: mode,
+    );
   }
 
   void _onVideoProgress() {
@@ -134,9 +164,19 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _disposeVideo();
     super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (!mounted) return;
+    if (_activeTabIndex != _tabController.index) {
+      setState(() {
+        _activeTabIndex = _tabController.index;
+      });
+    }
   }
 
   bool _isTrackableType(String type) {
@@ -267,219 +307,192 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                   ),
                   const Divider(height: 1),
                   Expanded(
-                    child:
-                        ((lesson['mode'] ?? 'VOD').toString().toUpperCase() ==
-                                    'LIVE'
-                                ? ref.watch(
-                                    classCatalogLiveDetailProvider(
-                                      deliveryTargetId,
+                    child: FutureBuilder<AcademyProductDetailModel?>(
+                      future: _syllabusDetailFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Lỗi: ${snapshot.error}',
+                              style: const TextStyle(color: AppColors.error),
+                            ),
+                          );
+                        }
+                        final detail = snapshot.data;
+                        if (detail == null) {
+                          return const Center(
+                            child: Text('Không có dữ liệu lộ trình'),
+                          );
+                        }
+
+                        final useProgress =
+                            !progressDisabled && deliveryTargetId.isNotEmpty;
+                        final modules = detail.modules;
+                        final completedIds = useProgress
+                            ? (ref
+                                      .watch(
+                                        classCompletedLessonIdsProvider((
+                                          deliveryTargetId: deliveryTargetId,
+                                          mode: (lesson['mode'] ?? 'VOD')
+                                              .toString()
+                                              .toUpperCase(),
+                                          productId: (lesson['productId']
+                                                          ?.toString() ??
+                                                      '')
+                                                  .isNotEmpty
+                                              ? lesson['productId'].toString()
+                                              : null,
+                                        )),
+                                      )
+                                      .value ??
+                                  const [])
+                            : const <String>[];
+                        final completed = completedIds.toSet();
+                        final lessonOrder = <CurriculumLessonModel>[
+                          for (final m in modules) ...m.lessons,
+                        ];
+                        final lessonIndexById = <String, int>{
+                          for (int i = 0; i < lessonOrder.length; i++)
+                            lessonOrder[i].id: i,
+                        };
+                        final trackableOrdered = lessonOrder
+                            .where(_syllabusIsTrackable)
+                            .toList();
+
+                        return ListView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          children: [
+                            for (final module in modules)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Theme(
+                                  data: Theme.of(ctx).copyWith(
+                                    dividerColor: Colors.transparent,
+                                  ),
+                                  child: ExpansionTile(
+                                    tilePadding: EdgeInsets.zero,
+                                    initiallyExpanded: true,
+                                    title: Text(
+                                      module.title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 15,
+                                      ),
                                     ),
-                                  )
-                                : ref.watch(
-                                    classCatalogVodDetailProvider(
-                                      deliveryTargetId,
-                                    ),
-                                  ))
-                            .when(
-                              loading: () => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                              error: (e, _) => Center(
-                                child: Text(
-                                  'Lỗi: $e',
-                                  style: const TextStyle(
-                                    color: AppColors.error,
+                                    children: module.lessons.map((cl) {
+                                      final idx = lessonIndexById[cl.id] ?? -1;
+                                      final hasNext = idx >= 0 &&
+                                          idx + 1 < lessonOrder.length;
+                                      final nextL =
+                                          hasNext ? lessonOrder[idx + 1] : null;
+                                      final unlocked = _syllabusEffectiveUnlocked(
+                                        lesson: cl,
+                                        trackableOrdered: trackableOrdered,
+                                        completed: completed,
+                                        useProgress: useProgress,
+                                      );
+                                      final done = useProgress &&
+                                          _syllabusIsTrackable(cl) &&
+                                          completed.contains(cl.id);
+                                      final isCurrent = cl.id == currentLessonId;
+                                      return ListTile(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: 0,
+                                        ),
+                                        leading: Icon(
+                                          unlocked
+                                              ? _syllabusIconForType(cl.type)
+                                              : Icons.lock_outline_rounded,
+                                          color: isCurrent
+                                              ? AppColors.primary
+                                              : AppColors.textTertiary,
+                                          size: 22,
+                                        ),
+                                        title: Text(
+                                          cl.title.isNotEmpty
+                                              ? cl.title
+                                              : 'Bài học',
+                                          style: TextStyle(
+                                            fontWeight: isCurrent
+                                                ? FontWeight.w900
+                                                : FontWeight.w600,
+                                            color: isCurrent
+                                                ? AppColors.primary
+                                                : AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          unlocked
+                                              ? (done
+                                                  ? 'Đã hoàn thành'
+                                                  : (isCurrent
+                                                      ? 'Đang xem'
+                                                      : _syllabusLabelForType(
+                                                          cl.type,
+                                                        )))
+                                              : 'Đã khóa',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: done
+                                                ? AppColors.success
+                                                : AppColors.textTertiary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        onTap: () {
+                                          if (!unlocked) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Hoàn thành bài trước để mở khóa.',
+                                                ),
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                          final payload = _syllabusLessonPayload(
+                                            deliveryTargetId:
+                                                deliveryTargetId.isNotEmpty
+                                                ? deliveryTargetId
+                                                : null,
+                                            productId: (lesson['productId'] ??
+                                                        '')
+                                                    .toString()
+                                                    .isNotEmpty
+                                                ? lesson['productId'].toString()
+                                                : null,
+                                            mode:
+                                                (lesson['mode'] ?? 'VOD')
+                                                    .toString(),
+                                            progressDisabled: progressDisabled,
+                                            lesson: cl,
+                                            nextLesson: nextL,
+                                          );
+                                          Navigator.of(
+                                            ctx,
+                                            rootNavigator: true,
+                                          ).pop();
+                                          context.pushReplacement(
+                                            '/lesson',
+                                            extra: payload,
+                                          );
+                                        },
+                                      );
+                                    }).toList(),
                                   ),
                                 ),
                               ),
-                              data: (detail) {
-                                if (detail == null) {
-                                  return const Center(
-                                    child: Text('Không có dữ liệu lộ trình'),
-                                  );
-                                }
-                                final useProgress =
-                                    !progressDisabled &&
-                                    deliveryTargetId.isNotEmpty;
-                                final modules = detail.modules;
-                                final completedIds = useProgress
-                                    ? (ref
-                                              .watch(
-                                                classCompletedLessonIdsProvider(
-                                                  (
-                                                    deliveryTargetId:
-                                                        deliveryTargetId,
-                                                    mode: (lesson['mode'] ?? 'VOD').toString().toUpperCase(),
-                                                    productId: (lesson['productId']?.toString() ?? '').isNotEmpty ? lesson['productId'].toString() : null
-                                                  ),
-                                                ),
-                                              )
-                                              .value ??
-                                          const [])
-                                    : const <String>[];
-                                final completed = completedIds.toSet();
-                                final lessonOrder = <CurriculumLessonModel>[
-                                  for (final m in modules) ...m.lessons,
-                                ];
-                                final lessonIndexById = <String, int>{
-                                  for (int i = 0; i < lessonOrder.length; i++)
-                                    lessonOrder[i].id: i,
-                                };
-                                final trackableOrdered = lessonOrder
-                                    .where(_syllabusIsTrackable)
-                                    .toList();
-
-                                return ListView(
-                                  controller: scrollController,
-                                  padding: const EdgeInsets.fromLTRB(
-                                    16,
-                                    8,
-                                    16,
-                                    24,
-                                  ),
-                                  children: [
-                                    for (final module in modules)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 12,
-                                        ),
-                                        child: Theme(
-                                          data: Theme.of(ctx).copyWith(
-                                            dividerColor: Colors.transparent,
-                                          ),
-                                          child: ExpansionTile(
-                                            tilePadding: EdgeInsets.zero,
-                                            initiallyExpanded: true,
-                                            title: Text(
-                                              module.title,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w800,
-                                                fontSize: 15,
-                                              ),
-                                            ),
-                                            children: module.lessons.map((cl) {
-                                              final idx =
-                                                  lessonIndexById[cl.id] ?? -1;
-                                              final hasNext =
-                                                  idx >= 0 &&
-                                                  idx + 1 < lessonOrder.length;
-                                              final nextL = hasNext
-                                                  ? lessonOrder[idx + 1]
-                                                  : null;
-                                              final unlocked =
-                                                  _syllabusEffectiveUnlocked(
-                                                    lesson: cl,
-                                                    trackableOrdered:
-                                                        trackableOrdered,
-                                                    completed: completed,
-                                                    useProgress: useProgress,
-                                                  );
-                                              final done =
-                                                  useProgress &&
-                                                  _syllabusIsTrackable(cl) &&
-                                                  completed.contains(cl.id);
-                                              final isCurrent =
-                                                  cl.id == currentLessonId;
-                                              return ListTile(
-                                                contentPadding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 4,
-                                                      vertical: 0,
-                                                    ),
-                                                leading: Icon(
-                                                  unlocked
-                                                      ? _syllabusIconForType(
-                                                          cl.type,
-                                                        )
-                                                      : Icons
-                                                            .lock_outline_rounded,
-                                                  color: isCurrent
-                                                      ? AppColors.primary
-                                                      : AppColors.textTertiary,
-                                                  size: 22,
-                                                ),
-                                                title: Text(
-                                                  cl.title.isNotEmpty
-                                                      ? cl.title
-                                                      : 'Bài học',
-                                                  style: TextStyle(
-                                                    fontWeight: isCurrent
-                                                        ? FontWeight.w900
-                                                        : FontWeight.w600,
-                                                    color: isCurrent
-                                                        ? AppColors.primary
-                                                        : AppColors.textPrimary,
-                                                  ),
-                                                ),
-                                                subtitle: Text(
-                                                  unlocked
-                                                      ? (done
-                                                            ? 'Đã hoàn thành'
-                                                            : (isCurrent
-                                                                  ? 'Đang xem'
-                                                                  : _syllabusLabelForType(
-                                                                      cl.type,
-                                                                    )))
-                                                      : 'Đã khóa',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: done
-                                                        ? AppColors.success
-                                                        : AppColors
-                                                              .textTertiary,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                                onTap: () {
-                                                  if (!unlocked) {
-                                                    ScaffoldMessenger.of(
-                                                      context,
-                                                    ).showSnackBar(
-                                                      const SnackBar(
-                                                        content: Text(
-                                                          'Hoàn thành bài trước để mở khóa.',
-                                                        ),
-                                                      ),
-                                                    );
-                                                    return;
-                                                  }
-                                                  final payload =
-                                                      _syllabusLessonPayload(
-                                                        deliveryTargetId:
-                                                            deliveryTargetId
-                                                                    .isNotEmpty
-                                                                ? deliveryTargetId
-                                                                : null,
-                                                        productId: (lesson['productId'] ?? '').toString().isNotEmpty
-                                                            ? lesson['productId'].toString()
-                                                            : null,
-                                                        mode:
-                                                            (lesson['mode'] ??
-                                                                    'VOD')
-                                                                .toString(),
-                                                        progressDisabled:
-                                                            progressDisabled,
-                                                        lesson: cl,
-                                                        nextLesson: nextL,
-                                                      );
-                                                  Navigator.of(
-                                                    ctx,
-                                                    rootNavigator: true,
-                                                  ).pop();
-                                                  context.pushReplacement(
-                                                    '/lesson',
-                                                    extra: payload,
-                                                  );
-                                                },
-                                              );
-                                            }).toList(),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                );
-                              },
-                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -615,29 +628,31 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                   )
                 : Row(
                     children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed:
-                              deliveryTargetId.isEmpty ||
-                                      !_isTrackableType(typeRaw)
-                                  ? null
-                                  : () => _markComplete(),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      if (_activeTabIndex == 0) ...[
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed:
+                                deliveryTargetId.isEmpty ||
+                                        !_isTrackableType(typeRaw)
+                                    ? null
+                                    : () => _markComplete(),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          ),
-                          child: const Text(
-                            'Đánh dấu hoàn thành',
-                            style: TextStyle(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.bold,
+                            child: const Text(
+                              'Đánh dấu hoàn thành',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
+                        const SizedBox(width: 16),
+                      ],
                       Expanded(
                         child: ElevatedButton(
                           onPressed: nextLesson == null
@@ -1263,6 +1278,24 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     await _refreshDiscussionIfPossible();
   }
 
+  Future<void> _openCreateTopicSheet() async {
+    if (_isCreateTopicSheetOpen) return;
+    _isCreateTopicSheetOpen = true;
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (sheetCtx) => _CreateTopicSheet(
+          onSubmit: _createTopic,
+        ),
+      );
+    } finally {
+      _isCreateTopicSheetOpen = false;
+    }
+  }
+
   Widget _buildDiscussionTab() {
     final lessonId = (widget.lesson?['id'] ?? '').toString();
     final authState = ref.watch(authStateProvider).valueOrNull;
@@ -1329,60 +1362,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () async {
-                  String title = '';
-                  String content = '';
-                  await showDialog(
-                    context: context,
-                    builder: (ctx) {
-                      final titleCtrl = TextEditingController();
-                      final contentCtrl = TextEditingController();
-                      return AlertDialog(
-                        title: const Text('Đặt câu hỏi'),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              TextField(
-                                controller: titleCtrl,
-                                decoration: const InputDecoration(
-                                  labelText: 'Tiêu đề',
-                                ),
-                              ),
-                              TextField(
-                                controller: contentCtrl,
-                                decoration: const InputDecoration(
-                                  labelText: 'Nội dung',
-                                ),
-                                minLines: 3,
-                                maxLines: 6,
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(ctx).pop(),
-                            child: const Text('Hủy'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              title = titleCtrl.text;
-                              content = contentCtrl.text;
-                              Navigator.of(ctx).pop();
-                            },
-                            child: const Text('Gửi'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-
-                  if (title.trim().isEmpty || content.trim().isEmpty) return;
-                  await _createTopic(
-                    title: title.trim(),
-                    content: content.trim(),
-                  );
-                },
+                onPressed: _openCreateTopicSheet,
                 child: const Text('Đặt câu hỏi'),
               ),
             ],
@@ -1707,6 +1687,160 @@ class _PrimaryPillButton extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreateTopicSheet extends StatefulWidget {
+  const _CreateTopicSheet({
+    required this.onSubmit,
+  });
+
+  final Future<void> Function({
+    required String title,
+    required String content,
+  }) onSubmit;
+
+  @override
+  State<_CreateTopicSheet> createState() => _CreateTopicSheetState();
+}
+
+class _CreateTopicSheetState extends State<_CreateTopicSheet> {
+  late final TextEditingController _titleCtrl;
+  late final TextEditingController _contentCtrl;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleCtrl = TextEditingController()..addListener(_onChanged);
+    _contentCtrl = TextEditingController()..addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    _titleCtrl.removeListener(_onChanged);
+    _contentCtrl.removeListener(_onChanged);
+    _titleCtrl.dispose();
+    _contentCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _handleSubmit() async {
+    final title = _titleCtrl.text.trim();
+    final content = _contentCtrl.text.trim();
+    if (title.isEmpty || content.isEmpty || _isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onSubmit(title: title, content: content);
+      if (mounted) Navigator.of(context).pop();
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final canSubmit =
+        _titleCtrl.text.trim().isNotEmpty &&
+        _contentCtrl.text.trim().isNotEmpty &&
+        !_isSubmitting;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.9,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.grey300,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Đặt câu hỏi',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _titleCtrl,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Tiêu đề',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _contentCtrl,
+                    minLines: 4,
+                    maxLines: 7,
+                    decoration: const InputDecoration(
+                      labelText: 'Nội dung',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => Navigator.of(context).pop(),
+                          child: const Text('Hủy'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: canSubmit ? _handleSubmit : null,
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Gửi'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
