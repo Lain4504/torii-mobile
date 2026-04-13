@@ -1338,14 +1338,82 @@ class AcademyRepository {
         '/api/academy/live-classes/$liveClassId/assignments',
       );
       final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
-      if (api.success && api.data != null) {
-        final items = api.data!['items'] as List? ?? [];
-        return items
-            .map((e) => AssignmentModel.fromJson(e as Map<String, dynamic>))
-            .toList();
+      if (!api.success || api.data == null) return [];
+
+      final items = api.data!['items'] as List? ?? [];
+      final assignments = items
+          .whereType<Map>()
+          .map((e) => AssignmentModel.fromJson(e.cast<String, dynamic>()))
+          .toList();
+
+      // Merge my submissions to enrich content + submittedAt/gradedAt like web.
+      final submissions = await _getMyAssignmentSubmissions(liveClassId);
+      if (submissions.isEmpty) return assignments;
+
+      final byTemplateId = <String, Map<String, dynamic>>{};
+      final byClassAssessmentId = <String, Map<String, dynamic>>{};
+      for (final s in submissions) {
+        final templateId = s['assignmentTemplateId']?.toString();
+        final classAssessmentId = s['classAssessmentId']?.toString();
+        if (templateId != null && templateId.isNotEmpty) byTemplateId[templateId] = s;
+        if (classAssessmentId != null && classAssessmentId.isNotEmpty) {
+          byClassAssessmentId[classAssessmentId] = s;
+        }
       }
+
+      return assignments.map((a) {
+        final templateId = a.assignmentTemplateId;
+        final classAssessmentId = a.classAssessmentId;
+        final sub = (templateId != null && templateId.isNotEmpty)
+            ? byTemplateId[templateId]
+            : null;
+        final sub2 = (classAssessmentId != null && classAssessmentId.isNotEmpty)
+            ? byClassAssessmentId[classAssessmentId]
+            : null;
+        final picked = sub ?? sub2;
+        if (picked == null) return a;
+        final merged = AssignmentModel.fromJson(<String, dynamic>{
+          ...picked,
+          // keep assignment base fields
+          'id': a.id,
+          'title': a.title,
+          'description': a.description,
+          'deadline': a.deadline?.toIso8601String(),
+          'classAssessmentId': a.classAssessmentId,
+          'assignmentTemplateId': a.assignmentTemplateId,
+          // put submission under a stable key too
+          'mySubmission': picked,
+        });
+        // keep assignment-level title/description/deadline if submission json lacks them
+        return merged.copyWith(
+          status: merged.status ?? a.status,
+          grade: merged.grade ?? a.grade,
+          feedback: merged.feedback ?? a.feedback,
+        );
+      }).toList();
     } catch (_) {}
     return [];
+  }
+
+  /// GET /api/academy/assignment-submissions?liveClassId=
+  Future<List<Map<String, dynamic>>> _getMyAssignmentSubmissions(
+    String liveClassId,
+  ) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/assignment-submissions',
+        queryParameters: <String, dynamic>{'liveClassId': liveClassId},
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) return [];
+      final items = api.data!['items'] as List? ?? const [];
+      return items
+          .whereType<Map>()
+          .map((e) => e.cast<String, dynamic>())
+          .toList();
+    } catch (_) {
+      return const [];
+    }
   }
 
   /// POST /api/academy/assignment-submissions

@@ -42,18 +42,26 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
   bool _audioLoading = false;
   bool _audioPlaying = false;
   String? _activeMondaiCode;
+  StreamSubscription<void>? _playerCompleteSub;
+  int? _pendingNextSectionOrder;
+  String? _pendingNextEndsAtIso;
 
   @override
   void initState() {
     super.initState();
     _sectionOrder = widget.initialSectionOrder;
     _endsAtIso = widget.endsAtIso;
+    _playerCompleteSub = _audioPlayer.onPlayerComplete.listen((_) {
+      if (!mounted) return;
+      setState(() => _audioPlaying = false);
+    });
     _load();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _playerCompleteSub?.cancel();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -199,6 +207,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     final repo = ref.read(academyRepositoryProvider);
     final questions = _activeMondaiQuestions;
     if (questions.isEmpty) return;
+    final isListening = _currentSection?.isListening == true;
 
     setState(() {
       _audioLoading = true;
@@ -206,14 +215,16 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
       _imageUrlByQuestionId.clear();
     });
 
-    final firstAudioAssetId = questions
-        .map((q) => q.question.audioAssetId)
-        .whereType<String>()
-        .firstWhere((id) => id.trim().isNotEmpty, orElse: () => '');
-    if (firstAudioAssetId.isNotEmpty) {
-      final signed = await repo.getStorageSignedUrl(fileId: firstAudioAssetId);
-      if (signed != null && signed.isNotEmpty) {
-        _audioUrl = signed;
+    if (isListening) {
+      final firstAudioAssetId = _sectionQuestions
+          .map((q) => q.question.audioAssetId)
+          .whereType<String>()
+          .firstWhere((id) => id.trim().isNotEmpty, orElse: () => '');
+      if (firstAudioAssetId.isNotEmpty) {
+        final signed = await repo.getStorageSignedUrl(fileId: firstAudioAssetId);
+        if (signed != null && signed.isNotEmpty) {
+          _audioUrl = signed;
+        }
       }
     }
 
@@ -229,6 +240,12 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     setState(() {
       _audioLoading = false;
     });
+    if (isListening && _audioUrl != null && _audioUrl!.isNotEmpty) {
+      try {
+        await _audioPlayer.play(UrlSource(_audioUrl!));
+        if (mounted) setState(() => _audioPlaying = true);
+      } catch (_) {}
+    }
   }
 
   Future<void> _togglePlayAudio() async {
@@ -242,10 +259,6 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     await _audioPlayer.play(UrlSource(_audioUrl!));
     if (!mounted) return;
     setState(() => _audioPlaying = true);
-    _audioPlayer.onPlayerComplete.listen((_) {
-      if (!mounted) return;
-      setState(() => _audioPlaying = false);
-    });
   }
 
   Future<void> _saveSingle(
@@ -309,17 +322,10 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
     if (!mounted) return;
     setState(() {
       _submitting = false;
-      _sectionOrder = next?.currentSectionOrder ?? (_sectionOrder + 1);
-      _endsAtIso = next?.endsAt;
-      _activeMondaiCode = null;
+      _pendingNextSectionOrder = next?.currentSectionOrder ?? (_sectionOrder + 1);
+      _pendingNextEndsAtIso = next?.endsAt;
     });
-    _startTimer();
-    await _audioPlayer.stop();
-    if (mounted) {
-      setState(() => _audioPlaying = false);
-    }
-    await _loadSectionMedia();
-    if (!mounted) return;
+    await _openNextSectionConfirm();
     if (!autoSubmit) {
       ScaffoldMessenger.of(
         context,
@@ -331,6 +337,10 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return _buildBody(context);
+  }
+
+  Widget _buildBody(BuildContext context) {
     final theme = Theme.of(context);
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -464,7 +474,9 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
                 ),
               ),
             )
-          else if (_audioUrl != null && _audioUrl!.isNotEmpty)
+          else if ((_currentSection?.isListening == true) &&
+              _audioUrl != null &&
+              _audioUrl!.isNotEmpty)
             Container(
               width: double.infinity,
               margin: const EdgeInsets.fromLTRB(16, 10, 16, 0),
@@ -615,7 +627,7 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
         child: SizedBox(
           height: 48,
           child: ElevatedButton.icon(
-            onPressed: _submitting ? null : () => _submitCurrentSection(),
+            onPressed: _submitting ? null : () => _openSubmitConfirm(),
             icon: _submitting
                 ? const SizedBox(
                     width: 16,
@@ -633,4 +645,79 @@ class _JlptMockExamScreenState extends ConsumerState<JlptMockExamScreen> {
       ),
     );
   }
+
+  Future<void> _openSubmitConfirm() async {
+    final isLastSection =
+        _sections.isNotEmpty && _sections.last.orderIndex == _sectionOrder;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isLastSection ? 'Xác nhận nộp toàn bộ bài?' : 'Nộp phần thi hiện tại?'),
+        content: Text(
+          isLastSection
+              ? 'Bạn sẽ hoàn tất bài thi JLPT mock và chuyển sang kết quả.'
+              : 'Bạn sẽ nộp phần hiện tại và chuyển sang phần tiếp theo.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Quay lại'),
+          ),
+          FilledButton(
+            onPressed: _submitting
+                ? null
+                : () async {
+                    Navigator.pop(context);
+                    await _submitCurrentSection();
+                  },
+            child: const Text('Nộp ngay'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openNextSectionConfirm() async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Chuyển sang phần thi mới'),
+        content: const Text(
+          'Bạn đã nộp thành công phần hiện tại. Bắt đầu phần tiếp theo ngay bây giờ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.go('/jlpt-mock/${widget.levelCode.toUpperCase()}');
+            },
+            child: const Text('Để sau'),
+          ),
+          FilledButton(
+            onPressed: _pendingNextSectionOrder == null
+                ? null
+                : () async {
+                    Navigator.pop(context);
+                    final nextOrder = _pendingNextSectionOrder!;
+                    final nextEndsAt = _pendingNextEndsAtIso;
+                    setState(() {
+                      _sectionOrder = nextOrder;
+                      _endsAtIso = nextEndsAt;
+                      _activeMondaiCode = null;
+                      _pendingNextSectionOrder = null;
+                      _pendingNextEndsAtIso = null;
+                    });
+                    _startTimer();
+                    await _audioPlayer.stop();
+                    if (mounted) setState(() => _audioPlaying = false);
+                    await _loadSectionMedia();
+                  },
+            child: const Text('Bắt đầu'),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

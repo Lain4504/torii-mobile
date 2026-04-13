@@ -84,10 +84,57 @@ class CurriculumScreen extends ConsumerWidget {
           final lessonOrder = <CurriculumLessonModel>[
             for (final module in modules) ...module.lessons,
           ];
+          final moduleOrderMap = <String, int>{
+            for (int i = 0; i < modules.length; i++) modules[i].id: i,
+          };
+          final lessonOrderMeta = <String, ({int moduleOrder, int lessonOrder, String moduleId})>{
+            for (int mi = 0; mi < modules.length; mi++)
+              for (int li = 0; li < modules[mi].lessons.length; li++)
+                modules[mi].lessons[li].id: (
+                  moduleOrder: mi,
+                  lessonOrder: li,
+                  moduleId: modules[mi].id,
+                ),
+          };
           final lessonIndexById = <String, int>{
             for (int i = 0; i < lessonOrder.length; i++) lessonOrder[i].id: i,
           };
           final trackableOrdered = lessonOrder.where(_isTrackableKind).toList();
+          final completedTrackable = trackableOrdered
+              .where(
+                (l) => _isTrackableDone(
+                  l,
+                  completed,
+                  assessmentsByExamId,
+                ),
+              )
+              .length;
+
+          final lessonMilestonesByLessonId = <String, List<AssessmentMilestoneModel>>{};
+          final moduleMilestonesByModuleId = <String, List<AssessmentMilestoneModel>>{};
+          final finalMilestones = <AssessmentMilestoneModel>[];
+          for (final m in assessments) {
+            final kind = _normalizeItemKind(m.kind);
+            if (kind == 'FINAL_EXAM') {
+              finalMilestones.add(m);
+              continue;
+            }
+            if ((kind == 'MODULE_CHECKPOINT' ||
+                    kind == 'MODULE_TEST' ||
+                    kind == 'MODULE_EXAM') &&
+                (m.moduleId ?? '').isNotEmpty) {
+              moduleMilestonesByModuleId
+                  .putIfAbsent(m.moduleId!, () => <AssessmentMilestoneModel>[])
+                  .add(m);
+              continue;
+            }
+            if ((kind == 'LESSON_CHECKPOINT' || kind == 'LESSON_TEST') &&
+                (m.triggerLessonId ?? '').isNotEmpty) {
+              lessonMilestonesByLessonId
+                  .putIfAbsent(m.triggerLessonId!, () => <AssessmentMilestoneModel>[])
+                  .add(m);
+            }
+          }
 
           final totalLessons = lessonOrder.length;
           final totalModules = modules.length;
@@ -128,8 +175,18 @@ class CurriculumScreen extends ConsumerWidget {
                           trackableOrdered: trackableOrdered,
                           completed: completed,
                           assessmentsByExamId: assessmentsByExamId,
+                          milestones: assessments,
+                          lessonOrderMeta: lessonOrderMeta,
+                          moduleOrderMap: moduleOrderMap,
                           useProgress: useProgress,
                         );
+                        final lessonDone = _isTrackableDone(
+                          lesson,
+                          completed,
+                          assessmentsByExamId,
+                        );
+                        final lessonMilestones =
+                            lessonMilestonesByLessonId[lesson.id] ?? const [];
                         return _buildLessonItem(
                           context,
                           enrollmentId: enrollmentId,
@@ -163,10 +220,49 @@ class CurriculumScreen extends ConsumerWidget {
                             nextLesson: nextL,
                             assessmentId: lesson.type.toLowerCase() == 'quiz' ? assessmentsByExamId[lesson.id]?.id : null,
                           ),
+                          children: lessonMilestones
+                              .map(
+                                (m) => _buildMilestoneItem(
+                                  context,
+                                  milestone: m,
+                                  forceLocked: !lessonDone,
+                                ),
+                              )
+                              .toList(),
                         );
-                      }).toList(),
+                      }).toList()
+                        ..addAll(
+                          (moduleMilestonesByModuleId[module.id] ?? const [])
+                              .map((m) {
+                            final moduleTrackable = module.lessons
+                                .where(_isTrackableKind)
+                                .toList();
+                            final canOpen = moduleTrackable.isNotEmpty &&
+                                moduleTrackable.every(
+                                  (l) => _isTrackableDone(
+                                    l,
+                                    completed,
+                                    assessmentsByExamId,
+                                  ),
+                                );
+                            return _buildMilestoneItem(
+                              context,
+                              milestone: m,
+                              forceLocked: !canOpen,
+                            );
+                          }),
+                        ),
                     ),
                   ),
+                if (finalMilestones.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  _buildFinalExamBlock(
+                    context,
+                    finalMilestones: finalMilestones,
+                    forceLocked:
+                        completedTrackable < trackableOrdered.length,
+                  ),
+                ],
               ],
             ),
           );
@@ -286,8 +382,11 @@ class CurriculumScreen extends ConsumerWidget {
     required Color statusColor,
     required Map<String, dynamic> lesson,
     required bool locked,
+    List<Widget> children = const [],
   }) {
-    return Padding(
+    return Column(
+      children: [
+        Padding(
       padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -364,6 +463,130 @@ class CurriculumScreen extends ConsumerWidget {
           ],
         ),
       ),
+    ),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _buildMilestoneItem(
+    BuildContext context, {
+    required AssessmentMilestoneModel milestone,
+    required bool forceLocked,
+  }) {
+    final theme = Theme.of(context);
+    final isLocked = forceLocked || milestone.isLocked;
+    final isPassed = milestone.isPassed;
+    final statusText = isPassed
+        ? (milestone.percentage != null
+            ? '${milestone.percentage!.round()}% đạt'
+            : 'Đã đạt')
+        : (milestone.status == 'FAILED'
+            ? 'Cần làm lại'
+            : (isLocked ? 'Đã khóa' : 'Sẵn sàng'));
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 24, right: 4, bottom: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isPassed
+                ? Colors.green.withValues(alpha: 0.35)
+                : theme.colorScheme.outlineVariant,
+          ),
+        ),
+        child: ListTile(
+          dense: true,
+          enabled: !isLocked,
+          onTap: isLocked ? null : () => _openMilestoneQuiz(context, milestone),
+          leading: Icon(
+            isPassed ? Icons.emoji_events_outlined : Icons.quiz_outlined,
+            color: isPassed ? Colors.green : theme.colorScheme.primary,
+            size: 18,
+          ),
+          title: Text(
+            milestone.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          subtitle: Text(
+            _normalizeItemKind(milestone.kind) == 'FINAL_EXAM'
+                ? 'Thử thách cuối khóa'
+                : 'Bài kiểm tra',
+            style: TextStyle(
+              fontSize: 10,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          trailing: Text(
+            statusText,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: isPassed
+                  ? Colors.green
+                  : (isLocked ? theme.colorScheme.outline : theme.colorScheme.primary),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFinalExamBlock(
+    BuildContext context, {
+    required List<AssessmentMilestoneModel> finalMilestones,
+    required bool forceLocked,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Thử thách cuối khóa',
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...finalMilestones.map(
+            (m) => _buildMilestoneItem(
+              context,
+              milestone: m,
+              forceLocked: forceLocked,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openMilestoneQuiz(BuildContext context, AssessmentMilestoneModel milestone) {
+    final examPath = milestone.examId.isNotEmpty && milestone.examId != 'null'
+        ? milestone.examId
+        : 'unknown';
+    if (enrollmentId == null || enrollmentId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Thiếu mã ghi danh. Mở lộ trình từ "Khóa học của tôi".'),
+        ),
+      );
+      return;
+    }
+    context.push(
+      '/quiz/$examPath?deliveryTargetId=$deliveryTargetId&enrollmentId=$enrollmentId&assessmentId=${milestone.id}',
     );
   }
 }
@@ -373,11 +596,27 @@ bool _isTrackableKind(CurriculumLessonModel l) {
   return t == 'VIDEO' || t == 'READING' || t == 'ARTICLE' || t == 'QUIZ';
 }
 
+bool _isTrackableDone(
+  CurriculumLessonModel lesson,
+  Set<String> completed,
+  Map<String, AssessmentMilestoneModel> assessmentsByExamId,
+) {
+  if (lesson.type.toUpperCase() == 'QUIZ') {
+    final quizStatus = assessmentsByExamId[lesson.id];
+    return quizStatus?.isPassed ?? false;
+  }
+  return completed.contains(lesson.id);
+}
+
 bool _effectiveLessonUnlocked({
   required CurriculumLessonModel lesson,
   required List<CurriculumLessonModel> trackableOrdered,
   required Set<String> completed,
   required Map<String, AssessmentMilestoneModel> assessmentsByExamId,
+  required List<AssessmentMilestoneModel> milestones,
+  required Map<String, ({int moduleOrder, int lessonOrder, String moduleId})>
+      lessonOrderMeta,
+  required Map<String, int> moduleOrderMap,
   required bool useProgress,
 }) {
   if (!useProgress) return true;
@@ -389,9 +628,47 @@ bool _effectiveLessonUnlocked({
     final quizStatus = assessmentsByExamId[prev.id];
     return quizStatus?.isPassed ?? false;
   }
-  
-  return completed.contains(prev.id);
+
+  if (!completed.contains(prev.id)) return false;
+  return !_hasBlockingRequiredMilestoneBeforeLesson(
+    lesson: lesson,
+    milestones: milestones,
+    lessonOrderMeta: lessonOrderMeta,
+    moduleOrderMap: moduleOrderMap,
+  );
 }
+
+bool _hasBlockingRequiredMilestoneBeforeLesson({
+  required CurriculumLessonModel lesson,
+  required List<AssessmentMilestoneModel> milestones,
+  required Map<String, ({int moduleOrder, int lessonOrder, String moduleId})>
+      lessonOrderMeta,
+  required Map<String, int> moduleOrderMap,
+}) {
+  final lessonMeta = lessonOrderMeta[lesson.id];
+  if (lessonMeta == null) return false;
+  for (final m in milestones) {
+    if (!m.isRequired || m.isPassed) continue;
+    final kind = _normalizeItemKind(m.kind);
+    if (kind == 'LESSON_CHECKPOINT' && (m.triggerLessonId ?? '').isNotEmpty) {
+      final triggerMeta = lessonOrderMeta[m.triggerLessonId!];
+      if (triggerMeta == null) continue;
+      if (triggerMeta.moduleOrder < lessonMeta.moduleOrder) return true;
+      if (triggerMeta.moduleId == lessonMeta.moduleId &&
+          triggerMeta.lessonOrder < lessonMeta.lessonOrder) {
+        return true;
+      }
+    }
+    if (kind == 'MODULE_CHECKPOINT' && (m.moduleId ?? '').isNotEmpty) {
+      final milestoneModuleOrder = moduleOrderMap[m.moduleId!];
+      if (milestoneModuleOrder == null) continue;
+      if (milestoneModuleOrder < lessonMeta.moduleOrder) return true;
+    }
+  }
+  return false;
+}
+
+String _normalizeItemKind(String? kind) => (kind ?? '').toUpperCase();
 
 String _lessonStatus(
   CurriculumLessonModel lesson,

@@ -18,6 +18,7 @@ class _JlptMockTemplatesScreenState
     extends ConsumerState<JlptMockTemplatesScreen> {
   late Future<List<JlptMockTemplateItemModel>> _future;
   bool _starting = false;
+  JlptMockTemplateItemModel? _pendingStartItem;
 
   @override
   void initState() {
@@ -47,6 +48,40 @@ class _JlptMockTemplatesScreenState
         : '&endsAt=${Uri.encodeQueryComponent(started.endsAt!)}';
     context.push(
       '/jlpt-mock/exam?templateId=${item.id}&attemptId=${started.attemptId}&sectionOrder=1&level=${widget.levelCode}$endsAt',
+    );
+  }
+
+  Future<void> _confirmStartDialog(JlptMockTemplateItemModel item) async {
+    setState(() => _pendingStartItem = item);
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        final pending = _pendingStartItem;
+        return AlertDialog(
+          title: const Text('Vào phòng thi thử?'),
+          content: Text(
+            pending == null
+                ? 'Thời gian làm bài sẽ bắt đầu ngay sau khi xác nhận.'
+                : 'Bạn sắp bắt đầu đề "${pending.title}". Thời gian làm bài sẽ bắt đầu ngay sau khi xác nhận.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Quay lại'),
+            ),
+            FilledButton(
+              onPressed: _starting
+                  ? null
+                  : () async {
+                      if (pending == null) return;
+                      Navigator.pop(context);
+                      await _startAttempt(pending);
+                    },
+              child: const Text('Vào phòng thi'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -88,7 +123,7 @@ class _JlptMockTemplatesScreenState
               final item = items[index];
               return InkWell(
                 borderRadius: BorderRadius.circular(16),
-                onTap: _starting ? null : () => _startAttempt(item),
+                onTap: _starting ? null : () => _confirmStartDialog(item),
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(

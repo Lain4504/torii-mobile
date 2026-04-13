@@ -104,8 +104,14 @@ class _StudySetsListScreenState extends ConsumerState<StudySetsListScreen> with 
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildSetsGrid(ref.watch(studySetsProvider)),
-                _buildSetsGrid(ref.watch(publicStudySetsProvider(_searchQuery))),
+                _buildSetsGrid(
+                  ref.watch(studySetsProvider),
+                  isPersonalTab: true,
+                ),
+                _buildSetsGrid(
+                  ref.watch(publicStudySetsProvider(_searchQuery)),
+                  isPersonalTab: false,
+                ),
                 const MyFoldersScreen(),
               ],
             ),
@@ -115,7 +121,10 @@ class _StudySetsListScreenState extends ConsumerState<StudySetsListScreen> with 
     );
   }
 
-  Widget _buildSetsGrid(AsyncValue<List<StudySetModel>> setsAsync) {
+  Widget _buildSetsGrid(
+    AsyncValue<List<StudySetModel>> setsAsync, {
+    required bool isPersonalTab,
+  }) {
     final theme = Theme.of(context);
     return setsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -126,6 +135,9 @@ class _StudySetsListScreenState extends ConsumerState<StudySetsListScreen> with 
             : sets.where((s) => s.title.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
 
         if (filteredSets.isEmpty) {
+          if (isPersonalTab && _searchQuery.isEmpty) {
+            return _EmptySetsView(onCreate: () => _showCreateSetSheet(context));
+          }
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -307,6 +319,13 @@ class _CreateSetSheetState extends State<_CreateSetSheet> {
   final _descCtrl = TextEditingController();
   bool _busy = false;
 
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _submit(WidgetRef ref) async {
     final title = _titleCtrl.text.trim();
     if (title.isEmpty) return;
@@ -339,6 +358,7 @@ class _CreateSetSheetState extends State<_CreateSetSheet> {
           TextField(
             controller: _titleCtrl,
             autofocus: true,
+            onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(labelText: 'Tên bộ thẻ *', border: OutlineInputBorder()),
           ),
           const SizedBox(height: 16),
@@ -351,14 +371,20 @@ class _CreateSetSheetState extends State<_CreateSetSheet> {
           SizedBox(
             width: double.infinity,
             height: 54,
-            child: Consumer(builder: (context, ref, _) {
-              return ElevatedButton(
-                onPressed: _busy ? null : () => _submit(ref as WidgetRef),
-                style:
-                    ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                child: Text(_busy ? 'Đang tạo...' : 'Tạo bộ thẻ'),
-              );
-            }),
+            child: Consumer(
+              builder: (context, ref, _) {
+                final canSubmit = _titleCtrl.text.trim().isNotEmpty;
+                return ElevatedButton(
+                  onPressed: (_busy || !canSubmit) ? null : () => _submit(ref),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Text(_busy ? 'Đang tạo...' : 'Tạo bộ thẻ'),
+                );
+              },
+            ),
           ),
         ],
       ),

@@ -6,7 +6,9 @@ import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/live_schedule_model.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/academy_product_detail_model.dart';
+import 'package:torii_app/data/models/comment_model.dart';
 import 'package:torii_app/features/academy/presentation/widgets/resource_item.dart';
+import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Khóa LIVE đã ghi danh: lịch tuần + tabs syllabus / tài liệu / bài tập / quiz.
@@ -183,14 +185,13 @@ class _EnrolledLiveCourseScreenState
                   SliverFillRemaining(
                     child: TabBarView(
                       children: [
-                        _SyllabusTabPane(liveClassId: widget.liveClassId, productId: widget.productId),
-                        _ResourcesTabPane(liveClassId: widget.liveClassId),
-                        _PlaceholderTabPane(
-                          icon: Icons.forum_outlined,
-                          title: 'Hỏi đáp',
-                          message:
-                              'Phần hỏi đáp sẽ được mở trong các phiên bản tiếp theo.',
+                        _SyllabusTabPane(
+                          liveClassId: widget.liveClassId,
+                          productId: widget.productId,
+                          enrollmentId: widget.enrollmentId,
                         ),
+                        _ResourcesTabPane(liveClassId: widget.liveClassId),
+                        _LiveDiscussionTabPane(liveClassId: widget.liveClassId),
                         _AssignmentsTabPane(liveClassId: widget.liveClassId),
                         _QuizzesTabPane(
                           liveClassId: widget.liveClassId,
@@ -676,10 +677,15 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class _SyllabusTabPane extends ConsumerWidget {
-  const _SyllabusTabPane({required this.liveClassId, this.productId});
+  const _SyllabusTabPane({
+    required this.liveClassId,
+    this.productId,
+    this.enrollmentId,
+  });
 
   final String liveClassId;
   final String? productId;
+  final String? enrollmentId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -690,6 +696,19 @@ class _SyllabusTabPane extends ConsumerWidget {
     final detailAsync = ref.watch(classCatalogLiveDetailProvider(effectiveProductId));
     final completedIds = ref.watch(classCompletedLessonIdsProvider((deliveryTargetId: liveClassId, mode: 'LIVE', productId: productId))).value ?? const [];
     final completed = completedIds.toSet();
+    final assessments = ref
+            .watch(
+              assessmentStatusProvider(
+                assessmentStatusCacheKey(liveClassId, enrollmentId),
+              ),
+            )
+            .value ??
+        const <AssessmentMilestoneModel>[];
+    final assessmentsByExamId = <String, AssessmentMilestoneModel>{};
+    for (final a in assessments) {
+      assessmentsByExamId[a.examId] = a;
+      assessmentsByExamId[a.id] = a;
+    }
 
     return detailAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -729,10 +748,57 @@ class _SyllabusTabPane extends ConsumerWidget {
         final lessonOrder = <CurriculumLessonModel>[
           for (final module in modules) ...module.lessons,
         ];
+        final moduleOrderMap = <String, int>{
+          for (int i = 0; i < modules.length; i++) modules[i].id: i,
+        };
+        final lessonOrderMeta = <String, ({int moduleOrder, int lessonOrder, String moduleId})>{
+          for (int mi = 0; mi < modules.length; mi++)
+            for (int li = 0; li < modules[mi].lessons.length; li++)
+              modules[mi].lessons[li].id: (
+                moduleOrder: mi,
+                lessonOrder: li,
+                moduleId: modules[mi].id,
+              ),
+        };
         final lessonIndexById = <String, int>{
           for (int i = 0; i < lessonOrder.length; i++) lessonOrder[i].id: i,
         };
         final trackableOrdered = lessonOrder.where(_isTrackableKind).toList();
+        final completedTrackable =
+            trackableOrdered
+                .where(
+                  (l) => _isTrackableDone(
+                    l,
+                    completed,
+                    assessmentsByExamId,
+                  ),
+                )
+                .length;
+        final lessonMilestonesByLessonId = <String, List<AssessmentMilestoneModel>>{};
+        final moduleMilestonesByModuleId = <String, List<AssessmentMilestoneModel>>{};
+        final finalMilestones = <AssessmentMilestoneModel>[];
+        for (final m in assessments) {
+          final kind = _normalizeItemKind(m.kind);
+          if (kind == 'FINAL_EXAM') {
+            finalMilestones.add(m);
+            continue;
+          }
+          if ((kind == 'MODULE_CHECKPOINT' ||
+                  kind == 'MODULE_TEST' ||
+                  kind == 'MODULE_EXAM') &&
+              (m.moduleId ?? '').isNotEmpty) {
+            moduleMilestonesByModuleId
+                .putIfAbsent(m.moduleId!, () => <AssessmentMilestoneModel>[])
+                .add(m);
+            continue;
+          }
+          if ((kind == 'LESSON_CHECKPOINT' || kind == 'LESSON_TEST') &&
+              (m.triggerLessonId ?? '').isNotEmpty) {
+            lessonMilestonesByLessonId
+                .putIfAbsent(m.triggerLessonId!, () => <AssessmentMilestoneModel>[])
+                .add(m);
+          }
+        }
 
         return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -754,8 +820,18 @@ class _SyllabusTabPane extends ConsumerWidget {
                       lesson: lesson,
                       trackableOrdered: trackableOrdered,
                       completed: completed,
+                      assessmentsByExamId: assessmentsByExamId,
+                      milestones: assessments,
+                      lessonOrderMeta: lessonOrderMeta,
+                      moduleOrderMap: moduleOrderMap,
                     );
-                    final done = _isTrackableKind(lesson) && completed.contains(lesson.id);
+                    final done = _isTrackableDone(
+                      lesson,
+                      completed,
+                      assessmentsByExamId,
+                    );
+                    final lessonMilestones =
+                        lessonMilestonesByLessonId[lesson.id] ?? const [];
 
                     final status = !unlocked
                         ? 'Đã khóa'
@@ -774,16 +850,58 @@ class _SyllabusTabPane extends ConsumerWidget {
                       status: status,
                       statusColor: statusColor,
                       locked: !unlocked,
+                      enrollmentId: enrollmentId,
                       lesson: _lessonPayload(
                         deliveryTargetId: liveClassId,
+                        enrollmentId: enrollmentId,
                         mode: 'LIVE',
                         lesson: lesson,
                         nextLesson: nextL,
+                        assessmentId: lesson.type.toLowerCase() == 'quiz'
+                            ? assessmentsByExamId[lesson.id]?.id
+                            : null,
                       ),
+                      children: lessonMilestones
+                          .map(
+                            (m) => _buildMilestoneItem(
+                              context,
+                              milestone: m,
+                              forceLocked: !done,
+                            ),
+                          )
+                          .toList(),
                     );
-                  }).toList(),
+                  }).toList()
+                    ..addAll(
+                      (moduleMilestonesByModuleId[module.id] ?? const [])
+                          .map((m) {
+                        final moduleTrackable =
+                            module.lessons.where(_isTrackableKind).toList();
+                        final canOpen = moduleTrackable.isNotEmpty &&
+                            moduleTrackable.every(
+                              (l) => _isTrackableDone(
+                                l,
+                                completed,
+                                assessmentsByExamId,
+                              ),
+                            );
+                        return _buildMilestoneItem(
+                          context,
+                          milestone: m,
+                          forceLocked: !canOpen,
+                        );
+                      }),
+                    ),
                 ),
               ),
+              if (finalMilestones.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                _buildFinalExamBlock(
+                  context,
+                  finalMilestones: finalMilestones,
+                  forceLocked: completedTrackable < trackableOrdered.length,
+                ),
+              ],
               const SizedBox(height: 20),
             ],
           ),
@@ -911,11 +1029,15 @@ class _SyllabusTabPane extends ConsumerWidget {
     required Color statusColor,
     required Map<String, dynamic> lesson,
     required bool locked,
+    String? enrollmentId,
+    List<Widget> children = const [],
   }) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: InkWell(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: locked
             ? () {
@@ -925,7 +1047,28 @@ class _SyllabusTabPane extends ConsumerWidget {
                   ),
                 );
               }
-            : () => context.push('/lesson', extra: lesson),
+            : () {
+                if (lesson['type'] == 'quiz') {
+                  final assId = lesson['assessmentId'] ?? '';
+                  final eid = (enrollmentId ?? lesson['enrollmentId'] ?? '')
+                      .toString();
+                  if (eid.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Thiếu mã ghi danh. Hãy vào khóa từ "Khóa học của tôi".',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                  context.push(
+                    '/quiz/${lesson['id']}?deliveryTargetId=${lesson['deliveryTargetId']}&enrollmentId=$eid${assId.toString().isNotEmpty ? '&assessmentId=$assId' : ''}',
+                  );
+                  return;
+                }
+                context.push('/lesson', extra: lesson);
+              },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -1003,38 +1146,72 @@ class _SyllabusTabPane extends ConsumerWidget {
           ),
         ),
       ),
+    ),
+        ...children,
+      ],
     );
   }
 
   bool _isTrackableKind(CurriculumLessonModel l) {
     final t = l.type.toUpperCase();
-    return t == 'VIDEO' || t == 'READING' || t == 'ARTICLE';
+    return t == 'VIDEO' || t == 'READING' || t == 'ARTICLE' || t == 'QUIZ';
+  }
+
+  bool _isTrackableDone(
+    CurriculumLessonModel lesson,
+    Set<String> completed,
+    Map<String, AssessmentMilestoneModel> assessmentsByExamId,
+  ) {
+    if (lesson.type.toUpperCase() == 'QUIZ') {
+      final quizStatus = assessmentsByExamId[lesson.id];
+      return quizStatus?.isPassed ?? false;
+    }
+    return completed.contains(lesson.id);
   }
 
   bool _effectiveLessonUnlocked({
     required CurriculumLessonModel lesson,
     required List<CurriculumLessonModel> trackableOrdered,
     required Set<String> completed,
+    required Map<String, AssessmentMilestoneModel> assessmentsByExamId,
+    required List<AssessmentMilestoneModel> milestones,
+    required Map<String, ({int moduleOrder, int lessonOrder, String moduleId})>
+        lessonOrderMeta,
+    required Map<String, int> moduleOrderMap,
   }) {
-    if (!_isTrackableKind(lesson)) return true;
     final idx = trackableOrdered.indexWhere((l) => l.id == lesson.id);
     if (idx <= 0) return true;
-    return completed.contains(trackableOrdered[idx - 1].id);
+    final prev = trackableOrdered[idx - 1];
+    if (prev.type.toUpperCase() == 'QUIZ') {
+      final quizStatus = assessmentsByExamId[prev.id];
+      return quizStatus?.isPassed ?? false;
+    }
+    if (!completed.contains(prev.id)) return false;
+    return !_hasBlockingRequiredMilestoneBeforeLesson(
+      lesson: lesson,
+      milestones: milestones,
+      lessonOrderMeta: lessonOrderMeta,
+      moduleOrderMap: moduleOrderMap,
+    );
   }
 
   Map<String, dynamic> _lessonPayload({
     required String deliveryTargetId,
+    String? enrollmentId,
     required String mode,
     required CurriculumLessonModel lesson,
     CurriculumLessonModel? nextLesson,
+    String? assessmentId,
   }) {
     final effectiveProductId = (productId != null && productId!.isNotEmpty)
         ? productId!
         : deliveryTargetId;
     return <String, dynamic>{
       if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+      if (enrollmentId != null && enrollmentId.isNotEmpty) 'enrollmentId': enrollmentId,
       'productId': effectiveProductId,
       if (mode.isNotEmpty) 'mode': mode,
+      if (assessmentId != null) 'assessmentId': assessmentId,
       'id': lesson.id,
       'title': lesson.title,
       'type': lesson.type.toLowerCase(),
@@ -1046,6 +1223,7 @@ class _SyllabusTabPane extends ConsumerWidget {
       if (nextLesson != null)
         'nextLesson': <String, dynamic>{
           if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+          if (enrollmentId != null && enrollmentId.isNotEmpty) 'enrollmentId': enrollmentId,
           'productId': effectiveProductId,
           if (mode.isNotEmpty) 'mode': mode,
           'id': nextLesson.id,
@@ -1058,6 +1236,126 @@ class _SyllabusTabPane extends ConsumerWidget {
           },
         },
     };
+  }
+
+  Widget _buildMilestoneItem(
+    BuildContext context, {
+    required AssessmentMilestoneModel milestone,
+    required bool forceLocked,
+  }) {
+    final theme = Theme.of(context);
+    final isLocked = forceLocked || milestone.isLocked;
+    final isPassed = milestone.isPassed;
+    final statusText = isPassed
+        ? (milestone.percentage != null
+            ? '${milestone.percentage!.round()}% đạt'
+            : 'Đã đạt')
+        : (milestone.status == 'FAILED'
+            ? 'Cần làm lại'
+            : (isLocked ? 'Đã khóa' : 'Sẵn sàng'));
+    return Padding(
+      padding: const EdgeInsets.only(left: 24, right: 4, bottom: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isPassed
+                ? Colors.green.withValues(alpha: 0.35)
+                : theme.colorScheme.outlineVariant,
+          ),
+        ),
+        child: ListTile(
+          dense: true,
+          enabled: !isLocked,
+          onTap: isLocked ? null : () => _openMilestoneQuiz(context, milestone),
+          leading: Icon(
+            isPassed ? Icons.emoji_events_outlined : Icons.quiz_outlined,
+            color: isPassed ? Colors.green : theme.colorScheme.primary,
+            size: 18,
+          ),
+          title: Text(
+            milestone.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          subtitle: Text(
+            _normalizeItemKind(milestone.kind) == 'FINAL_EXAM'
+                ? 'Thử thách cuối khóa'
+                : 'Bài kiểm tra',
+            style: TextStyle(
+              fontSize: 10,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          trailing: Text(
+            statusText,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: isPassed
+                  ? Colors.green
+                  : (isLocked ? theme.colorScheme.outline : theme.colorScheme.primary),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFinalExamBlock(
+    BuildContext context, {
+    required List<AssessmentMilestoneModel> finalMilestones,
+    required bool forceLocked,
+  }) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Thử thách cuối khóa',
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...finalMilestones.map(
+            (m) => _buildMilestoneItem(
+              context,
+              milestone: m,
+              forceLocked: forceLocked,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openMilestoneQuiz(BuildContext context, AssessmentMilestoneModel milestone) {
+    final examPath = milestone.examId.isNotEmpty && milestone.examId != 'null'
+        ? milestone.examId
+        : 'unknown';
+    if (enrollmentId == null || enrollmentId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Thiếu mã ghi danh. Hãy vào khóa từ "Khóa học của tôi".'),
+        ),
+      );
+      return;
+    }
+    context.push(
+      '/quiz/$examPath?deliveryTargetId=$liveClassId&enrollmentId=$enrollmentId&assessmentId=${milestone.id}',
+    );
   }
 
   IconData _iconByType(String type) {
@@ -1086,6 +1384,38 @@ class _SyllabusTabPane extends ConsumerWidget {
     }
   }
 }
+
+bool _hasBlockingRequiredMilestoneBeforeLesson({
+  required CurriculumLessonModel lesson,
+  required List<AssessmentMilestoneModel> milestones,
+  required Map<String, ({int moduleOrder, int lessonOrder, String moduleId})>
+      lessonOrderMeta,
+  required Map<String, int> moduleOrderMap,
+}) {
+  final lessonMeta = lessonOrderMeta[lesson.id];
+  if (lessonMeta == null) return false;
+  for (final m in milestones) {
+    if (!m.isRequired || m.isPassed) continue;
+    final kind = _normalizeItemKind(m.kind);
+    if (kind == 'LESSON_CHECKPOINT' && (m.triggerLessonId ?? '').isNotEmpty) {
+      final triggerMeta = lessonOrderMeta[m.triggerLessonId!];
+      if (triggerMeta == null) continue;
+      if (triggerMeta.moduleOrder < lessonMeta.moduleOrder) return true;
+      if (triggerMeta.moduleId == lessonMeta.moduleId &&
+          triggerMeta.lessonOrder < lessonMeta.lessonOrder) {
+        return true;
+      }
+    }
+    if (kind == 'MODULE_CHECKPOINT' && (m.moduleId ?? '').isNotEmpty) {
+      final milestoneModuleOrder = moduleOrderMap[m.moduleId!];
+      if (milestoneModuleOrder == null) continue;
+      if (milestoneModuleOrder < lessonMeta.moduleOrder) return true;
+    }
+  }
+  return false;
+}
+
+String _normalizeItemKind(String? kind) => (kind ?? '').toUpperCase();
 
 class _ResourcesTabPane extends ConsumerWidget {
   const _ResourcesTabPane({required this.liveClassId});
@@ -1241,6 +1571,31 @@ class _AssignmentsTabPane extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Điểm: ${assignment.grade}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
+              if (assignment.submittedAt != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Đã nộp lúc: ${DateFormat('dd/MM/yyyy HH:mm').format(assignment.submittedAt!.toLocal())}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ],
+              if ((assignment.submittedUrl ?? '').isNotEmpty || (assignment.submittedText ?? '').isNotEmpty) ...[
+                const SizedBox(height: 10),
+                const Text('Nội dung đã nộp:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                if ((assignment.submittedUrl ?? '').isNotEmpty)
+                  InkWell(
+                    onTap: () => _openUrl(context, assignment.submittedUrl!),
+                    child: Text(
+                      assignment.submittedUrl!,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  )
+                else
+                  Text(assignment.submittedText ?? ''),
+              ],
               if (assignment.feedback != null) ...[
                 const SizedBox(height: 12),
                 const Text('Nhận xét:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -1250,6 +1605,61 @@ class _AssignmentsTabPane extends ConsumerWidget {
             ],
           ),
           actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng'))],
+        ),
+      );
+      return;
+    }
+
+    final isSubmitted = assignment.status == 'SUBMITTED';
+    if (isSubmitted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(assignment.title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Bạn đã nộp bài cho bài tập này.',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              if (assignment.submittedAt != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'Đã nộp lúc: ${DateFormat('dd/MM/yyyy HH:mm').format(assignment.submittedAt!.toLocal())}',
+                ),
+              ],
+              if ((assignment.submittedUrl ?? '').isNotEmpty || (assignment.submittedText ?? '').isNotEmpty) ...[
+                const SizedBox(height: 10),
+                const Text('Nội dung đã nộp:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                if ((assignment.submittedUrl ?? '').isNotEmpty)
+                  InkWell(
+                    onTap: () => _openUrl(context, assignment.submittedUrl!),
+                    child: Text(
+                      assignment.submittedUrl!,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  )
+                else
+                  Text(assignment.submittedText ?? ''),
+              ],
+              const SizedBox(height: 10),
+              const Text(
+                'Hiện tại mobile chưa hỗ trợ chỉnh sửa/nộp lại.',
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Đóng'),
+            ),
+          ],
         ),
       );
       return;
@@ -1314,6 +1724,467 @@ class _AssignmentsTabPane extends ConsumerWidget {
                 },
                 child: const Text('Gửi bài làm', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openUrl(BuildContext context, String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Không thể mở liên kết này')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi mở liên kết: $e')),
+        );
+      }
+    }
+  }
+}
+
+class _LiveDiscussionTabPane extends ConsumerStatefulWidget {
+  const _LiveDiscussionTabPane({required this.liveClassId});
+
+  final String liveClassId;
+
+  @override
+  ConsumerState<_LiveDiscussionTabPane> createState() => _LiveDiscussionTabPaneState();
+}
+
+class _LiveDiscussionTabPaneState extends ConsumerState<_LiveDiscussionTabPane> {
+  bool _loading = false;
+  String? _error;
+  List<CommentModel> _topics = const [];
+  String? _expandedTopicId;
+  final Map<String, TextEditingController> _replyCtrls = {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+  }
+
+  @override
+  void dispose() {
+    for (final c in _replyCtrls.values) {
+      c.dispose();
+    }
+    _replyCtrls.clear();
+    super.dispose();
+  }
+
+  TextEditingController _replyCtrlFor(String topicId) {
+    return _replyCtrls.putIfAbsent(topicId, () => TextEditingController());
+  }
+
+  Future<void> _refresh() async {
+    final authState = ref.read(authStateProvider).valueOrNull;
+    final isAuthed = authState != null && authState.isAuthenticated && authState.user != null;
+    if (!isAuthed) return;
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final repo = ref.read(commentRepositoryProvider);
+      final topics = await repo.getDiscussionTopics(
+        discussionEntityId: widget.liveClassId,
+        page: 1,
+        limit: 100,
+      );
+      if (!mounted) return;
+      setState(() {
+        _topics = topics;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _createTopic({
+    required String title,
+    required String content,
+  }) async {
+    final authState = ref.read(authStateProvider).valueOrNull;
+    final userId = authState?.user?.id;
+    if (userId == null) return;
+    await ref.read(commentRepositoryProvider).createTopic(
+          discussionEntityId: widget.liveClassId,
+          userId: userId,
+          title: title,
+          content: content,
+        );
+    await _refresh();
+  }
+
+  Future<void> _replyToTopic({
+    required String topicId,
+    required String content,
+  }) async {
+    final authState = ref.read(authStateProvider).valueOrNull;
+    final userId = authState?.user?.id;
+    if (userId == null) return;
+    await ref.read(commentRepositoryProvider).replyToTopic(
+          discussionEntityId: widget.liveClassId,
+          userId: userId,
+          parentId: topicId,
+          content: content,
+        );
+    _replyCtrlFor(topicId).clear();
+    await _refresh();
+  }
+
+  String _topicTitleFrom(String content) {
+    return content
+        .split('\n')
+        .firstWhere((e) => e.trim().isNotEmpty, orElse: () => 'Không có tiêu đề')
+        .trim();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final authState = ref.watch(authStateProvider).valueOrNull;
+    final isAuthed = authState != null && authState.isAuthenticated && authState.user != null;
+
+    if (!isAuthed) {
+      return Center(
+        child: Text(
+          'Đăng nhập để xem và trả lời thảo luận.',
+          style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+        ),
+      );
+    }
+
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'Không thể tải thảo luận: $_error',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
+        ),
+      );
+    }
+
+    if (_topics.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.forum_outlined,
+                size: 52,
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Chưa có thảo luận nào',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Hãy đặt câu hỏi để nhận phản hồi từ giảng viên / trợ giảng.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  String title = '';
+                  String content = '';
+                  await showDialog(
+                    context: context,
+                    builder: (ctx) {
+                      final titleCtrl = TextEditingController();
+                      final contentCtrl = TextEditingController();
+                      return AlertDialog(
+                        title: const Text('Đặt câu hỏi'),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              TextField(
+                                controller: titleCtrl,
+                                decoration: const InputDecoration(labelText: 'Tiêu đề'),
+                              ),
+                              TextField(
+                                controller: contentCtrl,
+                                decoration: const InputDecoration(labelText: 'Nội dung'),
+                                minLines: 3,
+                                maxLines: 6,
+                              ),
+                            ],
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            child: const Text('Hủy'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              title = titleCtrl.text;
+                              content = contentCtrl.text;
+                              Navigator.of(ctx).pop();
+                            },
+                            child: const Text('Gửi'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  if (title.trim().isEmpty || content.trim().isEmpty) return;
+                  await _createTopic(title: title.trim(), content: content.trim());
+                },
+                child: const Text('Đặt câu hỏi'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _topics.length + 1,
+        itemBuilder: (ctx, i) {
+          if (i == 0) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Hỏi đáp (${_topics.length})',
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () async {
+                      String title = '';
+                      String content = '';
+                      await showDialog(
+                        context: context,
+                        builder: (ctx) {
+                          final titleCtrl = TextEditingController();
+                          final contentCtrl = TextEditingController();
+                          return AlertDialog(
+                            title: const Text('Đặt câu hỏi'),
+                            content: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  TextField(
+                                    controller: titleCtrl,
+                                    decoration: const InputDecoration(labelText: 'Tiêu đề'),
+                                  ),
+                                  TextField(
+                                    controller: contentCtrl,
+                                    decoration: const InputDecoration(labelText: 'Nội dung'),
+                                    minLines: 3,
+                                    maxLines: 6,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(),
+                                child: const Text('Hủy'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  title = titleCtrl.text;
+                                  content = contentCtrl.text;
+                                  Navigator.of(ctx).pop();
+                                },
+                                child: const Text('Gửi'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      if (title.trim().isEmpty || content.trim().isEmpty) return;
+                      await _createTopic(title: title.trim(), content: content.trim());
+                    },
+                    icon: const Icon(Icons.add_comment_outlined, size: 18),
+                    label: const Text('Đặt câu hỏi'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final topic = _topics[i - 1];
+          final expanded = _expandedTopicId == topic.id;
+          final topicTitle = _topicTitleFrom(topic.content);
+          final replyCtrl = _replyCtrlFor(topic.id);
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _expandedTopicId = expanded ? null : topic.id;
+                      });
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            topicTitle,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                        if (topic.status == 'ANSWERED')
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Text(
+                              'Đã trả lời',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    topic.content,
+                    style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.85)),
+                  ),
+
+                  if (!expanded) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      (topic.replyCount > 0) ? '${topic.replyCount} phản hồi' : 'Chưa có phản hồi',
+                      style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
+                    ),
+                  ],
+
+                  if (expanded) ...[
+                    const SizedBox(height: 12),
+                    if (topic.replies.isEmpty)
+                      Text(
+                        'Chưa có phản hồi nào.',
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                      )
+                    else ...[
+                      const Text(
+                        'Phản hồi',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: topic.replies.map((r) => _DiscussionReplyBubble(reply: r)).toList(),
+                      ),
+                    ],
+
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Trả lời',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: replyCtrl,
+                      minLines: 3,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        hintText: 'Viết câu trả lời...',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            final text = replyCtrl.text.trim();
+                            if (text.isEmpty) return;
+                            await _replyToTopic(topicId: topic.id, content: text);
+                          },
+                          child: const Text('Gửi trả lời'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _DiscussionReplyBubble extends StatelessWidget {
+  const _DiscussionReplyBubble({required this.reply});
+
+  final CommentModel reply;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              reply.author?.displayName ?? 'Unknown',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              reply.content,
+              style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.85)),
             ),
           ],
         ),

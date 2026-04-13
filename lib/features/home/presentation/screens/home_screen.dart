@@ -8,7 +8,6 @@ import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/blog_model.dart';
 import 'package:torii_app/features/home/presentation/widgets/streak_calendar_sheet.dart';
 import 'package:torii_app/features/home/presentation/widgets/streak_welcome_dialog.dart';
-import 'package:torii_app/features/sensei/views/widgets/sensei_quota_header.dart';
 import 'package:torii_app/features/sensei/providers/sensei_subscription_providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -29,7 +28,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Refresh quota on home entry if logged in
     Future.microtask(() {
       if (ref.read(authStateProvider).valueOrNull?.isAuthenticated == true) {
-        ref.refresh(senseiQuotaStatusProvider);
+        ref.invalidate(senseiQuotaStatusProvider);
       }
     });
   }
@@ -234,7 +233,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 if (quotaAsync != null)
                                   quotaAsync.maybeWhen(
                                     data: (q) {
-                                      final tier = (q.tier ?? 'FREE').toUpperCase();
+                                      final tier = q.tier.toUpperCase();
                                       final isPlus = tier != 'FREE';
                                       return Padding(
                                         padding: const EdgeInsets.only(left: 8),
@@ -710,159 +709,201 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildCourseCard(EnrollmentModel e) {
     final theme = Theme.of(context);
-    final progress = e.progress ?? 0.0;
-    return Container(
-      width: 280,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.xl),
-                ),
-                child: Image.network(
-                  e.thumbnailUrl ?? 'https://picsum.photos/seed/jp1/400/200',
-                  height: 100,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 100,
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
-                    child: const Icon(Icons.school),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: e.isLive ? const Color(0xFFFF4842) : Colors.amber.shade700,
-                    borderRadius: BorderRadius.circular(6),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        e.isLive ? Icons.videocam : Icons.play_circle_fill,
-                        color: Colors.white,
-                        size: 10,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        e.isLive ? 'Live' : 'VOD',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final progress = e.progress;
+    final showLearningProgress = !e.isLive;
+    return InkWell(
+      onTap: e.deliveryTargetId.isEmpty ? null : () => _navigateToCourse(e),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 280,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Text(
-                  e.courseTitle ?? 'Khóa học',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppRadius.xl),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  child: Image.network(
+                    e.thumbnailUrl ?? 'https://picsum.photos/seed/jp1/400/200',
+                    height: 100,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 100,
+                      color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                      child: const Icon(Icons.school),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: progress.clamp(0.0, 1.0),
-                        backgroundColor: theme.colorScheme.outlineVariant
-                            .withValues(alpha: 0.3),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          theme.colorScheme.primary,
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: e.isLive ? const Color(0xFFFF4842) : Colors.amber.shade700,
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${(progress * 100).toInt()}%',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: e.deliveryTargetId.isEmpty ? null : () {
-                      if (e.mode.toUpperCase() == 'LIVE') {
-                        final title = Uri.encodeQueryComponent(e.courseTitle);
-                        context.push(
-                          '/enrolled-live/${e.deliveryTargetId}?productId=${e.productId}&title=$title&enrollmentId=${e.id}',
-                        );
-                      } else {
-                        context.push(
-                          '/curriculum/${e.deliveryTargetId}?mode=${e.mode}&enrollmentId=${e.id}',
-                        );
-                      }
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 0,
-                      ),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      'Tiếp tục học',
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          e.isLive ? Icons.videocam : Icons.play_circle_fill,
+                          color: Colors.white,
+                          size: 10,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          e.isLive ? 'Live' : 'VOD',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    e.courseTitle,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  if (showLearningProgress)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            value: progress.clamp(0.0, 1.0),
+                            backgroundColor: theme.colorScheme.outlineVariant
+                                .withValues(alpha: 0.3),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.colorScheme.primary,
+                            ),
+                            minHeight: 6,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${(progress * 100).toInt()}%',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.event_available_rounded,
+                            size: 14,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              e.totalLessons > 0
+                                  ? 'Lớp trực tiếp: ${e.completedLessons}/${e.totalLessons} buổi'
+                                  : 'Lớp trực tiếp: học theo lịch lớp',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: e.deliveryTargetId.isEmpty ? null : () => _navigateToCourse(e),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 0,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'Tiếp tục học',
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  void _navigateToCourse(EnrollmentModel e) {
+    if (e.deliveryTargetId.isEmpty) return;
+    if (e.mode.toUpperCase() == 'LIVE') {
+      final title = Uri.encodeQueryComponent(e.courseTitle);
+      context.push(
+        '/enrolled-live/${e.deliveryTargetId}?productId=${e.productId}&title=$title&enrollmentId=${e.id}',
+      );
+      return;
+    }
+    context.push(
+      '/curriculum/${e.deliveryTargetId}?mode=${e.mode}&enrollmentId=${e.id}',
     );
   }
 

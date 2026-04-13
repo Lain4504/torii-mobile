@@ -20,6 +20,7 @@ class StudySetsDashboardScreen extends ConsumerStatefulWidget {
 
 class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScreen> {
   String? _busyCardId;
+  bool _isCloning = false;
 
   @override
   Widget build(BuildContext context) {
@@ -55,11 +56,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
 
                 return IconButton(
                   onPressed: () {
-                    final sets = ref.read(studySetsProvider).valueOrNull ?? [];
-                    final currentSet = sets.where((s) => s.id == widget.initialSetId).firstOrNull;
-                    if (currentSet != null) {
-                      _showEditSetSheet(context, currentSet);
-                    }
+                    final currentSet = _toStudySetModel(data);
+                    _showEditSetSheet(context, currentSet);
                   },
                   icon: const Icon(Icons.settings_outlined),
                 );
@@ -109,8 +107,17 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                             cardCount: count,
                             // Restricted: Only the owner of the study set can play.
                             // Others must clone the set to their library to study.
-                            enabled: isMine, 
+                            enabled: isMine,
                           ),
+                          if (!isMine) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              'Bạn cần clone bộ thẻ để mở các chế độ luyện tập.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     );
@@ -312,9 +319,18 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
             width: double.infinity,
             height: 48,
             child: ElevatedButton.icon(
-              onPressed: () => _handleClone(setId),
-              icon: const Icon(Icons.copy_rounded, size: 18),
-              label: const Text('Lưu về bộ thẻ của tôi'),
+              onPressed: _isCloning ? null : () => _handleClone(setId),
+              icon: _isCloning
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.copy_rounded, size: 18),
+              label: Text(_isCloning ? 'Đang lưu...' : 'Lưu về bộ thẻ của tôi'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
@@ -329,7 +345,8 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
   }
 
   Future<void> _handleClone(String setId) async {
-    setState(() => _busyCardId = 'cloning'); // Reuse busy indicator logic vaguely or just show loader
+    if (_isCloning) return;
+    setState(() => _isCloning = true);
     try {
       final newSet = await ref.read(academyRepositoryProvider).cloneStudySet(setId);
       if (newSet != null) {
@@ -351,8 +368,28 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
         );
       }
     } finally {
-      if (mounted) setState(() => _busyCardId = null);
+      if (mounted) setState(() => _isCloning = false);
     }
+  }
+
+  StudySetModel _toStudySetModel(Map<String, dynamic> data) {
+    return StudySetModel(
+      id: (data['id'] ?? widget.initialSetId).toString(),
+      userId: (data['userId'] ?? '').toString(),
+      title: (data['title'] ?? 'Bộ thẻ').toString(),
+      description: data['description']?.toString(),
+      isPublic: data['isPublic'] == true,
+      cardCount: (data['cardCount'] as num?)?.toInt() ??
+          (data['_count']?['setCards'] as num?)?.toInt() ??
+          0,
+      sourceType: data['sourceType']?.toString(),
+      createdAt: data['createdAt'] != null
+          ? DateTime.tryParse(data['createdAt'].toString())
+          : null,
+      updatedAt: data['updatedAt'] != null
+          ? DateTime.tryParse(data['updatedAt'].toString())
+          : null,
+    );
   }
 
   // ---------- API Actions ----------
@@ -455,6 +492,15 @@ class _StudyModeSelectionGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canStudy = cardCount > 0;
+    final canTest = cardCount >= 4;
+    final disabledByOwnership = !enabled;
+    final reviewDisabledReason = disabledByOwnership
+        ? 'Clone bộ thẻ để bắt đầu luyện tập.'
+        : (!canStudy ? 'Cần ít nhất 1 thẻ để học.' : null);
+    final testDisabledReason = disabledByOwnership
+        ? 'Clone bộ thẻ để bắt đầu luyện tập.'
+        : (!canTest ? 'Cần ít nhất 4 thẻ để mở Trắc nghiệm.' : null);
+    final matchDisabledReason = reviewDisabledReason;
     
     return Column(
       children: [
@@ -468,6 +514,7 @@ class _StudyModeSelectionGrid extends StatelessWidget {
                 color: const Color(0xFF2563EB),
                 onTap: () => context.push('/study-sets/$setId/review'),
                 enabled: enabled && canStudy,
+                disabledReason: reviewDisabledReason,
               ),
             ),
             const SizedBox(width: 16),
@@ -478,7 +525,8 @@ class _StudyModeSelectionGrid extends StatelessWidget {
                 icon: Icons.quiz_outlined,
                 color: const Color(0xFFF97316),
                 onTap: () => context.push('/study-sets/$setId/test'),
-                enabled: enabled && cardCount >= 4,
+                enabled: enabled && canTest,
+                disabledReason: testDisabledReason,
               ),
             ),
           ],
@@ -491,8 +539,21 @@ class _StudyModeSelectionGrid extends StatelessWidget {
           color: const Color(0xFF059669),
           onTap: () => context.push('/study-sets/$setId/match'),
           enabled: enabled && canStudy,
+          disabledReason: matchDisabledReason,
           isWide: true,
         ),
+        if (!enabled || !canStudy || !canTest) ...[
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              testDisabledReason ?? reviewDisabledReason ?? '',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -505,6 +566,7 @@ class _ModeCard extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
   final bool enabled;
+  final String? disabledReason;
   final bool isWide;
 
   const _ModeCard({
@@ -514,6 +576,7 @@ class _ModeCard extends StatelessWidget {
     required this.color,
     required this.onTap,
     this.enabled = true,
+    this.disabledReason,
     this.isWide = false,
   });
 
@@ -521,7 +584,18 @@ class _ModeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return InkWell(
-      onTap: enabled ? onTap : null,
+      onTap: () {
+        if (enabled) {
+          onTap();
+          return;
+        }
+        final msg = disabledReason?.trim();
+        if (msg != null && msg.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(msg)),
+          );
+        }
+      },
       borderRadius: BorderRadius.circular(20),
       child: Opacity(
         opacity: enabled ? 1.0 : 0.5,
@@ -556,7 +630,10 @@ class _ModeCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: color),
+                    Icon(
+                      enabled ? Icons.chevron_right : Icons.lock_outline_rounded,
+                      color: color,
+                    ),
                   ]
                 ],
               ),
@@ -717,6 +794,13 @@ class _EditSetSheetState extends ConsumerState<_EditSetSheet> {
     _descCtrl = TextEditingController(text: widget.set.description);
   }
 
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _update() async {
      final title = _titleCtrl.text.trim();
     if (title.isEmpty) return;
@@ -831,6 +915,14 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
   final _hintCtrl = TextEditingController();
   bool _busy = false;
 
+  @override
+  void dispose() {
+    _termCtrl.dispose();
+    _defCtrl.dispose();
+    _hintCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _submit() async {
     final term = _termCtrl.text.trim();
     final def = _defCtrl.text.trim();
@@ -913,6 +1005,14 @@ class _EditCardSheetState extends ConsumerState<_EditCardSheet> {
     _termCtrl = TextEditingController(text: widget.card.term);
     _defCtrl = TextEditingController(text: widget.card.definition);
     _hintCtrl = TextEditingController(text: widget.card.hint);
+  }
+
+  @override
+  void dispose() {
+    _termCtrl.dispose();
+    _defCtrl.dispose();
+    _hintCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _submit() async {

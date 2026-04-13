@@ -98,6 +98,7 @@ class MyCoursesScreen extends ConsumerWidget {
       itemBuilder: (context, index) {
         final e = list[index];
         final progress = e.progress;
+        final showLearningProgress = !e.isLive;
         
         return Container(
           margin: const EdgeInsets.only(bottom: 20),
@@ -189,30 +190,64 @@ class MyCoursesScreen extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: LinearProgressIndicator(
-                              value: progress,
-                              backgroundColor: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                isCompleted ? AppColors.success : Theme.of(context).colorScheme.primary,
+                      if (showLearningProgress)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                backgroundColor: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  isCompleted ? AppColors.success : Theme.of(context).colorScheme.primary,
+                                ),
+                                minHeight: 8,
+                                borderRadius: BorderRadius.circular(4),
                               ),
-                              minHeight: 8,
-                              borderRadius: BorderRadius.circular(4),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            '${(progress * 100).toInt()}%',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: isCompleted ? AppColors.success : Theme.of(context).colorScheme.onSurface,
+                            const SizedBox(width: 12),
+                            Text(
+                              '${(progress * 100).toInt()}%',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: isCompleted ? AppColors.success : Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
+                          ],
+                        )
+                      else
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                        ],
-                      ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.event_note_rounded,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  e.totalLessons > 0
+                                      ? 'Lớp trực tiếp: ${e.completedLessons}/${e.totalLessons} buổi'
+                                      : 'Lớp trực tiếp: học theo lịch lớp',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity,
