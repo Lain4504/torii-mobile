@@ -74,8 +74,8 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>fb25843221668693805</string>
-				<!-- Reversed ID for: 527962310647-3op4ar2f6u2uh9f5flc3c9lmk4jp69ur.apps.googleusercontent.com -->
-				<string>com.googleusercontent.apps.527962310647-3op4ar2f6u2uh9f5flc3c9lmk4jp69ur</string>
+				<!-- Reversed ID for: 263601400665-qfv5ti24k1untnri4r9rg2efpomjpkef.apps.googleusercontent.com -->
+				<string>com.googleusercontent.apps.263601400665-qfv5ti24k1untnri4r9rg2efpomjpkef</string>
 			</array>
 		</dict>
 	</array>
@@ -84,11 +84,14 @@
 	<key>FacebookClientToken</key>
 	<string>c9941a7a977035f3197a839d325b2ba4</string>
 	<key>FacebookDisplayName</key>
-	<string>Torii Nihongo</string>
+	<string>torii</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>fbapi</string>
+		<string>fb-messenger-api</string>
 		<string>fb-messenger-share-api</string>
+		<string>fbauth2</string>
+		<string>fbshareextension</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Ứng dụng cần quyền truy cập camera để thực hiện các tính năng video hội thoại và học tập.</string>
@@ -98,5 +101,7 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Ứng dụng cần quyền này để hỗ trợ tính năng đăng nhập và cá nhân hóa trải nghiệm qua Facebook.</string>
 </dict>
 </plist>

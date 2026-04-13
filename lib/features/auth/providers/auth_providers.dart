@@ -15,6 +15,8 @@ import 'package:torii_app/core/config/app_config.dart';
 import 'package:torii_app/core/providers/shared_prefs_provider.dart';
 import 'package:torii_app/features/onboarding/providers/onboarding_provider.dart';
 import 'package:torii_app/services/notification_service.dart';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
+import 'dart:io';
 
 // --- DATA LAYER ---
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
@@ -72,6 +74,14 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   Future<void> signInWithFacebook() async {
     try {
+      // iOS 14.5+: Request tracking authorization to avoid "Limited Login" mode.
+      if (Platform.isIOS) {
+        final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+        if (status == TrackingStatus.notDetermined) {
+          await AppTrackingTransparency.requestTrackingAuthorization();
+        }
+      }
+
       final LoginResult result = await FacebookAuth.instance.login(
         permissions: ['public_profile', 'email'],
       );
@@ -164,7 +174,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     try {
       // Sign out from any previous sessions first to force account picker
       await _googleSignIn.signOut();
-      
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         state = AsyncValue.data(AuthState.unauthenticated());
