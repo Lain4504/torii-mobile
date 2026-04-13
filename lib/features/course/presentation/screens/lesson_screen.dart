@@ -21,6 +21,7 @@ class LessonScreen extends ConsumerStatefulWidget {
 class _LessonScreenState extends ConsumerState<LessonScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  int _activeTabIndex = 0;
   VideoPlayerController? _videoController;
   ChewieController? _chewieController;
   bool _autoMarkedComplete = false;
@@ -30,6 +31,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   List<CommentModel> _topics = [];
   String? _expandedTopicId;
   final Map<String, String> _replyDrafts = {};
+  bool _isCreateTopicSheetOpen = false;
   Future<AcademyProductDetailModel?>? _syllabusDetailFuture;
   String _syllabusCacheKey = '';
 
@@ -37,6 +39,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
     _initVideo();
     // Load discussions after first render to make sure `widget.lesson` and providers are ready.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -161,9 +164,19 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _disposeVideo();
     super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (!mounted) return;
+    if (_activeTabIndex != _tabController.index) {
+      setState(() {
+        _activeTabIndex = _tabController.index;
+      });
+    }
   }
 
   bool _isTrackableType(String type) {
@@ -615,29 +628,31 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                   )
                 : Row(
                     children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed:
-                              deliveryTargetId.isEmpty ||
-                                      !_isTrackableType(typeRaw)
-                                  ? null
-                                  : () => _markComplete(),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      if (_activeTabIndex == 0) ...[
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed:
+                                deliveryTargetId.isEmpty ||
+                                        !_isTrackableType(typeRaw)
+                                    ? null
+                                    : () => _markComplete(),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          ),
-                          child: const Text(
-                            'Đánh dấu hoàn thành',
-                            style: TextStyle(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.bold,
+                            child: const Text(
+                              'Đánh dấu hoàn thành',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
+                        const SizedBox(width: 16),
+                      ],
                       Expanded(
                         child: ElevatedButton(
                           onPressed: nextLesson == null
@@ -1264,134 +1279,21 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   }
 
   Future<void> _openCreateTopicSheet() async {
-    final titleCtrl = TextEditingController();
-    final contentCtrl = TextEditingController();
-    var isSubmitting = false;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (sheetCtx) {
-        return StatefulBuilder(
-          builder: (sheetCtx, setSheetState) {
-            final bottomInset = MediaQuery.of(sheetCtx).viewInsets.bottom;
-            final canSubmit =
-                titleCtrl.text.trim().isNotEmpty &&
-                contentCtrl.text.trim().isNotEmpty &&
-                !isSubmitting;
-
-            return Container(
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(16, 10, 16, 16 + bottomInset),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 40,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: AppColors.grey300,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Đặt câu hỏi',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: titleCtrl,
-                        textInputAction: TextInputAction.next,
-                        onChanged: (_) => setSheetState(() {}),
-                        decoration: const InputDecoration(
-                          labelText: 'Tiêu đề',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: contentCtrl,
-                        minLines: 4,
-                        maxLines: 7,
-                        onChanged: (_) => setSheetState(() {}),
-                        decoration: const InputDecoration(
-                          labelText: 'Nội dung',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: isSubmitting
-                                  ? null
-                                  : () => Navigator.of(sheetCtx).pop(),
-                              child: const Text('Hủy'),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: canSubmit
-                                  ? () async {
-                                      setSheetState(() => isSubmitting = true);
-                                      try {
-                                        await _createTopic(
-                                          title: titleCtrl.text.trim(),
-                                          content: contentCtrl.text.trim(),
-                                        );
-                                        if (mounted && sheetCtx.mounted) {
-                                          Navigator.of(sheetCtx).pop();
-                                        }
-                                      } finally {
-                                        if (sheetCtx.mounted) {
-                                          setSheetState(
-                                            () => isSubmitting = false,
-                                          );
-                                        }
-                                      }
-                                    }
-                                  : null,
-                              child: isSubmitting
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text('Gửi'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-
-    titleCtrl.dispose();
-    contentCtrl.dispose();
+    if (_isCreateTopicSheetOpen) return;
+    _isCreateTopicSheetOpen = true;
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        useRootNavigator: true,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (sheetCtx) => _CreateTopicSheet(
+          onSubmit: _createTopic,
+        ),
+      );
+    } finally {
+      _isCreateTopicSheetOpen = false;
+    }
   }
 
   Widget _buildDiscussionTab() {
@@ -1785,6 +1687,160 @@ class _PrimaryPillButton extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreateTopicSheet extends StatefulWidget {
+  const _CreateTopicSheet({
+    required this.onSubmit,
+  });
+
+  final Future<void> Function({
+    required String title,
+    required String content,
+  }) onSubmit;
+
+  @override
+  State<_CreateTopicSheet> createState() => _CreateTopicSheetState();
+}
+
+class _CreateTopicSheetState extends State<_CreateTopicSheet> {
+  late final TextEditingController _titleCtrl;
+  late final TextEditingController _contentCtrl;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleCtrl = TextEditingController()..addListener(_onChanged);
+    _contentCtrl = TextEditingController()..addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    _titleCtrl.removeListener(_onChanged);
+    _contentCtrl.removeListener(_onChanged);
+    _titleCtrl.dispose();
+    _contentCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _handleSubmit() async {
+    final title = _titleCtrl.text.trim();
+    final content = _contentCtrl.text.trim();
+    if (title.isEmpty || content.isEmpty || _isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onSubmit(title: title, content: content);
+      if (mounted) Navigator.of(context).pop();
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final canSubmit =
+        _titleCtrl.text.trim().isNotEmpty &&
+        _contentCtrl.text.trim().isNotEmpty &&
+        !_isSubmitting;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: AnimatedPadding(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.9,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.grey300,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Đặt câu hỏi',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _titleCtrl,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Tiêu đề',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _contentCtrl,
+                    minLines: 4,
+                    maxLines: 7,
+                    decoration: const InputDecoration(
+                      labelText: 'Nội dung',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => Navigator.of(context).pop(),
+                          child: const Text('Hủy'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: canSubmit ? _handleSubmit : null,
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Gửi'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
