@@ -1,8 +1,9 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:markdown/markdown.dart' as md;
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/comment_model.dart';
@@ -25,9 +26,14 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   VideoPlayerController? _videoController;
   ChewieController? _chewieController;
   bool _autoMarkedComplete = false;
+  String? _resolvedVideoUrl;
+  String? _videoInitError;
+  String? _resolvedArticleContent;
 
   bool _discussionLoading = false;
   String? _discussionError;
+  bool _discussionReadOnly = false;
+  String? _discussionReadOnlyReason;
   List<CommentModel> _topics = [];
   String? _expandedTopicId;
   final Map<String, String> _replyDrafts = {};
@@ -40,12 +46,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
+    _prepareSyllabusDetail();
     _initVideo();
+    _resolveReadingContent();
     // Load discussions after first render to make sure `widget.lesson` and providers are ready.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshDiscussionIfPossible();
     });
-    _prepareSyllabusDetail();
   }
 
   @override
@@ -69,9 +76,16 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       _prepareSyllabusDetail();
     }
     if (oldWidget.lesson?['videoUrl'] != widget.lesson?['videoUrl'] ||
+        oldWidget.lesson?['videoFileId'] != widget.lesson?['videoFileId'] ||
         oldWidget.lesson?['type'] != widget.lesson?['type']) {
       _disposeVideo();
       _initVideo();
+    }
+    if (oldWidget.lesson?['id'] != widget.lesson?['id'] ||
+        oldWidget.lesson?['type'] != widget.lesson?['type'] ||
+        oldWidget.lesson?['article'] != widget.lesson?['article']) {
+      _resolvedArticleContent = null;
+      _resolveReadingContent();
     }
   }
 
@@ -88,7 +102,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     _syllabusCacheKey = cacheKey;
 
     final repo = ref.read(academyRepositoryProvider);
-    _syllabusDetailFuture = repo.getPublicProductDetailById(
+    _syllabusDetailFuture = repo.getLearnerProductDetailById(
       detailId,
       mode: mode,
     );
@@ -115,11 +129,39 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   Future<void> _initVideo() async {
     final lesson = widget.lesson ?? const <String, dynamic>{};
     final type = (lesson['type'] ?? 'video').toString().toLowerCase();
-    final url = lesson['videoUrl'] as String?;
-    if (url == null || url.isEmpty) return;
+    _resolvedVideoUrl = null;
+    _videoInitError = null;
     if (type == 'article' || type == 'reading' || type == 'quiz') return;
 
-    final vc = VideoPlayerController.networkUrl(Uri.parse(url));
+    final url = await _resolveVideoPlaybackUrl(lesson);
+    if (url == null || url.isEmpty) {
+      debugPrint(
+        '[LessonScreen] Missing video source for lessonId=${lesson['id']} type=${lesson['type']} keys=${lesson.keys.toList()}',
+      );
+      if (mounted) {
+        setState(() {
+          _videoInitError =
+              'Video chưa có đường dẫn hoặc fileId hợp lệ. Vui lòng kiểm tra cấu hình bài học.';
+        });
+      }
+      return;
+    }
+
+    final uri = Uri.tryParse(url);
+    if (uri == null ||
+        !(uri.scheme.toLowerCase() == 'http' ||
+            uri.scheme.toLowerCase() == 'https')) {
+      if (mounted) {
+        setState(() {
+          _videoInitError = 'Đường dẫn video không hợp lệ.';
+        });
+      }
+      return;
+    }
+
+    _resolvedVideoUrl = url;
+
+    final vc = VideoPlayerController.networkUrl(uri);
     _videoController = vc;
     try {
       await vc.initialize();
@@ -144,14 +186,176 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
           bufferedColor: Colors.white38,
         ),
       );
+      _videoInitError = null;
       setState(() {});
     } catch (_) {
       await vc.dispose();
       if (mounted) {
         _videoController = null;
+        _resolvedVideoUrl = null;
+        _videoInitError =
+            'Không thể phát video này. Hãy thử lại hoặc kiểm tra định dạng nguồn phát.';
         setState(() {});
       }
     }
+  }
+
+  Future<String?> _resolveVideoPlaybackUrl(Map<String, dynamic> lesson) async {
+    final directUrl = _extractImmediateVideoUrl(lesson);
+    if (directUrl != null) return directUrl;
+
+    final fileId = _extractVideoFileId(lesson);
+    if (fileId != null) {
+      try {
+        final signed = await ref
+            .read(academyRepositoryProvider)
+            .getStorageSignedUrl(fileId: fileId);
+        if (signed != null && signed.isNotEmpty) return signed;
+      } catch (_) {
+        // Continue with syllabus fallback.
+      }
+    }
+
+    final lessonId = _asNonEmptyString(lesson['id']);
+    if (lessonId == null) return null;
+    final syllabusLesson = await _loadLessonFromSyllabus(lessonId);
+    if (syllabusLesson == null) return null;
+
+    final syllabusUrl = _asNonEmptyString(syllabusLesson.videoUrl);
+    if (syllabusUrl != null) return syllabusUrl;
+
+    final syllabusFileId = _asNonEmptyString(syllabusLesson.videoFileId);
+    if (syllabusFileId == null) return null;
+
+    try {
+      return await ref
+          .read(academyRepositoryProvider)
+          .getStorageSignedUrl(fileId: syllabusFileId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<CurriculumLessonModel?> _loadLessonFromSyllabus(String lessonId) async {
+    _prepareSyllabusDetail();
+    final future = _syllabusDetailFuture;
+    if (future == null) return null;
+
+    try {
+      final detail = await future;
+      if (detail == null) return null;
+      for (final module in detail.modules) {
+        for (final lesson in module.lessons) {
+          if (lesson.id == lessonId) return lesson;
+        }
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _isReadingType(String type) {
+    final t = type.toUpperCase();
+    return t == 'READING' || t == 'ARTICLE';
+  }
+
+  bool _isMissingArticleContent(String? text) {
+    final value = (text ?? '').trim();
+    if (value.isEmpty) return true;
+    return value == 'Nội dung bài học đang được cập nhật.' ||
+        value == 'Nội dung bài đọc đang được cập nhật.';
+  }
+
+  Future<void> _resolveReadingContent() async {
+    final lesson = widget.lesson ?? const <String, dynamic>{};
+    final type = (lesson['type'] ?? '').toString();
+    if (!_isReadingType(type)) return;
+
+    final article = lesson['article'];
+    final currentContent = article is Map
+        ? _asNonEmptyString(article['content'])
+        : null;
+    if (!_isMissingArticleContent(currentContent)) {
+      _resolvedArticleContent = currentContent;
+      return;
+    }
+
+    final lessonId = _asNonEmptyString(lesson['id']);
+    if (lessonId == null) return;
+    final syllabusLesson = await _loadLessonFromSyllabus(lessonId);
+    final contentFromSyllabus = _asNonEmptyString(syllabusLesson?.content);
+    if (_isMissingArticleContent(contentFromSyllabus)) return;
+    if (!mounted) return;
+    setState(() {
+      _resolvedArticleContent = contentFromSyllabus;
+    });
+  }
+
+  String? _extractImmediateVideoUrl(Map<String, dynamic> lesson) {
+    final direct = _asNonEmptyString(lesson['videoUrl']) ??
+        _asNonEmptyString(lesson['videoURL']) ??
+        _asNonEmptyString(lesson['video_url']) ??
+        _asNonEmptyString(lesson['playbackUrl']) ??
+        _asNonEmptyString(lesson['streamUrl']) ??
+        _asNonEmptyString(lesson['hlsUrl']) ??
+        _asNonEmptyString(lesson['signedUrl']) ??
+        _asNonEmptyString(lesson['url']);
+    if (direct != null) return direct;
+
+    final video = lesson['video'];
+    if (video is String) {
+      final fromString = _asNonEmptyString(video);
+      if (fromString != null) return fromString;
+    }
+    if (video is Map) {
+      final m = Map<String, dynamic>.from(video);
+      final nested = _asNonEmptyString(m['videoUrl']) ??
+          _asNonEmptyString(m['playbackUrl']) ??
+          _asNonEmptyString(m['streamUrl']) ??
+          _asNonEmptyString(m['hlsUrl']) ??
+          _asNonEmptyString(m['signedUrl']) ??
+          _asNonEmptyString(m['url']);
+      if (nested != null) return nested;
+
+      final file = m['file'];
+      if (file is Map) {
+        return _asNonEmptyString(file['signedUrl']) ??
+            _asNonEmptyString(file['url']);
+      }
+    }
+
+    return null;
+  }
+
+  String? _extractVideoFileId(Map<String, dynamic> lesson) {
+    final direct = _asNonEmptyString(lesson['videoFileId']) ??
+        _asNonEmptyString(lesson['fileId']) ??
+        _asNonEmptyString(lesson['storageFileId']);
+    if (direct != null) return direct;
+
+    final video = lesson['video'];
+    if (video is Map) {
+      final m = Map<String, dynamic>.from(video);
+      final nested = _asNonEmptyString(m['videoFileId']) ??
+          _asNonEmptyString(m['fileId']) ??
+          _asNonEmptyString(m['storageFileId']);
+      if (nested != null) return nested;
+
+      final file = m['file'];
+      if (file is Map) {
+        return _asNonEmptyString(file['id']) ??
+            _asNonEmptyString(file['fileId']);
+      }
+    }
+
+    return null;
+  }
+
+  String? _asNonEmptyString(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString().trim();
+    return text.isEmpty ? null : text;
   }
 
   void _disposeVideo() {
@@ -516,7 +720,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final nextLesson = lesson['nextLesson'] as Map<String, dynamic>?;
     final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
     final progressDisabled = lesson['progressDisabled'] == true;
-    final videoUrl = lesson['videoUrl'] as String?;
+    final videoUrl = _resolvedVideoUrl ?? _extractImmediateVideoUrl(lesson);
     final isVideo = typeUpper == 'VIDEO';
     final isReading = typeUpper == 'READING' || typeUpper == 'ARTICLE';
 
@@ -549,7 +753,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       ),
       body: Column(
         children: [
-          if (isVideo && videoUrl != null && videoUrl.isNotEmpty)
+          if (isVideo)
             _buildVideoArea()
           else if (isReading)
             _buildReadingHeader(
@@ -588,6 +792,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                   type: typeRaw,
                   article: article,
                   videoUrl: videoUrl,
+                  resolvedArticleContent: _resolvedArticleContent,
                 ),
                 _buildPlaceholderTab('Tài liệu sẽ được cập nhật'),
                 _buildDiscussionTab(),
@@ -891,6 +1096,30 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
             : 16 / 9,
         child: chewie != null
             ? Chewie(controller: chewie)
+            : _videoInitError != null
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _videoInitError!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () {
+                          _disposeVideo();
+                          _initVideo();
+                        },
+                        child: const Text('Thử lại'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
             : const Center(
                 child: CircularProgressIndicator(color: Colors.white),
               ),
@@ -1015,11 +1244,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     required String type,
     required Map<String, dynamic>? article,
     required String? videoUrl,
+    required String? resolvedArticleContent,
   }) {
     final typeUpper = type.toUpperCase();
     if (typeUpper == 'ARTICLE' || typeUpper == 'READING') {
       final articleTitle = (article?['title'] ?? 'Bài đọc').toString();
-      final content = (article?['content'] ?? '').toString();
+      final content =
+          (resolvedArticleContent ?? article?['content'] ?? '').toString();
 
       return ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -1052,7 +1283,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                 ),
                 const SizedBox(height: 14),
                 if (content.trim().isNotEmpty)
-                  Html(data: content)
+                  MarkdownBody(
+                    data: content,
+                    selectable: true,
+                    extensionSet: md.ExtensionSet.gitHubWeb,
+                  )
                 else
                   Text(
                     'Nội dung bài đọc đang được cập nhật.',
@@ -1240,14 +1475,32 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final userId = authState?.user?.id;
     if (userId == null) return;
 
-    await ref
-        .read(commentRepositoryProvider)
-        .createTopic(
-          discussionEntityId: lessonId,
-          userId: userId,
-          title: title,
-          content: content,
-        );
+    if (_isCurrentUserDiscussionReadOnly()) {
+      throw Exception(
+        _discussionReadOnlyReason ??
+            'Tài khoản này chỉ có quyền xem thảo luận, không thể đặt câu hỏi.',
+      );
+    }
+
+    try {
+      await ref
+          .read(commentRepositoryProvider)
+          .createTopic(
+            discussionEntityId: lessonId,
+            userId: userId,
+            title: title,
+            content: content,
+          );
+    } catch (e) {
+      final message = _normalizeErrorMessage(e);
+      if (_isDiscussionWriteForbiddenMessage(message) && mounted) {
+        setState(() {
+          _discussionReadOnly = true;
+          _discussionReadOnlyReason = message;
+        });
+      }
+      throw Exception(message);
+    }
 
     await _refreshDiscussionIfPossible();
   }
@@ -1263,14 +1516,36 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final userId = authState?.user?.id;
     if (userId == null) return;
 
-    await ref
-        .read(commentRepositoryProvider)
-        .replyToTopic(
-          discussionEntityId: lessonId,
-          userId: userId,
-          parentId: topicId,
-          content: content,
+    if (_isCurrentUserDiscussionReadOnly()) {
+      if (mounted) {
+        _showDiscussionSnackBar(
+          _discussionReadOnlyReason ??
+              'Tài khoản này chỉ có quyền xem thảo luận, không thể trả lời.',
         );
+      }
+      return;
+    }
+
+    try {
+      await ref
+          .read(commentRepositoryProvider)
+          .replyToTopic(
+            discussionEntityId: lessonId,
+            userId: userId,
+            parentId: topicId,
+            content: content,
+          );
+    } catch (e) {
+      final message = _normalizeErrorMessage(e);
+      if (_isDiscussionWriteForbiddenMessage(message) && mounted) {
+        setState(() {
+          _discussionReadOnly = true;
+          _discussionReadOnlyReason = message;
+        });
+      }
+      if (mounted) _showDiscussionSnackBar(message);
+      return;
+    }
 
     setState(() {
       _replyDrafts[topicId] = '';
@@ -1280,6 +1555,15 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
 
   Future<void> _openCreateTopicSheet() async {
     if (_isCreateTopicSheetOpen) return;
+    if (_isCurrentUserDiscussionReadOnly()) {
+      if (mounted) {
+        _showDiscussionSnackBar(
+          _discussionReadOnlyReason ??
+              'Tài khoản này chỉ có quyền xem thảo luận.',
+        );
+      }
+      return;
+    }
     _isCreateTopicSheetOpen = true;
     try {
       await showModalBottomSheet<void>(
@@ -1303,6 +1587,12 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
         authState != null &&
         authState.isAuthenticated &&
         authState.user != null;
+    final roleReadOnly = _isDiscussionReadOnlyRole(authState?.user?.role);
+    final discussionReadOnly = _discussionReadOnly || roleReadOnly;
+    final readOnlyReason = _discussionReadOnlyReason ??
+      (roleReadOnly
+        ? 'Tài khoản này chỉ có quyền xem thảo luận, không thể đặt câu hỏi hoặc trả lời.'
+        : null);
 
     if (lessonId.isEmpty) {
       return Center(
@@ -1362,9 +1652,19 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _openCreateTopicSheet,
-                child: const Text('Đặt câu hỏi'),
+                onPressed: discussionReadOnly ? null : _openCreateTopicSheet,
+                child: Text(
+                  discussionReadOnly ? 'Chỉ xem thảo luận' : 'Đặt câu hỏi',
+                ),
               ),
+              if (discussionReadOnly && readOnlyReason != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  readOnlyReason,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textTertiary),
+                ),
+              ],
             ],
           ),
         ),
@@ -1456,42 +1756,50 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                     ],
 
                     const SizedBox(height: 12),
-                    const Text(
-                      'Trả lời',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: TextEditingController(
-                        text: _replyDrafts[topic.id] ?? '',
+                    if (discussionReadOnly)
+                      Text(
+                        readOnlyReason ??
+                            'Tài khoản này chỉ có quyền xem thảo luận.',
+                        style: TextStyle(color: AppColors.textTertiary),
+                      )
+                    else ...[
+                      const Text(
+                        'Trả lời',
+                        style: TextStyle(fontWeight: FontWeight.w800),
                       ),
-                      onChanged: (v) {
-                        _replyDrafts[topic.id] = v;
-                      },
-                      minLines: 3,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        hintText: 'Viết câu trả lời...',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            final text = (_replyDrafts[topic.id] ?? '').trim();
-                            if (text.isEmpty) return;
-                            await _replyToTopic(
-                              topicId: topic.id,
-                              content: text,
-                            );
-                          },
-                          child: const Text('Gửi trả lời'),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: TextEditingController(
+                          text: _replyDrafts[topic.id] ?? '',
                         ),
-                      ],
-                    ),
+                        onChanged: (v) {
+                          _replyDrafts[topic.id] = v;
+                        },
+                        minLines: 3,
+                        maxLines: 5,
+                        decoration: const InputDecoration(
+                          hintText: 'Viết câu trả lời...',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () async {
+                              final text = (_replyDrafts[topic.id] ?? '').trim();
+                              if (text.isEmpty) return;
+                              await _replyToTopic(
+                                topicId: topic.id,
+                                content: text,
+                              );
+                            },
+                            child: const Text('Gửi trả lời'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ],
               ),
@@ -1552,6 +1860,43 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
         )
         .trim();
   }
+
+  bool _isDiscussionReadOnlyRole(String? role) {
+    final r = (role ?? '').trim().toUpperCase();
+    if (r.isEmpty) return false;
+    return r == 'ADMIN' ||
+        r == 'ACADEMIC_STAFF' ||
+        r == 'ACADEMY_STAFF' ||
+        r == 'STAFF' ||
+        r == 'EMPLOYEE';
+  }
+
+  bool _isCurrentUserDiscussionReadOnly() {
+    final authState = ref.read(authStateProvider).valueOrNull;
+    return _discussionReadOnly ||
+        _isDiscussionReadOnlyRole(authState?.user?.role);
+  }
+
+  bool _isDiscussionWriteForbiddenMessage(String message) {
+    final m = message.toLowerCase();
+    return (m.contains('chỉ có quyền xem') && m.contains('thảo luận')) ||
+        m.contains('không được phép đặt câu hỏi') ||
+        m.contains('không được phép trả lời');
+  }
+
+  String _normalizeErrorMessage(Object error) {
+    final raw = error.toString().trim();
+    if (raw.startsWith('Exception:')) {
+      return raw.substring('Exception:'.length).trim();
+    }
+    return raw;
+  }
+
+  void _showDiscussionSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 }
 
 bool _syllabusIsTrackable(CurriculumLessonModel l) {
@@ -1592,6 +1937,8 @@ Map<String, dynamic> _syllabusLessonPayload({
     'title': lesson.title,
     'type': lesson.type.toLowerCase(),
     'videoUrl': lesson.videoUrl,
+    if (lesson.videoFileId != null && lesson.videoFileId!.isNotEmpty)
+      'videoFileId': lesson.videoFileId,
     'article': <String, dynamic>{
       'title': lesson.title,
       'content': lesson.content ?? 'Nội dung bài học đang được cập nhật.',
@@ -1606,6 +1953,8 @@ Map<String, dynamic> _syllabusLessonPayload({
         'title': nextLesson.title,
         'type': nextLesson.type.toLowerCase(),
         'videoUrl': nextLesson.videoUrl,
+        if (nextLesson.videoFileId != null && nextLesson.videoFileId!.isNotEmpty)
+          'videoFileId': nextLesson.videoFileId,
         'article': <String, dynamic>{
           'title': nextLesson.title,
           'content':
@@ -1742,6 +2091,15 @@ class _CreateTopicSheetState extends State<_CreateTopicSheet> {
     try {
       await widget.onSubmit(title: title, content: content);
       if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      final raw = e.toString();
+      final message = raw.startsWith('Exception:')
+          ? raw.substring('Exception:'.length).trim()
+          : raw;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

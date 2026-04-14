@@ -18,6 +18,38 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   String _selectedLevel = 'Tất cả';
   final List<String> _levels = ['Tất cả', 'N5', 'N4', 'N3', 'N2', 'N1'];
 
+  Future<void> _openCourseSearch(BuildContext context) async {
+    final effectiveLevel = _selectedLevel == 'Tất cả' ? null : _selectedLevel;
+    try {
+      final results = await Future.wait<List<AcademyProductModel>>([
+        ref.read(classCatalogLiveProvider(effectiveLevel).future),
+        ref.read(classCatalogVodProvider(effectiveLevel).future),
+      ]);
+
+      if (!mounted) return;
+
+      final allItems = <AcademyProductModel>[
+        ...results[0],
+        ...results[1],
+      ];
+
+      final deduped = <String, AcademyProductModel>{};
+      for (final item in allItems) {
+        deduped['${item.mode}:${item.id}'] = item;
+      }
+
+      await showSearch<AcademyProductModel?>(
+        context: context,
+        delegate: _CourseSearchDelegate(deduped.values.toList()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể tải dữ liệu tìm kiếm: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -74,7 +106,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
         Padding(
           padding: const EdgeInsets.only(right: 16),
           child: IconButton(
-            onPressed: () {},
+            onPressed: () => _openCourseSearch(context),
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -332,6 +364,102 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CourseSearchDelegate extends SearchDelegate<AcademyProductModel?> {
+  _CourseSearchDelegate(this.items);
+
+  final List<AcademyProductModel> items;
+
+  @override
+  String? get searchFieldLabel => 'Tìm khóa học...';
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      if (query.isNotEmpty)
+        IconButton(
+          onPressed: () => query = '',
+          icon: const Icon(Icons.close),
+        ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      onPressed: () => close(context, null),
+      icon: const Icon(Icons.arrow_back),
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return _buildResultList(context);
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return _buildResultList(context);
+  }
+
+  List<AcademyProductModel> _filteredItems() {
+    final keyword = query.trim().toLowerCase();
+    if (keyword.isEmpty) return items;
+
+    return items.where((item) {
+      final name = item.name.toLowerCase();
+      final level = (item.jlptLevel ?? '').toLowerCase();
+      final mode = item.mode.toLowerCase();
+      return name.contains(keyword) || level.contains(keyword) || mode.contains(keyword);
+    }).toList();
+  }
+
+  Widget _buildResultList(BuildContext context) {
+    final theme = Theme.of(context);
+    final filtered = _filteredItems();
+
+    if (filtered.isEmpty) {
+      return const Center(
+        child: Text('Không tìm thấy khóa học phù hợp.'),
+      );
+    }
+
+    return ListView.separated(
+      itemCount: filtered.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (context, index) {
+        final item = filtered[index];
+        final modeLabel = item.isLive ? 'LIVE' : 'VOD';
+        final levelLabel = (item.jlptLevel ?? 'N/A').trim();
+
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+            child: Icon(
+              item.isLive ? Icons.videocam : Icons.play_lesson,
+              color: theme.colorScheme.primary,
+              size: 18,
+            ),
+          ),
+          title: Text(
+            item.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text('$modeLabel • $levelLabel'),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+          onTap: () {
+            final classSlug = item.liveClassId != null ? '&liveClassId=${item.liveClassId}' : '';
+            final route = '/course-detail/${item.id}?mode=${item.mode}$classSlug';
+            final router = GoRouter.of(context);
+            close(context, item);
+            router.push(route);
+          },
+        );
+      },
     );
   }
 }

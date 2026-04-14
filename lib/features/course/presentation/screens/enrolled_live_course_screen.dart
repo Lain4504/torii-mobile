@@ -1229,6 +1229,8 @@ class _SyllabusTabPane extends ConsumerWidget {
       'title': lesson.title,
       'type': lesson.type.toLowerCase(),
       'videoUrl': lesson.videoUrl,
+      if (lesson.videoFileId != null && lesson.videoFileId!.isNotEmpty)
+        'videoFileId': lesson.videoFileId,
       'article': <String, dynamic>{
         'title': lesson.title,
         'content': lesson.content ?? 'Nội dung bài học đang được cập nhật.',
@@ -1243,6 +1245,8 @@ class _SyllabusTabPane extends ConsumerWidget {
           'title': nextLesson.title,
           'type': nextLesson.type.toLowerCase(),
           'videoUrl': nextLesson.videoUrl,
+          if (nextLesson.videoFileId != null && nextLesson.videoFileId!.isNotEmpty)
+            'videoFileId': nextLesson.videoFileId,
           'article': <String, dynamic>{
             'title': nextLesson.title,
             'content': nextLesson.content ?? 'Nội dung bài học đang được cập nhật.',
