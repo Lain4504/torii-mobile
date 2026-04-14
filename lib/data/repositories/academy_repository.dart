@@ -295,7 +295,7 @@ class AcademyRepository {
             'liveClassIdByCohort': <String, String>{productId: liveClassId},
           if (couponCode != null && couponCode.trim().isNotEmpty)
             'couponCode': couponCode.trim(),
-          if (metadata != null) 'metadata': metadata,
+          if (metadata != null) ...metadata,
         },
       );
 
@@ -336,7 +336,7 @@ class AcademyRepository {
           'paymentMethod': paymentMethod.toUpperCase(),
           if (couponCode != null && couponCode.trim().isNotEmpty)
             'couponCode': couponCode.trim(),
-          if (metadata != null) 'metadata': metadata,
+          if (metadata != null) ...metadata,
         },
       );
 
@@ -369,7 +369,7 @@ class AcademyRepository {
           'recipientEmail': recipientEmail,
           'courseId': commerceTargetId,
         },
-      );
+      ).timeout(const Duration(seconds: 3));
 
       final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
       if (!api.success || api.data == null) {

@@ -37,6 +37,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool _processing = false;
   String? _previewError;
   bool _scheduledInitialPreview = false;
+  bool _needsPreview = false;
 
   // Gifting state
   bool _isGift = false;
@@ -46,6 +47,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool _checkingGift = false;
   Timer? _giftDebounce;
   String? _lastCheckedEmail;
+  String? _lastPreviewedEmail;
 
   @override
   void dispose() {
@@ -63,29 +65,51 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Future<void> _previewNow(AcademyProductDetailModel item) async {
-    if (_previewing) return;
+    if (_previewing) {
+      _needsPreview = true;
+      return;
+    }
+    _needsPreview = false;
+    
+    final targetEmail = _isGift ? _recipientEmailController.text.trim() : null;
     setState(() {
       _previewing = true;
       _previewError = null;
     });
     try {
       final repo = ref.read(academyRepositoryProvider);
+      final bool hasEmail = targetEmail != null && targetEmail.isNotEmpty;
       final res = await repo.previewOrder(
         productId: item.id,
         mode: widget.mode,
         liveClassId: widget.mode == 'LIVE' ? widget.liveClassId : null,
         couponCode: _couponController.text,
-        metadata: _isGift ? {
+        metadata: (_isGift && hasEmail) ? {
           'isGift': true,
-          'recipientEmail': _recipientEmailController.text.trim(),
+          'recipientEmail': targetEmail,
           'giftMessage': _giftMessageController.text.trim(),
         } : null,
       );
-      if (mounted) setState(() => _preview = res);
+      if (mounted) {
+        setState(() {
+          _preview = res;
+          _lastPreviewedEmail = targetEmail;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() => _previewError = e.toString());
+      if (mounted) {
+        setState(() {
+          _previewError = e.toString().replaceAll('Exception: ', '').replaceAll('Exception ', '');
+          _lastPreviewedEmail = targetEmail;
+        });
+      }
     } finally {
-      if (mounted) setState(() => _previewing = false);
+      if (mounted) {
+        setState(() => _previewing = false);
+        if (_needsPreview) {
+          _previewNow(item);
+        }
+      }
     }
   }
 
@@ -129,6 +153,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     _lastCheckedEmail = email;
     if (mounted) setState(() => _checkingGift = true);
     
+    // Always trigger preview concurrently so we get the correct order totals and preview errors
+    _previewNow(item);
+    
+    // Call the check API. Note: The Torii backend has a bug where it hangs if the email is not registered.
+    // The academy_repository has a strict 3-second timeout to handle this hang.
+    // If it successfully returns (e.g. when the user already owns the course), we capture the result to block it.
     try {
       final repo = ref.read(academyRepositoryProvider);
       final res = await repo.checkGiftRecipient(
@@ -140,8 +170,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           _giftCheckResult = res;
           _checkingGift = false;
         });
-        // Trigger preview after gift check to update totals if needed
-        _previewNow(item);
       }
     } catch (_) {
       if (mounted) setState(() => _checkingGift = false);
@@ -256,10 +284,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             Switch(
               value: _isGift,
               onChanged: (val) {
-                setState(() => _isGift = val);
-                if (val) {
-                  _previewNow(item);
-                }
+                setState(() {
+                  _isGift = val;
+                  if (!val) {
+                    _previewError = null;
+                    _giftCheckResult = null;
+                    _checkingGift = false;
+                    _recipientEmailController.clear();
+                    _giftMessageController.clear();
+                  }
+                });
+                _previewNow(item);
               },
             ),
           ],
@@ -279,24 +314,28 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             keyboardType: TextInputType.emailAddress,
             onChanged: (_) => _onRecipientEmailChanged(item),
           ),
-          if (_giftCheckResult != null && !_giftCheckResult!.hasError) ...[
+          // The icon logic combines checkGiftResult and preview
+          if (_previewError == null && 
+              _recipientEmailController.text.trim() == _lastPreviewedEmail && 
+              _lastPreviewedEmail != null && 
+              _lastPreviewedEmail!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Row(
               children: [
                 Icon(
-                  (_giftCheckResult!.hasError || _giftCheckResult!.isEnrolled) ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+                  (_giftCheckResult != null && _giftCheckResult!.isEnrolled) ? Icons.warning_amber_rounded : Icons.check_circle_outline,
                   size: 16,
-                  color: (_giftCheckResult!.hasError || _giftCheckResult!.isEnrolled) ? theme.colorScheme.error : Colors.green,
+                  color: (_giftCheckResult != null && _giftCheckResult!.isEnrolled) ? theme.colorScheme.error : Colors.green,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    _giftCheckResult!.message ?? (_giftCheckResult!.isEnrolled 
+                    (_giftCheckResult != null && _giftCheckResult!.isEnrolled) 
                         ? 'Người nhận đã sở hữu khóa học này'
-                        : (_giftCheckResult!.isRegistered ? 'Người nhận đã có tài khoản Torii' : 'Người nhận chưa có tài khoản (Hệ thống sẽ tự động tạo)')),
+                        : 'Người nhận hợp lệ',
                     style: TextStyle(
                       fontSize: 12, 
-                      color: (_giftCheckResult!.hasError || _giftCheckResult!.isEnrolled) ? theme.colorScheme.error : Colors.green,
+                      color: (_giftCheckResult != null && _giftCheckResult!.isEnrolled) ? theme.colorScheme.error : Colors.green,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -429,7 +468,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Widget _buildBottomBar(ThemeData theme, AcademyProductDetailModel item, double padding) {
-    final isEmailValid = !_isGift || (_recipientEmailController.text.contains('@') && _giftCheckResult != null && !_giftCheckResult!.isEnrolled);
+    final currentEmail = _recipientEmailController.text.trim();
+    final isEmailValid = !_isGift || 
+        (currentEmail.contains('@') && 
+         currentEmail == _lastPreviewedEmail &&
+         _previewError == null &&
+         (_giftCheckResult == null || !_giftCheckResult!.isEnrolled));
     
     return Align(
       alignment: Alignment.bottomCenter,
