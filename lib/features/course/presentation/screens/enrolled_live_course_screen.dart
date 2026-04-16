@@ -878,43 +878,33 @@ class _SyllabusTabPane extends ConsumerWidget {
                           .map(
                             (m) => _buildMilestoneItem(
                               context,
-                              milestone: m,
-                              forceLocked: !done,
-                            ),
-                          )
-                          .toList(),
-                    );
-                  }).toList()
-                    ..addAll(
-                      (moduleMilestonesByModuleId[module.id] ?? const [])
-                          .map((m) {
-                        final moduleTrackable =
-                            module.lessons.where(_isTrackableKind).toList();
-                        final canOpen = moduleTrackable.isNotEmpty &&
-                            moduleTrackable.every(
-                              (l) => _isTrackableDone(
-                                l,
-                                completed,
-                                assessmentsByExamId,
-                              ),
-                            );
-                        return _buildMilestoneItem(
-                          context,
-                          milestone: m,
-                          forceLocked: !canOpen,
-                        );
-                      }),
-                    ),
-                ),
-              ),
-              if (finalMilestones.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                _buildFinalExamBlock(
-                  context,
-                  finalMilestones: finalMilestones,
-                  forceLocked: completedTrackable < trackableOrdered.length,
-                ),
-              ],
+                               milestone: m,
+                               forceLocked: false,
+                             ),
+                           )
+                           .toList(),
+                     );
+                   }).toList()
+                     ..addAll(
+                       (moduleMilestonesByModuleId[module.id] ?? const [])
+                           .map((m) {
+                         return _buildMilestoneItem(
+                           context,
+                           milestone: m,
+                           forceLocked: false,
+                         );
+                       }),
+                     ),
+                 ),
+               ),
+               if (finalMilestones.isNotEmpty) ...[
+                 const SizedBox(height: 6),
+                 _buildFinalExamBlock(
+                   context,
+                   finalMilestones: finalMilestones,
+                   forceLocked: false,
+                 ),
+               ],
               const SizedBox(height: 20),
             ],
           ),
@@ -1192,6 +1182,7 @@ class _SyllabusTabPane extends ConsumerWidget {
         lessonOrderMeta,
     required Map<String, int> moduleOrderMap,
   }) {
+    return true; // Live class is always unlocked
     final idx = trackableOrdered.indexWhere((l) => l.id == lesson.id);
     if (idx <= 0) return true;
     final prev = trackableOrdered[idx - 1];

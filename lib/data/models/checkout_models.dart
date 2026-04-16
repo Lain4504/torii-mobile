@@ -14,11 +14,13 @@ class OrderPreviewModel {
   final double subTotal;
   final double discountTotal;
   final double grandTotal;
+  final double walletDiscount;
 
   const OrderPreviewModel({
     required this.subTotal,
     required this.discountTotal,
     required this.grandTotal,
+    this.walletDiscount = 0,
   });
 
   factory OrderPreviewModel.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class OrderPreviewModel {
       subTotal: toDouble(json['subTotal']),
       discountTotal: toDouble(json['discountTotal']),
       grandTotal: toDouble(json['grandTotal']),
+      walletDiscount: toDouble(json['walletDiscount']),
     );
   }
 }

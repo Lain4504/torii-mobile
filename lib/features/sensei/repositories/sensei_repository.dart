@@ -80,28 +80,34 @@ class SenseiRepository {
     required List<String> subscriptionPlanIds,
     required String paymentMethod,
     required String description,
+    bool useWalletBalance = false,
   }) async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/academy/orders/checkout',
-      data: <String, dynamic>{
-        'subscriptionPlanIds': subscriptionPlanIds,
-        'paymentMethod': paymentMethod,
-        'description': description,
-      },
-    );
-    final body = response.data ?? {};
-    if (body['success'] != true) {
-      throw Exception(body['message'] ?? 'Failed to checkout subscription');
-    }
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/api/academy/orders/checkout',
+        data: <String, dynamic>{
+          'subscriptionPlanIds': subscriptionPlanIds,
+          'paymentMethod': paymentMethod.toUpperCase(),
+          'description': description,
+          'useWalletBalance': useWalletBalance,
+        },
+      );
+      final body = response.data ?? {};
+      if (body['success'] != true) {
+        throw Exception(body['message'] ?? 'Failed to checkout subscription');
+      }
 
-    final data = body['data'];
-    if (data is Map<String, dynamic>) {
-      return SenseiSubscriptionCheckoutResult.fromJson(data);
+      final data = body['data'];
+      if (data is Map<String, dynamic>) {
+        return SenseiSubscriptionCheckoutResult.fromJson(data);
+      }
+      if (data is Map) {
+        return SenseiSubscriptionCheckoutResult.fromJson(data.cast<String, dynamic>());
+      }
+      throw Exception('Unexpected checkout response');
+    } catch (e) {
+      throw Exception(_extractErrorMessage(e));
     }
-    if (data is Map) {
-      return SenseiSubscriptionCheckoutResult.fromJson(data.cast<String, dynamic>());
-    }
-    throw Exception('Unexpected checkout response');
   }
 
   // --- CHATBOT API ---
@@ -131,6 +137,25 @@ class SenseiRepository {
         );
       }
       throw Exception('AI Sensei chat failed: $msg');
+    }
+  }
+
+  Future<FlashcardAutofillModel> autofillFlashcard({required String term}) async {
+    try {
+      final response = await _dio.post('/api/agents/flashcard/autofill', data: {'term': term});
+      final body = response.data ?? {};
+      if (body['success'] != true) {
+        throw Exception(body['message'] ?? 'AI Autofill failed');
+      }
+      return FlashcardAutofillModel.fromJson(body['data']);
+    } catch (e) {
+      final msg = _extractErrorMessage(e);
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      throw Exception('Flashcard AI Autofill failed: $msg');
     }
   }
 

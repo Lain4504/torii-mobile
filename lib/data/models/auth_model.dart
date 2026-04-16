@@ -15,6 +15,7 @@ class User {
   final DateTime? lastSignInAt;
   final DateTime? deletedAt;
   final bool isOnboarded;
+  final int? walletBalance;
 
   User({
     required this.id,
@@ -32,6 +33,7 @@ class User {
     this.lastSignInAt,
     this.deletedAt,
     this.isOnboarded = false,
+    this.walletBalance,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class User {
       lastSignInAt: json['lastSignInAt'] != null ? DateTime.parse(json['lastSignInAt'] as String) : null,
       deletedAt: json['deletedAt'] != null ? DateTime.parse(json['deletedAt'] as String) : null,
       isOnboarded: json['isOnboarded'] ?? json['is_onboarded'] ?? false,
+      walletBalance: (json['walletBalance'] as num?)?.toInt(),
     );
   }
 
@@ -71,6 +74,7 @@ class User {
       'lastSignInAt': lastSignInAt?.toIso8601String(),
       'deletedAt': deletedAt?.toIso8601String(),
       'isOnboarded': isOnboarded,
+      'walletBalance': walletBalance,
     };
   }
 }

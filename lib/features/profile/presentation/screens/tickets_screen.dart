@@ -1,8 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:torii_app/core/providers/ticket_providers.dart';
 import 'package:torii_app/data/models/ticket_models.dart';
+import 'package:torii_app/data/models/academy_models.dart';
+import 'package:torii_app/data/repositories/ticket_repository.dart';
+import 'package:torii_app/data/repositories/academy_repository.dart';
+import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:intl/intl.dart';
 
 class TicketsScreen extends ConsumerStatefulWidget {
@@ -15,7 +21,10 @@ class TicketsScreen extends ConsumerStatefulWidget {
 class _TicketsScreenState extends ConsumerState<TicketsScreen> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
-  String _selectedCategory = 'TECHNICAL';
+  String _selectedType = 'SUPPORT';
+  EnrollmentModel? _selectedEnrollment;
+  List<EnrollmentModel> _enrollments = [];
+  bool _isLoadingEnrollments = false;
   bool _isSubmitting = false;
 
   @override
@@ -25,11 +34,51 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
     super.dispose();
   }
 
+  Future<void> _loadEnrollments() async {
+    setState(() => _isLoadingEnrollments = true);
+    try {
+      final repo = ref.read(academyRepositoryProvider);
+      final res = await repo.getMyEnrollments(limit: 100);
+      if (mounted) {
+        setState(() {
+          _enrollments = res.data;
+          _isLoadingEnrollments = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingEnrollments = false);
+    }
+  }
+
+  Future<Map<String, dynamic>> _getDeviceInfo() async {
+    final deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      final android = await deviceInfo.androidInfo;
+      return {
+        'device': 'Android ${android.model}',
+        'osVersion': android.version.release,
+        'appVersion': '1.0.0', // Fallback or use package_info_plus if available
+      };
+    } else if (Platform.isIOS) {
+      final ios = await deviceInfo.iosInfo;
+      return {
+        'device': ios.name,
+        'osVersion': ios.systemVersion,
+        'appVersion': '1.0.0',
+      };
+    }
+    return {'device': 'Unknown'};
+  }
+
   Future<void> _showCreateTicketDialog(BuildContext context) async {
     _titleController.clear();
     _contentController.clear();
-    _selectedCategory = 'TECHNICAL';
+    _selectedType = 'SUPPORT';
+    _selectedEnrollment = null;
     final theme = Theme.of(context);
+    
+    // Pre-load enrollments for refund type
+    _loadEnrollments();
 
     await showModalBottomSheet(
       context: context,
@@ -58,21 +107,52 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
                 ),
                 const SizedBox(height: 24),
                 DropdownButtonFormField<String>(
-                  value: _selectedCategory,
+                  value: _selectedType,
                   decoration: const InputDecoration(
-                    labelText: 'Chủ đề hỗ trợ',
+                    labelText: 'Loại yêu cầu',
                     border: OutlineInputBorder(),
                   ),
                   items: const [
-                    DropdownMenuItem(value: 'TECHNICAL', child: Text('Kỹ thuật / App lỗi')),
-                    DropdownMenuItem(value: 'PAYMENT', child: Text('Thanh toán / Đơn hàng')),
-                    DropdownMenuItem(value: 'COURSE', child: Text('Nội dung khóa học')),
-                    DropdownMenuItem(value: 'OTHER', child: Text('Khác')),
+                    DropdownMenuItem(value: 'SUPPORT', child: Text('Hỗ trợ tổng quát')),
+                    DropdownMenuItem(value: 'ERROR_REPORT', child: Text('Báo lỗi ứng dụng')),
+                    DropdownMenuItem(value: 'REFUND', child: Text('Yêu cầu hoàn tiền')),
                   ],
                   onChanged: (val) {
-                    if (val != null) setState(() => _selectedCategory = val);
+                    if (val != null) {
+                      setState(() => _selectedType = val);
+                      this.setState(() => _selectedType = val);
+                    }
                   },
                 ),
+                if (_selectedType == 'REFUND') ...[
+                  const SizedBox(height: 16),
+                  if (_isLoadingEnrollments)
+                    const Center(child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ))
+                  else
+                    DropdownButtonFormField<EnrollmentModel>(
+                      value: _selectedEnrollment,
+                      decoration: const InputDecoration(
+                        labelText: 'Chọn khóa học muốn hoàn tiền',
+                        border: OutlineInputBorder(),
+                        helperText: 'Chỉ hoàn tiền trong vòng 14 ngày đăng ký',
+                      ),
+                      items: _enrollments.map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(
+                          e.courseTitle,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      )).toList(),
+                      onChanged: (val) {
+                        setState(() => _selectedEnrollment = val);
+                        this.setState(() => _selectedEnrollment = val);
+                      },
+                    ),
+                ],
                 const SizedBox(height: 16),
                 TextField(
                   controller: _titleController,
@@ -85,7 +165,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
                 TextField(
                   controller: _contentController,
                   decoration: const InputDecoration(
-                    labelText: 'Nội dung chi tiết',
+                    labelText: 'Mô tả chi tiết',
                     alignLabelWithHint: true,
                     border: OutlineInputBorder(),
                   ),
@@ -104,20 +184,37 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
                             );
                             return;
                           }
+                          
+                          if (_selectedType == 'REFUND' && _selectedEnrollment == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Vui lòng chọn khóa học cần hoàn tiền')),
+                            );
+                            return;
+                          }
 
                           setState(() => _isSubmitting = true);
                           try {
+                            final deviceInfo = await _getDeviceInfo();
                             final repo = ref.read(ticketRepositoryProvider);
+                            
                             await repo.createTicket(
-                              title: _titleController.text.trim(),
-                              content: _contentController.text.trim(),
-                              category: _selectedCategory,
+                              type: _selectedType,
+                              subject: _titleController.text.trim(),
+                              description: _contentController.text.trim(),
+                              liveClassId: _selectedType == 'REFUND' && _selectedEnrollment?.isLive == true 
+                                ? _selectedEnrollment?.liveClassId : null,
+                              vodPackageId: _selectedType == 'REFUND' && _selectedEnrollment?.isLive == false 
+                                ? _selectedEnrollment?.vodPackageId : null,
+                              metadata: {
+                                ...deviceInfo,
+                                if (_selectedType == 'REFUND') 'courseTitle': _selectedEnrollment?.courseTitle,
+                              },
                             );
                             if (context.mounted) {
                               Navigator.pop(ctx);
                               ref.invalidate(myTicketsProvider);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Đã gửi yêu cầu hỗ trợ thành công!')),
+                                const SnackBar(content: Text('Đã gửi yêu cầu thành công!')),
                               );
                             }
                           } catch (e) {
@@ -134,6 +231,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen> {
                         },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    minimumSize: const Size.fromHeight(50),
                   ),
                   child: _isSubmitting
                       ? const SizedBox(

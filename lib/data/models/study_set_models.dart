@@ -66,6 +66,10 @@ class SetCardModel {
   final int? interval;
   final DateTime? nextReviewAt;
 
+  // New fields from AI integration
+  final String? phonetic;
+  final String? type;
+
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -80,6 +84,8 @@ class SetCardModel {
     this.srsState,
     this.interval,
     this.nextReviewAt,
+    this.phonetic,
+    this.type,
     this.createdAt,
     this.updatedAt,
   });
@@ -96,6 +102,8 @@ class SetCardModel {
       srsState: json['srsState'] as String?,
       interval: (json['interval'] as num?)?.toInt(),
       nextReviewAt: json['nextReviewAt'] != null ? DateTime.tryParse(json['nextReviewAt'].toString()) : null,
+      phonetic: json['phonetic'] as String? ?? json['languageDetails']?['phonetic'] as String?,
+      type: json['type'] as String? ?? json['languageDetails']?['type'] as String?,
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt'].toString()) : null,
     );
@@ -112,6 +120,8 @@ class SetCardModel {
         'srsState': srsState,
         'interval': interval,
         'nextReviewAt': nextReviewAt?.toIso8601String(),
+        'phonetic': phonetic,
+        'type': type,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
       };

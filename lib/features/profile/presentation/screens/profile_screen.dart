@@ -22,6 +22,7 @@ class ProfileScreen extends ConsumerWidget {
     final profile = gamificationAsync.value;
     final streakModel = streakAsync.value;
     final achievements = achievementsAsync.value ?? const [];
+    final walletBalanceAsync = ref.watch(walletBalanceProvider);
 
     final displayName = (user?.displayName ?? '').isNotEmpty ? user!.displayName : 'Học viên Torii';
     final email = user?.email ?? '';
@@ -30,6 +31,7 @@ class ProfileScreen extends ConsumerWidget {
     final completedCourses = profile?.totalActiveDays.toString() ?? '0';
     final completedLessons = profile?.totalXp.toString() ?? '0';
     final streak = streakModel?.currentStreak.toString() ?? '0';
+    final walletBalance = walletBalanceAsync.value?.toString() ?? user?.walletBalance?.toString() ?? '0';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -69,6 +71,7 @@ class ProfileScreen extends ConsumerWidget {
             ref.invalidate(gamificationProfileProvider);
             ref.invalidate(streakProvider);
             ref.invalidate(gamificationAchievementsProvider);
+            ref.invalidate(walletBalanceProvider);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -156,11 +159,12 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                // Layout stats in 2x2 grid
                 Row(
                   children: [
                     _buildStatCard(
                       theme: theme,
-                      label: 'Ngày hoạt động',
+                      label: 'Ngày học',
                       value: completedCourses,
                       icon: Icons.calendar_month_rounded,
                       color: theme.colorScheme.primary,
@@ -171,15 +175,28 @@ class ProfileScreen extends ConsumerWidget {
                       label: 'Điểm XP',
                       value: completedLessons,
                       icon: Icons.bolt_rounded,
-                      color: const Color(0xFF3BB25E), // Keep success green but explicitly or from codeScheme if added
+                      color: const Color(0xFF3BB25E),
                     ),
-                    const SizedBox(width: AppSpacing.md),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
                     _buildStatCard(
                       theme: theme,
                       label: 'Streak',
                       value: streak,
                       icon: Icons.local_fire_department_rounded,
-                      color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    _buildStatCard(
+                      theme: theme,
+                      label: 'Ví Xu',
+                      value: walletBalance,
+                      icon: Icons.monetization_on_rounded,
+                      color: theme.colorScheme.secondary,
+                      onTap: () => context.push('/profile/wallet'),
                     ),
                   ],
                 ),
@@ -276,41 +293,46 @@ class ProfileScreen extends ConsumerWidget {
     required String value,
     required IconData icon,
     required Color color,
+    VoidCallback? onTap,
   }) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.colorScheme.outlineVariant),
-          boxShadow: [
-            BoxShadow(
-              color: theme.shadowColor.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.1,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: theme.colorScheme.outlineVariant),
+            boxShadow: [
+              BoxShadow(
+                color: theme.shadowColor.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            ],
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 8),
+              Text(
+                value,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.1,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
