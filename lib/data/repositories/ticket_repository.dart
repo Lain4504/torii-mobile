@@ -29,33 +29,22 @@ class TicketRepository {
   }
 
   Future<TicketModel?> createTicket({
-    required String title,
-    required String content,
-    String priority = 'NORMAL',
-    String category = 'TECHNICAL',
+    required String type,
+    required String subject,
+    required String description,
+    String? liveClassId,
+    String? vodPackageId,
+    Map<String, dynamic>? metadata,
   }) async {
-    final normalizedTitle = title.trim();
-    final normalizedContent = content.trim();
-    final normalizedCategory = category.trim().isEmpty
-        ? 'TECHNICAL'
-        : category.trim().toUpperCase();
-    final normalizedPriority = priority.trim().isEmpty
-        ? 'NORMAL'
-        : priority.trim().toUpperCase();
-
     final response = await _dio.post<dynamic>(
       '/api/tickets',
       data: <String, dynamic>{
-        // New backend contract
-        'subject': normalizedTitle,
-        'description': normalizedContent,
-        // Omit `type` until we have exact TicketType enum from backend.
-        // Sending an unknown enum (e.g. TECHNICAL) causes 400.
-        // Keep old keys for backward compatibility
-        'title': normalizedTitle,
-        'content': normalizedContent,
-        'priority': normalizedPriority,
-        'category': normalizedCategory,
+        'type': type,
+        'subject': subject.trim(),
+        'description': description.trim(),
+        if (liveClassId != null) 'liveClassId': liveClassId,
+        if (vodPackageId != null) 'vodPackageId': vodPackageId,
+        if (metadata != null) 'metadata': metadata,
       },
     );
     

@@ -8,6 +8,8 @@ import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/core/widgets/base_sheet_wrapper.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
 import 'package:torii_app/data/models/study_set_models.dart';
+import 'package:torii_app/features/sensei/providers/sensei_providers.dart';
+import 'package:torii_app/features/sensei/repositories/sensei_repository.dart';
 
 class StudySetsDashboardScreen extends ConsumerStatefulWidget {
   const StudySetsDashboardScreen({super.key, required this.initialSetId});
@@ -216,17 +218,42 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
                     return Padding(
                       padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Danh sách ghi chú',
-                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          Expanded(
+                            child: Text(
+                              'Danh sách ghi chú',
+                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                           if (isMine)
-                            TextButton.icon(
-                              onPressed: () => _showAddCardSheet(context, widget.initialSetId),
-                              icon: const Icon(Icons.add, size: 18),
-                              label: const Text('Thêm thẻ'),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextButton.icon(
+                                  onPressed: () => _showBulkAiImportSheet(context, widget.initialSetId),
+                                  icon: const Icon(Icons.auto_awesome, size: 18),
+                                  label: const Text('Nhập AI'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: theme.colorScheme.primary,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                TextButton.icon(
+                                  onPressed: () => _showAddCardSheet(context, widget.initialSetId),
+                                  icon: const Icon(Icons.add, size: 18),
+                                  label: const Text('Thêm thẻ'),
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                ),
+                              ],
                             ),
                         ],
                       ),
@@ -472,6 +499,22 @@ class _StudySetsDashboardScreenState extends ConsumerState<StudySetsDashboardScr
       builder: (ctx) => _EditCardSheet(card: card, onUpdated: () {
          ref.invalidate(studyCardsProvider(card.studySetId));
       }),
+    );
+  }
+
+  void _showBulkAiImportSheet(BuildContext context, String setId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _BulkAiImportSheet(
+        setId: setId,
+        onCompleted: () {
+          ref.invalidate(studyCardsProvider(setId));
+          ref.invalidate(studySetsProvider);
+          ref.invalidate(studySetDetailProvider(setId));
+        },
+      ),
     );
   }
 }
@@ -913,7 +956,10 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
   final _termCtrl = TextEditingController();
   final _defCtrl = TextEditingController();
   final _hintCtrl = TextEditingController();
+  String? _phonetic;
+  String? _type;
   bool _busy = false;
+  bool _isAiBusy = false;
 
   @override
   void dispose() {
@@ -921,6 +967,35 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
     _defCtrl.dispose();
     _hintCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _autofill() async {
+    final term = _termCtrl.text.trim();
+    if (term.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng nhập thuật ngữ trước!')));
+      return;
+    }
+
+    setState(() => _isAiBusy = true);
+    try {
+      final res = await ref.read(senseiRepositoryProvider).autofillFlashcard(term: term);
+      _defCtrl.text = res.definition;
+      _hintCtrl.text = res.note ?? '';
+      _phonetic = res.phonetic;
+      _type = res.type;
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('AI đã tự động điền thông tin!'), duration: Duration(seconds: 1)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi AI: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _isAiBusy = false);
+    }
   }
 
   Future<void> _submit() async {
@@ -936,6 +1011,8 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
         term: term,
         definition: def,
         hint: _hintCtrl.text.trim(),
+        phonetic: _phonetic,
+        type: _type,
       );
       if (card != null) {
         widget.onAdded();
@@ -962,7 +1039,40 @@ class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
       busy: _busy,
       child: Column(
         children: [
-          TextField(controller: _termCtrl, autofocus: true, decoration: const InputDecoration(labelText: 'Thuật ngữ (Ví dụ: Từ vựng)', border: OutlineInputBorder())),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _termCtrl,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Thuật ngữ (Ví dụ: Từ vựng)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 56,
+                child: IconButton.filledTonal(
+                  onPressed: _isAiBusy || _busy ? null : _autofill,
+                  icon: _isAiBusy
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.auto_awesome),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           TextField(controller: _defCtrl, decoration: const InputDecoration(labelText: 'Định nghĩa (Ví dụ: Nghĩa tiếng Việt)', border: OutlineInputBorder())),
           const SizedBox(height: 16),
@@ -997,7 +1107,10 @@ class _EditCardSheetState extends ConsumerState<_EditCardSheet> {
   late final TextEditingController _termCtrl;
   late final TextEditingController _defCtrl;
   late final TextEditingController _hintCtrl;
+  String? _phonetic;
+  String? _type;
   bool _busy = false;
+  bool _isAiBusy = false;
 
   @override
   void initState() {
@@ -1005,6 +1118,8 @@ class _EditCardSheetState extends ConsumerState<_EditCardSheet> {
     _termCtrl = TextEditingController(text: widget.card.term);
     _defCtrl = TextEditingController(text: widget.card.definition);
     _hintCtrl = TextEditingController(text: widget.card.hint);
+    _phonetic = widget.card.phonetic;
+    _type = widget.card.type;
   }
 
   @override
@@ -1013,6 +1128,29 @@ class _EditCardSheetState extends ConsumerState<_EditCardSheet> {
     _defCtrl.dispose();
     _hintCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _autofill() async {
+    final term = _termCtrl.text.trim();
+    if (term.isEmpty) return;
+
+    setState(() => _isAiBusy = true);
+    try {
+      final res = await ref.read(senseiRepositoryProvider).autofillFlashcard(term: term);
+      _defCtrl.text = res.definition;
+      _hintCtrl.text = res.note ?? '';
+      _phonetic = res.phonetic;
+      _type = res.type;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI đã cập nhật thông tin!'), duration: Duration(seconds: 1)));
+      }
+    } catch (e) {
+       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi AI: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _isAiBusy = false);
+    }
   }
 
   Future<void> _submit() async {
@@ -1028,6 +1166,8 @@ class _EditCardSheetState extends ConsumerState<_EditCardSheet> {
         term: term,
         definition: def,
         hint: _hintCtrl.text.trim(),
+        phonetic: _phonetic,
+        type: _type,
       );
       if (updated != null) {
         widget.onUpdated();
@@ -1049,7 +1189,36 @@ class _EditCardSheetState extends ConsumerState<_EditCardSheet> {
       busy: _busy,
       child: Column(
         children: [
-          TextField(controller: _termCtrl, decoration: const InputDecoration(labelText: 'Thuật ngữ', border: OutlineInputBorder())),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _termCtrl,
+                  decoration: const InputDecoration(labelText: 'Thuật ngữ', border: OutlineInputBorder()),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 56,
+                child: IconButton.filledTonal(
+                  onPressed: _isAiBusy || _busy ? null : _autofill,
+                  icon: _isAiBusy
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.auto_awesome),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           TextField(controller: _defCtrl, decoration: const InputDecoration(labelText: 'Định nghĩa', border: OutlineInputBorder())),
           const SizedBox(height: 16),
@@ -1063,6 +1232,157 @@ class _EditCardSheetState extends ConsumerState<_EditCardSheet> {
               child: const Text('Cập nhật'),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BulkAiImportSheet extends ConsumerStatefulWidget {
+  final String setId;
+  final VoidCallback onCompleted;
+  const _BulkAiImportSheet({required this.setId, required this.onCompleted});
+
+  @override
+  ConsumerState<_BulkAiImportSheet> createState() => _BulkAiImportSheetState();
+}
+
+class _BulkAiImportSheetState extends ConsumerState<_BulkAiImportSheet> {
+  final _textCtrl = TextEditingController();
+  bool _isProcessing = false;
+  double _progress = 0;
+  int _total = 0;
+  int _successCount = 0;
+  int _errorCount = 0;
+
+  @override
+  void dispose() {
+    _textCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _startProcess() async {
+    final text = _textCtrl.text.trim();
+    if (text.isEmpty) return;
+
+    final lines = text.split('\n').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    if (lines.isEmpty) return;
+
+    setState(() {
+      _isProcessing = true;
+      _total = lines.length;
+      _progress = 0;
+      _successCount = 0;
+      _errorCount = 0;
+    });
+
+    final senseiRepo = ref.read(senseiRepositoryProvider);
+    final academyRepo = ref.read(academyRepositoryProvider);
+
+    const int concurrency = 3;
+    for (int i = 0; i < lines.length; i += concurrency) {
+      if (!mounted) break;
+      
+      final chunk = lines.sublist(i, (i + concurrency) > lines.length ? lines.length : (i + concurrency));
+      
+      await Future.wait(chunk.map((term) async {
+        try {
+          // 1. AI Autofill
+          final autofill = await senseiRepo.autofillFlashcard(term: term);
+          
+          // 2. Create Card
+          await academyRepo.createStudySetCard(
+            setId: widget.setId,
+            term: autofill.term,
+            definition: autofill.definition,
+            hint: autofill.note,
+            phonetic: autofill.phonetic,
+            type: autofill.type,
+          );
+          
+          if (mounted) setState(() => _successCount++);
+        } catch (e) {
+          if (mounted) setState(() => _errorCount++);
+          debugPrint('Bulk AI Import error for $term: $e');
+        } finally {
+          if (mounted) {
+            setState(() {
+              _progress = (_successCount + _errorCount) / _total;
+            });
+          }
+        }
+      }));
+      
+      // Small delay between chunks
+      await Future.delayed(const Duration(milliseconds: 300));
+    }
+
+    if (mounted) {
+      setState(() => _isProcessing = false);
+      widget.onCompleted();
+      if (_successCount > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đã tạo thành công $_successCount thẻ! ${_errorCount > 0 ? "($_errorCount lỗi)" : ""}')),
+        );
+        if (_errorCount == 0) {
+           Navigator.pop(context);
+        }
+      } else if (_errorCount > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không tạo được thẻ nào. Vui lòng kiểm tra lại.'), backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return BaseSheetWrapper(
+      title: 'Nhập nhanh bằng AI',
+      busy: _isProcessing,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!_isProcessing) ...[
+            Text(
+              'Nhập danh sách từ vựng (mỗi từ một dòng). AI sẽ tự động tìm định nghĩa và ghi chú cho bạn.',
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _textCtrl,
+              maxLines: 8,
+              decoration: const InputDecoration(
+                hintText: 'Ví dụ:\n食べる\n見る\n行く',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton.icon(
+                onPressed: _startProcess,
+                icon: const Icon(Icons.auto_awesome),
+                label: const Text('Bắt đầu xử lý'),
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 20),
+            LinearProgressIndicator(value: _progress, minHeight: 8, borderRadius: BorderRadius.circular(4)),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Đang xử lý: ${(_progress * 100).toInt()}%', style: theme.textTheme.bodySmall),
+                Text('$_successCount thành công, $_errorCount lỗi', style: theme.textTheme.bodySmall),
+              ],
+            ),
+            const SizedBox(height: 40),
+            const Center(child: Text('Vui lòng không đóng màn hình này...')),
+          ],
+          const SizedBox(height: 16),
         ],
       ),
     );

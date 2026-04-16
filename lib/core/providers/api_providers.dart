@@ -15,6 +15,7 @@ import '../../data/models/gamification_models.dart';
 import '../../data/models/live_schedule_model.dart';
 import '../../data/models/checkout_models.dart';
 import '../../data/models/study_set_models.dart';
+import '../../data/models/wallet_models.dart';
 import '../../core/models/paginated_response.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/auth/models/auth_state.dart';
@@ -326,4 +327,17 @@ final assignmentsProvider = FutureProvider.autoDispose
   }
   final repo = ref.watch(academyRepositoryProvider);
   return repo.getAssignments(liveClassId);
+});
+
+// ---------- Wallet & Balance ----------
+final walletBalanceProvider = FutureProvider.autoDispose<int>((ref) async {
+  if (!_authenticatedAcademyUser(ref)) return 0;
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getWalletBalance();
+});
+
+final walletTransactionsProvider = FutureProvider.autoDispose<List<WalletTransaction>>((ref) async {
+  if (!_authenticatedAcademyUser(ref)) return [];
+  final repo = ref.watch(academyRepositoryProvider);
+  return repo.getWalletTransactions();
 });

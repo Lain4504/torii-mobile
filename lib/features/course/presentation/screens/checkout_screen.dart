@@ -38,6 +38,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   String? _previewError;
   bool _scheduledInitialPreview = false;
   bool _needsPreview = false;
+  bool _useWallet = false;
 
   // Gifting state
   bool _isGift = false;
@@ -84,6 +85,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         mode: widget.mode,
         liveClassId: widget.mode == 'LIVE' ? widget.liveClassId : null,
         couponCode: _couponController.text,
+        useWalletBalance: _useWallet,
         metadata: (_isGift && hasEmail) ? {
           'isGift': true,
           'recipientEmail': targetEmail,
@@ -178,14 +180,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   Future<void> _handleCheckout(AcademyProductDetailModel item) async {
     setState(() => _processing = true);
+    
+    // Calculate final total including frontend-side wallet subtraction if necessary
+    final user = ref.read(authStateProvider).asData?.value.user;
+    final balance = ref.read(walletBalanceProvider).value ?? user?.walletBalance ?? 0;
+    
+    final subTotal = _preview?.subTotal ?? item.product.displayPrice;
+    final discount = _preview?.discountTotal ?? 0;
+    final backendWalletDiscount = _preview?.walletDiscount ?? 0;
+    
+    double effectiveTotal = _preview?.grandTotal ?? (subTotal - discount);
+    
+    if (_useWallet && backendWalletDiscount == 0 && balance > 0) {
+      effectiveTotal = (effectiveTotal - balance).clamp(0, double.infinity);
+    }
+    
+    String paymentMethod = 'PAYOS';
+    if (_useWallet && effectiveTotal == 0) {
+      paymentMethod = 'COIN';
+    }
+
     try {
       final repo = ref.read(academyRepositoryProvider);
       final result = await repo.checkoutOrder(
         productId: item.id,
         mode: widget.mode,
         liveClassId: widget.mode == 'LIVE' ? widget.liveClassId : null,
-        paymentMethod: 'PAYOS',
+        paymentMethod: paymentMethod,
         couponCode: _couponController.text,
+        useWalletBalance: _useWallet,
         metadata: {
           'isGift': _isGift,
           if (_isGift) 'recipientEmail': _recipientEmailController.text.trim(),
@@ -194,6 +217,26 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
 
       if (mounted) setState(() => _processing = false);
+      
+      if (paymentMethod == 'COIN') {
+        // If paid by coin, we expect immediate success
+        // Refresh data sources that change after payment
+        ref.invalidate(walletBalanceProvider);
+        ref.invalidate(walletTransactionsProvider);
+        ref.invalidate(myOrdersProvider);
+        ref.invalidate(myEnrollmentsProvider);
+        ref.invalidate(liveSchedulesProvider);
+        
+        if (result != null && result.orderCode != null) {
+          context.replace('/payment-result/${result.orderCode}');
+        } else {
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Thanh toán thành công!'), backgroundColor: Colors.green),
+          );
+          context.pop();
+        }
+        return;
+      }
       
       if (result != null && result.paymentUrl != null) {
         context.push('/payment', extra: {
@@ -255,6 +298,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   const Text('Mã giảm giá', style: TextStyle(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 12),
                   _buildCouponInput(theme, item),
+                  const SizedBox(height: 32),
+                  _buildWalletSection(theme, item),
                   const SizedBox(height: 32),
                   _buildOrderTotals(theme, item),
                   if (_previewError != null) ...[
@@ -428,7 +473,45 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     );
   }
 
+  Widget _buildWalletSection(ThemeData theme, AcademyProductDetailModel item) {
+    final user = ref.watch(authStateProvider).asData?.value.user;
+    final walletBalanceAsync = ref.watch(walletBalanceProvider);
+    final int balance = walletBalanceAsync.value ?? user?.walletBalance ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Dùng Xu để giảm giá', style: TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                Text(
+                  'Số dư: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'Xu', decimalDigits: 0).format(balance)}',
+                  style: TextStyle(fontSize: 12, color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+            Switch(
+              value: _useWallet,
+              onChanged: (val) {
+                setState(() => _useWallet = val);
+                _previewNow(item);
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildOrderTotals(ThemeData theme, AcademyProductDetailModel item) {
+    final user = ref.read(authStateProvider).asData?.value.user;
+    final balance = ref.read(walletBalanceProvider).value ?? user?.walletBalance ?? 0;
+
     double basePrice = item.product.displayPrice;
     if (widget.mode == 'LIVE' && widget.liveClassId != null) {
       final selectedClass = item.siblingClasses.where((c) => c.id == widget.liveClassId).firstOrNull;
@@ -439,12 +522,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     
     final subTotal = _preview?.subTotal ?? basePrice;
     final discount = _preview?.discountTotal ?? 0;
-    final total = _preview?.grandTotal ?? subTotal;
+    double walletDiscount = _preview?.walletDiscount ?? 0;
+    
+    // Backend fallback: if backend didn't return a wallet discount but toggle is ON and balance > 0
+    if (_useWallet && walletDiscount == 0 && balance > 0) {
+      walletDiscount = (subTotal - discount).clamp(0, balance.toDouble());
+    }
+
+    final total = (_preview != null 
+        ? (_useWallet && _preview!.walletDiscount == 0 ? (subTotal - discount - walletDiscount).clamp(0, double.infinity) : _preview!.grandTotal)
+        : (subTotal - discount - (_useWallet ? walletDiscount : 0))).toDouble();
 
     return Column(
       children: [
         _totalRow('Tạm tính', subTotal),
         if (discount > 0) _totalRow('Giảm giá', -discount, color: Colors.green),
+        if (walletDiscount > 0) _totalRow('Dùng Xu', -walletDiscount, color: theme.colorScheme.primary),
         const Divider(height: 32),
         _totalRow('Tổng thanh toán', total, isBold: true, fontSize: 18),
       ],

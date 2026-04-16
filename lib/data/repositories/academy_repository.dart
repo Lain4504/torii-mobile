@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
 import '../database/app_database.dart';
@@ -9,6 +10,7 @@ import '../models/jlpt_mock_models.dart';
 import '../models/live_schedule_model.dart';
 import '../models/live_session_join_result.dart';
 import '../models/study_set_models.dart';
+import '../models/wallet_models.dart';
 import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 import '../../services/auth/token_service.dart';
@@ -280,6 +282,7 @@ class AcademyRepository {
     required String mode,
     String? liveClassId,
     String? couponCode,
+    bool useWalletBalance = false,
     Map<String, dynamic>? metadata,
   }) async {
     final isLive = mode.toUpperCase() == 'LIVE';
@@ -295,6 +298,7 @@ class AcademyRepository {
             'liveClassIdByCohort': <String, String>{productId: liveClassId},
           if (couponCode != null && couponCode.trim().isNotEmpty)
             'couponCode': couponCode.trim(),
+          'useWalletBalance': useWalletBalance,
           if (metadata != null) ...metadata,
         },
       );
@@ -320,6 +324,7 @@ class AcademyRepository {
     String? liveClassId,
     required String paymentMethod,
     String? couponCode,
+    bool useWalletBalance = false,
     Map<String, dynamic>? metadata,
   }) async {
     final isLive = mode.toUpperCase() == 'LIVE';
@@ -336,6 +341,7 @@ class AcademyRepository {
           'paymentMethod': paymentMethod.toUpperCase(),
           if (couponCode != null && couponCode.trim().isNotEmpty)
             'couponCode': couponCode.trim(),
+          'useWalletBalance': useWalletBalance,
           if (metadata != null) ...metadata,
         },
       );
@@ -477,6 +483,62 @@ class AcademyRepository {
             });
       return merged;
     } catch (_) {
+      return [];
+    }
+  }
+
+  /// GET /api/academy/wallet/balance
+  Future<int> getWalletBalance() async {
+    try {
+      final headers = await _getRequestHeaders();
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/wallet/balance',
+        options: Options(headers: headers),
+      );
+      
+      final rawData = response.data?['data'];
+      if (rawData == null) return 0;
+
+      // Handle String (it returned "1000000" in logs)
+      if (rawData is String) {
+        return int.tryParse(rawData) ?? 0;
+      }
+      
+      // Handle Number
+      if (rawData is num) {
+        return rawData.toInt();
+      } 
+      
+      // Handle Map { balance: 1000 }
+      if (rawData is Map) {
+        return (rawData['balance'] as num?)?.toInt() ?? 0;
+      }
+      
+      return 0;
+    } catch (e) {
+      debugPrint('Error fetching wallet balance: $e');
+      return 0;
+    }
+  }
+
+  /// GET /api/academy/wallet/transactions
+  Future<List<WalletTransaction>> getWalletTransactions() async {
+    try {
+      final headers = await _getRequestHeaders();
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/wallet/transactions',
+        options: Options(headers: headers),
+      );
+      
+      final body = response.data ?? {};
+      if (body['success'] != true) return [];
+      
+      final data = body['data'];
+      final List<dynamic> items = (data is Map ? data['items'] : data) as List<dynamic>? ?? [];
+      
+      return items.map((e) => WalletTransaction.fromJson(Map<String, dynamic>.from(e))).toList();
+    } catch (e) {
+      debugPrint('Error fetching wallet transactions: $e');
       return [];
     }
   }
@@ -747,6 +809,8 @@ class AcademyRepository {
     required String term,
     required String definition,
     String? hint,
+    String? phonetic,
+    String? type,
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/api/academy/study-sets/$setId/cards',
@@ -754,6 +818,11 @@ class AcademyRepository {
         'term': term,
         'definition': definition,
         if (hint != null && hint.trim().isNotEmpty) 'hint': hint.trim(),
+        if (phonetic != null || type != null)
+          'languageDetails': {
+            if (phonetic != null) 'phonetic': phonetic,
+            if (type != null) 'type': type,
+          },
       },
     );
     final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
@@ -770,11 +839,18 @@ class AcademyRepository {
     String? term,
     String? definition,
     String? hint,
+    String? phonetic,
+    String? type,
   }) async {
     final payload = <String, dynamic>{
       if (term != null) 'term': term,
       if (definition != null) 'definition': definition,
       if (hint != null) 'hint': hint,
+      if (phonetic != null || type != null)
+        'languageDetails': {
+          if (phonetic != null) 'phonetic': phonetic,
+          if (type != null) 'type': type,
+        },
     };
     if (payload.isEmpty) return null;
 

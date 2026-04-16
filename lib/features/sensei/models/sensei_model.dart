@@ -185,6 +185,33 @@ class TTSResponse {
   }
 }
 
+class FlashcardAutofillModel {
+  final String term;
+  final String? phonetic;
+  final String definition;
+  final String? note;
+  final String? type;
+
+  const FlashcardAutofillModel({
+    required this.term,
+    this.phonetic,
+    required this.definition,
+    this.note,
+    this.type,
+  });
+
+  factory FlashcardAutofillModel.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] ?? json;
+    return FlashcardAutofillModel(
+      term: data['term']?.toString() ?? '',
+      phonetic: data['phonetic']?.toString(),
+      definition: data['definition']?.toString() ?? '',
+      note: data['note']?.toString(),
+      type: data['type']?.toString(),
+    );
+  }
+}
+
 class RoleplayTopic {
   final String id;
   final String title;

@@ -179,6 +179,7 @@ class CurriculumScreen extends ConsumerWidget {
                           lessonOrderMeta: lessonOrderMeta,
                           moduleOrderMap: moduleOrderMap,
                           useProgress: useProgress,
+                          mode: mode,
                         );
                         final lessonDone = _isTrackableDone(
                           lesson,
@@ -225,7 +226,7 @@ class CurriculumScreen extends ConsumerWidget {
                                 (m) => _buildMilestoneItem(
                                   context,
                                   milestone: m,
-                                  forceLocked: !lessonDone,
+                                  forceLocked: mode.toUpperCase() == 'LIVE' ? false : !lessonDone,
                                 ),
                               )
                               .toList(),
@@ -248,7 +249,7 @@ class CurriculumScreen extends ConsumerWidget {
                             return _buildMilestoneItem(
                               context,
                               milestone: m,
-                              forceLocked: !canOpen,
+                              forceLocked: mode.toUpperCase() == 'LIVE' ? false : !canOpen,
                             );
                           }),
                         ),
@@ -259,8 +260,7 @@ class CurriculumScreen extends ConsumerWidget {
                   _buildFinalExamBlock(
                     context,
                     finalMilestones: finalMilestones,
-                    forceLocked:
-                        completedTrackable < trackableOrdered.length,
+                    forceLocked: mode.toUpperCase() == 'LIVE' ? false : completedTrackable < trackableOrdered.length,
                   ),
                 ],
               ],
@@ -618,15 +618,22 @@ bool _effectiveLessonUnlocked({
       lessonOrderMeta,
   required Map<String, int> moduleOrderMap,
   required bool useProgress,
+  required String mode,
 }) {
-  if (!useProgress) return true;
+  if (!useProgress || mode.toUpperCase() == 'LIVE') return true;
   final idx = trackableOrdered.indexWhere((l) => l.id == lesson.id);
   if (idx <= 0) return true;
   
   final prev = trackableOrdered[idx - 1];
   if (prev.type.toUpperCase() == 'QUIZ') {
     final quizStatus = assessmentsByExamId[prev.id];
-    return quizStatus?.isPassed ?? false;
+    if (quizStatus == null) return false;
+    
+    // Check if it's a required milestone with a score requirement
+    if (quizStatus.isRequired && (quizStatus.percentage ?? 0) < 50) {
+      return false;
+    }
+    return quizStatus.isPassed;
   }
 
   if (!completed.contains(prev.id)) return false;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/providers/api_providers.dart';
 import '../../../../core/constants/app_design_system.dart';
 import '../../../../features/auth/providers/auth_providers.dart';
 import '../../../../features/auth/models/auth_state.dart';
@@ -9,194 +10,255 @@ import '../../models/sensei_subscription_models.dart';
 import '../../providers/sensei_providers.dart';
 import '../../providers/sensei_subscription_providers.dart';
 
-class SenseiSubscriptionPage extends ConsumerWidget {
+class SenseiSubscriptionPage extends ConsumerStatefulWidget {
   const SenseiSubscriptionPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SenseiSubscriptionPage> createState() => _SenseiSubscriptionPageState();
+}
+
+class _SenseiSubscriptionPageState extends ConsumerState<SenseiSubscriptionPage> {
+  bool _isProcessing = false;
+
+  @override
+  Widget build(BuildContext context) {
     final authAsync = ref.watch(authStateProvider);
     final plansAsync = ref.watch(senseiSubscriptionPlansProvider);
     final quotaAsync = ref.watch(senseiQuotaStatusProvider);
 
-    return authAsync.when(
-      loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Gói AI Sensei')),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (e, _) => Scaffold(
-        appBar: AppBar(title: const Text('Gói AI Sensei')),
-        body: Center(child: Text('Lỗi đăng nhập: $e')),
-      ),
-      data: (authState) {
-        if (authState.status != AuthStatus.authenticated || authState.user == null) {
-          return Scaffold(
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            appBar: AppBar(
-              title: const Text('Gói AI Sensei'),
-              centerTitle: true,
-            ),
-            body: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.lock_outline, size: 46, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(height: 14),
-                  const Text(
-                    'Bạn cần đăng nhập để nâng cấp gói AI Sensei.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => context.go('/login'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+    return Stack(
+      children: [
+        authAsync.when(
+          loading: () => Scaffold(
+            appBar: AppBar(title: const Text('Gói AI Sensei')),
+            body: const Center(child: CircularProgressIndicator()),
+          ),
+          error: (e, _) => Scaffold(
+            appBar: AppBar(title: const Text('Gói AI Sensei')),
+            body: Center(child: Text('Lỗi đăng nhập: $e')),
+          ),
+          data: (authState) {
+            if (authState.status != AuthStatus.authenticated || authState.user == null) {
+              return Scaffold(
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                appBar: AppBar(
+                  title: const Text('Gói AI Sensei'),
+                  centerTitle: true,
+                ),
+                body: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.lock_outline, size: 46, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Bạn cần đăng nhập để nâng cấp gói AI Sensei.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      child: const Text('Đi đến trang đăng nhập'),
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => context.go('/login'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: const Text('Đi đến trang đăng nhập'),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            final theme = Theme.of(context);
+            return Scaffold(
+              backgroundColor: theme.scaffoldBackgroundColor,
+              body: CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: 120,
+                    floating: false,
+                    pinned: true,
+                    stretch: true,
+                    flexibleSpace: FlexibleSpaceBar(
+                      title: Text(
+                        'Gói AI Sensei',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      centerTitle: true,
+                      titlePadding: const EdgeInsets.only(bottom: 16),
+                      background: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              theme.colorScheme.primaryContainer.withOpacity(0.4),
+                              theme.colorScheme.surface,
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                      ),
                     ),
-                  )
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      onPressed: () => context.pop(),
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        _QuotaDisplayCard(quotaAsync: quotaAsync),
+                        const SizedBox(height: 28),
+                        Row(
+                          children: [
+                            const Icon(Icons.stars_rounded, color: Colors.orange, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Các gói cước hội viên',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        plansAsync.when(
+                          loading: () => const Padding(
+                            padding: EdgeInsets.only(top: 40),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                          error: (e, _) => Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Text('Lỗi tải gói: $e', textAlign: TextAlign.center),
+                          ),
+                          data: (plans) => Column(
+                            children: plans.map((plan) {
+                              final currentTier = quotaAsync.value?.tier ?? 'free';
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _PlanCard(
+                                  plan: plan,
+                                  currentUserTier: currentTier,
+                                  onUpgrade: (method) {
+                                    debugPrint('SenseiSubscription: onUpgrade triggered with $method');
+                                    // Give immediate feedback
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Bắt đầu xử lý đăng ký ($method)...'),
+                                        duration: const Duration(milliseconds: 800),
+                                      ),
+                                    );
+                                    
+                                    Navigator.of(context).pop();
+                                    return handleCheckout(
+                                      context: context,
+                                      plan: plan,
+                                      paymentMethod: method,
+                                    );
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
                 ],
               ),
-            ),
-          );
-        }
-
-        final theme = Theme.of(context);
-        return Scaffold(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          body: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 120,
-                floating: false,
-                pinned: true,
-                stretch: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  title: Text(
-                    'Gói AI Sensei',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  centerTitle: true,
-                  titlePadding: const EdgeInsets.only(bottom: 16),
-                  background: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          theme.colorScheme.primaryContainer.withOpacity(0.4),
-                          theme.colorScheme.surface,
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ),
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                  onPressed: () => context.pop(),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    _QuotaDisplayCard(quotaAsync: quotaAsync),
-                    const SizedBox(height: 28),
-                    Row(
+            );
+          },
+        ),
+        if (_isProcessing)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.4),
+              child: Center(
+                child: Card(
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.stars_rounded, color: Colors.orange, size: 20),
-                        const SizedBox(width: 8),
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 20),
                         Text(
-                          'Các gói cước hội viên',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
-                          ),
+                          'Đang xử lý thanh toán...',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Vui lòng không thoát ứng dụng.',
+                          style: TextStyle(fontSize: 11, color: Colors.grey),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    plansAsync.when(
-                      loading: () => const Padding(
-                        padding: EdgeInsets.only(top: 40),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                      error: (e, _) => Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Text('Lỗi tải gói: $e', textAlign: TextAlign.center),
-                      ),
-                      data: (plans) => Column(
-                        children: plans.map((plan) {
-                          // Extract current tier from quotaAsync for each card
-                          final currentTier = quotaAsync.value?.tier ?? 'free';
-                          
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: _PlanCard(
-                              plan: plan,
-                              currentUserTier: currentTier,
-                              onUpgrade: (method) => _checkoutAndHandle(
-                                context: context,
-                                ref: ref,
-                                plan: plan,
-                                paymentMethod: method,
-                                ),
-                              ),
-                            );
-                        }).toList(),
-                      ),
-                    ),
-                  ]),
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
-        );
-      },
+      ],
     );
   }
 
-  Future<void> _checkoutAndHandle({
+  Future<void> handleCheckout({
     required BuildContext context,
-    required WidgetRef ref,
     required SenseiSubscriptionPlan plan,
     required String paymentMethod,
   }) async {
+    debugPrint('SenseiSubscription: handleCheckout started');
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
     try {
       final repo = ref.read(senseiRepositoryProvider);
+      final isCoin = paymentMethod.toUpperCase() == 'COIN';
+      
+      debugPrint('SenseiSubscription: Calling repository checkout (method: $paymentMethod, useWallet: $isCoin)');
       final result = await repo.checkoutSubscriptionPlan(
         subscriptionPlanIds: [plan.id],
-        paymentMethod: paymentMethod,
+        paymentMethod: paymentMethod, // Use actual method (COIN or PAYOS)
         description: 'Đăng ký gói ${plan.name} - Mobile App',
+        useWalletBalance: isCoin,
       );
+      debugPrint('SenseiSubscription: Repository checkout success. paymentUrl: ${result.paymentUrl}');
 
-      if (paymentMethod.toUpperCase() == 'COIN') {
+      if (isCoin || result.paymentUrl == null) {
+        // Immediate success (usually for COIN or 100% wallet discount)
         ref.invalidate(senseiQuotaStatusProvider);
-        if (!context.mounted) return;
+        ref.invalidate(walletBalanceProvider);
+        ref.invalidate(walletTransactionsProvider);
+        ref.invalidate(senseiSubscriptionPlansProvider);
+        
+        if (!mounted) return;
+        setState(() => _isProcessing = false);
 
-        final status = (result.status ?? '').toUpperCase();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            backgroundColor: Colors.green,
             content: Row(
               children: [
-                Icon(
-                  status == 'PAID' ? Icons.check_circle_rounded : Icons.info_rounded,
-                  color: Colors.white,
-                ),
+                const Icon(Icons.check_circle_rounded, color: Colors.white),
                 const SizedBox(width: 12),
-                Text(status == 'PAID'
-                    ? 'Nâng cấp thành công!'
-                    : 'Đang xử lý nâng cấp (COIN).'),
+                Expanded(
+                  child: Text('Nâng cấp thành công! Chào mừng bạn đến với ${plan.name}.'),
+                ),
               ],
             ),
           ),
@@ -204,13 +266,14 @@ class SenseiSubscriptionPage extends ConsumerWidget {
         return;
       }
 
+      if (mounted) setState(() => _isProcessing = false);
       final paymentUrl = result.paymentUrl ?? '';
       final orderCode = result.code ?? '';
       if (paymentUrl.isEmpty || orderCode.isEmpty) {
         throw Exception('Không nhận được thông tin thanh toán.');
       }
 
-      if (!context.mounted) return;
+      if (!mounted) return;
       context.push(
         '/sensei/subscription/payment-webview',
         extra: <String, dynamic>{
@@ -219,12 +282,21 @@ class SenseiSubscriptionPage extends ConsumerWidget {
         },
       );
     } catch (e) {
-      if (!context.mounted) return;
+      debugPrint('SenseiSubscription: handleCheckout error: $e');
+      if (mounted) setState(() => _isProcessing = false);
+      final msg = e.toString().replaceFirst('Exception: ', '');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           backgroundColor: Theme.of(context).colorScheme.error,
-          content: Text('Nâng cấp thất bại: $e'),
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline_rounded, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text(msg)),
+            ],
+          ),
         ),
       );
     }
@@ -389,7 +461,7 @@ class _QuotaDisplayCard extends StatelessWidget {
   }
 }
 
-class _PlanCard extends StatelessWidget {
+class _PlanCard extends ConsumerWidget {
   const _PlanCard({
     required this.plan,
     required this.currentUserTier,
@@ -401,7 +473,10 @@ class _PlanCard extends StatelessWidget {
   final Future<void> Function(String method) onUpgrade;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Pre-fetch wallet balance so it's ready when the payment sheet opens
+    ref.watch(walletBalanceProvider);
+    
     final theme = Theme.of(context);
     final isPlus = plan.code.toLowerCase().contains('plus');
 
@@ -506,7 +581,7 @@ class _PlanCard extends StatelessWidget {
                     final isFree = plan.code.toLowerCase().contains('free');
 
                     return ElevatedButton(
-                      onPressed: isActive ? null : () => _showPaymentSheet(context),
+                      onPressed: isActive ? null : () => _showPaymentSheet(context, ref),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isActive
                             ? theme.colorScheme.surfaceVariant
@@ -536,7 +611,7 @@ class _PlanCard extends StatelessWidget {
     return '${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')} đ';
   }
 
-  void _showPaymentSheet(BuildContext context) {
+  void _showPaymentSheet(BuildContext context, WidgetRef ref) {
     if (plan.price == 0) return;
     
     showModalBottomSheet(
@@ -574,15 +649,32 @@ class _PlanCard extends StatelessWidget {
             ),
             const SizedBox(height: 28),
             _PaymentButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                onUpgrade('PAYOS');
-              },
+              onPressed: () => onUpgrade('PAYOS'),
               icon: Icons.account_balance_rounded,
               label: 'Thẻ ngân hàng / Chuyển khoản',
               subtitle: 'Thanh toán qua PayOS',
               isPrimary: true,
             ),
+            const SizedBox(height: 12),
+            Builder(builder: (c) {
+              final balanceAsync = ref.watch(walletBalanceProvider);
+              final balance = balanceAsync.valueOrNull ?? 0;
+              final canAfford = balance >= (plan.price);
+              
+              // Simplified check to avoid issues during loading
+              return _PaymentButton(
+                onPressed: () => onUpgrade('COIN'),
+                icon: Icons.toll_rounded,
+                label: 'Thanh toán bằng Xu',
+                subtitle: balanceAsync.isLoading 
+                    ? 'Đang kiểm tra số dư...'
+                    : (canAfford
+                        ? 'Số dư hiện tại: ${balance.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')} Xu'
+                        : 'Số dư không đủ (${balance.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')} Xu)'),
+                isPrimary: false,
+                isEnabled: true, // Always enabled for interactive feedback
+              );
+            }),
           ],
         ),
       ),
@@ -597,52 +689,68 @@ class _PaymentButton extends StatelessWidget {
     required this.label,
     required this.subtitle,
     this.isPrimary = false,
+    this.isEnabled = true,
   });
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final IconData icon;
   final String label;
   final String subtitle;
   final bool isPrimary;
+  final bool isEnabled;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(20),
-      child: Ink(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isPrimary ? theme.colorScheme.primaryContainer.withOpacity(0.3) : theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isPrimary ? theme.colorScheme.primary.withOpacity(0.3) : theme.colorScheme.outlineVariant,
-            width: isPrimary ? 2 : 1,
+    final effectiveColor = isEnabled 
+        ? (isPrimary ? theme.colorScheme.primaryContainer.withOpacity(0.3) : theme.colorScheme.surface)
+        : theme.colorScheme.surfaceVariant.withOpacity(0.3);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isEnabled ? onPressed : null,
+        borderRadius: BorderRadius.circular(20),
+        child: Opacity(
+          opacity: isEnabled ? 1.0 : 0.6,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: effectiveColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isEnabled 
+                    ? (isPrimary ? theme.colorScheme.primary.withOpacity(0.3) : theme.colorScheme.outlineVariant)
+                    : theme.colorScheme.outlineVariant.withOpacity(0.5),
+                width: isPrimary ? 2 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isEnabled 
+                        ? (isPrimary ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant)
+                        : theme.colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: isPrimary ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                      Text(subtitle, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                    ],
+                  ),
+                ),
+                if (isEnabled) Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant),
+              ],
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isPrimary ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: isPrimary ? theme.colorScheme.onPrimary : theme.colorScheme.onSurfaceVariant, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                  Text(subtitle, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurfaceVariant),
-          ],
         ),
       ),
     );
