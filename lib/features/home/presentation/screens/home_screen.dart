@@ -9,6 +9,7 @@ import 'package:torii_app/data/models/blog_model.dart';
 import 'package:torii_app/features/home/presentation/widgets/streak_calendar_sheet.dart';
 import 'package:torii_app/features/home/presentation/widgets/streak_welcome_dialog.dart';
 import 'package:torii_app/features/sensei/providers/sensei_subscription_providers.dart';
+import 'package:torii_app/services/auth/onboarding_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -20,6 +21,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _streakModalShownThisSession = false;
   late final PageController _blogPageController;
+  String _jlptTargetLocal = 'N3';
+  String _currentLevelLocal = 'NEVER';
 
   @override
   void initState() {
@@ -47,7 +50,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isLoggedIn = authValue?.isAuthenticated == true;
     final isAuthLoading = authAsync.isLoading;
     final user = authValue?.user;
-    final loadPersonalized = isLoggedIn && user?.isOnboarded == true;
+    final loadPersonalized = isLoggedIn;
     final displayName = isAuthLoading
         ? 'Đang tải...'
         : (user?.displayName ?? 'Bạn');
@@ -298,6 +301,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     if (isLoggedIn && !isAuthLoading) ...[
                       IconButton(
+                        tooltip: 'Mục tiêu JLPT',
+                        onPressed: () => _openGoalSheet(context),
+                        icon: const Icon(Icons.track_changes_rounded, size: 24),
+                      ),
+                      IconButton(
                         onPressed: () => context.push('/notifications'),
                         icon: Stack(
                           clipBehavior: Clip.none,
@@ -503,6 +511,173 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           style: TextStyle(color: theme.colorScheme.primary),
         ),
       ),
+    );
+  }
+
+  Future<void> _openGoalSheet(BuildContext context) async {
+    final theme = Theme.of(context);
+    final user = ref.read(authStateProvider).valueOrNull?.user;
+    final initialJlpt = (user?.jlptTarget?.isNotEmpty == true)
+        ? user!.jlptTarget!
+        : 'N3';
+    final initialLevel =
+        (user?.currentLevel?.isNotEmpty == true) ? user!.currentLevel! : 'NEVER';
+
+    setState(() {
+      _jlptTargetLocal = initialJlpt;
+      _currentLevelLocal = initialLevel;
+    });
+
+    await showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return StatefulBuilder(builder: (context, setModalState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 14,
+              bottom: 16 + MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Mục tiêu JLPT',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Dùng để gợi ý khóa học phù hợp cho bạn.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                Text(
+                  'Mục tiêu',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: ['N5', 'N4', 'N3', 'N2', 'N1'].map((lvl) {
+                    final selected = _jlptTargetLocal == lvl;
+                    return ChoiceChip(
+                      label: Text(lvl, style: const TextStyle(fontWeight: FontWeight.w800)),
+                      selected: selected,
+                      onSelected: (_) => setModalState(() => _jlptTargetLocal = lvl),
+                      selectedColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                      backgroundColor: theme.colorScheme.surface,
+                      side: BorderSide(
+                        color: selected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
+                      ),
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 16),
+                Text(
+                  'Trình độ hiện tại (tuỳ chọn)',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    {'label': 'Mới bắt đầu', 'value': 'NEVER'},
+                    {'label': 'N5', 'value': 'N5'},
+                    {'label': 'N4', 'value': 'N4'},
+                    {'label': 'N3', 'value': 'N3'},
+                    {'label': 'N2', 'value': 'N2'},
+                    {'label': 'N1', 'value': 'N1'},
+                  ].map((it) {
+                    final v = it['value']!;
+                    final selected = _currentLevelLocal == v;
+                    return ChoiceChip(
+                      label: Text(it['label']!, style: const TextStyle(fontWeight: FontWeight.w800)),
+                      selected: selected,
+                      onSelected: (_) => setModalState(() => _currentLevelLocal = v),
+                      selectedColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+                      backgroundColor: theme.colorScheme.surface,
+                      side: BorderSide(
+                        color: selected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
+                      ),
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        final service = ref.read(onboardingServiceProvider);
+                        final res = await service.saveSurvey(
+                          jlptTarget: _jlptTargetLocal,
+                          currentLevel: _currentLevelLocal,
+                        );
+                        if (res.success) {
+                          await ref.read(authStateProvider.notifier).refreshProfile();
+                          if (mounted) Navigator.of(context).pop();
+                        } else {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(res.message ?? 'Không thể lưu mục tiêu')),
+                          );
+                        }
+                      } catch (_) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Không thể lưu mục tiêu')),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: const Text('Lưu', style: TextStyle(fontWeight: FontWeight.w900)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+      },
     );
   }
 

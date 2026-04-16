@@ -15,23 +15,15 @@ class OnboardingService {
   OnboardingService(this._apiClient);
 
   Future<ApiResponse<void>> saveSurvey({
-    required String learningTarget,
-    required String learningPurpose,
-    String? jlptExamDate,
-    required int dailyStudyTime,
-    required String currentLevel,
-    required bool wantsPlacementTest,
+    required String jlptTarget,
+    String? currentLevel,
   }) async {
     try {
       final response = await _apiClient.client.post(
         '/api/onboarding/survey',
         data: {
-          'learningTarget': learningTarget,
-          'learningPurpose': learningPurpose,
-          'jlptExamDate': jlptExamDate,
-          'dailyStudyTime': dailyStudyTime,
+          'jlptTarget': jlptTarget,
           'currentLevel': currentLevel,
-          'wantsPlacementTest': wantsPlacementTest,
         },
         options: Options(headers: {'x-platform': 'mobile'}),
       );

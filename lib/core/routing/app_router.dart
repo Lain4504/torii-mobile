@@ -64,7 +64,6 @@ import '../../features/academy/presentation/screens/my_folders_screen.dart';
 import '../../features/academy/presentation/screens/folder_resources_screen.dart';
 import '../widgets/app_shell.dart';
 import '../../features/meet/presentation/screens/landing/meet_entry_screen.dart';
-import '../../features/onboarding/presentation/screens/onboarding_survey_screen.dart';
 import '../../features/academy/presentation/screens/quiz_screen.dart';
 import '../../features/academy/presentation/screens/assignment_list_screen.dart';
 
@@ -97,13 +96,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       final path = state.uri.path;
       final auth = authAsync.asData?.value;
       final user = auth?.user;
-
-      if (isAuthenticated &&
-          user != null &&
-          !user.isOnboarded &&
-          path != '/onboarding-survey') {
-        return '/onboarding-survey';
-      }
 
       // Welcome 3-slide: chỉ bắt buộc khi chưa đăng nhập hoặc đã đăng nhập nhưng chưa onboard trên server.
       // User đã làm khảo sát trên web → isOnboarded true → không ép xem welcome lại trên mobile.
@@ -158,10 +150,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      GoRoute(
-        path: '/onboarding-survey',
-        builder: (context, state) => const OnboardingSurveyScreen(),
-      ),
+      // Onboarding survey screen removed: user can set JLPT target from Home UI.
 
       GoRoute(
         path: '/meet',
