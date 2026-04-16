@@ -152,18 +152,30 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                       ],
                     ),
                     if (item.product.instructor != null)
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundImage: NetworkImage(item.product.instructor!['avatarUrl'] ?? ''),
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            item.product.instructor!['displayName'] ?? 'Giảng viên',
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ],
+                      GestureDetector(
+                        onTap: () {
+                          final instr = item.product.instructor!;
+                          final id = instr['id'] ?? instr['userId'] ?? '';
+                          final name = instr['displayName'] ?? instr['name'] ?? instr['fullName'] ?? instr['full_name'] ?? 'Giảng viên';
+                          context.push('/lecturer-detail?id=$id&name=$name', extra: instr);
+                        },
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundImage: NetworkImage(item.product.instructor!['avatarUrl'] ?? ''),
+                              backgroundColor: theme.colorScheme.primaryContainer,
+                              child: (item.product.instructor!['avatarUrl'] == null)
+                                  ? const Icon(Icons.person, size: 20)
+                                  : null,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              item.product.instructor!['displayName'] ?? 'Giảng viên',
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
                       ),
                   ],
                 ),

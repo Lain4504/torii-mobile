@@ -314,21 +314,29 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/lecturer-detail',
                 builder: (context, state) {
-                  final extra = state.extra;
-                  final lecturer = (extra is Map<String, dynamic>)
-                      ? extra
-                      : const <String, dynamic>{};
-                  return LecturerDetailScreen(lecturer: lecturer);
+                  final params = state.uri.queryParameters;
+                  final id = params['id'] ?? '';
+                  final name = params['name'];
+                  final extra = state.extra as Map<String, dynamic>?;
+                  
+                  return LecturerDetailScreen(
+                    instructorId: id.isNotEmpty ? id : (extra?['id']?.toString() ?? ''),
+                    fallbackName: name ?? extra?['displayName']?.toString() ?? extra?['name']?.toString(),
+                  );
                 },
               ),
               GoRoute(
                 path: '/course-live/:id/lecturer',
                 builder: (context, state) {
-                  final extra = state.extra;
-                  final lecturer = (extra is Map<String, dynamic>)
-                      ? extra
-                      : const <String, dynamic>{};
-                  return LecturerDetailScreen(lecturer: lecturer);
+                  final params = state.uri.queryParameters;
+                  final id = params['id'] ?? '';
+                  final name = params['name'];
+                  final extra = state.extra as Map<String, dynamic>?;
+                  
+                  return LecturerDetailScreen(
+                    instructorId: id.isNotEmpty ? id : (extra?['id']?.toString() ?? ''),
+                    fallbackName: name ?? extra?['displayName']?.toString() ?? extra?['name']?.toString(),
+                  );
                 },
               ),
             ],

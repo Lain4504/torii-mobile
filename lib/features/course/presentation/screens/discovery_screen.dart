@@ -318,6 +318,37 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 8),
+                    if (item.instructor != null)
+                      GestureDetector(
+                        onTap: () {
+                          final instr = item.instructor!;
+                          final id = instr['id'] ?? instr['userId'] ?? '';
+                          final name = instr['displayName'] ?? instr['name'] ?? instr['fullName'] ?? instr['full_name'] ?? 'Giảng viên';
+                          context.push('/lecturer-detail?id=$id&name=$name', extra: instr);
+                        },
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person_outline, // Sử dụng icon có sẵn thay vì FontAwesomeIcons
+                              size: 14,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                'Giảng viên: ${item.instructor!['displayName'] ?? item.instructor!['name'] ?? 'Giảng viên'}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     const Spacer(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

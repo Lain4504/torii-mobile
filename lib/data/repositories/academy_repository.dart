@@ -11,6 +11,7 @@ import '../models/live_schedule_model.dart';
 import '../models/live_session_join_result.dart';
 import '../models/study_set_models.dart';
 import '../models/wallet_models.dart';
+import '../models/instructor_model.dart';
 import '../../core/models/api_response.dart';
 import '../../core/models/paginated_response.dart';
 import '../../services/auth/token_service.dart';
@@ -40,6 +41,7 @@ class AcademyRepository {
     required String mode,
     String? level,
     String? q,
+    String? instructorId,
     String? month, // Legacy field, might no longer be used by new API
   }) async {
     final path = mode.toUpperCase() == 'LIVE'
@@ -51,6 +53,7 @@ class AcademyRepository {
       queryParameters: <String, dynamic>{
         if (level != null && level.isNotEmpty && level != 'Tất cả') 'level': level,
         if (q != null && q.isNotEmpty) 'q': q,
+        if (instructorId != null && instructorId.isNotEmpty) 'instructorId': instructorId,
       },
     );
     
@@ -135,6 +138,29 @@ class AcademyRepository {
     }
 
     return getPublicProductDetailById(id, mode: mode);
+  }
+
+  // ---------- Profiles ----------
+  /// GET /api/profiles/:id
+  Future<Instructor?> getInstructorProfile(String id) async {
+    try {
+      final headers = await _getRequestHeaders();
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/profiles/$id',
+        options: Options(headers: headers),
+      );
+      
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) return null;
+      
+      final item = api.data!['item'] ?? api.data;
+      if (item is Map<String, dynamic>) {
+        return Instructor.fromJson(item);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   // ---------- Enrollments (me) ----------
