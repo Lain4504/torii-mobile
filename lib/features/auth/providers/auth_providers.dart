@@ -60,7 +60,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   late UserService _userService;
   
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: AppConfig.googleServerClientId,
+    clientId: Platform.isIOS ? AppConfig.googleIosClientId : null,
     serverClientId: AppConfig.googleServerClientId,
     scopes: ['email', 'profile'],
   );

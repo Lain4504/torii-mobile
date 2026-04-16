@@ -18,6 +18,11 @@ class AppConfig {
   static const String googleServerClientId =
       '683624141843-ojrfe5ep04fmlimt80gfjnaproqvkcv7.apps.googleusercontent.com';
 
+  // iOS native Google Sign-In client ID. This is used only by the iOS SDK
+  // while the backend still verifies the ID token against [googleServerClientId].
+  static const String googleIosClientId =
+      '683624141843-dvr3llsue2a1jrasgiepaen17rp75o53.apps.googleusercontent.com';
+
   // Facebook App ID
   static const String facebookAppId = '25843221668693805';
 
