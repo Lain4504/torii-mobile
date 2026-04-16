@@ -13,8 +13,10 @@ class AppConfig {
     defaultValue: 'wss://api.torii.sbs/socket-a',
   );
 
-  // Google OAuth Client ID (Web Client ID for server-side verification)
-  static const String googleServerClientId = '263601400665-qfv5ti24k1untnri4r9rg2efpomjpkef.apps.googleusercontent.com';
+  // Google OAuth Web Client ID used by mobile to obtain an ID token
+  // that the backend can verify successfully.
+  static const String googleServerClientId =
+      '683624141843-ojrfe5ep04fmlimt80gfjnaproqvkcv7.apps.googleusercontent.com';
 
   // Facebook App ID
   static const String facebookAppId = '25843221668693805';
