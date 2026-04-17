@@ -92,7 +92,7 @@ class ApiClient {
             try {
               final refreshToken = await tokenService.getRefreshToken();
               
-              if (refreshToken == null) {
+              if (refreshToken == null || refreshToken.trim().isEmpty) {
                 await _performLogout(handler, error);
                 return;
               }
@@ -107,6 +107,7 @@ class ApiClient {
 
               final response = await tokenDio.post('/api/auth/refresh', data: {
                 'refresh_token': refreshToken,
+                'refreshToken': refreshToken,
               });
 
               if (response.statusCode == 200) {
@@ -135,9 +136,15 @@ class ApiClient {
                   return;
                 }
               }
-              await _performLogout(handler, error);
+              final statusCode = error.response?.statusCode;
+              if (statusCode == 401 || statusCode == 403) {
+                await _performLogout(handler, error);
+              } else {
+                handler.next(error);
+              }
             } catch (e) {
-              await _performLogout(handler, error);
+              // Lỗi mạng/tạm thời khi refresh: không xoá token local để tránh logout cưỡng bức.
+              handler.next(error);
             } finally {
               _isRefreshing = false;
             }

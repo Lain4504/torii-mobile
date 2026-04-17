@@ -22,14 +22,28 @@ class MeetingRoomScreen extends ConsumerStatefulWidget {
 
 class _MeetingRoomScreenState extends ConsumerState<MeetingRoomScreen>
     with WidgetsBindingObserver {
+  ProviderSubscription<BreakoutRoomState>? _breakoutInvitationSub;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    _breakoutInvitationSub = ref.listenManual<BreakoutRoomState>(
+      breakoutRoomProvider,
+      (previous, next) {
+        if (next.receivedInvitationFor != null &&
+            (previous == null || next.invitationSeq != previous.invitationSeq)) {
+          _showBreakoutInvitation(context, ref, next.receivedInvitationFor!);
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
+    _breakoutInvitationSub?.close();
+    _breakoutInvitationSub = null;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -44,12 +58,6 @@ class _MeetingRoomScreenState extends ConsumerState<MeetingRoomScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    ref.listen(breakoutRoomProvider, (previous, next) {
-      if (next.receivedInvitationFor != null &&
-          (previous == null || next.invitationSeq != previous.invitationSeq)) {
-        _showBreakoutInvitation(context, ref, next.receivedInvitationFor!);
-      }
-    });
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

@@ -163,6 +163,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
   bool _resumeReconnectInProgress = false;
   DateTime? _lastResumeReconnectAt;
   Timer? _connectionHealthTimer;
+  int _staleInboundStrikeCount = 0;
 
   SessionNotifier(this.ref) : super(SessionState.initial());
   
@@ -337,19 +338,26 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
   void _startConnectionHealthWatchdog() {
     _connectionHealthTimer?.cancel();
+    _staleInboundStrikeCount = 0;
     _connectionHealthTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       final natsConn = _connectNats;
       if (natsConn == null) return;
       if (!natsConn.isConnected) return;
 
       final idle = DateTime.now().difference(natsConn.lastInboundAt);
-      if (idle > const Duration(seconds: 45)) {
+      if (idle > const Duration(seconds: 120)) {
+        _staleInboundStrikeCount++;
         if (kDebugMode) {
           debugPrint(
-            'SessionProvider watchdog: stale inbound (${idle.inSeconds}s), reconnecting...',
+            'SessionProvider watchdog: stale inbound (${idle.inSeconds}s), strike=$_staleInboundStrikeCount',
           );
         }
-        reconnectAfterResume();
+        if (_staleInboundStrikeCount >= 3) {
+          _staleInboundStrikeCount = 0;
+          reconnectAfterResume();
+        }
+      } else {
+        _staleInboundStrikeCount = 0;
       }
     });
   }
@@ -365,6 +373,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
     _resumeReconnectInProgress = true;
 
     try {
+      _staleInboundStrikeCount = 0;
       final jwt = state.token;
       if (jwt.isEmpty) return;
 

@@ -144,19 +144,28 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         return AuthState.authenticated(user);
       } else {
         try {
-           final response = await _repository.authService.getMe();
-           if (response.success && response.data != null) {
-              await _userService.saveUserProfile(response.data!);
-              Future.microtask(
-                () => ref.read(notificationServiceProvider).registerToken(),
-              );
-              return AuthState.authenticated(response.data!);
-           } else {
-              // Token valid, but profile fetch failed
-              return const AuthState(status: AuthStatus.authenticated, error: 'Could not refresh profile');
-           }
+          var response = await _repository.authService.getMe();
+          if ((!response.success || response.data == null) && refreshToken != null) {
+            final refreshed = await _repository.refreshToken();
+            if (refreshed) {
+              response = await _repository.authService.getMe();
+            }
+          }
+          if (response.success && response.data != null) {
+            await _userService.saveUserProfile(response.data!);
+            Future.microtask(
+              () => ref.read(notificationServiceProvider).registerToken(),
+            );
+            return AuthState.authenticated(response.data!);
+          }
+          return AuthState.unauthenticated(
+            error: response.message ?? 'Could not restore session',
+          );
         } catch (_) {
-           return const AuthState(status: AuthStatus.authenticated, error: 'Offline');
+          // Giữ phiên local nếu người dùng đang offline, tránh ép đăng nhập lại.
+          final cached = await _userService.getUserProfile();
+          if (cached != null) return AuthState.authenticated(cached);
+          return const AuthState(status: AuthStatus.authenticated, error: 'Offline');
         }
       }
     } else {

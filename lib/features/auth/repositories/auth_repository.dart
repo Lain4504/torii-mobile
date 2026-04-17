@@ -33,12 +33,15 @@ class AuthRepository {
       if (data.requiresTwoFactor) {
         return (AuthResult.requires2FA, data, null);
       } else {
-        // Chỉ cần accessToken: gateway mobile có thể trả refresh rỗng / một phần;
-        // trước đây yêu cầu cả hai khiến login thất bại dù server đã tạo session.
         if (data.accessToken != null) {
+          final existingRefresh = await tokenStorage.getRefreshToken();
+          final incomingRefresh = data.refreshToken?.trim();
+          final refreshToSave = (incomingRefresh != null && incomingRefresh.isNotEmpty)
+              ? incomingRefresh
+              : (existingRefresh ?? '');
           await tokenStorage.saveTokens(
             data.accessToken!,
-            data.refreshToken ?? '',
+            refreshToSave,
           );
           return (AuthResult.success, data, null);
         }
@@ -57,9 +60,14 @@ class AuthRepository {
     if (response.success && response.data != null) {
       final data = response.data!;
       if (data.accessToken != null) {
+        final existingRefresh = await tokenStorage.getRefreshToken();
+        final incomingRefresh = data.refreshToken?.trim();
+        final refreshToSave = (incomingRefresh != null && incomingRefresh.isNotEmpty)
+            ? incomingRefresh
+            : (existingRefresh ?? '');
         await tokenStorage.saveTokens(
           data.accessToken!,
-          data.refreshToken ?? '',
+          refreshToSave,
         );
         return data;
       }
@@ -81,7 +89,7 @@ class AuthRepository {
 
   Future<bool> refreshToken() async {
     final refreshToken = await tokenStorage.getRefreshToken();
-    if (refreshToken == null) return false;
+    if (refreshToken == null || refreshToken.trim().isEmpty) return false;
 
     final response = await authService.refreshToken(refreshToken);
     if (response.success && response.data != null) {

@@ -170,7 +170,10 @@ class AuthService {
     try {
       final response = await _apiClient.client.post(
         '/api/auth/refresh',
-        data: {'refresh_token': refreshToken},
+        data: {
+          'refresh_token': refreshToken,
+          'refreshToken': refreshToken,
+        },
         options: Options(headers: {'x-platform': 'mobile'}),
       );
       return ApiResponse.fromJson(response.data, (json) => json as Map<String, dynamic>);
@@ -303,12 +306,13 @@ class AuthService {
     Map<String, dynamic>? userMetadata,
   }) async {
     try {
+      final payload = <String, dynamic>{
+        'displayName': displayName,
+        'userMetadata': userMetadata,
+      }..removeWhere((_, value) => value == null);
       final response = await _apiClient.client.patch(
         '/api/auth/me',
-        data: {
-          if (displayName != null) 'displayName': displayName,
-          if (userMetadata != null) 'userMetadata': userMetadata,
-        },
+        data: payload,
       );
       return ApiResponse.fromJson(response.data, (json) => User.fromJson(json['user']));
     } on DioException catch (e) {
