@@ -13,7 +13,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dart_nats/dart_nats.dart' as nats;
@@ -110,7 +109,7 @@ class ConnectNats {
 
   // Connection state
   bool _isConnected = false;
-  final bool _isConnecting = false;
+  DateTime _lastInboundAt = DateTime.now();
 
   // Callbacks (matching web's callbacks)
   Function(bool)? onConnectionStatusChange;
@@ -165,6 +164,8 @@ class ConnectNats {
   
   // Getters
   bool get isAdmin => _isAdmin;
+  bool get isConnected => _isConnected;
+  DateTime get lastInboundAt => _lastInboundAt;
   String get roomId => _roomId;
   String get userId => _userId;
   String get userName => _userName;
@@ -204,6 +205,7 @@ class ConnectNats {
     }
     
     _isConnected = true;
+    _lastInboundAt = DateTime.now();
     _setRoomConnectionStatusState('receiving-data');
     _isRecorder = _isUserRecorder(userId);
     
@@ -388,7 +390,7 @@ class ConnectNats {
     if (_nc == null || _roomStreamName.isEmpty) return;
 
     final consumerName = '${_roomId}_$_userId';
-    final subject = r'$JS.API.CONSUMER.MSG.NEXT.' + _roomStreamName + '.' + consumerName;
+    final subject = r'$JS.API.CONSUMER.MSG.NEXT.' '$_roomStreamName.$consumerName';
     final batchReq = utf8.encode('{"batch":1}');
 
     while (_isConnected && _nc != null) {
@@ -398,6 +400,7 @@ class ConnectNats {
           Uint8List.fromList(batchReq),
           timeout: const Duration(seconds: 30),
         );
+        _lastInboundAt = DateTime.now();
         try {
           final payload = nats_msg.NatsMsgServerToClient.fromBuffer(msg.data);
           await _handleSystemEvents(payload);
@@ -407,7 +410,7 @@ class ConnectNats {
           }
         } catch (e) {
           if (kDebugMode) {
-            print('ConnectNats: Error processing room event - $e');
+            debugPrint('ConnectNats: Error processing room event - $e');
           }
           // NAK on error
           if (msg.replyTo != null && msg.replyTo!.isNotEmpty) {
@@ -418,7 +421,7 @@ class ConnectNats {
         // No message available, loop again
       } catch (e) {
         if (_isConnected && kDebugMode) {
-          print('ConnectNats: Error in JetStream pull - $e');
+          debugPrint('ConnectNats: Error in JetStream pull - $e');
         }
         await Future.delayed(const Duration(milliseconds: 500));
       }
@@ -437,6 +440,7 @@ class ConnectNats {
       
       await for (final msg in sub.stream) {
         try {
+          _lastInboundAt = DateTime.now();
           // Parse protobuf message
           final payload = nats_msg.NatsMsgServerToClient.fromBuffer(msg.data);
           
@@ -604,8 +608,10 @@ class ConnectNats {
       final initialData = nats_msg.NatsInitialData.fromJson(_normalizeJson(payload.msg));
       
       if (kDebugMode && (!initialData.hasRoom() || !initialData.hasLocalUser())) {
-        print('ConnectNats: Initial data missing critical fields. Room: ${initialData.hasRoom()}, LocalUser: ${initialData.hasLocalUser()}');
-        print('ConnectNats: Normalized JSON: ${_normalizeJson(payload.msg)}');
+        debugPrint(
+          'ConnectNats: Initial data missing critical fields. Room: ${initialData.hasRoom()}, LocalUser: ${initialData.hasLocalUser()}',
+        );
+        debugPrint('ConnectNats: Normalized JSON: ${_normalizeJson(payload.msg)}');
       }
 
       if (!initialData.hasRoom() || !initialData.hasLocalUser()) {

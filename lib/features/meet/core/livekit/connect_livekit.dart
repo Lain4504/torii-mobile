@@ -20,15 +20,12 @@ import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/active_speakers_provider.dart';
-import 'package:torii_app/features/meet/data/models/proto/wajlc_analytics.pb.dart'
-    as analytics;
 
 // Types
 import 'livekit_types.dart';
 import 'handle_media_tracks.dart';
 
-// NATS (for analytics)
-import '../nats/connect_nats.dart';
+// NOTE: NATS analytics hooks are intentionally omitted on mobile for now.
 
 // Constants matching web config
 const bool kEnableDynacast = true;
@@ -49,9 +46,6 @@ class ConnectLivekit implements IConnectLivekit {
   // Riverpod ref for state management
   final Ref ref;
 
-  // NATS connection reference (for analytics)
-  ConnectNats? _natsConn;
-
   // Connection config
   final String localUserId;
   final bool enabledE2EE;
@@ -63,7 +57,6 @@ class ConnectLivekit implements IConnectLivekit {
 
   // LiveKit instances
   late final Room _room;
-  E2EEManager? _e2eeManager;
   late final HandleMediaTracks handleMediaTracks;
   EventsListener<RoomEvent>? _roomEventListener;
 
@@ -71,6 +64,7 @@ class ConnectLivekit implements IConnectLivekit {
   bool _wasNormalDisconnected = false;
   String? _activeLiveKitUrl;
   String? _activeLiveKitToken;
+  ConnectionState? _lastLoggedConnectionState;
 
   // Stream controllers for events
   final _screenShareStatusController = StreamController<bool>.broadcast();
@@ -95,20 +89,14 @@ class ConnectLivekit implements IConnectLivekit {
     required this.onConnectionStatusChange,
     this.enabledE2EE = false,
     this.encryptionKey,
-    ConnectNats? natsConn,
     this.initialAudioEnabled = false,
     this.initialVideoEnabled = false,
-  }) : _natsConn = natsConn {
+  }) {
     // Initialize media tracks handler
     handleMediaTracks = HandleMediaTracks(connectLivekit: this, ref: ref);
 
     // Configure room
     _room = _configureRoom();
-  }
-
-  /// Set NATS connection for analytics
-  void setNatsConn(ConnectNats conn) {
-    _natsConn = conn;
   }
 
   @override
@@ -432,6 +420,10 @@ class ConnectLivekit implements IConnectLivekit {
 
   /// Handle room state changes
   void _onRoomStateChanged() {
+    if (_lastLoggedConnectionState == _room.connectionState) {
+      return;
+    }
+    _lastLoggedConnectionState = _room.connectionState;
     switch (_room.connectionState) {
       case ConnectionState.connecting:
         if (kDebugMode) {
@@ -536,53 +528,7 @@ class ConnectLivekit implements IConnectLivekit {
     onError('Phòng bị ngắt kết nối', 'Kết nối đến phòng họp đã bị ngắt');
   }
 
-  /// Handle local user connection quality changed
-  /// Matches: localUserConnectionQualityChanged() in ConnectLivekit.ts
-  void _localUserConnectionQualityChanged(ConnectionQuality quality) {
-    // Update participant provider
-    ref
-        .read(participantProvider.notifier)
-        .updateParticipant(
-          userId: localUserId,
-          changes: {'connectionQuality': quality.name},
-        );
-
-    // Show notification for poor/lost connection
-    if (quality == ConnectionQuality.poor ||
-        quality == ConnectionQuality.lost) {
-      String msg = 'Chất lượng kết nối của bạn không tốt';
-      if (quality == ConnectionQuality.lost) {
-        msg = 'Mất kết nối hoàn toàn';
-      }
-
-      ref
-          .read(roomSettingsProvider.notifier)
-          .addUserNotification(
-            UserNotification(message: msg, typeOption: 'error'),
-          );
-    }
-
-    // Send analytics data to NATS (matches web)
-    if (_natsConn != null) {
-      _natsConn!.sendAnalyticsData(
-        eventName:
-            analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_CONNECTION_QUALITY,
-        eventType: analytics.AnalyticsEventType.ANALYTICS_EVENT_TYPE_USER,
-        eventValueString: quality.name, // 'excellent', 'good', 'poor', 'lost'
-      );
-
-      // Also send data message for connection quality change (matches web)
-      _natsConn!.sendDataMessage(
-        type: 'USER_CONNECTION_QUALITY_CHANGE',
-        msg: quality.name,
-        toUserId: null, // Broadcast
-      );
-    }
-
-    if (kDebugMode) {
-      print('ConnectLivekit: Connection quality changed - ${quality.name}');
-    }
-  }
+  // NOTE: Local connection quality handling is currently not wired in UI on mobile.
 
   /// Add screen share track
   /// Matches: addScreenShareTrack() in ConnectLivekit.ts

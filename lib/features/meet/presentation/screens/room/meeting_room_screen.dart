@@ -13,17 +13,40 @@ import '../../../core/breakout/breakout_room_switcher.dart';
 
 /// Meeting Room Screen
 /// 1:1 clone of apps/meet/src/components/app/index.tsx (main meeting view)
-class MeetingRoomScreen extends ConsumerWidget {
+class MeetingRoomScreen extends ConsumerStatefulWidget {
   const MeetingRoomScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MeetingRoomScreen> createState() => _MeetingRoomScreenState();
+}
+
+class _MeetingRoomScreenState extends ConsumerState<MeetingRoomScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(sessionProvider.notifier).reconnectAfterResume();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // Listen for breakout room invitations
     ref.listen(breakoutRoomProvider, (previous, next) {
-      if (next.receivedInvitationFor != null && 
-          (previous == null ||
-              next.invitationSeq != previous.invitationSeq)) {
+      if (next.receivedInvitationFor != null &&
+          (previous == null || next.invitationSeq != previous.invitationSeq)) {
         _showBreakoutInvitation(context, ref, next.receivedInvitationFor!);
       }
     });

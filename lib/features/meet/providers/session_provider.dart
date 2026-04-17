@@ -8,17 +8,21 @@
 // - Screen sharing status
 // - Token management
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import '../core/nats/connect_nats.dart';
 import '../core/livekit/connect_livekit.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode, debugPrint;
 import 'package:torii_app/features/meet/data/models/room_info.dart';
 import 'package:torii_app/features/meet/data/models/user_metadata.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
+import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
+import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 
 part 'session_provider.freezed.dart';
 
@@ -155,6 +159,10 @@ class SessionNotifier extends StateNotifier<SessionState> {
   final Ref ref;
   ConnectNats? _connectNats;
   ConnectLivekit? _connectLivekit;
+  void Function()? _onRemoteSessionEnded;
+  bool _resumeReconnectInProgress = false;
+  DateTime? _lastResumeReconnectAt;
+  Timer? _connectionHealthTimer;
 
   SessionNotifier(this.ref) : super(SessionState.initial());
   
@@ -275,6 +283,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
     /// Host/web client kết thúc phòng → [ConnectNats.endSession]; reset session + pop khỏi `/meet`.
     void Function()? onRemoteSessionEnded,
   }) async {
+    _onRemoteSessionEnded = onRemoteSessionEnded;
     // Initialize ConnectNats
     _connectNats = ConnectNats(
       natsWSUrls: natsWSUrls,
@@ -298,13 +307,12 @@ class SessionNotifier extends StateNotifier<SessionState> {
       // Forward LiveKit connection status to the same callback as web (roomConnectionStatus)
       onConnectionStatusChange: (status) {
         if (kDebugMode) {
-          print('SessionProvider: LiveKit status - $status');
+          debugPrint('SessionProvider: LiveKit status - $status');
         }
         // Web: uses roomConnectionStatus = 'media-server-conn-start' / 'media-server-conn-established'
         // Mobile: reuse the same status string via setRoomConnectionStatusState callback
         setRoomConnectionStatusState(status);
       },
-      natsConn: _connectNats,
       initialAudioEnabled: initialAudioEnabled,
       initialVideoEnabled: initialVideoEnabled,
     );
@@ -320,15 +328,150 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
     // Open connection
     await _connectNats!.openConn();
+    _startConnectionHealthWatchdog();
     
     // Note: LiveKit connection should be triggered when Room Info is received
     // and contains LiveKit URL/Token. specific logic depends on backend implementation.
     // For now, we assume NATS connection success is enough to proceed.
   }
 
+  void _startConnectionHealthWatchdog() {
+    _connectionHealthTimer?.cancel();
+    _connectionHealthTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      final natsConn = _connectNats;
+      if (natsConn == null) return;
+      if (!natsConn.isConnected) return;
+
+      final idle = DateTime.now().difference(natsConn.lastInboundAt);
+      if (idle > const Duration(seconds: 45)) {
+        if (kDebugMode) {
+          debugPrint(
+            'SessionProvider watchdog: stale inbound (${idle.inSeconds}s), reconnecting...',
+          );
+        }
+        reconnectAfterResume();
+      }
+    });
+  }
+
+  Future<void> reconnectAfterResume() async {
+    if (_resumeReconnectInProgress) return;
+    final now = DateTime.now();
+    if (_lastResumeReconnectAt != null &&
+        now.difference(_lastResumeReconnectAt!) < const Duration(seconds: 5)) {
+      return;
+    }
+    _lastResumeReconnectAt = now;
+    _resumeReconnectInProgress = true;
+
+    try {
+      final jwt = state.token;
+      if (jwt.isEmpty) return;
+
+      final api = ref.read(meetApiServiceProvider);
+      api.setManualToken(jwt);
+      final verify = await api.verifyToken(isProduction: kReleaseMode);
+      if (!verify.status) {
+        ref.read(roomSettingsProvider.notifier).addUserNotification(
+              UserNotification(
+                message: verify.msg.isNotEmpty
+                    ? verify.msg
+                    : 'Không thể xác thực lại phiên họp. Vui lòng kiểm tra mạng.',
+                typeOption: 'warning',
+              ),
+            );
+        return;
+      }
+      if (verify.natsWsUrls.isEmpty ||
+          verify.roomId.isEmpty ||
+          verify.userId.isEmpty ||
+          verify.roomStreamName.isEmpty) {
+        ref.read(roomSettingsProvider.notifier).addUserNotification(
+              const UserNotification(
+                message: 'Thiếu thông tin kết nối từ server khi đồng bộ lại phiên',
+                typeOption: 'warning',
+              ),
+            );
+        return;
+      }
+
+      final subjects = verify.hasNatsSubjects()
+          ? verify.natsSubjects
+          : nats_msg.NatsSubjects(
+              systemApiWorker: 'sysApiWorker',
+              systemJsWorker: 'sysJsWorker',
+              systemPublic: 'sysPublic',
+              systemPrivate: 'sysPrivate',
+              chat: 'chat',
+              whiteboard: 'whiteboard',
+              dataChannel: 'dataChannel',
+            );
+
+      final bottom = ref.read(bottomIconsProvider);
+      final initialAudioEnabled = !bottom.isMicMuted;
+      final initialVideoEnabled = !bottom.isWebcamMuted;
+
+      await disconnect(
+        userInitiatedLeave: true,
+        sessionEndMessage: 'resume-reconnect',
+        preserveMeetingRoomUi: true,
+      );
+
+      await connect(
+        natsWSUrls: verify.natsWsUrls,
+        token: jwt,
+        roomId: verify.roomId,
+        userId: verify.userId,
+        roomStreamName: verify.roomStreamName,
+        subjects: subjects,
+        keepMeetingRoomVisible: true,
+        initialAudioEnabled: initialAudioEnabled,
+        initialVideoEnabled: initialVideoEnabled,
+        setErrorState: (title, message) {
+          ref.read(roomSettingsProvider.notifier).addUserNotification(
+                UserNotification(
+                  message: '$title: $message',
+                  typeOption: 'error',
+                ),
+              );
+        },
+        setRoomConnectionStatusState: (status) {
+          if (kDebugMode) {
+            debugPrint('reconnectAfterResume status: $status');
+          }
+          if (status == 'media-server-conn-established') {
+            toggleStartup(false);
+            ref.read(roomSettingsProvider.notifier).addUserNotification(
+                  const UserNotification(
+                    message: 'Đã kết nối lại thành công',
+                    typeOption: 'info',
+                  ),
+                );
+          }
+        },
+        setCurrentMediaServerConn: (_) {},
+        onRemoteSessionEnded: _onRemoteSessionEnded,
+      );
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('reconnectAfterResume error: $e\n$st');
+      }
+      ref.read(roomSettingsProvider.notifier).addUserNotification(
+            UserNotification(
+              message: 'Đồng bộ lại kết nối thất bại: $e',
+              typeOption: 'error',
+            ),
+          );
+    } finally {
+      _resumeReconnectInProgress = false;
+    }
+  }
+
   /// Sau khi [ConnectNats.endSession] dọn LiveKit/NATS (vd. SESSION_ENDED từ server).
   /// Tránh gọi [disconnect] lại → lặp vô hạn.
   void absorbRemoteSessionEnd() {
+    _connectionHealthTimer?.cancel();
+    _connectionHealthTimer = null;
     final lk = _connectLivekit;
     _connectLivekit = null;
     _connectNats = null;
@@ -358,6 +501,8 @@ class SessionNotifier extends StateNotifier<SessionState> {
     String sessionEndMessage = 'notifications.user-logged-out',
     bool preserveMeetingRoomUi = false,
   }) async {
+    _connectionHealthTimer?.cancel();
+    _connectionHealthTimer = null;
     if (_connectLivekit != null) {
       await _connectLivekit!.disconnectRoom(true);
       _connectLivekit!.dispose();
