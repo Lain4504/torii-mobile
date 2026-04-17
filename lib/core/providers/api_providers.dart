@@ -29,9 +29,7 @@ final dioForApiProvider = Provider((ref) {
 /// Chỉ gọi API cá nhân (enrollments trên Home, streak, …) khi đã đăng nhập và đã onboard — tránh gọi khi đang redirect sang khảo sát.
 bool _personalizedApisAllowed(Ref ref) {
   final auth = ref.watch(authStateProvider).valueOrNull;
-  return auth?.status == AuthStatus.authenticated &&
-      auth?.user != null &&
-      auth!.user!.isOnboarded;
+  return auth?.status == AuthStatus.authenticated && auth?.user != null;
 }
 
 /// Chỉ cần đã đăng nhập (có token + user). Dùng cho lịch live: user đã login nhưng chưa onboard vẫn tải được lịch.
