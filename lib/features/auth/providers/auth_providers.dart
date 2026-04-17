@@ -109,8 +109,33 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   }
 
   Future<AuthState> _init() async {
-    final token = await _repository.tokenStorage.getAccessToken();
-    if (token != null) {
+    String? token = await _repository.tokenStorage.getAccessToken();
+    String? refreshToken = await _repository.tokenStorage.getRefreshToken();
+    if (refreshToken != null && refreshToken.trim().isEmpty) {
+      refreshToken = null;
+    }
+
+    // Nếu access token bị mất/hết hạn nhưng refresh token còn, thử refresh im lặng
+    // để tránh bắt người dùng đăng nhập lại sau thời gian ngắn không mở app.
+    if ((token == null || token.trim().isEmpty) && refreshToken != null) {
+      try {
+        final ok = await _repository.refreshToken();
+        if (ok) {
+          token = await _repository.tokenStorage.getAccessToken();
+          final rt2 = await _repository.tokenStorage.getRefreshToken();
+          if (token != null && rt2 != null) {
+            await ref.read(tokenServiceProvider).saveTokens(
+                  accessToken: token,
+                  refreshToken: rt2,
+                );
+          }
+        }
+      } catch (_) {
+        // Ignore; fall through to unauthenticated below if token still missing.
+      }
+    }
+
+    if (token != null && token.trim().isNotEmpty) {
       final user = await _userService.getUserProfile();
       if (user != null) {
         Future.microtask(
