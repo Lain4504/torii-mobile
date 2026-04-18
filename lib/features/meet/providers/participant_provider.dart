@@ -25,6 +25,12 @@ class ParticipantInfo {
   /// From LiveKit track subscriptions (handle_media_tracks)
   final bool hasAudioTrack;
   final bool hasVideoTrack;
+  /// Mic mute từ LiveKit `TrackMuted` (microphone), khớp web `participant.isMuted` khi nguồn là mic.
+  final bool isMicMuted;
+  /// Số lượng screen-share publication đang active (khớp web `screenShareTrack`).
+  final int screenShareTrack;
+  /// Camera stream paused (dynacast / bandwidth), khớp web stream state handling.
+  final bool videoTrackPaused;
 
   const ParticipantInfo({
     required this.userId,
@@ -35,6 +41,9 @@ class ParticipantInfo {
     this.visibility,
     this.hasAudioTrack = true,
     this.hasVideoTrack = true,
+    this.isMicMuted = false,
+    this.screenShareTrack = 0,
+    this.videoTrackPaused = false,
   });
 
   ParticipantInfo copyWith({
@@ -46,6 +55,9 @@ class ParticipantInfo {
     String? visibility,
     bool? hasAudioTrack,
     bool? hasVideoTrack,
+    bool? isMicMuted,
+    int? screenShareTrack,
+    bool? videoTrackPaused,
   }) {
     return ParticipantInfo(
       userId: userId ?? this.userId,
@@ -56,6 +68,9 @@ class ParticipantInfo {
       visibility: visibility ?? this.visibility,
       hasAudioTrack: hasAudioTrack ?? this.hasAudioTrack,
       hasVideoTrack: hasVideoTrack ?? this.hasVideoTrack,
+      isMicMuted: isMicMuted ?? this.isMicMuted,
+      screenShareTrack: screenShareTrack ?? this.screenShareTrack,
+      videoTrackPaused: videoTrackPaused ?? this.videoTrackPaused,
     );
   }
 }
@@ -127,6 +142,9 @@ class ParticipantNotifier extends StateNotifier<ParticipantState> {
       visibility: changes['visibility'] as String? ?? participant.visibility,
       hasAudioTrack: changes['hasAudioTrack'] as bool? ?? participant.hasAudioTrack,
       hasVideoTrack: changes['hasVideoTrack'] as bool? ?? participant.hasVideoTrack,
+      isMicMuted: changes['isMicMuted'] as bool? ?? participant.isMicMuted,
+      screenShareTrack: changes['screenShareTrack'] as int? ?? participant.screenShareTrack,
+      videoTrackPaused: changes['videoTrackPaused'] as bool? ?? participant.videoTrackPaused,
     );
     state = state.copyWith(participants: newParticipants);
   }

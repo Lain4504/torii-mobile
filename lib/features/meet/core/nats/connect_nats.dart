@@ -527,8 +527,8 @@ class ConnectNats {
         break;
         
       case nats_msg.NatsMsgServerToClientEvents.USER_DISCONNECTED:
-        // userId is in msg field
-        handleParticipants.handleUserLeft(payload.msg);
+        // userId is in msg field — khớp web handleParticipantDisconnected (tạm ngắt, không xóa participant).
+        handleParticipants.handleUserDisconnected(payload.msg);
         break;
 
       case nats_msg.NatsMsgServerToClientEvents.USER_OFFLINE:
@@ -1482,6 +1482,22 @@ class ConnectNats {
       print('ConnectNats: Sent data message - $type');
     }
   }
+
+  /// Web [useWatchVisibilityChange]: `USER_VISIBILITY_CHANGE` + analytics visibility.
+  Future<void> notifyUserInterfaceVisibility({required bool isVisible}) async {
+    if (_nc == null || !_isConnected) return;
+    final v = isVisible ? 'visible' : 'hidden';
+    await sendDataMessage(
+      type: 'USER_VISIBILITY_CHANGE',
+      msg: v,
+    );
+    sendAnalyticsData(
+      eventName:
+          analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_INTERFACE_VISIBILITY,
+      eventType: analytics.AnalyticsEventType.ANALYTICS_EVENT_TYPE_USER,
+      eventValueString: v,
+    );
+  }
   
   // ============================================================================
   // ANALYTICS
@@ -1586,35 +1602,57 @@ class ConnectNats {
   }
   
   /// Parse data_msg.DataMsgBodyType from string
+  /// Phải khớp tên enum protocol — mặc định INFO sẽ làm sai handler phía nhận.
   data_msg.DataMsgBodyType _parseDataMsgBodyType(String type) {
     switch (type) {
+      case 'UNKNOWN':
+        return data_msg.DataMsgBodyType.UNKNOWN;
+      case 'FILE_UPLOAD':
+        return data_msg.DataMsgBodyType.FILE_UPLOAD;
+      case 'INFO':
+        return data_msg.DataMsgBodyType.INFO;
+      case 'ALERT':
+        return data_msg.DataMsgBodyType.ALERT;
+      case 'USER_VISIBILITY_CHANGE':
+        return data_msg.DataMsgBodyType.USER_VISIBILITY_CHANGE;
+      case 'EXTERNAL_MEDIA_PLAYER_EVENTS':
+        return data_msg.DataMsgBodyType.EXTERNAL_MEDIA_PLAYER_EVENTS;
+      case 'NEW_POLL_RESPONSE':
+        return data_msg.DataMsgBodyType.NEW_POLL_RESPONSE;
+      case 'PUSH_JOIN_BREAKOUT_ROOM':
+        return data_msg.DataMsgBodyType.PUSH_JOIN_BREAKOUT_ROOM;
+      case 'REQ_FULL_WHITEBOARD_DATA':
+        return data_msg.DataMsgBodyType.REQ_FULL_WHITEBOARD_DATA;
+      case 'RES_FULL_WHITEBOARD_DATA':
+        return data_msg.DataMsgBodyType.RES_FULL_WHITEBOARD_DATA;
       case 'SCENE_UPDATE':
         return data_msg.DataMsgBodyType.SCENE_UPDATE;
       case 'POINTER_UPDATE':
         return data_msg.DataMsgBodyType.POINTER_UPDATE;
+      case 'WHITEBOARD_APP_STATE_CHANGE':
+        return data_msg.DataMsgBodyType.WHITEBOARD_APP_STATE_CHANGE;
       case 'PAGE_CHANGE':
         return data_msg.DataMsgBodyType.PAGE_CHANGE;
       case 'FILE_CHANGE':
         return data_msg.DataMsgBodyType.FILE_CHANGE;
       case 'UPDATE_CURRENT_OFFICE_FILE_PAGES':
         return data_msg.DataMsgBodyType.UPDATE_CURRENT_OFFICE_FILE_PAGES;
-      case 'WHITEBOARD_APP_STATE_CHANGE':
-        return data_msg.DataMsgBodyType.WHITEBOARD_APP_STATE_CHANGE;
       case 'WHITEBOARD_RESET':
         return data_msg.DataMsgBodyType.WHITEBOARD_RESET;
-      case 'REQ_FULL_WHITEBOARD_DATA':
-        return data_msg.DataMsgBodyType.REQ_FULL_WHITEBOARD_DATA;
+      case 'USER_CONNECTION_QUALITY_CHANGE':
+        return data_msg.DataMsgBodyType.USER_CONNECTION_QUALITY_CHANGE;
       case 'REQ_PUBLIC_CHAT_DATA':
         return data_msg.DataMsgBodyType.REQ_PUBLIC_CHAT_DATA;
-      case 'NEW_POLL_RESPONSE':
-        return data_msg.DataMsgBodyType.NEW_POLL_RESPONSE;
-      case 'USER_VISIBILITY_CHANGE':
-        return data_msg.DataMsgBodyType.USER_VISIBILITY_CHANGE;
+      case 'RES_PUBLIC_CHAT_DATA':
+        return data_msg.DataMsgBodyType.RES_PUBLIC_CHAT_DATA;
       case 'RAISE_HAND':
-        return data_msg.DataMsgBodyType.INFO; // RAISE_HAND not in protobuf
+        return data_msg.DataMsgBodyType.INFO;
       case 'OTHER_USER_LOWER_HAND':
-        return data_msg.DataMsgBodyType.INFO; // LOWER_HAND not in protobuf
+        return data_msg.DataMsgBodyType.INFO;
       default:
+        if (kDebugMode) {
+          print('ConnectNats: unmapped sendDataMessage type "$type" → INFO');
+        }
         return data_msg.DataMsgBodyType.INFO;
     }
   }

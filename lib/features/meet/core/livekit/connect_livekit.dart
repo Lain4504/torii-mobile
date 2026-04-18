@@ -270,12 +270,8 @@ class ConnectLivekit implements IConnectLivekit {
           event.participant,
         );
         // Không rebuild toàn bộ screenShare map ở đây (dễ gây lag khi screen share bật/tắt).
-        // Screen share sẽ được cập nhật theo event riêng bên dưới.
+        // Screen share map: chỉ [HandleMediaTracks.trackSubscribed] → addScreenShareTrack (tránh double-add).
         _rebuildAudioVideoSubscribersFromRoom();
-        if (event.publication.source == TrackSource.screenShareVideo ||
-            event.publication.source == TrackSource.screenShareAudio) {
-          addScreenShareTrack(event.participant.identity, event.publication);
-        }
       })
       ..on<TrackUnsubscribedEvent>((event) {
         handleMediaTracks.trackUnsubscribed(
@@ -316,10 +312,7 @@ class ConnectLivekit implements IConnectLivekit {
           event.participant,
         );
         _rebuildAudioVideoSubscribersFromRoom();
-        if (event.publication.source == TrackSource.screenShareVideo ||
-            event.publication.source == TrackSource.screenShareAudio) {
-          addScreenShareTrack(event.participant.identity, event.publication);
-        }
+        // Screen share: [HandleMediaTracks.localTrackPublished] đã addScreenShareTrack — không gọi lại.
       })
       ..on<LocalTrackUnpublishedEvent>((event) {
         handleMediaTracks.localTrackUnpublished(
@@ -336,10 +329,7 @@ class ConnectLivekit implements IConnectLivekit {
         }
       })
       ..on<TrackMutedEvent>((event) {
-        if (event.participant.identity == localUserId &&
-            event.publication.source == TrackSource.microphone) {
-          ref.read(bottomIconsProvider.notifier).updateMicStatus(true);
-        }
+        handleMediaTracks.trackMuted(event.publication, event.participant);
         if (event.participant.identity == localUserId &&
             event.publication.source == TrackSource.camera) {
           ref.read(bottomIconsProvider.notifier).updateWebcamStatus(true);
@@ -347,15 +337,29 @@ class ConnectLivekit implements IConnectLivekit {
         _rebuildAudioVideoSubscribersFromRoom();
       })
       ..on<TrackUnmutedEvent>((event) {
-        if (event.participant.identity == localUserId &&
-            event.publication.source == TrackSource.microphone) {
-          ref.read(bottomIconsProvider.notifier).updateMicStatus(false);
-        }
+        handleMediaTracks.trackUnmuted(event.publication, event.participant);
         if (event.participant.identity == localUserId &&
             event.publication.source == TrackSource.camera) {
           ref.read(bottomIconsProvider.notifier).updateWebcamStatus(false);
         }
         _rebuildAudioVideoSubscribersFromRoom();
+      })
+      ..on<TrackSubscriptionExceptionEvent>((event) {
+        final p = event.participant;
+        if (p != null) {
+          handleMediaTracks.trackSubscriptionFailed(
+            p,
+            trackSid: event.sid,
+            reason: event.reason,
+          );
+        }
+      })
+      ..on<TrackStreamStateUpdatedEvent>((event) {
+        handleMediaTracks.trackStreamStateChanged(
+          event.publication,
+          event.streamState,
+          event.participant,
+        );
       })
       ..on<ActiveSpeakersChangedEvent>(_onActiveSpeakersChanged);
 
@@ -429,6 +433,10 @@ class ConnectLivekit implements IConnectLivekit {
         isSpeaking: true,
         audioLevel: 1.0,
       );
+    }
+
+    if (_videoSubscribersMap.length > 1) {
+      _syncVideoSubscribers();
     }
   }
 
@@ -712,8 +720,35 @@ class ConnectLivekit implements IConnectLivekit {
       _videoStatusController.add(false);
     }
 
-    // Sort by active speakers (simplified - full implementation in HandleMediaTracks)
-    _videoSubscribersController.add(Map.from(_videoSubscribersMap));
+    if (_videoSubscribersMap.length <= 1) {
+      _videoSubscribersController.add(Map.from(_videoSubscribersMap));
+      return;
+    }
+
+    final speakersState = ref.read(activeSpeakersProvider).speakers;
+    final entries = _videoSubscribersMap.entries.toList();
+    entries.sort((a, b) {
+      final aSpeaker = speakersState[a.key];
+      final bSpeaker = speakersState[b.key];
+      final aIsSpeaking = aSpeaker?.isSpeaking ?? false;
+      final bIsSpeaking = bSpeaker?.isSpeaking ?? false;
+      if (aIsSpeaking != bIsSpeaking) {
+        return aIsSpeaking ? -1 : 1;
+      }
+      final aLast = aSpeaker?.lastSpokeAt ?? 0;
+      final bLast = bSpeaker?.lastSpokeAt ?? 0;
+      if (aLast != bLast) {
+        return bLast.compareTo(aLast);
+      }
+      final aLive = a.value.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      final bLive = b.value.lastSpokeAt?.millisecondsSinceEpoch ?? 0;
+      if (aLive != bLive) {
+        return bLive.compareTo(aLive);
+      }
+      return a.value.joinedAt.millisecondsSinceEpoch
+          .compareTo(b.value.joinedAt.millisecondsSinceEpoch);
+    });
+    _videoSubscribersController.add(Map.fromEntries(entries));
   }
 
   /// Rebuild all track subscriber maps from current LiveKit room state.

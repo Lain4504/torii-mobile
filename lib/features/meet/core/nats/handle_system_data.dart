@@ -87,8 +87,9 @@ class HandleSystemData {
       case nats_msg.NatsMsgServerToClientEvents.POLL_CREATED:
         ref?.read(roomSettingsProvider.notifier).addUserNotification(
           const UserNotification(
-            message: 'New poll available',
+            message: 'Bình chọn mới',
             typeOption: 'info',
+            autoClose: false,
           ),
         );
         // Show poll badge indicator on mobile footer.
@@ -116,13 +117,9 @@ class HandleSystemData {
   void handleBreakoutRoom(nats_msg.NatsMsgServerToClient payload) {
     switch (payload.event) {
       case nats_msg.NatsMsgServerToClientEvents.JOIN_BREAKOUT_ROOM:
+        // Web vẫn dispatch notification nhưng `disableToastNotification`; mobile dùng dialog
+        // từ [breakoutRoomProvider] — không thêm vào chuông để tránh trùng UX.
         if (payload.msg.isNotEmpty) {
-          ref?.read(roomSettingsProvider.notifier).addUserNotification(
-            UserNotification(
-              message: 'Breakout room invitation received',
-              typeOption: 'info',
-            ),
-          );
           ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(payload.msg);
           if (kDebugMode) {
             print('HandleSystemData: Breakout room invitation - ${payload.msg}');

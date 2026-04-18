@@ -609,10 +609,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
   void notifyAppVisibilityToRoom({required bool isVisible}) {
     final n = _connectNats;
     if (n == null || !n.isConnected) return;
-    n.sendDataMessage(
-      type: 'USER_VISIBILITY_CHANGE',
-      msg: isVisible ? 'visible' : 'hidden',
-    );
+    n.notifyUserInterfaceVisibility(isVisible: isVisible);
   }
 
   /// Get the LiveKit connection instance
