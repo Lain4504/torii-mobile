@@ -156,21 +156,26 @@ class ConnectLivekit implements IConnectLivekit {
       _activeLiveKitUrl = url;
       _activeLiveKitToken = token;
 
-      // Apply initial media state
-      if (initialAudioEnabled) {
-        await _room.localParticipant?.setMicrophoneEnabled(true);
+      // Apply initial media state (tách try để một thất bại không chặn cái còn lại).
+      try {
+        if (initialAudioEnabled) {
+          await _room.localParticipant?.setMicrophoneEnabled(true);
+        }
+      } catch (e, st) {
+        if (kDebugMode) {
+          print('ConnectLivekit: setMicrophoneEnabled failed: $e\n$st');
+        }
       }
-      if (initialVideoEnabled) {
-        await _room.localParticipant?.setCameraEnabled(true);
+      try {
+        if (initialVideoEnabled) {
+          await _room.localParticipant?.setCameraEnabled(true);
+        }
+      } catch (e, st) {
+        if (kDebugMode) {
+          print('ConnectLivekit: setCameraEnabled failed: $e\n$st');
+        }
       }
-
-      // Sync footer button state with actual initial media state.
-      ref
-          .read(bottomIconsProvider.notifier)
-          .updateMicStatus(!initialAudioEnabled);
-      ref
-          .read(bottomIconsProvider.notifier)
-          .updateWebcamStatus(!initialVideoEnabled);
+      _syncFooterIconsFromLocalParticipant();
 
       // Initialize participants
       await _initiateParticipants();
@@ -281,7 +286,10 @@ class ConnectLivekit implements IConnectLivekit {
         _rebuildAudioVideoSubscribersFromRoom();
         if (event.publication.source == TrackSource.screenShareVideo ||
             event.publication.source == TrackSource.screenShareAudio) {
-          removeScreenShareTrack(event.participant.identity);
+          removeScreenShareTrack(
+            event.participant.identity,
+            publicationSid: event.publication.sid,
+          );
         }
       })
       ..on<TrackPublishedEvent>((_) {
@@ -296,7 +304,10 @@ class ConnectLivekit implements IConnectLivekit {
         _rebuildAudioVideoSubscribersFromRoom();
         if (event.publication.source == TrackSource.screenShareVideo ||
             event.publication.source == TrackSource.screenShareAudio) {
-          removeScreenShareTrack(event.participant.identity);
+          removeScreenShareTrack(
+            event.participant.identity,
+            publicationSid: event.publication.sid,
+          );
         }
       })
       ..on<LocalTrackPublishedEvent>((event) {
@@ -318,7 +329,10 @@ class ConnectLivekit implements IConnectLivekit {
         _rebuildAudioVideoSubscribersFromRoom();
         if (event.publication.source == TrackSource.screenShareVideo ||
             event.publication.source == TrackSource.screenShareAudio) {
-          removeScreenShareTrack(event.participant.identity);
+          removeScreenShareTrack(
+            event.participant.identity,
+            publicationSid: event.publication.sid,
+          );
         }
       })
       ..on<TrackMutedEvent>((event) {
@@ -547,8 +561,23 @@ class ConnectLivekit implements IConnectLivekit {
   /// Remove screen share track
   /// Matches: removeScreenShareTrack() in ConnectLivekit.ts
   @override
-  void removeScreenShareTrack(String userId) {
-    _screenShareTracksMap.remove(userId);
+  void removeScreenShareTrack(String userId, {String? publicationSid}) {
+    final existing = _screenShareTracksMap[userId];
+    if (existing == null || existing.isEmpty) {
+      return;
+    }
+    if (publicationSid == null || publicationSid.isEmpty) {
+      _screenShareTracksMap.remove(userId);
+      _syncScreenShareTracks();
+      return;
+    }
+
+    existing.removeWhere((pub) => pub.sid == publicationSid);
+    if (existing.isEmpty) {
+      _screenShareTracksMap.remove(userId);
+    } else {
+      _screenShareTracksMap[userId] = existing;
+    }
     _syncScreenShareTracks();
   }
 
@@ -758,6 +787,11 @@ class ConnectLivekit implements IConnectLivekit {
     final camMuted = camPub == null || camPub.muted;
     ref.read(bottomIconsProvider.notifier).updateMicStatus(micMuted);
     ref.read(bottomIconsProvider.notifier).updateWebcamStatus(camMuted);
+  }
+
+  /// Khi app resume mà không gọi [disconnect]: chỉ cập nhật nút mic/cam theo publication thật.
+  void syncFooterWithLocalParticipant() {
+    _syncFooterIconsFromLocalParticipant();
   }
 
   /// Toggle audio

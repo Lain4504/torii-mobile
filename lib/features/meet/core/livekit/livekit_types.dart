@@ -84,5 +84,5 @@ abstract class IConnectLivekit {
   void addScreenShareTrack(String userId, TrackPublication track);
 
   /// Remove screen share track
-  void removeScreenShareTrack(String userId);
+  void removeScreenShareTrack(String userId, {String? publicationSid});
 }
