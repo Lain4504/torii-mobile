@@ -50,6 +50,11 @@ class _MeetingRoomScreenState extends ConsumerState<MeetingRoomScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // paused: app không còn foreground (tắt màn hình, Home, chuyển app) — cắt camera
+    // để tránh track bị OS kill nhưng UI vẫn báo "đang bật".
+    if (state == AppLifecycleState.paused) {
+      ref.read(sessionProvider.notifier).muteCameraForBackgroundIfNeeded();
+    }
     if (state == AppLifecycleState.resumed) {
       ref.read(sessionProvider.notifier).reconnectAfterResume();
     }

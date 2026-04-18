@@ -156,21 +156,26 @@ class ConnectLivekit implements IConnectLivekit {
       _activeLiveKitUrl = url;
       _activeLiveKitToken = token;
 
-      // Apply initial media state
-      if (initialAudioEnabled) {
-        await _room.localParticipant?.setMicrophoneEnabled(true);
+      // Apply initial media state (tách try để một thất bại không chặn cái còn lại).
+      try {
+        if (initialAudioEnabled) {
+          await _room.localParticipant?.setMicrophoneEnabled(true);
+        }
+      } catch (e, st) {
+        if (kDebugMode) {
+          print('ConnectLivekit: setMicrophoneEnabled failed: $e\n$st');
+        }
       }
-      if (initialVideoEnabled) {
-        await _room.localParticipant?.setCameraEnabled(true);
+      try {
+        if (initialVideoEnabled) {
+          await _room.localParticipant?.setCameraEnabled(true);
+        }
+      } catch (e, st) {
+        if (kDebugMode) {
+          print('ConnectLivekit: setCameraEnabled failed: $e\n$st');
+        }
       }
-
-      // Sync footer button state with actual initial media state.
-      ref
-          .read(bottomIconsProvider.notifier)
-          .updateMicStatus(!initialAudioEnabled);
-      ref
-          .read(bottomIconsProvider.notifier)
-          .updateWebcamStatus(!initialVideoEnabled);
+      _syncFooterIconsFromLocalParticipant();
 
       // Initialize participants
       await _initiateParticipants();
@@ -782,6 +787,11 @@ class ConnectLivekit implements IConnectLivekit {
     final camMuted = camPub == null || camPub.muted;
     ref.read(bottomIconsProvider.notifier).updateMicStatus(micMuted);
     ref.read(bottomIconsProvider.notifier).updateWebcamStatus(camMuted);
+  }
+
+  /// Khi app resume mà không gọi [disconnect]: chỉ cập nhật nút mic/cam theo publication thật.
+  void syncFooterWithLocalParticipant() {
+    _syncFooterIconsFromLocalParticipant();
   }
 
   /// Toggle audio

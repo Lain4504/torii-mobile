@@ -16,6 +16,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import '../core/nats/connect_nats.dart';
 import '../core/livekit/connect_livekit.dart';
+import 'package:livekit_client/livekit_client.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kReleaseMode, debugPrint;
 import 'package:torii_app/features/meet/data/models/room_info.dart';
 import 'package:torii_app/features/meet/data/models/user_metadata.dart';
@@ -362,6 +363,8 @@ class SessionNotifier extends StateNotifier<SessionState> {
     });
   }
 
+  /// Khi app resume: nếu NATS + LiveKit còn sống thì không teardown (tránh lỗi/toast giả);
+  /// chỉ reconnect đầy đủ khi phiên thật sự gãy.
   Future<void> reconnectAfterResume() async {
     if (_resumeReconnectInProgress) return;
     final now = DateTime.now();
@@ -369,6 +372,28 @@ class SessionNotifier extends StateNotifier<SessionState> {
         now.difference(_lastResumeReconnectAt!) < const Duration(seconds: 5)) {
       return;
     }
+
+    // Tránh teardown khi NATS + LiveKit vẫn ổn — reconnect đầy đủ hay gây lỗi LiveKit giả và toast lỗi.
+    final nats = _connectNats;
+    final lk = _connectLivekit;
+    final lkState = lk?.room.connectionState;
+    if (nats != null &&
+        nats.isConnected &&
+        lk != null &&
+        (lkState == ConnectionState.connected ||
+            lkState == ConnectionState.reconnecting)) {
+      if (lkState == ConnectionState.connected) {
+        lk.syncFooterWithLocalParticipant();
+      }
+      _lastResumeReconnectAt = now;
+      if (kDebugMode) {
+        debugPrint(
+          'reconnectAfterResume: giữ phiên (không disconnect), NATS+LiveKit còn sống',
+        );
+      }
+      return;
+    }
+
     _lastResumeReconnectAt = now;
     _resumeReconnectInProgress = true;
 
@@ -569,6 +594,15 @@ class SessionNotifier extends StateNotifier<SessionState> {
     } on MeetApiException catch (e) {
       return (ok: false, message: e.message);
     }
+  }
+
+  /// Khi app vào nền / tắt màn hình, OS thường dừng camera trong khi [bottomIconsProvider]
+  /// vẫn có thể báo đang bật → remote không nhận được video, nút bấm lệch với thực tế.
+  /// Tắt camera có chủ đích để đồng bộ với LiveKit; user bật lại sau khi mở app.
+  void muteCameraForBackgroundIfNeeded() {
+    final bottom = ref.read(bottomIconsProvider);
+    if (bottom.isWebcamMuted) return;
+    _connectLivekit?.toggleVideo(false);
   }
 
   /// Get the LiveKit connection instance
