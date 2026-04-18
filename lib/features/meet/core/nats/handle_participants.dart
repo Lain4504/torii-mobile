@@ -18,7 +18,10 @@ import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/session_provider.dart';
+import 'package:torii_app/features/meet/providers/active_speakers_provider.dart';
 import 'package:torii_app/features/meet/core/notification_sound_service.dart';
+import 'package:livekit_client/livekit_client.dart';
+import 'package:torii_app/features/meet/core/livekit/livekit_participant_lookup.dart';
 import 'connect_nats.dart';
 
 class HandleParticipants {
@@ -62,6 +65,11 @@ class HandleParticipants {
     ref?.read(bottomIconsProvider.notifier).updateIsActiveRaisehand(
       metadata.isHandRaised || metadata.raisedHand,
     );
+    connectNats.syncMeetHandlerLocalFlags(
+      isAdmin: info.isAdmin,
+      isRecorder: isRecorder,
+      isPresenter: metadata.isPresenter,
+    );
     if (kDebugMode) {
       print('HandleParticipants: Local user set - $displayName');
     }
@@ -70,59 +78,158 @@ class HandleParticipants {
   /// Handle user joined event
   /// Matches: addRemoteParticipant() in HandleParticipants.ts
   Future<void> handleUserJoined(nats_msg.NatsKvUserInfo userInfo) async {
-    // Skip if it's the local user
     if (userInfo.userId == connectNats.userId) {
       return;
     }
-    
-    // Skip recorder bots
+
     if (_isUserRecorder(userInfo.userId)) {
       return;
     }
-    
-    // Parse metadata
+
     final Map<String, dynamic> rawMetadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty
-        ? jsonDecode(userInfo.metadata)
-        : {};
+        ? jsonDecode(userInfo.metadata) as Map<String, dynamic>
+        : <String, dynamic>{};
     final displayName = _resolveDisplayName(userInfo.name, rawMetadata, userInfo.userId);
     final metadata = UserMetadata.fromJson(_normalizeMetadata(rawMetadata));
-    
-    // Add participant to provider
+
+    final roomFeatures = connectNats.meetRoomFeatures;
+    if (!userInfo.isAdmin &&
+        !connectNats.isAdmin &&
+        !(roomFeatures?.allowViewOtherUsersList ?? true)) {
+      if (kDebugMode) {
+        print('HandleParticipants: Skip join (allowViewOtherUsersList=false, non-admin)');
+      }
+      return;
+    }
+
+    final existing = ref?.read(participantProvider).participants[userInfo.userId];
+    if (existing != null) {
+      ref?.read(participantProvider.notifier).updateParticipant(
+            userId: userInfo.userId,
+            changes: {
+              if (displayName.trim().isNotEmpty) 'name': displayName,
+              'sid': userInfo.userSid,
+              'metadata': metadata.copyWith(isOnline: true),
+            },
+          );
+      _syncLivekitMediaAfterUserEvent(userInfo.userId);
+      if (kDebugMode) {
+        print('HandleParticipants: Re-join same userId ${userInfo.userId}, metadata refreshed');
+      }
+      return;
+    }
+
+    _notificationForWaitingUser(metadata, displayName);
+
     ref?.read(participantProvider.notifier).addParticipant(
-      ParticipantInfo(
-        userId: userInfo.userId,
-        sid: userInfo.userSid,
-        name: displayName,
-        metadata: metadata,
-      ),
-    );
-    
-    // Show notification
+          ParticipantInfo(
+            userId: userInfo.userId,
+            sid: userInfo.userSid,
+            name: displayName,
+            metadata: metadata.copyWith(isOnline: true),
+          ),
+        );
+
     _showUserJoinedNotification(displayName);
-    
+    _syncLivekitMediaAfterUserEvent(userInfo.userId);
+
     if (kDebugMode) {
       print('HandleParticipants: User joined - $displayName');
     }
   }
-  
-  /// Handle user left event
-  /// Matches: handleParticipantDisconnected() in HandleParticipants.ts
-  void handleUserLeft(String userId) {
-    // Skip if it's the local user
+
+  /// Khớp web `handleParticipantDisconnected`: NATS tạm ngắt — giữ participant, `isOnline: false`, gỡ media map.
+  void handleUserDisconnected(String userId) {
     if (userId == connectNats.userId) {
       return;
     }
-    
-    // Remove participant from provider
     final participant = ref?.read(participantProvider).participants[userId];
-    if (participant != null) {
-      ref?.read(participantProvider.notifier).removeParticipant(userId);
-      _showUserLeftNotification(participant.name);
+    if (participant == null) {
+      return;
     }
-    
+    _clearLivekitMediaForUser(userId);
+    ref?.read(participantProvider.notifier).updateParticipant(
+          userId: userId,
+          changes: {
+            'metadata': participant.metadata.copyWith(isOnline: false),
+          },
+        );
     if (kDebugMode) {
-      print('HandleParticipants: User left - $userId');
+      print('HandleParticipants: User disconnected (temporary) - $userId');
     }
+  }
+
+  /// Khớp web `handleParticipantOffline`: xóa hẳn participant + speakers + media.
+  void handleUserLeft(String userId) {
+    if (userId == connectNats.userId) {
+      return;
+    }
+
+    final participant = ref?.read(participantProvider).participants[userId];
+    if (participant == null) {
+      return;
+    }
+
+    _clearLivekitMediaForUser(userId);
+    ref?.read(activeSpeakersProvider.notifier).removeOneSpeaker(userId);
+    ref?.read(participantProvider.notifier).removeParticipant(userId);
+    _showUserLeftNotification(participant.name);
+
+    if (kDebugMode) {
+      print('HandleParticipants: User offline / left - $userId');
+    }
+  }
+
+  void _clearLivekitMediaForUser(String userId) {
+    final conn = connectNats.getMediaServerConn();
+    conn?.removeAudioSubscriber(userId);
+    conn?.removeVideoSubscriber(userId);
+    conn?.removeScreenShareTrack(userId);
+  }
+
+  /// Khớp web `onAfterUserConnectMediaUpdate`: đồng bộ publication LiveKit sau khi NATS đã có user.
+  void _syncLivekitMediaAfterUserEvent(String userId) {
+    if (ref == null) return;
+    final conn = connectNats.getMediaServerConn();
+    final room = conn?.room;
+    if (conn == null || room == null) return;
+
+    final info = ref!.read(participantProvider).participants[userId];
+    if (info == null) return;
+
+    final lkParticipant = resolveLivekitParticipant(
+      room: room,
+      info: info,
+      localIdentity: connectNats.userId,
+    );
+    if (lkParticipant == null) return;
+
+    for (final pub in lkParticipant.trackPublications.values) {
+      if (pub.source == TrackSource.screenShareVideo ||
+          pub.source == TrackSource.screenShareAudio) {
+        conn.addScreenShareTrack(lkParticipant.identity, pub);
+      } else {
+        conn.addVideoSubscriber(lkParticipant);
+        conn.addAudioSubscriber(lkParticipant);
+      }
+    }
+  }
+
+  void _notificationForWaitingUser(UserMetadata metadata, String name) {
+    if (ref == null) return;
+    if (connectNats.isRecorder) return;
+    if (!metadata.waitForApproval || !connectNats.isAdmin) return;
+
+    if (ref!.read(bottomIconsProvider).activeSidePanel != 'PARTICIPANTS') {
+      ref!.read(bottomIconsProvider.notifier).setActiveSidePanel('PARTICIPANTS');
+    }
+    ref!.read(roomSettingsProvider.notifier).updatePlayAudioNotification(true);
+    ref!.read(roomSettingsProvider.notifier).addUserNotification(
+          UserNotification(
+            message: '$name đang chờ duyệt vào phòng',
+            typeOption: 'info',
+          ),
+        );
   }
   
   /// Handle user metadata update
@@ -139,6 +246,10 @@ class HandleParticipants {
     if (userInfo.userId == connectNats.userId) {
       // Update local user metadata
       ref?.read(sessionProvider.notifier).updateCurrentUserMetadata(metadata);
+      connectNats.syncMeetHandlerLocalFlags(
+        isAdmin: userInfo.isAdmin,
+        isPresenter: metadata.isPresenter,
+      );
       connectNats.updateLocalUserWaitingForApproval(metadata.waitForApproval);
       // Sync raise hand state to footer UI
       ref?.read(bottomIconsProvider.notifier).updateIsActiveRaisehand(
@@ -339,6 +450,8 @@ class HandleParticipants {
       if (localUserId == connectNats.userId) continue; // never remove local
       if (serverIds.contains(localUserId)) continue;
 
+      _clearLivekitMediaForUser(localUserId);
+      ref!.read(activeSpeakersProvider.notifier).removeOneSpeaker(localUserId);
       ref!.read(participantProvider.notifier).removeParticipant(localUserId);
     }
   }

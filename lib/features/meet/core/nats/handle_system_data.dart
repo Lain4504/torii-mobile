@@ -19,6 +19,7 @@ import 'package:torii_app/features/meet/providers/insights_ai_text_chat_provider
 import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
 import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/polls_provider.dart';
+import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/core/notification_sound_service.dart';
 
@@ -87,8 +88,10 @@ class HandleSystemData {
       case nats_msg.NatsMsgServerToClientEvents.POLL_CREATED:
         ref?.read(roomSettingsProvider.notifier).addUserNotification(
           const UserNotification(
-            message: 'New poll available',
+            message: 'Bình chọn mới',
             typeOption: 'info',
+            notificationCat: 'new-poll-created',
+            autoClose: false,
           ),
         );
         // Show poll badge indicator on mobile footer.
@@ -118,12 +121,18 @@ class HandleSystemData {
       case nats_msg.NatsMsgServerToClientEvents.JOIN_BREAKOUT_ROOM:
         if (payload.msg.isNotEmpty) {
           ref?.read(roomSettingsProvider.notifier).addUserNotification(
-            UserNotification(
-              message: 'Breakout room invitation received',
+            const UserNotification(
+              message: 'Lời mời tham gia phòng thảo luận',
               typeOption: 'info',
+              notificationCat: 'breakout-room-invitation',
+              disableToastNotification: true,
             ),
           );
           ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(payload.msg);
+          final r = ref;
+          if (r != null) {
+            r.read(breakoutRoomsListRevisionProvider.notifier).state++;
+          }
           if (kDebugMode) {
             print('HandleSystemData: Breakout room invitation - ${payload.msg}');
           }
@@ -132,6 +141,10 @@ class HandleSystemData {
         
       case nats_msg.NatsMsgServerToClientEvents.BREAKOUT_ROOM_ENDED:
         ref?.read(breakoutRoomProvider.notifier).clearInvitation();
+        final r = ref;
+        if (r != null) {
+          r.read(breakoutRoomsListRevisionProvider.notifier).state++;
+        }
         if (kDebugMode) {
           print('HandleSystemData: Breakout room ended - ${payload.msg}');
         }
@@ -158,8 +171,8 @@ class HandleSystemData {
       currentUserId: userId,
     );
     ref?.read(roomSettingsProvider.notifier).addUserNotification(
-      UserNotification(
-        message: 'New system message in chat',
+      const UserNotification(
+        message: 'Có tin nhắn hệ thống mới trong chat',
         typeOption: 'info',
       ),
     );
@@ -206,7 +219,11 @@ class HandleSystemData {
       try {
         final api = r.read(meetApiServiceProvider);
         final response = await api.listPolls();
-        final list = pollsFromPollResponse(response);
+        final names = {
+          for (final e in r.read(participantProvider).participants.entries)
+            e.key: e.value.name,
+        };
+        final list = pollsFromPollResponse(response, userDisplayNames: names);
         r.read(pollsProvider.notifier).setPollsFromApi(list);
       } catch (e) {
         if (kDebugMode) {

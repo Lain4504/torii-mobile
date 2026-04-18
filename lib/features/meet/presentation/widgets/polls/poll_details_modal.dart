@@ -147,18 +147,19 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
     final notRespondents = allParticipantIds.difference(respondedUserIds).toList();
 
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 600),
+        constraints: const BoxConstraints(maxWidth: 620, maxHeight: 640),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
                   ),
                 ),
               ),
@@ -168,8 +169,8 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
                     child: Text(
                       'Poll #${widget.poll.id}',
                       style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontSize: AppTypography.fontSizeMd,
+                        fontWeight: AppTypography.semiBold,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -181,7 +182,7 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.1),
+                          color: AppColors.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Text(
@@ -205,12 +206,12 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
 
             // Question
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 border: Border(
                   bottom: BorderSide(
-                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -328,7 +329,7 @@ class _PollDetailsModalState extends ConsumerState<PollDetailsModal> {
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(
-                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                   ),
                 ),
               ),

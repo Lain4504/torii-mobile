@@ -265,6 +265,35 @@ class SessionNotifier extends StateNotifier<SessionState> {
     state = state.copyWith(userDeviceType: deviceType);
   }
   
+  /// Đóng NATS + LiveKit hiện tại trước khi [connect] lại (breakout ↔ main).
+  /// Tránh [TrackPublishException] khi publish vào phòng mới trong khi track/socket cũ chưa giải phóng.
+  Future<void> _teardownBeforeReconnect() async {
+    final nats = _connectNats;
+    final lk = _connectLivekit;
+    if (nats != null) {
+      await nats.endSession(
+        'meet.room-switch',
+        userInitiatedLeave: true,
+        absorbSessionState: false,
+      );
+      _connectNats = null;
+      if (lk != null) {
+        try {
+          lk.dispose();
+        } catch (_) {}
+      }
+      _connectLivekit = null;
+      return;
+    }
+    if (lk != null) {
+      try {
+        await lk.disconnectRoom(true);
+        lk.dispose();
+      } catch (_) {}
+      _connectLivekit = null;
+    }
+  }
+
   /// Connect to NATS and LiveKit
   /// This initializes the ConnectNats service and starts the connection process
   /// [keepMeetingRoomVisible]: khi đang đổi phòng trong cùng phiên (breakout ↔ main), tránh reset
@@ -286,6 +315,11 @@ class SessionNotifier extends StateNotifier<SessionState> {
     void Function()? onRemoteSessionEnded,
   }) async {
     _onRemoteSessionEnded = onRemoteSessionEnded;
+    if (_connectNats != null || _connectLivekit != null) {
+      _connectionHealthTimer?.cancel();
+      _connectionHealthTimer = null;
+      await _teardownBeforeReconnect();
+    }
     // Initialize ConnectNats
     _connectNats = ConnectNats(
       natsWSUrls: natsWSUrls,
@@ -603,6 +637,13 @@ class SessionNotifier extends StateNotifier<SessionState> {
     final bottom = ref.read(bottomIconsProvider);
     if (bottom.isWebcamMuted) return;
     _connectLivekit?.toggleVideo(false);
+  }
+
+  /// Khớp web [useWatchVisibilityChange]: báo phòng khi UI app hidden/visible (admin/participant list).
+  void notifyAppVisibilityToRoom({required bool isVisible}) {
+    final n = _connectNats;
+    if (n == null || !n.isConnected) return;
+    n.notifyUserInterfaceVisibility(isVisible: isVisible);
   }
 
   /// Get the LiveKit connection instance

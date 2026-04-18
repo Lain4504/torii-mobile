@@ -16,7 +16,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
-import 'package:torii_app/features/meet/providers/session_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/data/models/chat_message.dart';
@@ -176,9 +175,10 @@ class HandleChat {
   }
   
   bool _getIsRecorder() {
-    // Get from session provider
-    final userId = ref.read(sessionProvider).currentUser?.userId;
-    return userId == 'RECORDER_BOT' || userId == 'RTMP_BOT';
+    final userId = connectNats.userId;
+    return userId == 'RECORDER_BOT' ||
+        userId == 'RTMP_BOT' ||
+        connectNats.isRecorder;
   }
   
   void _updateTotalUnreadChatMsgs() {

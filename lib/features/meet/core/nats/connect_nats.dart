@@ -36,6 +36,7 @@ import 'message_queue.dart';
 // LiveKit
 // LiveKit
 import '../livekit/connect_livekit.dart';
+import '../meet_handler_context.dart';
 
 // Providers
 import '../../providers/session_provider.dart';
@@ -43,6 +44,7 @@ import '../../providers/participant_provider.dart';
 import '../../providers/whiteboard_provider.dart';
 import '../../providers/room_settings_provider.dart';
 import '../../data/datasources/meet_api_service.dart';
+import '../../data/models/room_info.dart';
 
 // Constants matching web
 const int kRenewTokenFrequent = 3 * 60 * 1000; // 3 minutes
@@ -54,7 +56,7 @@ const int kUsersSyncInterval = 30 * 1000; // 30 seconds
 /// 
 /// This class is a 1:1 clone of the web ConnectNats.ts class.
 /// It manages the NATS connection, subscriptions, and message routing.
-class ConnectNats {
+class ConnectNats implements MeetHandlerContext {
   // NATS connection (dart_nats Client - no JetStream API, we use raw request for pull)
   dynamic _nc; // nats.Client
   
@@ -118,6 +120,44 @@ class ConnectNats {
   // Room info (cached, won't be updated)
   Map<String, dynamic>? _currentRoomInfo;
 
+  RoomFeatures? _meetHandlerRoomFeatures;
+  bool _meetLocalIsPresenter = false;
+
+  @override
+  String get meetLocalUserId => _userId;
+
+  @override
+  bool get meetLocalIsAdmin => _isAdmin;
+
+  @override
+  bool get meetLocalIsRecorder => _isRecorder;
+
+  @override
+  bool get meetLocalIsPresenter => _meetLocalIsPresenter;
+
+  @override
+  RoomFeatures? get meetRoomFeatures => _meetHandlerRoomFeatures;
+
+  void _applyMeetHandlerRoomFeatures(RoomFeatures? f) {
+    _meetHandlerRoomFeatures = f;
+    _pushMeetHandlerContextToLivekit();
+  }
+
+  void _pushMeetHandlerContextToLivekit() {
+    _mediaServerConn?.attachMeetHandlerContext(this);
+  }
+
+  void syncMeetHandlerLocalFlags({
+    bool? isAdmin,
+    bool? isRecorder,
+    bool? isPresenter,
+  }) {
+    if (isAdmin != null) _isAdmin = isAdmin;
+    if (isRecorder != null) _isRecorder = isRecorder;
+    if (isPresenter != null) _meetLocalIsPresenter = isPresenter;
+    _pushMeetHandlerContextToLivekit();
+  }
+
   /// Web: finalizeAppConn only after landing + not waitForApproval. Mobile defers
   /// REQ_JOINED_USERS_LIST until approval when user is in waiting room.
   bool _pendingFinalizeAfterWaitingRoom = false;
@@ -154,12 +194,17 @@ class ConnectNats {
         _setCurrentMediaServerConn = setCurrentMediaServerConn {
     // Initialize handlers (must be in body - some need 'this')
     messageQueue = MessageQueue();
-    handleRoomData = HandleRoomData(roomId: _roomId, userId: _userId, ref: ref);
+    handleRoomData = HandleRoomData(
+      roomId: _roomId,
+      userId: _userId,
+      ref: ref,
+      onMeetRoomFeatures: _applyMeetHandlerRoomFeatures,
+    );
     handleSystemData = HandleSystemData(userId: _userId, ref: ref);
     handleParticipants = HandleParticipants(connectNats: this, ref: ref);
     handleChat = HandleChat(connectNats: this, ref: ref);
     handleDataMessage = HandleDataMessage(connectNats: this, ref: ref);
-    handleWhiteboard = HandleWhiteboard(ref: ref);
+    handleWhiteboard = HandleWhiteboard(ref: ref, meetContext: this);
   }
   
   // Getters
@@ -243,7 +288,13 @@ class ConnectNats {
   ///
   /// [userInitiatedLeave]: người dùng chủ động rời / host đã xử lý xong — không bật snack lỗi
   /// (tránh gọi [setErrorState] khi [JoinMeetingScreen] đã dispose).
-  Future<void> endSession(String msg, {bool userInitiatedLeave = false}) async {
+  /// [absorbSessionState]: `false` khi [SessionNotifier.connect] đang đổi phòng (breakout ↔ main) —
+  /// giải phóng mic/camera/LiveKit trước khi tạo kết nối mới, **không** gọi [SessionNotifier.absorbRemoteSessionEnd].
+  Future<void> endSession(
+    String msg, {
+    bool userInitiatedLeave = false,
+    bool absorbSessionState = true,
+  }) async {
     // 1. Update UI immediately
     _isConnected = false;
     if (!userInitiatedLeave) {
@@ -280,7 +331,9 @@ class ConnectNats {
       if (!userInitiatedLeave && onRemoteSessionEnded != null) {
         onRemoteSessionEnded!();
       }
-      ref.read(sessionProvider.notifier).absorbRemoteSessionEnd();
+      if (absorbSessionState) {
+        ref.read(sessionProvider.notifier).absorbRemoteSessionEnd();
+      }
     }
 
     // Post-session: web dùng logoutUrl / đóng breakout — mobile xử lý trong callback pop.
@@ -309,6 +362,7 @@ class ConnectNats {
   void setMediaServerConn(ConnectLivekit conn) {
     _mediaServerConn = conn;
     _setCurrentMediaServerConn(conn);
+    conn.attachMeetHandlerContext(this);
     
     if (kDebugMode) {
       print('ConnectNats: LiveKit connection set');
@@ -527,8 +581,11 @@ class ConnectNats {
         break;
         
       case nats_msg.NatsMsgServerToClientEvents.USER_DISCONNECTED:
-        // userId is in msg field
-        handleParticipants.handleUserLeft(payload.msg);
+        // Server gửi marshal NatsKvUserInfo (JSON), giống web — không phải plain userId.
+        final disconnectedId = _extractUserIdFromPayload(payload);
+        if (disconnectedId != null && disconnectedId.isNotEmpty) {
+          handleParticipants.handleUserDisconnected(disconnectedId);
+        }
         break;
 
       case nats_msg.NatsMsgServerToClientEvents.USER_OFFLINE:
@@ -1482,6 +1539,22 @@ class ConnectNats {
       print('ConnectNats: Sent data message - $type');
     }
   }
+
+  /// Web [useWatchVisibilityChange]: `USER_VISIBILITY_CHANGE` + analytics visibility.
+  Future<void> notifyUserInterfaceVisibility({required bool isVisible}) async {
+    if (_nc == null || !_isConnected) return;
+    final v = isVisible ? 'visible' : 'hidden';
+    await sendDataMessage(
+      type: 'USER_VISIBILITY_CHANGE',
+      msg: v,
+    );
+    sendAnalyticsData(
+      eventName:
+          analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_INTERFACE_VISIBILITY,
+      eventType: analytics.AnalyticsEventType.ANALYTICS_EVENT_TYPE_USER,
+      eventValueString: v,
+    );
+  }
   
   // ============================================================================
   // ANALYTICS
@@ -1586,33 +1659,57 @@ class ConnectNats {
   }
   
   /// Parse data_msg.DataMsgBodyType from string
+  /// Phải khớp tên enum protocol — mặc định INFO sẽ làm sai handler phía nhận.
   data_msg.DataMsgBodyType _parseDataMsgBodyType(String type) {
     switch (type) {
+      case 'UNKNOWN':
+        return data_msg.DataMsgBodyType.UNKNOWN;
+      case 'FILE_UPLOAD':
+        return data_msg.DataMsgBodyType.FILE_UPLOAD;
+      case 'INFO':
+        return data_msg.DataMsgBodyType.INFO;
+      case 'ALERT':
+        return data_msg.DataMsgBodyType.ALERT;
+      case 'USER_VISIBILITY_CHANGE':
+        return data_msg.DataMsgBodyType.USER_VISIBILITY_CHANGE;
+      case 'EXTERNAL_MEDIA_PLAYER_EVENTS':
+        return data_msg.DataMsgBodyType.EXTERNAL_MEDIA_PLAYER_EVENTS;
+      case 'NEW_POLL_RESPONSE':
+        return data_msg.DataMsgBodyType.NEW_POLL_RESPONSE;
+      case 'PUSH_JOIN_BREAKOUT_ROOM':
+        return data_msg.DataMsgBodyType.PUSH_JOIN_BREAKOUT_ROOM;
+      case 'REQ_FULL_WHITEBOARD_DATA':
+        return data_msg.DataMsgBodyType.REQ_FULL_WHITEBOARD_DATA;
+      case 'RES_FULL_WHITEBOARD_DATA':
+        return data_msg.DataMsgBodyType.RES_FULL_WHITEBOARD_DATA;
       case 'SCENE_UPDATE':
         return data_msg.DataMsgBodyType.SCENE_UPDATE;
       case 'POINTER_UPDATE':
         return data_msg.DataMsgBodyType.POINTER_UPDATE;
+      case 'WHITEBOARD_APP_STATE_CHANGE':
+        return data_msg.DataMsgBodyType.WHITEBOARD_APP_STATE_CHANGE;
       case 'PAGE_CHANGE':
         return data_msg.DataMsgBodyType.PAGE_CHANGE;
       case 'FILE_CHANGE':
         return data_msg.DataMsgBodyType.FILE_CHANGE;
       case 'UPDATE_CURRENT_OFFICE_FILE_PAGES':
         return data_msg.DataMsgBodyType.UPDATE_CURRENT_OFFICE_FILE_PAGES;
-      case 'WHITEBOARD_APP_STATE_CHANGE':
-        return data_msg.DataMsgBodyType.WHITEBOARD_APP_STATE_CHANGE;
       case 'WHITEBOARD_RESET':
         return data_msg.DataMsgBodyType.WHITEBOARD_RESET;
-      case 'REQ_FULL_WHITEBOARD_DATA':
-        return data_msg.DataMsgBodyType.REQ_FULL_WHITEBOARD_DATA;
+      case 'USER_CONNECTION_QUALITY_CHANGE':
+        return data_msg.DataMsgBodyType.USER_CONNECTION_QUALITY_CHANGE;
       case 'REQ_PUBLIC_CHAT_DATA':
         return data_msg.DataMsgBodyType.REQ_PUBLIC_CHAT_DATA;
-      case 'NEW_POLL_RESPONSE':
-        return data_msg.DataMsgBodyType.NEW_POLL_RESPONSE;
+      case 'RES_PUBLIC_CHAT_DATA':
+        return data_msg.DataMsgBodyType.RES_PUBLIC_CHAT_DATA;
       case 'RAISE_HAND':
-        return data_msg.DataMsgBodyType.INFO; // RAISE_HAND not in protobuf
+        return data_msg.DataMsgBodyType.INFO;
       case 'OTHER_USER_LOWER_HAND':
-        return data_msg.DataMsgBodyType.INFO; // LOWER_HAND not in protobuf
+        return data_msg.DataMsgBodyType.INFO;
       default:
+        if (kDebugMode) {
+          print('ConnectNats: unmapped sendDataMessage type "$type" → INFO');
+        }
         return data_msg.DataMsgBodyType.INFO;
     }
   }

@@ -16,6 +16,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/active_speakers_provider.dart';
+import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 
 // Types
 import 'livekit_types.dart';
@@ -106,23 +107,22 @@ class HandleMediaTracks {
   /// Handle track subscription failed
   /// Matches: trackSubscriptionFailed() in HandleMediaTracks.ts
   void trackSubscriptionFailed(
-    String sid,
-    Exception? error,
-    RemoteParticipant participant,
-  ) {
+    RemoteParticipant participant, {
+    String? trackSid,
+    Object? reason,
+  }) {
     if (kDebugMode) {
       print(
-        'HandleMediaTracks: Track subscription failed - $sid, error: $error',
+        'HandleMediaTracks: Track subscription failed - sid: $trackSid, reason: $reason',
       );
     }
 
-    // Show notification
     ref
         .read(roomSettingsProvider.notifier)
         .addUserNotification(
           UserNotification(
             message:
-                'Không thể đăng ký track từ ${participant.name ?? participant.identity}',
+                'Không thể đăng ký track từ ${participant.name.isNotEmpty ? participant.name : participant.identity}',
             typeOption: 'error',
           ),
         );
@@ -131,26 +131,16 @@ class HandleMediaTracks {
   /// Handle track muted
   /// Matches: trackMuted() in HandleMediaTracks.ts
   void trackMuted(TrackPublication publication, Participant participant) {
-    if (publication.source == TrackSource.microphone) {
-      // Update participant mic muted state
-      ref
-          .read(participantProvider.notifier)
-          .updateParticipant(
-            userId: participant.identity,
-            changes: {
-              'metadata': {
-                ...ref
-                        .read(participantProvider)
-                        .participants[participant.identity]
-                        ?.metadata
-                        .toJson() ??
-                    {},
-                'isMicMuted': true,
-              },
-            },
-          );
+    final localId = connectLivekit.localUserId;
 
-      // Remove from active speakers
+    if (publication.source == TrackSource.microphone) {
+      ref.read(participantProvider.notifier).updateParticipant(
+            userId: participant.identity,
+            changes: {'isMicMuted': true},
+          );
+      if (participant.identity == localId) {
+        ref.read(bottomIconsProvider.notifier).updateMicStatus(true);
+      }
       _removeSpeaker(publication, participant);
     }
 
@@ -164,26 +154,16 @@ class HandleMediaTracks {
   /// Handle track unmuted
   /// Matches: trackUnmuted() in HandleMediaTracks.ts
   void trackUnmuted(TrackPublication publication, Participant participant) {
-    if (publication.source == TrackSource.microphone) {
-      // Update participant mic unmuted state
-      ref
-          .read(participantProvider.notifier)
-          .updateParticipant(
-            userId: participant.identity,
-            changes: {
-              'metadata': {
-                ...ref
-                        .read(participantProvider)
-                        .participants[participant.identity]
-                        ?.metadata
-                        .toJson() ??
-                    {},
-                'isMicMuted': false,
-              },
-            },
-          );
+    final localId = connectLivekit.localUserId;
 
-      // Add to active speakers
+    if (publication.source == TrackSource.microphone) {
+      ref.read(participantProvider.notifier).updateParticipant(
+            userId: participant.identity,
+            changes: {'isMicMuted': false},
+          );
+      if (participant.identity == localId) {
+        ref.read(bottomIconsProvider.notifier).updateMicStatus(false);
+      }
       _addSpeaker(publication, participant);
     }
 
@@ -231,11 +211,43 @@ class HandleMediaTracks {
     }
   }
 
+  /// Web `HandleMediaTracks._shouldAddWebcam` (thiếu `recordingFeatures` đầy đủ — model room chưa có).
+  bool _shouldAddWebcam(Participant participant) {
+    final localId = connectLivekit.localUserId;
+    if (participant.identity == localId) {
+      return true;
+    }
+
+    final user = ref.read(participantProvider).participants[participant.identity];
+    if (user == null) {
+      return false;
+    }
+
+    final ctx = connectLivekit.meetHandlerContext;
+    if (ctx?.meetLocalIsRecorder == true) {
+      // Web: recordWebcam / onlyRecordAdminWebcams — bỏ qua nếu không có trong RoomInfo/UserMetadata.
+      return true;
+    }
+
+    final rf = ctx?.meetRoomFeatures;
+    final adminOnlyWebcams = rf?.adminOnlyWebcams ?? false;
+    final allowViewOtherWebcams = rf?.allowViewOtherWebcams ?? true;
+    final currentIsAdmin = ctx?.meetLocalIsAdmin ?? false;
+
+    if ((adminOnlyWebcams || !allowViewOtherWebcams) && !currentIsAdmin) {
+      return user.metadata.isAdmin;
+    }
+    return true;
+  }
+
   /// Add subscriber for track
   /// Matches: addSubscriber() in HandleMediaTracks.ts
   void _addSubscriber(TrackPublication track, Participant participant) {
     switch (track.source) {
       case TrackSource.camera:
+        if (!_shouldAddWebcam(participant)) {
+          return;
+        }
         connectLivekit.addVideoSubscriber(participant);
 
         // Update participant video track state
@@ -313,7 +325,10 @@ class HandleMediaTracks {
 
       case TrackSource.screenShareVideo:
       case TrackSource.screenShareAudio:
-        connectLivekit.removeScreenShareTrack(participant.identity);
+        connectLivekit.removeScreenShareTrack(
+          participant.identity,
+          publicationSid: track.sid,
+        );
 
         // Update participant screen share state
         ref
@@ -355,7 +370,9 @@ class HandleMediaTracks {
         .read(activeSpeakersProvider.notifier)
         .addOrUpdateSpeaker(
           userId: participant.identity,
-          name: participant.name ?? participant.identity,
+          name: participant.name.isNotEmpty
+              ? participant.name
+              : participant.identity,
           isSpeaking: false,
           audioLevel: 0.0,
         );

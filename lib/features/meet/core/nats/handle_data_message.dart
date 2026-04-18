@@ -24,6 +24,7 @@ import 'package:torii_app/features/meet/providers/chat_messages_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/polls_provider.dart';
+import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'connect_nats.dart';
 
@@ -109,12 +110,17 @@ class HandleDataMessage {
       case data_msg.DataMsgBodyType.USER_CONNECTION_QUALITY_CHANGE:
         _handleConnectionQualityChange(payload);
         break;
-      
-      // Breakout rooms
-      // NOTE:
-      // Breakout room invitation is handled via NATS system event:
-      // NatsMsgServerToClientEvents.JOIN_BREAKOUT_ROOM (see HandleSystemData).
-      // Keep a single source of truth to match web behavior and avoid duplicate invites.
+
+      // Web HandleDataMessage: PUSH_JOIN_BREAKOUT_ROOM (kênh data; song song system JOIN_BREAKOUT_ROOM).
+      case data_msg.DataMsgBodyType.PUSH_JOIN_BREAKOUT_ROOM:
+        if (payload.toUserId == connectNats.userId) {
+          final r = ref;
+          r?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(
+                payload.message,
+              );
+          r?.read(breakoutRoomsListRevisionProvider.notifier).state++;
+        }
+        break;
       
       default:
         if (kDebugMode) {
@@ -264,27 +270,21 @@ class HandleDataMessage {
   // USER VISIBILITY HANDLER
   // ============================================================================
   
+  /// Web [HandleDataMessage.handleUserVisibility]: `message` là `'hidden'|'visible'`, không phải JSON.
   void _handleUserVisibility(data_msg.DataChannelMessage payload) {
     if (!connectNats.isAdmin) {
-      return; // Only admins can see visibility changes
+      return;
     }
-    
-    try {
-      final body = jsonDecode(payload.message) as Map<String, dynamic>;
-      
-      // Dispatch to participant provider
-      ref?.read(participantProvider.notifier).updateParticipant(
-        userId: body['userId'] as String,
-        changes: {
-          'connectionQuality': body['quality'] as String? ?? 'excellent',
-        },
-      );
-    } catch (e) {
-      // Ignored
-    }
-    
+    ref?.read(participantProvider.notifier).updateParticipant(
+      userId: payload.fromUserId,
+      changes: {
+        'visibility': payload.message,
+      },
+    );
     if (kDebugMode) {
-      print('HandleDataMessage: User ${payload.fromUserId} visibility changed to ${payload.message}');
+      print(
+        'HandleDataMessage: User ${payload.fromUserId} visibility → ${payload.message}',
+      );
     }
   }
   
@@ -334,10 +334,6 @@ class HandleDataMessage {
   // POLL HANDLER
   // ============================================================================
   
-  // ============================================================================
-  // POLL HANDLER
-  // ============================================================================
-  
   Future<void> _handleNewPollResponse(String msg) async {
     if (msg.isEmpty) return;
     
@@ -349,7 +345,11 @@ class HandleDataMessage {
 
       final api = r.read(meetApiServiceProvider);
       final response = await api.listPolls();
-      final list = pollsFromPollResponse(response);
+      final names = {
+        for (final e in r.read(participantProvider).participants.entries)
+          e.key: e.value.name,
+      };
+      final list = pollsFromPollResponse(response, userDisplayNames: names);
       r.read(pollsProvider.notifier).setPollsFromApi(list);
     } catch (e) {
       if (kDebugMode) {
@@ -362,23 +362,20 @@ class HandleDataMessage {
   // CONNECTION QUALITY HANDLER
   // ============================================================================
   
+  /// Web [HandleDataMessage] `USER_CONNECTION_QUALITY_CHANGE` → participant.connectionQuality.
   void _handleConnectionQualityChange(data_msg.DataChannelMessage payload) {
-    try {
-      // TODO: Map connection quality to provider when UI needs it.
-      jsonDecode(payload.message);
-    } catch (e) {
-      // Ignored
-    }
-    
+    ref?.read(participantProvider.notifier).updateParticipant(
+      userId: payload.fromUserId,
+      changes: {
+        'connectionQuality': payload.message,
+      },
+    );
     if (kDebugMode) {
-      print('HandleDataMessage: User ${payload.fromUserId} connection quality: ${payload.message}');
+      print(
+        'HandleDataMessage: User ${payload.fromUserId} connection quality → ${payload.message}',
+      );
     }
   }
-  
-  // ============================================================================
-  // BREAKOUT ROOM HANDLER
-  // ============================================================================
-  // (intentionally empty: handled by HandleSystemData)
   
   // ============================================================================
   // SPEECH SUBTITLE HANDLER

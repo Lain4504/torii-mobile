@@ -762,4 +762,19 @@ class MeetApiService {
       throw MeetApiException('Failed to join breakout room', originalError: e);
     }
   }
+
+  /// Khớp web `breakoutRoomApi.getMyBreakoutRooms` (`GET .../myRooms`).
+  Future<breakout_room.BreakoutRoomRes> listMyBreakoutRooms() async {
+    try {
+      final response = await _dio.get('/api/breakoutRoom/myRooms');
+      return breakout_room.BreakoutRoomRes.fromBuffer(response.data as List<int>);
+    } on DioException catch (e) {
+      throw _handleDioError(e, 'listMyBreakoutRooms');
+    } catch (e) {
+      throw MeetApiException(
+        'Failed to list my breakout rooms',
+        originalError: e,
+      );
+    }
+  }
 }
