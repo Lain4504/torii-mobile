@@ -605,6 +605,16 @@ class SessionNotifier extends StateNotifier<SessionState> {
     _connectLivekit?.toggleVideo(false);
   }
 
+  /// Khớp web [useWatchVisibilityChange]: báo phòng khi UI app hidden/visible (admin/participant list).
+  void notifyAppVisibilityToRoom({required bool isVisible}) {
+    final n = _connectNats;
+    if (n == null || !n.isConnected) return;
+    n.sendDataMessage(
+      type: 'USER_VISIBILITY_CHANGE',
+      msg: isVisible ? 'visible' : 'hidden',
+    );
+  }
+
   /// Get the LiveKit connection instance
   ConnectLivekit? get livekitConn => _connectLivekit;
   

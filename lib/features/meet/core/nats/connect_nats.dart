@@ -1608,6 +1608,8 @@ class ConnectNats {
         return data_msg.DataMsgBodyType.REQ_PUBLIC_CHAT_DATA;
       case 'NEW_POLL_RESPONSE':
         return data_msg.DataMsgBodyType.NEW_POLL_RESPONSE;
+      case 'USER_VISIBILITY_CHANGE':
+        return data_msg.DataMsgBodyType.USER_VISIBILITY_CHANGE;
       case 'RAISE_HAND':
         return data_msg.DataMsgBodyType.INFO; // RAISE_HAND not in protobuf
       case 'OTHER_USER_LOWER_HAND':
