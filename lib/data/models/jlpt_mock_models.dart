@@ -131,6 +131,7 @@ class JlptMockQuestionModel {
     this.audioAssetId,
     this.imageAssetId,
     required this.options,
+    this.explanation,
   });
 
   final String id;
@@ -140,6 +141,7 @@ class JlptMockQuestionModel {
   final String? audioAssetId;
   final String? imageAssetId;
   final List<JlptMockQuestionOptionModel> options;
+  final String? explanation;
 
   factory JlptMockQuestionModel.fromJson(Map<String, dynamic> json) {
     final rawOptions = json['options'] as List<dynamic>? ?? const [];
@@ -161,6 +163,7 @@ class JlptMockQuestionModel {
       audioAssetId: json['audioAssetId']?.toString(),
       imageAssetId: json['imageAssetId']?.toString(),
       options: options,
+      explanation: json['explanation']?.toString(),
     );
   }
 }
@@ -339,6 +342,8 @@ class JlptMockAttemptResultModel {
     required this.listeningScaled,
     required this.totalScaled,
     required this.passMock,
+    this.answers = const [],
+    this.templateId,
   });
 
   final String id;
@@ -351,14 +356,24 @@ class JlptMockAttemptResultModel {
   final int? listeningScaled;
   final int? totalScaled;
   final bool? passMock;
+  final List<JlptMockAttemptAnswerModel> answers;
+  final String? templateId;
 
   factory JlptMockAttemptResultModel.fromJson(Map<String, dynamic> json) {
     final attempt = ((json['attempt'] as Map?) ?? const <String, dynamic>{})
         .cast<String, dynamic>();
     final scores = ((json['scores'] as Map?) ?? const <String, dynamic>{})
         .cast<String, dynamic>();
+    final rawAnswers = json['answers'] as List<dynamic>? ?? const [];
+    final answers = rawAnswers
+        .map((e) => JlptMockAttemptAnswerModel.fromJson((e as Map).cast<String, dynamic>()))
+        .toList();
+    
     return JlptMockAttemptResultModel(
       id: (attempt['id'] ?? '').toString(),
+      templateId: (attempt['templateId'] ?? json['templateId'] ?? '').toString().isEmpty 
+          ? null 
+          : (attempt['templateId'] ?? json['templateId']).toString(),
       level: (attempt['level'] ?? '').toString(),
       status: (attempt['status'] ?? '').toString(),
       startedAt: attempt['startedAt']?.toString(),
@@ -368,6 +383,61 @@ class JlptMockAttemptResultModel {
       listeningScaled: (scores['listeningScaled'] as num?)?.toInt(),
       totalScaled: (scores['totalScaled'] as num?)?.toInt(),
       passMock: scores['passMock'] is bool ? scores['passMock'] as bool : null,
+      answers: answers,
+    );
+  }
+}
+
+class JlptMockAttemptAnswerModel {
+  const JlptMockAttemptAnswerModel({
+    required this.templateQuestionId,
+    this.questionId,
+    this.selectedOptionId,
+    this.correctOptionId,
+    this.isCorrect,
+    this.review,
+    this.sectionCode,
+    this.mondaiTitleVi,
+    this.mondaiTitleJa,
+  });
+
+  final String templateQuestionId;
+  final String? questionId;
+  final String? selectedOptionId;
+  final String? correctOptionId;
+  final bool? isCorrect;
+  final JlptMockQuestionModel? review;
+  final String? sectionCode;
+  final String? mondaiTitleVi;
+  final String? mondaiTitleJa;
+
+  factory JlptMockAttemptAnswerModel.fromJson(Map<String, dynamic> json) {
+    final rawReview = json['review'];
+    final section = json['section'] as Map?;
+    final sectionCode = (section?['code'] ?? '').toString();
+    final mondai = json['mondai'] as Map?;
+    final mondaiTitleVi = mondai?['titleVi']?.toString();
+    final mondaiTitleJa = mondai?['titleJa']?.toString();
+
+    JlptMockQuestionModel? review;
+    if (rawReview is Map) {
+      review = JlptMockQuestionModel.fromJson({
+        ...rawReview.cast<String, dynamic>(),
+        'id': json['questionId'] ?? json['templateQuestionId'],
+        'sectionCode': sectionCode,
+      });
+    }
+
+    return JlptMockAttemptAnswerModel(
+      templateQuestionId: (json['templateQuestionId'] ?? '').toString(),
+      questionId: json['questionId']?.toString(),
+      selectedOptionId: json['selectedOptionId']?.toString(),
+      correctOptionId: json['correctOptionId']?.toString(),
+      isCorrect: json['isCorrect'] is bool ? json['isCorrect'] as bool : null,
+      review: review,
+      sectionCode: sectionCode,
+      mondaiTitleVi: mondaiTitleVi,
+      mondaiTitleJa: mondaiTitleJa,
     );
   }
 }

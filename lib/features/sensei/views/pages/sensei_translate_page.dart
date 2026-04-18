@@ -134,7 +134,13 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                     Expanded(
                       child: _LanguageDrop(
                         value: _sourceLang,
-                        onChanged: (val) => setState(() => _sourceLang = val!),
+                        onChanged: (val) {
+                          if (val == null || val == _sourceLang) return;
+                          setState(() {
+                            _sourceLang = val;
+                            _targetLang = (val == 'ja' ? 'vi' : 'ja');
+                          });
+                        },
                       ),
                     ),
                     IconButton(
@@ -146,7 +152,13 @@ class _SenseiTranslatePageState extends ConsumerState<SenseiTranslatePage> {
                     Expanded(
                       child: _LanguageDrop(
                         value: _targetLang,
-                        onChanged: (val) => setState(() => _targetLang = val!),
+                        onChanged: (val) {
+                          if (val == null || val == _targetLang) return;
+                          setState(() {
+                            _targetLang = val;
+                            _sourceLang = (val == 'ja' ? 'vi' : 'ja');
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -466,7 +478,6 @@ class _LanguageDrop extends StatelessWidget {
       items: const [
         DropdownMenuItem(value: 'ja', child: Text('Tiếng Nhật')),
         DropdownMenuItem(value: 'vi', child: Text('Tiếng Việt')),
-        DropdownMenuItem(value: 'en', child: Text('Tiếng Anh')),
       ],
       onChanged: onChanged,
       underline: const SizedBox.shrink(),

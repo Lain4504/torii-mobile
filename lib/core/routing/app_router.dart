@@ -59,6 +59,7 @@ import '../../features/practice/presentation/screens/jlpt_mock_templates_screen.
 import '../../features/practice/presentation/screens/jlpt_mock_exam_screen.dart';
 import '../../features/practice/presentation/screens/jlpt_mock_history_screen.dart';
 import '../../features/practice/presentation/screens/jlpt_mock_history_detail_screen.dart';
+import '../../features/practice/presentation/screens/jlpt_mock_review_screen.dart';
 import '../../features/onboarding/providers/onboarding_provider.dart';
 import '../../features/academy/presentation/screens/my_folders_screen.dart';
 import '../../features/academy/presentation/screens/folder_resources_screen.dart';
@@ -570,6 +571,20 @@ final routerProvider = Provider<GoRouter>((ref) {
                           final attemptId = state.pathParameters['attemptId'] ?? '';
                           return JlptMockHistoryDetailScreen(attemptId: attemptId);
                         },
+                        routes: [
+                          GoRoute(
+                            path: 'review',
+                            builder: (context, state) {
+                              final attemptId = state.pathParameters['attemptId'] ?? '';
+                              final templateId =
+                                  state.uri.queryParameters['templateId'] ?? '';
+                              return JlptMockReviewScreen(
+                                attemptId: attemptId,
+                                templateId: templateId,
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
