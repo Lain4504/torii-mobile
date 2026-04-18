@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "683624141843",
+    "project_id": "torii-app",
+    "storage_bucket": "torii-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:683624141843:android:c45c3e69a3d6ae31c35be6",
+        "android_client_info": {
+          "package_name": "com.miraimagiclab.torii_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "683624141843-ojrfe5ep04fmlimt80gfjnaproqvkcv7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXoVkFE1NbgVrk-fnUwPkn2CXrvfgR-6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "683624141843-ojrfe5ep04fmlimt80gfjnaproqvkcv7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "683624141843-dvr3llsue2a1jrasgiepaen17rp75o53.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.miraimagiclab.toriiApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

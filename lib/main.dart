@@ -14,6 +14,7 @@ import 'package:torii_app/services/auth/token_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:torii_app/services/notification_service.dart';
+import 'dart:io' show Platform;
 
 Future<void> main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -40,20 +41,24 @@ Future<void> main() async {
   );
   
   // Firebase + FCM: iOS cần GoogleService-Info.plist; Android cần google-services.json + plugin.
-  // Nếu chưa cấu hình, init lỗi — bắt và chạy app; FCM bị bỏ qua khi không có app [Default].
-  try {
-    await Firebase.initializeApp();
-    if (Firebase.apps.isEmpty) {
-      debugPrint('Firebase: initializeApp returned without any app — skip FCM.');
-    } else {
-      // Register background message handler
-      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-      
-      final notificationService = container.read(notificationServiceProvider);
-      await notificationService.initialize();
+  // Người dùng yêu cầu bỏ FCM trên iOS để build thành công.
+  if (!Platform.isIOS) {
+    try {
+      await Firebase.initializeApp();
+      if (Firebase.apps.isEmpty) {
+        debugPrint('Firebase: initializeApp returned without any app — skip FCM.');
+      } else {
+        // Register background message handler
+        FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+        
+        final notificationService = container.read(notificationServiceProvider);
+        await notificationService.initialize();
+      }
+    } catch (e, st) {
+      debugPrint('Firebase/Notification init failed: $e\n$st');
     }
-  } catch (e, st) {
-    debugPrint('Firebase/Notification init failed: $e\n$st');
+  } else {
+    debugPrint('Firebase: Skipped initialization on iOS per user request.');
   }
 
   // Remove splash screen now that data is ready
