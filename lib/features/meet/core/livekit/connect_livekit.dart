@@ -20,18 +20,21 @@ import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/active_speakers_provider.dart';
+import 'package:torii_app/features/meet/data/models/proto/wajlc_analytics.pb.dart'
+    as analytics;
 
 // Types
 import 'livekit_types.dart';
 import 'handle_media_tracks.dart';
-
-// NOTE: NATS analytics hooks are intentionally omitted on mobile for now.
+import '../meet_handler_context.dart';
 
 // Constants matching web config
 const bool kEnableDynacast = true;
 const bool kEnableSimulcast = true;
 const bool kStopMicTrackOnMute = false;
 const String kVideoCodec = 'vp8'; // vp8, vp9, av1
+/// Gom nhiều cập nhật chất lượng liên tiếp thành một lần gửi NATS (analytics + data).
+const Duration kNatsConnectionQualityDebounce = Duration(milliseconds: 400);
 
 /// LiveKit connection manager
 ///
@@ -46,7 +49,10 @@ class ConnectLivekit implements IConnectLivekit {
   // Riverpod ref for state management
   final Ref ref;
 
+  MeetHandlerContext? _meetHandlerContext;
+
   // Connection config
+  @override
   final String localUserId;
   final bool enabledE2EE;
   final String? encryptionKey;
@@ -65,6 +71,12 @@ class ConnectLivekit implements IConnectLivekit {
   String? _activeLiveKitUrl;
   String? _activeLiveKitToken;
   ConnectionState? _lastLoggedConnectionState;
+
+  /// Tránh spam toast khi duy trì poor/lost; vẫn luôn gửi NATS như web.
+  ConnectionQuality? _lastLocalQualityForUiNotify;
+
+  Timer? _natsConnectionQualityTimer;
+  ConnectionQuality? _pendingNatsConnectionQuality;
 
   // Stream controllers for events
   final _screenShareStatusController = StreamController<bool>.broadcast();
@@ -97,6 +109,14 @@ class ConnectLivekit implements IConnectLivekit {
 
     // Configure room
     _room = _configureRoom();
+  }
+
+  @override
+  MeetHandlerContext? get meetHandlerContext => _meetHandlerContext;
+
+  @override
+  void attachMeetHandlerContext(MeetHandlerContext ctx) {
+    _meetHandlerContext = ctx;
   }
 
   @override
@@ -180,6 +200,16 @@ class ConnectLivekit implements IConnectLivekit {
       // Initialize participants
       await _initiateParticipants();
 
+      final lpQuality = _room.localParticipant;
+      if (lpQuality != null) {
+        ref.read(participantProvider.notifier).updateParticipant(
+              userId: localUserId,
+              changes: {
+                'connectionQuality': lpQuality.connectionQuality.name,
+              },
+            );
+      }
+
       onConnectionStatusChange('media-server-conn-established');
 
       if (kDebugMode) {
@@ -251,6 +281,8 @@ class ConnectLivekit implements IConnectLivekit {
     _roomEventListener = room.createListener();
     _roomEventListener!
       ..on<RoomReconnectedEvent>((_) {
+        _lastLocalQualityForUiNotify = null;
+        _cancelNatsConnectionQualityDebounce();
         // Sau reconnect, đồng bộ nút mic/cam với trạng thái track thật (tránh UI lệch).
         _syncFooterIconsFromLocalParticipant();
         // Rebuild đầy đủ sau reconnect để tránh lệch state
@@ -360,6 +392,13 @@ class ConnectLivekit implements IConnectLivekit {
           event.streamState,
           event.participant,
         );
+      })
+      ..on<ParticipantConnectionQualityUpdatedEvent>((event) {
+        final local = _room.localParticipant;
+        if (local == null || event.participant.identity != local.identity) {
+          return;
+        }
+        _onLocalConnectionQualityChanged(event.connectionQuality);
       })
       ..on<ActiveSpeakersChangedEvent>(_onActiveSpeakersChanged);
 
@@ -522,6 +561,8 @@ class ConnectLivekit implements IConnectLivekit {
       _activeLiveKitToken = null;
       return;
     }
+    _lastLocalQualityForUiNotify = null;
+    _cancelNatsConnectionQualityDebounce();
     _wasNormalDisconnected = normalDisconnect;
     _closeLocalTracks();
     await _room.disconnect();
@@ -550,7 +591,92 @@ class ConnectLivekit implements IConnectLivekit {
     onError('Phòng bị ngắt kết nối', 'Kết nối đến phòng họp đã bị ngắt');
   }
 
-  // NOTE: Local connection quality handling is currently not wired in UI on mobile.
+  /// Khớp web [ConnectLivekit.localUserConnectionQualityChanged].
+  void _onLocalConnectionQualityChanged(ConnectionQuality q) {
+    ref.read(participantProvider.notifier).updateParticipant(
+          userId: localUserId,
+          changes: {'connectionQuality': q.name},
+        );
+
+    final isBad =
+        q == ConnectionQuality.poor || q == ConnectionQuality.lost;
+    final wasBad = _lastLocalQualityForUiNotify == ConnectionQuality.poor ||
+        _lastLocalQualityForUiNotify == ConnectionQuality.lost;
+    if (isBad && !wasBad) {
+      final msg = q == ConnectionQuality.lost
+          ? 'Mất kết nối hoàn toàn'
+          : 'Chất lượng kết nối của bạn không tốt';
+      ref.read(roomSettingsProvider.notifier).addUserNotification(
+            UserNotification(
+              message: msg,
+              typeOption: 'error',
+            ),
+          );
+    }
+    _lastLocalQualityForUiNotify = q;
+
+    _scheduleNatsConnectionQualityPush(q);
+  }
+
+  void _scheduleNatsConnectionQualityPush(ConnectionQuality q) {
+    _pendingNatsConnectionQuality = q;
+    _natsConnectionQualityTimer?.cancel();
+    _natsConnectionQualityTimer = Timer(
+      kNatsConnectionQualityDebounce,
+      _flushPendingNatsConnectionQuality,
+    );
+  }
+
+  void _flushPendingNatsConnectionQuality() {
+    _natsConnectionQualityTimer = null;
+    final q = _pendingNatsConnectionQuality;
+    _pendingNatsConnectionQuality = null;
+    if (q == null) return;
+
+    final nats = ref.read(sessionProvider.notifier).natsConn;
+    if (nats == null) return;
+    nats.sendAnalyticsData(
+      eventName:
+          analytics.AnalyticsEvents.ANALYTICS_EVENT_USER_CONNECTION_QUALITY,
+      eventType: analytics.AnalyticsEventType.ANALYTICS_EVENT_TYPE_USER,
+      eventValueString: q.name,
+    );
+    unawaited(
+      nats.sendDataMessage(
+        type: 'USER_CONNECTION_QUALITY_CHANGE',
+        msg: q.name,
+      ),
+    );
+  }
+
+  void _cancelNatsConnectionQualityDebounce() {
+    _natsConnectionQualityTimer?.cancel();
+    _natsConnectionQualityTimer = null;
+    _pendingNatsConnectionQuality = null;
+  }
+
+  /// Gợi ý lỗi thân thiện khi không mở được mic/camera (Flutter không có RoomEvent MediaDevicesError như web).
+  static String _mediaToggleErrorMessage(Object error, {required bool isVideo}) {
+    final s = error.toString().toLowerCase();
+    if (s.contains('permission') ||
+        s.contains('denied') ||
+        s.contains('authorized')) {
+      return isVideo
+          ? 'Không có quyền truy cập camera. Hãy bật quyền trong Cài đặt ứng dụng.'
+          : 'Không có quyền truy cập micro. Hãy bật quyền trong Cài đặt ứng dụng.';
+    }
+    if (s.contains('in use') ||
+        s.contains('busy') ||
+        s.contains('could not start') ||
+        s.contains('failed to')) {
+      return isVideo
+          ? 'Không thể dùng camera. Thử đóng ứng dụng khác đang dùng camera.'
+          : 'Không thể dùng micro. Kiểm tra thiết bị âm thanh hoặc app khác đang chiếm micro.';
+    }
+    return isVideo
+        ? 'Không thể điều chỉnh camera. Kiểm tra kết nối mạng và thử lại.'
+        : 'Không thể điều chỉnh micro. Kiểm tra kết nối mạng và thử lại.';
+  }
 
   /// Add screen share track
   /// Matches: addScreenShareTrack() in ConnectLivekit.ts
@@ -855,7 +981,7 @@ class ConnectLivekit implements IConnectLivekit {
         print('ConnectLivekit: toggleAudio failed $e\n$st');
       }
       _notifyMediaUnavailable(
-        'Không thể điều chỉnh micro. Kiểm tra kết nối mạng và thử lại.',
+        _mediaToggleErrorMessage(e, isVideo: false),
       );
       _syncFooterIconsFromLocalParticipant();
     }
@@ -886,7 +1012,7 @@ class ConnectLivekit implements IConnectLivekit {
         print('ConnectLivekit: toggleVideo failed $e\n$st');
       }
       _notifyMediaUnavailable(
-        'Không thể điều chỉnh camera. Kiểm tra kết nối mạng và thử lại.',
+        _mediaToggleErrorMessage(e, isVideo: true),
       );
       _syncFooterIconsFromLocalParticipant();
     }
@@ -894,6 +1020,7 @@ class ConnectLivekit implements IConnectLivekit {
 
   /// Dispose resources
   void dispose() {
+    _cancelNatsConnectionQualityDebounce();
     _roomEventListener?.dispose();
     _screenShareStatusController.close();
     _videoStatusController.close();

@@ -14,7 +14,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 import 'package:torii_app/features/meet/data/models/user_metadata.dart';
-import 'package:torii_app/features/meet/data/models/room_info.dart';
 import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
@@ -66,6 +65,11 @@ class HandleParticipants {
     ref?.read(bottomIconsProvider.notifier).updateIsActiveRaisehand(
       metadata.isHandRaised || metadata.raisedHand,
     );
+    connectNats.syncMeetHandlerLocalFlags(
+      isAdmin: info.isAdmin,
+      isRecorder: isRecorder,
+      isPresenter: metadata.isPresenter,
+    );
     if (kDebugMode) {
       print('HandleParticipants: Local user set - $displayName');
     }
@@ -88,12 +92,7 @@ class HandleParticipants {
     final displayName = _resolveDisplayName(userInfo.name, rawMetadata, userInfo.userId);
     final metadata = UserMetadata.fromJson(_normalizeMetadata(rawMetadata));
 
-    RoomFeatures? roomFeatures;
-    final r = ref;
-    if (r != null) {
-      roomFeatures =
-          r.read(sessionProvider).currentRoom.metadata?.roomFeatures;
-    }
+    final roomFeatures = connectNats.meetRoomFeatures;
     if (!userInfo.isAdmin &&
         !connectNats.isAdmin &&
         !(roomFeatures?.allowViewOtherUsersList ?? true)) {
@@ -247,6 +246,10 @@ class HandleParticipants {
     if (userInfo.userId == connectNats.userId) {
       // Update local user metadata
       ref?.read(sessionProvider.notifier).updateCurrentUserMetadata(metadata);
+      connectNats.syncMeetHandlerLocalFlags(
+        isAdmin: userInfo.isAdmin,
+        isPresenter: metadata.isPresenter,
+      );
       connectNats.updateLocalUserWaitingForApproval(metadata.waitForApproval);
       // Sync raise hand state to footer UI
       ref?.read(bottomIconsProvider.notifier).updateIsActiveRaisehand(

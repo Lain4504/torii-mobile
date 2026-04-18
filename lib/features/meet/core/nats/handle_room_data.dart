@@ -25,7 +25,8 @@ class HandleRoomData {
   final String roomId;
   final String userId;
   final Ref? ref; // Riverpod ref for accessing providers
-  
+  final void Function(RoomFeatures? roomFeatures)? onMeetRoomFeatures;
+
   // Room info cache
   Map<String, dynamic>? _currentRoom;
   String? _welcomeMessage;
@@ -39,6 +40,7 @@ class HandleRoomData {
     required this.roomId,
     required this.userId,
     this.ref,
+    this.onMeetRoomFeatures,
   }) {
     _currentRoom = {
       'roomId': roomId,
@@ -71,6 +73,8 @@ class HandleRoomData {
         metadata: metadata,
       ),
     );
+
+    onMeetRoomFeatures?.call(metadata.roomFeatures);
     
     await handleRoomMetadataUpdate(info);
     
@@ -114,6 +118,8 @@ class HandleRoomData {
     // Dispatch to session provider
     ref?.read(sessionProvider.notifier).updateCurrentRoomMetadata(metadata);
     // ref?.read(sessionProvider.notifier).updateCurrentRoomMetadata(metadata);
+
+    onMeetRoomFeatures?.call(metadata.roomFeatures);
 
     // Khớp web `whiteboard.tsx`: khi presenter bật/tắt bảng qua API, metadata.visible đổi.
     _syncWhiteboardVisibilityFromRoom(metadata);

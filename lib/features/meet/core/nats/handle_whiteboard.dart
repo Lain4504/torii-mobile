@@ -15,12 +15,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_datamessage.pb.dart';
 import 'package:torii_app/features/meet/providers/whiteboard_provider.dart';
-import 'package:torii_app/features/meet/providers/session_provider.dart';
+import 'package:torii_app/features/meet/core/meet_handler_context.dart';
 
 class HandleWhiteboard {
   final Ref? ref; // Riverpod ref for accessing providers (optional)
-  
-  HandleWhiteboard({this.ref});
+  final MeetHandlerContext? meetContext;
+
+  HandleWhiteboard({this.ref, this.meetContext});
   
   /// Handle whiteboard message
   /// Matches: handleWhiteboardMsg() in HandleWhiteboard.ts
@@ -160,7 +161,6 @@ class HandleWhiteboard {
   }
   
   bool _isCurrentUserPresenter() {
-    // Get from session provider
-    return ref?.read(sessionProvider).currentUser?.metadata?.isPresenter ?? false;
+    return meetContext?.meetLocalIsPresenter ?? false;
   }
 }

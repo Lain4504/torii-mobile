@@ -16,7 +16,6 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/providers/room_settings_provider.dart';
 import 'package:torii_app/features/meet/providers/active_speakers_provider.dart';
-import 'package:torii_app/features/meet/providers/session_provider.dart';
 import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 
 // Types
@@ -132,7 +131,7 @@ class HandleMediaTracks {
   /// Handle track muted
   /// Matches: trackMuted() in HandleMediaTracks.ts
   void trackMuted(TrackPublication publication, Participant participant) {
-    final localId = ref.read(sessionProvider).currentUser?.userId;
+    final localId = connectLivekit.localUserId;
 
     if (publication.source == TrackSource.microphone) {
       ref.read(participantProvider.notifier).updateParticipant(
@@ -155,7 +154,7 @@ class HandleMediaTracks {
   /// Handle track unmuted
   /// Matches: trackUnmuted() in HandleMediaTracks.ts
   void trackUnmuted(TrackPublication publication, Participant participant) {
-    final localId = ref.read(sessionProvider).currentUser?.userId;
+    final localId = connectLivekit.localUserId;
 
     if (publication.source == TrackSource.microphone) {
       ref.read(participantProvider.notifier).updateParticipant(
@@ -214,7 +213,7 @@ class HandleMediaTracks {
 
   /// Web `HandleMediaTracks._shouldAddWebcam` (thiếu `recordingFeatures` đầy đủ — model room chưa có).
   bool _shouldAddWebcam(Participant participant) {
-    final localId = ref.read(sessionProvider).currentUser?.userId;
+    final localId = connectLivekit.localUserId;
     if (participant.identity == localId) {
       return true;
     }
@@ -224,16 +223,16 @@ class HandleMediaTracks {
       return false;
     }
 
-    final session = ref.read(sessionProvider);
-    if (session.currentUser?.isRecorder == true) {
+    final ctx = connectLivekit.meetHandlerContext;
+    if (ctx?.meetLocalIsRecorder == true) {
       // Web: recordWebcam / onlyRecordAdminWebcams — bỏ qua nếu không có trong RoomInfo/UserMetadata.
       return true;
     }
 
-    final rf = session.currentRoom.metadata?.roomFeatures;
+    final rf = ctx?.meetRoomFeatures;
     final adminOnlyWebcams = rf?.adminOnlyWebcams ?? false;
     final allowViewOtherWebcams = rf?.allowViewOtherWebcams ?? true;
-    final currentIsAdmin = session.currentUser?.metadata?.isAdmin ?? false;
+    final currentIsAdmin = ctx?.meetLocalIsAdmin ?? false;
 
     if ((adminOnlyWebcams || !allowViewOtherWebcams) && !currentIsAdmin) {
       return user.metadata.isAdmin;

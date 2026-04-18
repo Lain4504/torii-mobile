@@ -5,6 +5,8 @@
 
 import 'package:livekit_client/livekit_client.dart';
 
+import '../meet_handler_context.dart';
+
 /// Events emitted by ConnectLivekit
 enum CurrentConnectionEvents {
   screenShareStatus,
@@ -41,6 +43,12 @@ class LivekitInfo {
 /// Interface for ConnectLivekit
 /// Matches: IConnectLivekit in types.ts
 abstract class IConnectLivekit {
+  String get localUserId;
+
+  MeetHandlerContext? get meetHandlerContext;
+
+  void attachMeetHandlerContext(MeetHandlerContext ctx);
+
   /// Get the LiveKit room instance
   Room get room;
 

@@ -36,6 +36,7 @@ import 'message_queue.dart';
 // LiveKit
 // LiveKit
 import '../livekit/connect_livekit.dart';
+import '../meet_handler_context.dart';
 
 // Providers
 import '../../providers/session_provider.dart';
@@ -43,6 +44,7 @@ import '../../providers/participant_provider.dart';
 import '../../providers/whiteboard_provider.dart';
 import '../../providers/room_settings_provider.dart';
 import '../../data/datasources/meet_api_service.dart';
+import '../../data/models/room_info.dart';
 
 // Constants matching web
 const int kRenewTokenFrequent = 3 * 60 * 1000; // 3 minutes
@@ -54,7 +56,7 @@ const int kUsersSyncInterval = 30 * 1000; // 30 seconds
 /// 
 /// This class is a 1:1 clone of the web ConnectNats.ts class.
 /// It manages the NATS connection, subscriptions, and message routing.
-class ConnectNats {
+class ConnectNats implements MeetHandlerContext {
   // NATS connection (dart_nats Client - no JetStream API, we use raw request for pull)
   dynamic _nc; // nats.Client
   
@@ -118,6 +120,44 @@ class ConnectNats {
   // Room info (cached, won't be updated)
   Map<String, dynamic>? _currentRoomInfo;
 
+  RoomFeatures? _meetHandlerRoomFeatures;
+  bool _meetLocalIsPresenter = false;
+
+  @override
+  String get meetLocalUserId => _userId;
+
+  @override
+  bool get meetLocalIsAdmin => _isAdmin;
+
+  @override
+  bool get meetLocalIsRecorder => _isRecorder;
+
+  @override
+  bool get meetLocalIsPresenter => _meetLocalIsPresenter;
+
+  @override
+  RoomFeatures? get meetRoomFeatures => _meetHandlerRoomFeatures;
+
+  void _applyMeetHandlerRoomFeatures(RoomFeatures? f) {
+    _meetHandlerRoomFeatures = f;
+    _pushMeetHandlerContextToLivekit();
+  }
+
+  void _pushMeetHandlerContextToLivekit() {
+    _mediaServerConn?.attachMeetHandlerContext(this);
+  }
+
+  void syncMeetHandlerLocalFlags({
+    bool? isAdmin,
+    bool? isRecorder,
+    bool? isPresenter,
+  }) {
+    if (isAdmin != null) _isAdmin = isAdmin;
+    if (isRecorder != null) _isRecorder = isRecorder;
+    if (isPresenter != null) _meetLocalIsPresenter = isPresenter;
+    _pushMeetHandlerContextToLivekit();
+  }
+
   /// Web: finalizeAppConn only after landing + not waitForApproval. Mobile defers
   /// REQ_JOINED_USERS_LIST until approval when user is in waiting room.
   bool _pendingFinalizeAfterWaitingRoom = false;
@@ -154,12 +194,17 @@ class ConnectNats {
         _setCurrentMediaServerConn = setCurrentMediaServerConn {
     // Initialize handlers (must be in body - some need 'this')
     messageQueue = MessageQueue();
-    handleRoomData = HandleRoomData(roomId: _roomId, userId: _userId, ref: ref);
+    handleRoomData = HandleRoomData(
+      roomId: _roomId,
+      userId: _userId,
+      ref: ref,
+      onMeetRoomFeatures: _applyMeetHandlerRoomFeatures,
+    );
     handleSystemData = HandleSystemData(userId: _userId, ref: ref);
     handleParticipants = HandleParticipants(connectNats: this, ref: ref);
     handleChat = HandleChat(connectNats: this, ref: ref);
     handleDataMessage = HandleDataMessage(connectNats: this, ref: ref);
-    handleWhiteboard = HandleWhiteboard(ref: ref);
+    handleWhiteboard = HandleWhiteboard(ref: ref, meetContext: this);
   }
   
   // Getters
@@ -309,6 +354,7 @@ class ConnectNats {
   void setMediaServerConn(ConnectLivekit conn) {
     _mediaServerConn = conn;
     _setCurrentMediaServerConn(conn);
+    conn.attachMeetHandlerContext(this);
     
     if (kDebugMode) {
       print('ConnectNats: LiveKit connection set');
@@ -527,8 +573,11 @@ class ConnectNats {
         break;
         
       case nats_msg.NatsMsgServerToClientEvents.USER_DISCONNECTED:
-        // userId is in msg field — khớp web handleParticipantDisconnected (tạm ngắt, không xóa participant).
-        handleParticipants.handleUserDisconnected(payload.msg);
+        // Server gửi marshal NatsKvUserInfo (JSON), giống web — không phải plain userId.
+        final disconnectedId = _extractUserIdFromPayload(payload);
+        if (disconnectedId != null && disconnectedId.isNotEmpty) {
+          handleParticipants.handleUserDisconnected(disconnectedId);
+        }
         break;
 
       case nats_msg.NatsMsgServerToClientEvents.USER_OFFLINE:
