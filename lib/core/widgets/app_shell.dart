@@ -144,7 +144,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.home_outlined,
                       activeIcon: Icons.home_rounded,
-                      label: 'Home',
+                      label: 'Trang chủ',
                       isSelected: activeIndex == 0,
                       onTap: () => onTap('/'),
                       isDark: isDark,
@@ -160,7 +160,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.menu_book_outlined,
                       activeIcon: Icons.menu_book_rounded,
-                      label: 'My courses',
+                      label: 'Khóa học',
                       isSelected: activeIndex == 3,
                       onTap: () => onTap('/my-courses'),
                       isDark: isDark,
@@ -186,7 +186,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.home_outlined,
                       activeIcon: Icons.home_rounded,
-                      label: 'Home',
+                      label: 'Trang chủ',
                       isSelected: activeIndex == 0,
                       onTap: () => onTap('/'),
                       isDark: isDark,
@@ -194,7 +194,7 @@ class _BottomNavBar extends StatelessWidget {
                     _NavBarItem(
                       icon: Icons.explore_outlined,
                       activeIcon: Icons.explore_rounded,
-                      label: 'Discovery',
+                      label: 'Khám phá',
                       isSelected: activeIndex == 1,
                       onTap: () => onTap('/discovery'),
                       isDark: isDark,
