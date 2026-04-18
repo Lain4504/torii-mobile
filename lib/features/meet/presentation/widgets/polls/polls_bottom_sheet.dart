@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/polls_provider.dart';
+import '../../../providers/participant_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
 import '../../../providers/polls_provider.dart' as polls_provider;
 import '../../../data/models/poll.dart';
@@ -36,7 +37,11 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
     try {
       final api = ref.read(meetApiServiceProvider);
       final response = await api.listPolls();
-      final polls = polls_provider.pollsFromPollResponse(response);
+      final names = {
+        for (final e in ref.read(participantProvider).participants.entries)
+          e.key: e.value.name,
+      };
+      final polls = polls_provider.pollsFromPollResponse(response, userDisplayNames: names);
       ref.read(pollsProvider.notifier).setPollsFromApi(polls);
     } catch (e) {
       if (mounted) {

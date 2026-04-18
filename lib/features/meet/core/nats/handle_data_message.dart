@@ -345,7 +345,11 @@ class HandleDataMessage {
 
       final api = r.read(meetApiServiceProvider);
       final response = await api.listPolls();
-      final list = pollsFromPollResponse(response);
+      final names = {
+        for (final e in r.read(participantProvider).participants.entries)
+          e.key: e.value.name,
+      };
+      final list = pollsFromPollResponse(response, userDisplayNames: names);
       r.read(pollsProvider.notifier).setPollsFromApi(list);
     } catch (e) {
       if (kDebugMode) {

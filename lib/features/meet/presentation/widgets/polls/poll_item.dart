@@ -5,6 +5,7 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/meet/data/models/poll.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' as polls_pb;
 import '../../../providers/session_provider.dart';
+import '../../../providers/participant_provider.dart';
 import '../../../providers/room_settings_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
 import 'poll_details_modal.dart';
@@ -43,6 +44,12 @@ class _PollItemState extends ConsumerState<PollItem> {
     _loadUserVote();
     if (!widget.poll.isActive) {
       _loadPollResults();
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final isAdmin = ref.read(sessionProvider).currentUser?.metadata?.isAdmin ?? false;
+        if (isAdmin) _loadPollResults();
+      });
     }
   }
 
@@ -83,10 +90,12 @@ class _PollItemState extends ConsumerState<PollItem> {
       if (isAdmin) {
         // Admin gets detailed responses
         response = await api.getPollResponsesDetails(widget.poll.id);
-        if (response.status && response.hasPollResponsesResult()) {
-          // Parse admin details (complex parsing from responses map)
-          // For now, use public results structure
-          _parsePollResults(response);
+        if (response.status) {
+          if (response.hasPollResponsesResult()) {
+            _parsePollResults(response);
+          } else if (response.responses.isNotEmpty) {
+            _parsePollResultsFromResponsesMap(response);
+          }
         }
       } else {
         // Non-admin gets public results (only if poll closed)
@@ -117,6 +126,25 @@ class _PollItemState extends ConsumerState<PollItem> {
       for (final option in result.options) {
         _optionVoteCounts[option.id.toInt()] = option.voteCount.toInt();
       }
+    });
+  }
+
+  void _parsePollResultsFromResponsesMap(polls_pb.PollResponse response) {
+    final details = response.responses;
+    if (details.isEmpty) return;
+
+    final total = int.tryParse(details['total_resp'] ?? '') ?? 0;
+    final counts = <int, int>{};
+    for (var i = 0; i < widget.poll.options.length; i++) {
+      final option = widget.poll.options[i];
+      final oid = int.tryParse(option.id) ?? (i + 1);
+      final key = '${oid}_count';
+      counts[oid] = int.tryParse(details[key] ?? '0') ?? 0;
+    }
+
+    setState(() {
+      _totalResponses = total;
+      _optionVoteCounts = counts;
     });
   }
 
@@ -299,6 +327,11 @@ class _PollItemState extends ConsumerState<PollItem> {
   Widget build(BuildContext context) {
     final session = ref.watch(sessionProvider);
     final isAdmin = session.currentUser?.metadata?.isAdmin ?? false;
+    final creatorFromRoom =
+        ref.watch(participantProvider).participants[widget.poll.createdBy]?.name;
+    final creatorLabel = (creatorFromRoom != null && creatorFromRoom.trim().isNotEmpty)
+        ? creatorFromRoom.trim()
+        : widget.poll.createdByName;
     final totalVotes = _getTotalVotes();
     final canViewPercentage = _canViewPercentage();
 
@@ -503,7 +536,7 @@ class _PollItemState extends ConsumerState<PollItem> {
                           ),
                         ),
                       Text(
-                        'By: ${widget.poll.createdByName}',
+                        'By: $creatorLabel',
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(context).disabledColor,

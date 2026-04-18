@@ -19,6 +19,7 @@ import 'package:torii_app/features/meet/providers/insights_ai_text_chat_provider
 import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
 import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/polls_provider.dart';
+import 'package:torii_app/features/meet/providers/participant_provider.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/core/notification_sound_service.dart';
 
@@ -218,7 +219,11 @@ class HandleSystemData {
       try {
         final api = r.read(meetApiServiceProvider);
         final response = await api.listPolls();
-        final list = pollsFromPollResponse(response);
+        final names = {
+          for (final e in r.read(participantProvider).participants.entries)
+            e.key: e.value.name,
+        };
+        final list = pollsFromPollResponse(response, userDisplayNames: names);
         r.read(pollsProvider.notifier).setPollsFromApi(list);
       } catch (e) {
         if (kDebugMode) {

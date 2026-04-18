@@ -4,11 +4,28 @@ import 'package:torii_app/features/meet/data/models/proto/wajlc_polls.pb.dart' a
 import '../data/models/poll.dart';
 
 /// Convert protobuf PollResponse to app Poll list (for refetch/invalidation).
-List<Poll> pollsFromPollResponse(polls_pb.PollResponse response) {
-  return response.polls.map(_pollFromPollInfo).toList();
+///
+/// [userDisplayNames]: map userId → display name; `PollInfo.createdBy` is the
+/// creator user id (UUID), not a display name — match web by resolving from room participants.
+List<Poll> pollsFromPollResponse(
+  polls_pb.PollResponse response, {
+  Map<String, String> userDisplayNames = const {},
+}) {
+  return response.polls
+      .map((info) => _pollFromPollInfo(info, userDisplayNames: userDisplayNames))
+      .toList();
 }
 
-Poll _pollFromPollInfo(polls_pb.PollInfo info) {
+Poll _pollFromPollInfo(
+  polls_pb.PollInfo info, {
+  Map<String, String> userDisplayNames = const {},
+}) {
+  final creatorId = info.createdBy;
+  final resolvedName = userDisplayNames[creatorId];
+  final createdByName = (resolvedName != null && resolvedName.trim().isNotEmpty)
+      ? resolvedName.trim()
+      : 'Unknown';
+
   return Poll(
     id: info.id,
     question: info.question,
@@ -19,8 +36,8 @@ Poll _pollFromPollInfo(polls_pb.PollInfo info) {
               votes: const [],
             ))
         .toList(),
-    createdBy: info.createdBy,
-    createdByName: 'Unknown',
+    createdBy: creatorId,
+    createdByName: createdByName,
     isActive: info.isRunning,
     createdAt: DateTime.fromMillisecondsSinceEpoch(info.created.toInt()),
   );
