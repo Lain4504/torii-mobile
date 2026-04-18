@@ -288,7 +288,13 @@ class ConnectNats implements MeetHandlerContext {
   ///
   /// [userInitiatedLeave]: người dùng chủ động rời / host đã xử lý xong — không bật snack lỗi
   /// (tránh gọi [setErrorState] khi [JoinMeetingScreen] đã dispose).
-  Future<void> endSession(String msg, {bool userInitiatedLeave = false}) async {
+  /// [absorbSessionState]: `false` khi [SessionNotifier.connect] đang đổi phòng (breakout ↔ main) —
+  /// giải phóng mic/camera/LiveKit trước khi tạo kết nối mới, **không** gọi [SessionNotifier.absorbRemoteSessionEnd].
+  Future<void> endSession(
+    String msg, {
+    bool userInitiatedLeave = false,
+    bool absorbSessionState = true,
+  }) async {
     // 1. Update UI immediately
     _isConnected = false;
     if (!userInitiatedLeave) {
@@ -325,7 +331,9 @@ class ConnectNats implements MeetHandlerContext {
       if (!userInitiatedLeave && onRemoteSessionEnded != null) {
         onRemoteSessionEnded!();
       }
-      ref.read(sessionProvider.notifier).absorbRemoteSessionEnd();
+      if (absorbSessionState) {
+        ref.read(sessionProvider.notifier).absorbRemoteSessionEnd();
+      }
     }
 
     // Post-session: web dùng logoutUrl / đóng breakout — mobile xử lý trong callback pop.

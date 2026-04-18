@@ -5,9 +5,12 @@ import '../settings/settings_bottom_sheet.dart';
 import '../translation/translation_bottom_sheet.dart';
 import '../insights_ai/insights_ai_bottom_sheet.dart';
 import '../waiting_room/waiting_room_bottom_sheet.dart';
+import '../breakout_rooms/my_breakout_rooms_bottom_sheet.dart';
 import 'control_button.dart';
 import '../../../providers/whiteboard_provider.dart';
+import '../../../providers/breakout_room_provider.dart';
 import '../../../providers/session_provider.dart';
+
 
 /// More Options Button Widget
 /// Shows menu with additional options (chat, participants, settings, etc.)
@@ -28,6 +31,11 @@ class MoreOptionsButton extends ConsumerWidget {
   void _showOptionsMenu(BuildContext context, WidgetRef ref) {
     final isAdmin =
         ref.read(sessionProvider).currentUser?.metadata?.isAdmin ?? false;
+    final roomFeatures =
+        ref.read(sessionProvider).currentRoom.metadata?.roomFeatures;
+    final inBreakout = ref.read(breakoutRoomProvider).isInBreakoutRoom;
+    final breakoutEnabled = roomFeatures?.breakoutRoomFeatures?.isAllow ?? false;
+    final canSeeMyBreakoutRooms = breakoutEnabled && !inBreakout;
 
     showModalBottomSheet(
       context: context,
@@ -117,6 +125,21 @@ class MoreOptionsButton extends ConsumerWidget {
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (context) => const WaitingRoomBottomSheet(),
+                  );
+                },
+              ),
+            if (canSeeMyBreakoutRooms)
+              _buildMenuItem(
+                context,
+                icon: Icons.groups_2_outlined,
+                title: 'Phòng breakout của tôi',
+                onTap: () {
+                  Navigator.pop(context);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const MyBreakoutRoomsBottomSheet(),
                   );
                 },
               ),

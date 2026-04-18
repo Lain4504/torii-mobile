@@ -114,9 +114,11 @@ class HandleDataMessage {
       // Web HandleDataMessage: PUSH_JOIN_BREAKOUT_ROOM (kênh data; song song system JOIN_BREAKOUT_ROOM).
       case data_msg.DataMsgBodyType.PUSH_JOIN_BREAKOUT_ROOM:
         if (payload.toUserId == connectNats.userId) {
-          ref
-              ?.read(breakoutRoomProvider.notifier)
-              .updateReceivedInvitationFor(payload.message);
+          final r = ref;
+          r?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(
+                payload.message,
+              );
+          r?.read(breakoutRoomsListRevisionProvider.notifier).state++;
         }
         break;
       

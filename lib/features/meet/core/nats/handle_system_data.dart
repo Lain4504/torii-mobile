@@ -89,6 +89,7 @@ class HandleSystemData {
           const UserNotification(
             message: 'Bình chọn mới',
             typeOption: 'info',
+            notificationCat: 'new-poll-created',
             autoClose: false,
           ),
         );
@@ -117,10 +118,20 @@ class HandleSystemData {
   void handleBreakoutRoom(nats_msg.NatsMsgServerToClient payload) {
     switch (payload.event) {
       case nats_msg.NatsMsgServerToClientEvents.JOIN_BREAKOUT_ROOM:
-        // Web vẫn dispatch notification nhưng `disableToastNotification`; mobile dùng dialog
-        // từ [breakoutRoomProvider] — không thêm vào chuông để tránh trùng UX.
         if (payload.msg.isNotEmpty) {
+          ref?.read(roomSettingsProvider.notifier).addUserNotification(
+            const UserNotification(
+              message: 'Lời mời tham gia phòng thảo luận',
+              typeOption: 'info',
+              notificationCat: 'breakout-room-invitation',
+              disableToastNotification: true,
+            ),
+          );
           ref?.read(breakoutRoomProvider.notifier).updateReceivedInvitationFor(payload.msg);
+          final r = ref;
+          if (r != null) {
+            r.read(breakoutRoomsListRevisionProvider.notifier).state++;
+          }
           if (kDebugMode) {
             print('HandleSystemData: Breakout room invitation - ${payload.msg}');
           }
@@ -129,6 +140,10 @@ class HandleSystemData {
         
       case nats_msg.NatsMsgServerToClientEvents.BREAKOUT_ROOM_ENDED:
         ref?.read(breakoutRoomProvider.notifier).clearInvitation();
+        final r = ref;
+        if (r != null) {
+          r.read(breakoutRoomsListRevisionProvider.notifier).state++;
+        }
         if (kDebugMode) {
           print('HandleSystemData: Breakout room ended - ${payload.msg}');
         }
@@ -155,8 +170,8 @@ class HandleSystemData {
       currentUserId: userId,
     );
     ref?.read(roomSettingsProvider.notifier).addUserNotification(
-      UserNotification(
-        message: 'New system message in chat',
+      const UserNotification(
+        message: 'Có tin nhắn hệ thống mới trong chat',
         typeOption: 'info',
       ),
     );
