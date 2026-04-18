@@ -711,6 +711,19 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final lesson = widget.lesson ?? const <String, dynamic>{};
+    final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
+    final mode = (lesson['mode'] ?? 'VOD').toString().toUpperCase();
+    final productIdRaw = (lesson['productId'] ?? '').toString();
+    final productId = productIdRaw.isNotEmpty ? productIdRaw : null;
+
+    // Watch for completions to make UI reactive.
+    final completedIds = ref.watch(classCompletedLessonIdsProvider((
+      deliveryTargetId: deliveryTargetId,
+      mode: mode,
+      productId: productId,
+    ))).value ?? const [];
+    final currentDone = completedIds.contains((lesson['id'] ?? '').toString());
+
     final title = (lesson['title'] ?? 'Bài học').toString();
     final subtitle = (lesson['subtitle'] ?? '').toString();
     final duration = (lesson['duration'] ?? '').toString();
@@ -718,7 +731,6 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final typeUpper = typeRaw.toUpperCase();
     final article = lesson['article'] as Map<String, dynamic>?;
     final nextLesson = lesson['nextLesson'] as Map<String, dynamic>?;
-    final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
     final progressDisabled = lesson['progressDisabled'] == true;
     final videoUrl = _resolvedVideoUrl ?? _extractImmediateVideoUrl(lesson);
     final isVideo = typeUpper == 'VIDEO';
@@ -800,71 +812,28 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
             ),
           ),
 
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              border: Border(top: BorderSide(color: AppColors.grey200)),
-            ),
-            child: progressDisabled
-                ? SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: nextLesson == null
-                          ? null
-                          : () => context.pushReplacement(
-                              '/lesson',
-                              extra: nextLesson,
-                            ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textOnPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Bài tiếp theo',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  )
-                : Row(
-                    children: [
-                      if (_activeTabIndex == 0) ...[
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed:
-                                deliveryTargetId.isEmpty ||
-                                        !_isTrackableType(typeRaw)
-                                    ? null
-                                    : () => _markComplete(),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text(
-                              'Đánh dấu hoàn thành',
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                      ],
-                      Expanded(
+          FutureBuilder<AcademyProductDetailModel?>(
+            future: _syllabusDetailFuture,
+            builder: (context, snapshot) {
+              final detail = snapshot.data;
+              final dynamicNext = detail != null ? _resolveDynamicNextLesson(detail) : null;
+              final effectiveNext = dynamicNext ?? nextLesson;
+
+              return Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  border: Border(top: BorderSide(color: AppColors.grey200)),
+                ),
+                child: progressDisabled
+                    ? SizedBox(
+                        width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: nextLesson == null
+                          onPressed: (effectiveNext == null || (!progressDisabled && !currentDone))
                               ? null
                               : () => context.pushReplacement(
                                   '/lesson',
-                                  extra: nextLesson,
+                                  extra: effectiveNext,
                                 ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
@@ -880,9 +849,74 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
+                      )
+                    : Row(
+                        children: [
+                          if (_activeTabIndex == 0) ...[
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed:
+                                    deliveryTargetId.isEmpty ||
+                                            !_isTrackableType(typeRaw) ||
+                                            currentDone
+                                        ? null
+                                        : () => _markComplete(),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  side: BorderSide(
+                                    color: currentDone ? AppColors.success : AppColors.grey300,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (currentDone) ...[
+                                      const Icon(Icons.check_circle, color: AppColors.success, size: 18),
+                                      const SizedBox(width: 8),
+                                    ],
+                                    Text(
+                                      currentDone ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành',
+                                      style: TextStyle(
+                                        color: currentDone ? AppColors.success : AppColors.textPrimary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                          ],
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: (effectiveNext == null || (!progressDisabled && !currentDone))
+                                  ? null
+                                  : () => context.pushReplacement(
+                                      '/lesson',
+                                      extra: effectiveNext,
+                                    ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: AppColors.textOnPrimary,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: const Text(
+                                'Bài tiếp theo',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+              );
+            },
           ),
         ],
       ),
@@ -1897,6 +1931,34 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       SnackBar(content: Text(message)),
     );
   }
+
+  Map<String, dynamic>? _resolveDynamicNextLesson(AcademyProductDetailModel detail) {
+    final lesson = widget.lesson ?? const <String, dynamic>{};
+    final currentId = (lesson['id'] ?? '').toString();
+    final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
+    final productId = (lesson['productId'] ?? '').toString();
+    final mode = (lesson['mode'] ?? 'VOD').toString().toUpperCase();
+    final progressDisabled = lesson['progressDisabled'] == true;
+
+    final lessons = <CurriculumLessonModel>[
+      for (final m in detail.modules) ...m.lessons,
+    ];
+    final idx = lessons.indexWhere((l) => l.id == currentId);
+    if (idx >= 0 && idx < lessons.length - 1) {
+      final nextL = lessons[idx + 1];
+      final nextNextL = (idx + 1 < lessons.length - 1) ? lessons[idx + 2] : null;
+
+      return _syllabusLessonPayload(
+        lesson: nextL,
+        nextLesson: nextNextL,
+        deliveryTargetId: deliveryTargetId.isNotEmpty ? deliveryTargetId : null,
+        productId: productId.isNotEmpty ? productId : null,
+        mode: mode,
+        progressDisabled: progressDisabled,
+      );
+    }
+    return null;
+  }
 }
 
 bool _syllabusIsTrackable(CurriculumLessonModel l) {
@@ -1927,7 +1989,7 @@ Map<String, dynamic> _syllabusLessonPayload({
 }) {
   final effectiveProductId = (productId != null && productId.isNotEmpty)
       ? productId
-      : deliveryTargetId;
+      : null;
   return <String, dynamic>{
     if (deliveryTargetId != null && deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
     if (effectiveProductId != null && effectiveProductId.isNotEmpty) 'productId': effectiveProductId,
