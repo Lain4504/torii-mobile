@@ -139,35 +139,38 @@ class _PollCreateState extends ConsumerState<PollCreate> {
 
   @override
   Widget build(BuildContext context) {
-    // We need a way to close this form. 
-    // Ideally pass a callback 'onCreated'. 
-    // Since I can't easily change the parent signature without errors in parent,
-    // I will try to find a parent state or just show success msg. 
-    // Wait, PollsBottomSheet renders this.
-    
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       children: [
-        // Question
-        const Text(
+        Text(
           'Question',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: AppTypography.semiBold,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _questionController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'Ask a question',
-            border: OutlineInputBorder(),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
           ),
           maxLines: 2,
+          textInputAction: TextInputAction.next,
         ),
         const SizedBox(height: 24),
 
-        // Options
-        const Text(
+        Text(
           'Options',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: AppTypography.semiBold,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
         const SizedBox(height: 8),
         ...List.generate(_optionControllers.length, (index) {
@@ -180,8 +183,15 @@ class _PollCreateState extends ConsumerState<PollCreate> {
                     controller: _optionControllers[index],
                     decoration: InputDecoration(
                       hintText: 'Option ${index + 1}',
-                      border: const OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
                     ),
+                    textInputAction: index == _optionControllers.length - 1
+                        ? TextInputAction.done
+                        : TextInputAction.next,
                   ),
                 ),
                 if (_optionControllers.length > 2)
@@ -207,9 +217,9 @@ class _PollCreateState extends ConsumerState<PollCreate> {
         // Launch Button
         SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: FilledButton(
             onPressed: _isLoading ? null : _createPoll,
-            style: ElevatedButton.styleFrom(
+            style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: AppColors.textOnPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -221,7 +231,10 @@ class _PollCreateState extends ConsumerState<PollCreate> {
                 ? const SizedBox(
                     width: 20, 
                     height: 20, 
-                    child: CircularProgressIndicator(color: AppColors.textOnPrimary, strokeWidth: 2)
+                    child: CircularProgressIndicator(
+                      color: AppColors.textOnPrimary,
+                      strokeWidth: 2,
+                    )
                     ) 
                 : const Text('Launch Poll'),
             ),

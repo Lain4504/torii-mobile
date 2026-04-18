@@ -334,9 +334,17 @@ class _PollItemState extends ConsumerState<PollItem> {
         : widget.poll.createdByName;
     final totalVotes = _getTotalVotes();
     final canViewPercentage = _canViewPercentage();
+    final isClosed = !widget.poll.isActive;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.18),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -344,11 +352,11 @@ class _PollItemState extends ConsumerState<PollItem> {
           InkWell(
             onTap: () => setState(() => _isExpanded = !_isExpanded),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
                   ),
                 ),
               ),
@@ -363,19 +371,19 @@ class _PollItemState extends ConsumerState<PollItem> {
                             Text(
                               'Poll #${widget.serialNum}',
                               style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).disabledColor,
+                                fontSize: AppTypography.fontSizeXs,
+                                fontWeight: AppTypography.semiBold,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            if (!widget.poll.isActive) ...[
+                            if (isClosed) ...[
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+                                  color: Theme.of(context).colorScheme.error.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Theme.of(context).colorScheme.error.withOpacity(0.3)),
+                                  border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.35)),
                                 ),
                                 child: Text(
                                   'CLOSED',
@@ -393,8 +401,8 @@ class _PollItemState extends ConsumerState<PollItem> {
                         Text(
                           widget.poll.question,
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            fontSize: AppTypography.fontSizeMd,
+                            fontWeight: AppTypography.semiBold,
                           ),
                         ),
                       ],
@@ -445,7 +453,7 @@ class _PollItemState extends ConsumerState<PollItem> {
           // Poll options (expandable)
           if (_isExpanded)
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -458,21 +466,22 @@ class _PollItemState extends ConsumerState<PollItem> {
                     final canVote = !_hasVoted && widget.poll.isActive && !_isVoting;
 
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 10),
                       child: InkWell(
                         onTap: canVote ? () => _handleVote(optionId) : null,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)
                                 : Theme.of(context).colorScheme.surface,
                             border: Border.all(
                               color: isSelected
                                   ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).dividerColor.withOpacity(0.2),
+                                  : Theme.of(context).dividerColor.withValues(alpha: 0.2),
                             ),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                           child: Row(
                             children: [
@@ -485,7 +494,7 @@ class _PollItemState extends ConsumerState<PollItem> {
                                 child: Text(
                                   option.text,
                                   style: TextStyle(
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    fontWeight: isSelected ? AppTypography.semiBold : AppTypography.medium,
                                   ),
                                 ),
                               ),
@@ -493,9 +502,9 @@ class _PollItemState extends ConsumerState<PollItem> {
                                 Text(
                                   '${percentage.toStringAsFixed(0)}%',
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).disabledColor,
+                                    fontSize: AppTypography.fontSizeSm,
+                                    fontWeight: AppTypography.semiBold,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                             ],
@@ -504,6 +513,18 @@ class _PollItemState extends ConsumerState<PollItem> {
                       ),
                     );
                   }),
+                  if (canViewPercentage && totalVotes > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: LinearProgressIndicator(
+                        value: (_selectedOptionId != null && _optionVoteCounts.containsKey(_selectedOptionId))
+                            ? (_optionVoteCounts[_selectedOptionId] ?? 0) / totalVotes
+                            : null,
+                        minHeight: 6,
+                        borderRadius: BorderRadius.circular(AppRadius.full),
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
 
                   if (_isVoting)
                     const Padding(
@@ -531,15 +552,15 @@ class _PollItemState extends ConsumerState<PollItem> {
                         Text(
                           'Total responses: $totalVotes',
                           style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).disabledColor,
+                            fontSize: AppTypography.fontSizeXs,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       Text(
                         'By: $creatorLabel',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).disabledColor,
+                          fontSize: AppTypography.fontSizeXs,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],

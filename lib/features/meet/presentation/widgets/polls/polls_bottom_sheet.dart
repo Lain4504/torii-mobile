@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../providers/polls_provider.dart';
 import '../../../providers/participant_provider.dart';
 import '../../../data/datasources/meet_api_service.dart';
@@ -58,30 +59,31 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final title = _isCreating ? 'Create Poll' : 'Polls';
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       child: Column(
         children: [
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Container(
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: Theme.of(context).dividerColor.withOpacity(0.35),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.35),
               borderRadius: BorderRadius.circular(999),
             ),
           ),
           // Header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
                 ),
               ),
             ),
@@ -91,8 +93,8 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
                   width: 30,
                   height: 30,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(10),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Icon(
                     Icons.poll,
@@ -102,10 +104,10 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  _isCreating ? 'Create a poll' : 'Polls',
+                  title,
                   style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontSize: AppTypography.fontSizeLg,
+                    fontWeight: AppTypography.semiBold,
                   ),
                 ),
                 const Spacer(),
@@ -154,31 +156,51 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
     }
 
     if (polls.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.poll_outlined,
-              size: 48,
-              color: Theme.of(context).disabledColor.withOpacity(0.2),
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'No polls yet',
-              style: TextStyle(
-                color: Theme.of(context).disabledColor,
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.poll_outlined,
+                  size: 48,
+                  color: Theme.of(context).disabledColor.withValues(alpha: 0.55),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'No polls yet',
+                  style: TextStyle(
+                    fontSize: AppTypography.fontSizeMd,
+                    fontWeight: AppTypography.semiBold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Create your first poll to collect responses from participants.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: AppTypography.fontSizeSm,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                FilledButton.icon(
+                  onPressed: () => setState(() => _isCreating = true),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Create Poll'),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Create a poll to start asking questions',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).disabledColor.withOpacity(0.7),
-              ),
-            ),
-          ],
+          ),
         ),
       );
     }
@@ -190,7 +212,7 @@ class _PollsBottomSheetState extends ConsumerState<PollsBottomSheet> {
     return RefreshIndicator(
       onRefresh: () => _loadPolls(force: true),
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
         itemCount: sortedPolls.length,
         itemBuilder: (context, index) {
           return Padding(
