@@ -30,8 +30,9 @@ class CurriculumScreen extends ConsumerWidget {
         ? ref.watch(classCatalogLiveDetailProvider(deliveryTargetId))
         : ref.watch(classCatalogVodDetailProvider(deliveryTargetId));
     final useProgress = !progressDisabled && deliveryTargetId.isNotEmpty;
+    final effectiveProductId = (productId?.isEmpty ?? true) ? null : productId;
     final completedIds = useProgress
-        ? (ref.watch(classCompletedLessonIdsProvider((deliveryTargetId: deliveryTargetId, mode: mode, productId: productId))).value ??
+        ? (ref.watch(classCompletedLessonIdsProvider((deliveryTargetId: deliveryTargetId, mode: mode, productId: effectiveProductId))).value ??
               const [])
         : const <String>[];
     final completed = completedIds.toSet();
@@ -728,7 +729,7 @@ Map<String, dynamic> _lessonPayload({
   String? assessmentId,
 }) {
   final effectiveProductId =
-      (productId != null && productId.isNotEmpty) ? productId : deliveryTargetId;
+      (productId != null && productId.isNotEmpty) ? productId : null;
   return <String, dynamic>{
     if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
     if (enrollmentId != null && enrollmentId.isNotEmpty)

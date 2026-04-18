@@ -707,7 +707,8 @@ class _SyllabusTabPane extends ConsumerWidget {
         ? productId!.trim()
         : liveClassId;
     final detailAsync = ref.watch(classCatalogLiveDetailProvider(effectiveProductId));
-    final completedIds = ref.watch(classCompletedLessonIdsProvider((deliveryTargetId: liveClassId, mode: 'LIVE', productId: productId))).value ?? const [];
+    final effectiveCompletedProductId = (productId?.isEmpty ?? true) ? null : productId;
+    final completedIds = ref.watch(classCompletedLessonIdsProvider((deliveryTargetId: liveClassId, mode: 'LIVE', productId: effectiveCompletedProductId))).value ?? const [];
     final completed = completedIds.toSet();
     final assessments = ref
             .watch(
@@ -1209,7 +1210,7 @@ class _SyllabusTabPane extends ConsumerWidget {
   }) {
     final effectiveProductId = (productId != null && productId!.isNotEmpty)
         ? productId!
-        : deliveryTargetId;
+        : null;
     return <String, dynamic>{
       if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
       if (enrollmentId != null && enrollmentId.isNotEmpty) 'enrollmentId': enrollmentId,
