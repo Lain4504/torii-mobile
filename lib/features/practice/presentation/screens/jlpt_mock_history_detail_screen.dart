@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/jlpt_mock_models.dart';
@@ -102,6 +103,30 @@ class _JlptMockHistoryDetailScreenState
                         : theme.colorScheme.error,
                   ),
                 ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    context.push(
+                      '/jlpt-mock/history/${widget.attemptId}/review?templateId=${data.templateId ?? ''}',
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.fact_check_rounded),
+                  label: const Text(
+                    'Xem chi tiết câu trả lời',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
             ],
           );
         },
