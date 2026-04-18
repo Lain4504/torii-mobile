@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/meet/data/datasources/meet_api_service.dart';
 import 'package:torii_app/features/meet/providers/breakout_room_provider.dart';
+import 'package:torii_app/features/meet/providers/bottom_icons_provider.dart';
 import 'package:torii_app/features/meet/providers/session_provider.dart';
 import 'package:torii_app/features/meet/presentation/navigation/meet_exit_navigation.dart';
 import 'package:torii_app/features/meet/data/models/proto/wajlc_breakout_room.pb.dart'
@@ -119,6 +120,7 @@ Future<void> joinAndSwitchToBreakoutRoom({
             dataChannel: 'dataChannel',
           );
 
+    final bottom = ref.read(bottomIconsProvider);
     await ref.read(sessionProvider.notifier).connect(
           natsWSUrls: verify.natsWsUrls,
           token: breakoutToken,
@@ -127,6 +129,8 @@ Future<void> joinAndSwitchToBreakoutRoom({
           roomStreamName: verify.roomStreamName,
           subjects: subjects,
           keepMeetingRoomVisible: true,
+          initialAudioEnabled: !bottom.isMicMuted,
+          initialVideoEnabled: !bottom.isWebcamMuted,
           setErrorState: (title, message) {
             if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
@@ -204,6 +208,7 @@ Future<void> _handleRemoteSessionEnded(BuildContext context, WidgetRef ref) asyn
             preserveMeetingRoomUi: true,
           );
 
+      final bottom = ref.read(bottomIconsProvider);
       await ref.read(sessionProvider.notifier).connect(
             natsWSUrls: verify.natsWsUrls,
             token: parentToken,
@@ -212,6 +217,8 @@ Future<void> _handleRemoteSessionEnded(BuildContext context, WidgetRef ref) asyn
             roomStreamName: verify.roomStreamName,
             subjects: subjects,
             keepMeetingRoomVisible: true,
+            initialAudioEnabled: !bottom.isMicMuted,
+            initialVideoEnabled: !bottom.isWebcamMuted,
             setErrorState: (title, message) {
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(

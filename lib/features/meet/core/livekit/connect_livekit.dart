@@ -281,7 +281,10 @@ class ConnectLivekit implements IConnectLivekit {
         _rebuildAudioVideoSubscribersFromRoom();
         if (event.publication.source == TrackSource.screenShareVideo ||
             event.publication.source == TrackSource.screenShareAudio) {
-          removeScreenShareTrack(event.participant.identity);
+          removeScreenShareTrack(
+            event.participant.identity,
+            publicationSid: event.publication.sid,
+          );
         }
       })
       ..on<TrackPublishedEvent>((_) {
@@ -296,7 +299,10 @@ class ConnectLivekit implements IConnectLivekit {
         _rebuildAudioVideoSubscribersFromRoom();
         if (event.publication.source == TrackSource.screenShareVideo ||
             event.publication.source == TrackSource.screenShareAudio) {
-          removeScreenShareTrack(event.participant.identity);
+          removeScreenShareTrack(
+            event.participant.identity,
+            publicationSid: event.publication.sid,
+          );
         }
       })
       ..on<LocalTrackPublishedEvent>((event) {
@@ -318,7 +324,10 @@ class ConnectLivekit implements IConnectLivekit {
         _rebuildAudioVideoSubscribersFromRoom();
         if (event.publication.source == TrackSource.screenShareVideo ||
             event.publication.source == TrackSource.screenShareAudio) {
-          removeScreenShareTrack(event.participant.identity);
+          removeScreenShareTrack(
+            event.participant.identity,
+            publicationSid: event.publication.sid,
+          );
         }
       })
       ..on<TrackMutedEvent>((event) {
@@ -547,8 +556,23 @@ class ConnectLivekit implements IConnectLivekit {
   /// Remove screen share track
   /// Matches: removeScreenShareTrack() in ConnectLivekit.ts
   @override
-  void removeScreenShareTrack(String userId) {
-    _screenShareTracksMap.remove(userId);
+  void removeScreenShareTrack(String userId, {String? publicationSid}) {
+    final existing = _screenShareTracksMap[userId];
+    if (existing == null || existing.isEmpty) {
+      return;
+    }
+    if (publicationSid == null || publicationSid.isEmpty) {
+      _screenShareTracksMap.remove(userId);
+      _syncScreenShareTracks();
+      return;
+    }
+
+    existing.removeWhere((pub) => pub.sid == publicationSid);
+    if (existing.isEmpty) {
+      _screenShareTracksMap.remove(userId);
+    } else {
+      _screenShareTracksMap[userId] = existing;
+    }
     _syncScreenShareTracks();
   }
 
