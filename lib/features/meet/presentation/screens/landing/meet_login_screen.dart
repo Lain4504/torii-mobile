@@ -1,12 +1,30 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import '../../../data/datasources/meet_api_service.dart';
 
+const _meetRoomAlphabet = 'abcdefghijklmnopqrstuvwxyz';
+
+/// Giống [generateMeetStyleRoomId] trên web (`apps/meet/.../login.tsx`).
+String generateMeetStyleRoomId() {
+  final r = Random.secure();
+  String pick(int n) {
+    final b = StringBuffer();
+    for (var i = 0; i < n; i++) {
+      b.write(_meetRoomAlphabet[r.nextInt(_meetRoomAlphabet.length)]);
+    }
+    return b.toString();
+  }
+
+  return '${pick(3)}-${pick(4)}-${pick(3)}';
+}
+
 /// Meet Login Screen
-/// 1:1 clone of apps/meet/src/components/extra-pages/Login.tsx
-/// Form: Room ID, User Type, Name, User ID → isRoomActive → createRoom (if needed) → getJoinToken
+/// Khớp luồng `apps/meet/src/components/extra-pages/login.tsx`:
+/// nhập mã phòng hoặc tạo mã ngẫu nhiên → isRoomActive → createRoom → getJoinToken
 class MeetLoginScreen extends ConsumerStatefulWidget {
   final void Function(String token) onLoginSuccess;
   final String? roomId;
@@ -19,28 +37,28 @@ class MeetLoginScreen extends ConsumerStatefulWidget {
 
 class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  String _roomId = 'room01';
   String _userType = 'participant';
+  late TextEditingController _roomIdController;
   late TextEditingController _nameController;
   late TextEditingController _userIdController;
   bool _isLoading = false;
+  String? _formError;
 
   @override
   void initState() {
     super.initState();
-    if (widget.roomId != null) {
-      _roomId = widget.roomId!;
-    }
+    _roomIdController = TextEditingController(text: widget.roomId ?? '');
     _userIdController = TextEditingController(
       text: DateTime.now().millisecondsSinceEpoch.toString(),
     );
     _nameController = TextEditingController(
-      text: 'User ${DateTime.now().millisecondsSinceEpoch % 100}',
+      text: 'user-${Random().nextInt(100)}',
     );
   }
 
   @override
   void dispose() {
+    _roomIdController.dispose();
     _nameController.dispose();
     _userIdController.dispose();
     super.dispose();
@@ -48,6 +66,15 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final normalizedRoomId = _roomIdController.text.trim();
+    if (normalizedRoomId.isEmpty) {
+      setState(() {
+        _formError = 'Vui lòng nhập mã phòng hoặc bấm tạo mã ngẫu nhiên.';
+      });
+      return;
+    }
+    setState(() => _formError = null);
 
     setState(() => _isLoading = true);
 
@@ -57,7 +84,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
       // 1. Check if room is active
       bool isRoomActive;
       try {
-        isRoomActive = await api.isRoomActive(_roomId);
+        isRoomActive = await api.isRoomActive(normalizedRoomId);
       } catch (e) {
         // Server-side /auth/room/isRoomActive can be flaky; don't block joining.
         // Degrade gracefully by attempting createRoom then getJoinToken.
@@ -66,14 +93,14 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
 
       // 2. If not active, create room
       if (!isRoomActive) {
-        await api.createRoom(_roomId);
+        await api.createRoom(normalizedRoomId);
         isRoomActive = true;
       }
 
       // 3. Get join token
       if (isRoomActive) {
         final token = await api.getJoinToken(
-          roomId: _roomId,
+          roomId: normalizedRoomId,
           name: _nameController.text.trim(),
           userId: _userIdController.text.trim(),
           isAdmin: _userType == 'admin',
@@ -106,11 +133,27 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     }
   }
 
-  void _resetForm() {
+  void _resetRandomName() {
     setState(() {
+      _formError = null;
       _userIdController.text = DateTime.now().millisecondsSinceEpoch.toString();
-      _nameController.text = 'User ${DateTime.now().millisecondsSinceEpoch % 100}';
+      _nameController.text = 'user-${Random().nextInt(100)}';
     });
+  }
+
+  void _regenerateRoomId() {
+    setState(() {
+      _roomIdController.text = generateMeetStyleRoomId();
+      _formError = null;
+    });
+  }
+
+  Future<void> _copyRoomId() async {
+    await Clipboard.setData(ClipboardData(text: _roomIdController.text.trim()));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Đã sao chép mã phòng')),
+    );
   }
 
   @override
@@ -127,7 +170,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
           onPressed: () => _goHome(context),
         ),
         title: Text(
-          'Torii Meet',
+          'Tham gia cuộc họp',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,
@@ -207,12 +250,12 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Vào phòng họp',
+                            'Tham gia cuộc họp',
                             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Nhập thông tin để nhận mã tham gia.',
+                            'Nhập mã phòng hoặc tạo mã ngẫu nhiên; cùng mã thì vào cùng phòng.',
                             style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                           ),
                         ],
@@ -244,19 +287,75 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _buildFieldLabel(context, 'Phòng họp'),
-                          _buildDropdown(
-                            context,
-                            value: _roomId,
-                            items: List.generate(
-                              10,
-                              (i) => DropdownMenuItem(
-                                value: 'room${(i + 1).toString().padLeft(2, '0')}',
-                                child: Text('Phòng Global ${i + 1}'),
+                          _buildFieldLabel(context, 'Mã phòng'),
+                          Text(
+                            'Nhập mã để vào hoặc tạo phòng mới; bấm làm mới để tạo mã kiểu Meet (vd: abc-defg-hij).',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              height: 1.35,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _roomIdController,
+                                  onChanged: (_) => setState(() => _formError = null),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontFamily: 'monospace',
+                                    letterSpacing: 0.6,
+                                  ),
+                                  decoration: InputDecoration(
+                                    hintText: 'vd: abc-defg-hij hoặc tên phòng của bạn',
+                                    filled: true,
+                                    fillColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(
+                                        color: theme.colorScheme.onSurface.withValues(alpha: 0.08),
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+                                    ),
+                                  ),
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              IconButton(
+                                onPressed: _isLoading ? null : _copyRoomId,
+                                tooltip: 'Sao chép mã phòng',
+                                icon: const Icon(Icons.copy_rounded),
+                              ),
+                              IconButton(
+                                onPressed: _isLoading ? null : _regenerateRoomId,
+                                tooltip: 'Tạo mã phòng ngẫu nhiên',
+                                icon: const Icon(Icons.refresh_rounded),
+                              ),
+                            ],
+                          ),
+                          if (_formError != null) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              _formError!,
+                              style: TextStyle(
+                                color: theme.colorScheme.error,
+                                fontSize: 13,
                               ),
                             ),
-                            onChanged: (v) => setState(() => _roomId = v ?? _roomId),
-                          ),
+                          ],
                           const SizedBox(height: 14),
 
                           _buildFieldLabel(context, 'Vai trò'),
@@ -325,9 +424,9 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
                           ),
                           const SizedBox(height: 10),
                           TextButton(
-                            onPressed: _isLoading ? null : _resetForm,
+                            onPressed: _isLoading ? null : _resetRandomName,
                             child: Text(
-                              'Đặt lại chi tiết',
+                              'Tên ngẫu nhiên',
                               style: TextStyle(
                                 color: theme.colorScheme.onSurfaceVariant,
                                 fontWeight: FontWeight.w600,
@@ -375,7 +474,7 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w700,
-          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
           letterSpacing: 0.5,
         ),
       ),
@@ -388,7 +487,6 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     required List<DropdownMenuItem<String>> items,
     required ValueChanged<String?> onChanged,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -421,7 +519,6 @@ class _MeetLoginScreenState extends ConsumerState<MeetLoginScreen> {
     required IconData icon,
     String? Function(String?)? validator,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
     return TextFormField(
       controller: controller,

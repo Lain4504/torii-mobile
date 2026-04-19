@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
-import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/features/meet/data/models/chat_message.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Chat Message Item Widget
 /// Displays a single chat message bubble
@@ -97,6 +98,8 @@ class ChatMessageItem extends StatelessWidget {
                   children: [
                     if (pollResult != null)
                       _buildPollResultContent(context, pollResult)
+                    else if (_looksLikeHtml(message.message))
+                      _buildHtmlMessage(context)
                     else
                       Text(
                         message.message,
@@ -129,6 +132,45 @@ class ChatMessageItem extends StatelessWidget {
           // User avatar (optional, currently strictly showing initials for sender isn't common pattern for "Me" side, usually just bubble)
         ],
       ],
+    );
+  }
+
+  bool _looksLikeHtml(String raw) {
+    final s = raw.trim();
+    if (s.isEmpty) return false;
+    return RegExp(r'<[a-zA-Z][^>]*>').hasMatch(s);
+  }
+
+  Widget _buildHtmlMessage(BuildContext context) {
+    final textColor = isMe
+        ? Theme.of(context).colorScheme.onPrimary
+        : Theme.of(context).colorScheme.onSurfaceVariant;
+
+    return Html(
+      data: message.message,
+      style: {
+        'body': Style(
+          margin: Margins.zero,
+          padding: HtmlPaddings.zero,
+          color: textColor,
+          fontSize: FontSize(14),
+          lineHeight: LineHeight.number(1.35),
+        ),
+        'a': Style(
+          color: textColor,
+          textDecoration: TextDecoration.underline,
+          fontWeight: FontWeight.w600,
+        ),
+        'span': Style(color: textColor),
+        'svg': Style(display: Display.none),
+        'path': Style(display: Display.none),
+      },
+      onLinkTap: (url, _, __) async {
+        if (url == null || url.isEmpty) return;
+        final uri = Uri.tryParse(url);
+        if (uri == null) return;
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      },
     );
   }
 
