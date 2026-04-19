@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../participants/participants_bottom_sheet.dart';
 import '../settings/settings_bottom_sheet.dart';
-import '../translation/translation_bottom_sheet.dart';
-import '../insights_ai/insights_ai_bottom_sheet.dart';
 import '../waiting_room/waiting_room_bottom_sheet.dart';
 import '../breakout_rooms/my_breakout_rooms_bottom_sheet.dart';
 import 'control_button.dart';
@@ -59,34 +57,6 @@ class MoreOptionsButton extends ConsumerWidget {
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (context) => const ParticipantsBottomSheet(),
-                );
-              },
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.subtitles,
-              title: 'Translation / Subtitles',
-              onTap: () {
-                Navigator.pop(context);
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => const TranslationBottomSheet(),
-                );
-              },
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.smart_toy,
-              title: 'Insights AI',
-              onTap: () {
-                Navigator.pop(context);
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => const InsightsAiBottomSheet(),
                 );
               },
             ),
