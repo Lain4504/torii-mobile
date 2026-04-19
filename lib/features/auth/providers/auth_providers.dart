@@ -394,12 +394,16 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         );
         if (response.success && response.data != null) {
           final tempToken = response.data!['tempToken'] as String?;
-          if (tempToken != null) {
-             state = AsyncValue.data(AuthState(
-                 status: AuthStatus.requiresOTP,
-                 email: email,
-                 tempToken: tempToken
-             ));
+          if (type == 'registration' || tempToken != null) {
+             if (tempToken != null) {
+               state = AsyncValue.data(AuthState(
+                   status: AuthStatus.requiresOTP,
+                   email: email,
+                   tempToken: tempToken
+               ));
+             } else {
+               state = AsyncValue.data(AuthState.unauthenticated());
+             }
              return true;
           } else {
              state = AsyncValue.data(AuthState.requiresOTP(email, error: 'Invalid OTP response'));
