@@ -41,6 +41,13 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    int? parseWalletBalance(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
     return User(
       id: json['id'] ?? '',
       email: json['email'] ?? '',
@@ -57,7 +64,7 @@ class User {
       lastSignInAt: json['lastSignInAt'] != null ? DateTime.parse(json['lastSignInAt'] as String) : null,
       deletedAt: json['deletedAt'] != null ? DateTime.parse(json['deletedAt'] as String) : null,
       isOnboarded: json['isOnboarded'] ?? json['is_onboarded'] ?? false,
-      walletBalance: (json['walletBalance'] as num?)?.toInt(),
+      walletBalance: parseWalletBalance(json['walletBalance']),
       jlptTarget: json['jlptTarget'],
       currentLevel: json['currentLevel'],
     );

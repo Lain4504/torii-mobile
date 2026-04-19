@@ -56,16 +56,24 @@ class _EmailVerificationScreenState
       color: Colors.transparent,
       child: Container(
         width: double.infinity,
+        height: 56, // Fixed height for consistency
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: _otpFocus.hasFocus 
+                ? theme.colorScheme.primary 
+                : theme.colorScheme.outlineVariant, 
+            width: _otpFocus.hasFocus ? 2 : 1,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: Row(
           children: List.generate(6, (i) {
             final isActive = active == i;
-            final char = i < text.length ? text[i] : '';
+            final isFilled = i < text.length;
+            final char = isFilled ? text[i] : '';
+            
             return Expanded(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -75,31 +83,39 @@ class _EmailVerificationScreenState
                         : BorderSide.none,
                   ),
                   color: isActive
-                      ? theme.colorScheme.primary.withValues(alpha: 0.08)
+                      ? theme.colorScheme.primary.withValues(alpha: 0.05)
                       : Colors.transparent,
                 ),
-                child: SizedBox(
-                  height: 52,
+                child: Center(
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      Text(
-                        char,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                          height: 1.1,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                      if (isActive && char.isEmpty)
+                      if (char.isNotEmpty)
+                        Text(
+                          char,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        )
+                      else if (isActive)
+                        // Cursor animation or static bar
                         Container(
                           width: 2,
-                          height: 22,
+                          height: 24,
                           decoration: BoxDecoration(
                             color: theme.colorScheme.primary,
                             borderRadius: BorderRadius.circular(1),
+                          ),
+                        )
+                      else
+                        // Empty dot/placeholder
+                        Container(
+                          width: 4,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.outlineVariant,
+                            shape: BoxShape.circle,
                           ),
                         ),
                     ],
@@ -114,43 +130,37 @@ class _EmailVerificationScreenState
   }
 
   Widget _buildOtpInputStack(ThemeData theme) {
-    return SizedBox(
-      height: 52,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          _buildGroupedOtpSlots(theme),
-          // Ô nhập thật: trong suốt, full vùng chạm — tránh cắt số do ô hẹp.
-          Positioned.fill(
-            child: TextField(
-              controller: _otpController,
-              focusNode: _otpFocus,
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.done,
-              maxLength: 6,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.transparent.withValues(alpha: 0),
-                fontSize: 1,
-                height: 0.01,
-              ),
-              cursorColor: Colors.transparent,
-              showCursor: false,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                counterText: '',
-                contentPadding: EdgeInsets.zero,
-                isDense: true,
-              ),
-              onChanged: (_) => setState(() {}),
-              onSubmitted: (_) {
-                if (_otp.length == 6) FocusScope.of(context).unfocus();
-              },
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        _buildGroupedOtpSlots(theme),
+        // Hidden TextField but fully interactive
+        Opacity(
+          opacity: 0.0,
+          child: TextField(
+            controller: _otpController,
+            focusNode: _otpFocus,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            maxLength: 6,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            style: const TextStyle(fontSize: 24), // Large area
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              counterText: '',
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
             ),
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) {
+              if (_otp.length == 6) {
+                FocusScope.of(context).unfocus();
+                _submit();
+              }
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
