@@ -4,7 +4,6 @@ import '../../../providers/room_settings_provider.dart';
 import '../../../providers/session_provider.dart';
 
 /// Settings Bottom Sheet bound to roomSettingsProvider
-/// 1:1 clone of apps/meet/src/components/settings/index.tsx
 class SettingsBottomSheet extends ConsumerStatefulWidget {
   const SettingsBottomSheet({super.key});
 

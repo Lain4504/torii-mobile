@@ -8,7 +8,6 @@ import '../screens/room/meeting_room_screen.dart';
 import '../../providers/session_provider.dart';
 
 /// Meet App - Main application wrapper
-/// 1:1 clone of apps/meet/src/components/app/index.tsx
 class MeetApp extends ConsumerWidget {
   const MeetApp({super.key});
 

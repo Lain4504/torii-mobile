@@ -1,6 +1,5 @@
 // ConnectNats - NATS Connection Manager
-// This is a 1:1 clone of apps/meet/src/helpers/nats/ConnectNats.ts
-// 
+//
 // Core responsibilities:
 // - Manage NATS WebSocket connection
 // - Handle JetStream subscriptions for room events
@@ -54,7 +53,6 @@ const int kUsersSyncInterval = 30 * 1000; // 30 seconds
 
 /// NATS connection manager
 /// 
-/// This class is a 1:1 clone of the web ConnectNats.ts class.
 /// It manages the NATS connection, subscriptions, and message routing.
 class ConnectNats implements MeetHandlerContext {
   // NATS connection (dart_nats Client - no JetStream API, we use raw request for pull)
@@ -218,7 +216,6 @@ class ConnectNats implements MeetHandlerContext {
   dynamic get mediaServerConn => _mediaServerConn;
   
   /// Open NATS connection
-  /// Matches: openConn() in ConnectNats.ts
   Future<void> openConn() async {
     try {
       if (kDebugMode) {
@@ -284,7 +281,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// End session and cleanup
-  /// Matches: endSession() in ConnectNats.ts
   ///
   /// [userInitiatedLeave]: người dùng chủ động rời / host đã xử lý xong — không bật snack lỗi
   /// (tránh gọi [setErrorState] khi [JoinMeetingScreen] đã dispose).
@@ -351,14 +347,12 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Set error status
-  /// Matches: setErrorStatus() in ConnectNats.ts
   void setErrorStatus(String title, String reason) {
     _setRoomConnectionStatusState('error');
     _setErrorState(title, reason);
   }
   
   /// Set media server connection (LiveKit)
-  /// Matches: setMediaServerConn() in ConnectNats.ts
   void setMediaServerConn(ConnectLivekit conn) {
     _mediaServerConn = conn;
     _setCurrentMediaServerConn(conn);
@@ -375,7 +369,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Monitor connection status
-  /// Matches: monitorConnStatus() in ConnectNats.ts
   Future<void> _monitorConnStatus() async {
     if (_nc == null) return;
     
@@ -483,7 +476,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Subscribe to system public pub/sub
-  /// Matches: subscribeToSystemPublicPubSub() in ConnectNats.ts
   Future<void> _subscribeToSystemPublicPubSub() async {
     if (_nc == null) return;
     
@@ -898,7 +890,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Start token renewal interval
-  /// Matches: startTokenRenewInterval() in ConnectNats.ts
   void _startTokenRenewInterval() {
     _tokenRenewInterval = Timer.periodic(
       const Duration(milliseconds: kRenewTokenFrequent),
@@ -907,7 +898,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Renew JWT token
-  /// Matches: startTokenRenewInterval() in ConnectNats.ts
   /// Web sends REQ_RENEW_WAJLC_TOKEN event with current token to NATS system worker
   Future<void> _renewToken() async {
     try {
@@ -931,7 +921,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Start ping to server
-  /// Matches: startPingToServer() in ConnectNats.ts
   void _startPingToServer() {
     _pingInterval = Timer.periodic(
       const Duration(milliseconds: kPingInterval),
@@ -955,7 +944,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Send message to system worker
-  /// Matches: sendMessageToSystemWorker() in ConnectNats.ts
   /// Server expects subject: sysJsWorker.{roomId}.{userId}
   void _sendMessageToSystemWorker(nats_msg.NatsMsgClientToServer msg) {
     if (_nc == null) return;
@@ -999,7 +987,6 @@ class ConnectNats implements MeetHandlerContext {
   // ============================================================================
   
   /// Subscribe to chat pub/sub channel
-  /// Matches: subscribeToChat() in ConnectNats.ts
   Future<void> _subscribeToChat() async {
     if (_nc == null) return;
     
@@ -1035,7 +1022,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Process incoming chat message
-  /// Matches: processToHandleChatMsg() in ConnectNats.ts
   Future<void> _processToHandleChatMsg(List<int> data) async {
     Uint8List dataToParse = Uint8List.fromList(data);
     
@@ -1056,7 +1042,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Send chat message (public or private)
-  /// Matches: sendChatMsg() in ConnectNats.ts
   Future<void> sendChatMsg({
     required String to,
     required String message,
@@ -1130,7 +1115,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Handle chat translation
-  /// Matches: chat translation logic in ConnectNats.ts sendChatMsg()
   /// Web: checks chatTranslationFeatures.isEnabled, gets selectedChatTransLang, calls executeChatTranslation API
   Future<void> _handleChatTranslation(nats_msg.ChatMessage chatMessage) async {
     try {
@@ -1199,7 +1183,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Send private data (chat or data message)
-  /// Matches: sendPrivateData() in ConnectNats.ts
   void _sendPrivateData({
     required Uint8List payload,
     required String type,
@@ -1223,7 +1206,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Handle private data delivery
-  /// Matches: handlePrivateDataDelivery() in ConnectNats.ts
   Future<void> _handlePrivateDataDelivery(nats_msg.NatsMsgServerToClient p) async {
     final header = jsonDecode(p.msg) as Map<String, dynamic>;
     final type = header['type'] as String;
@@ -1240,7 +1222,6 @@ class ConnectNats implements MeetHandlerContext {
   // ============================================================================
   
   /// Encrypt data using AES-GCM
-  /// Matches: encryptData() in ConnectNats.ts
   Future<Uint8List?> _encryptData(Uint8List payload) async {
     try {
       // TODO: Implement AES-GCM encryption
@@ -1265,7 +1246,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Decrypt data using AES-GCM
-  /// Matches: decryptData() in ConnectNats.ts
   Future<Uint8List?> _decryptData(Uint8List payload) async {
     try {
       // TODO: Implement AES-GCM decryption
@@ -1294,7 +1274,6 @@ class ConnectNats implements MeetHandlerContext {
   // ============================================================================
   
   /// Subscribe to whiteboard pub/sub channel
-  /// Matches: subscribeToWhiteboard() in ConnectNats.ts
   Future<void> _subscribeToWhiteboard() async {
     if (_nc == null) return;
     
@@ -1337,7 +1316,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Send whiteboard data
-  /// Matches: sendWhiteboardData() in ConnectNats.ts
   Future<void> sendWhiteboardData({
     required String type,
     required String message,
@@ -1434,7 +1412,6 @@ class ConnectNats implements MeetHandlerContext {
   // ============================================================================
   
   /// Subscribe to data channel pub/sub
-  /// Matches: subscribeToDataChannel() in ConnectNats.ts
   Future<void> _subscribeToDataChannel() async {
     if (_nc == null) return;
     
@@ -1460,7 +1437,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Process incoming data channel message
-  /// Matches: processToHandleDataMsg() in ConnectNats.ts
   Future<void> _processToHandleDataMsg(List<int> data) async {
     Uint8List dataToParse = Uint8List.fromList(data);
     
@@ -1487,7 +1463,6 @@ class ConnectNats implements MeetHandlerContext {
   }
   
   /// Send data message (mostly client-to-client communication)
-  /// Matches: sendDataMessage() in ConnectNats.ts
   Future<void> sendDataMessage({
     required String type,
     required String msg,
@@ -1561,7 +1536,6 @@ class ConnectNats implements MeetHandlerContext {
   // ============================================================================
   
   /// Send analytics data
-  /// Matches: sendAnalyticsData() in ConnectNats.ts
   /// Web: creates AnalyticsDataMsg, serializes to JSON, wraps in NatsMsgClientToServer(PUSH_ANALYTICS_DATA)
   void sendAnalyticsData({
     required analytics.AnalyticsEvents eventName,

@@ -10,7 +10,6 @@ import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.da
 
 /// Manage Waiting Room Bottom Sheet (admin only)
 /// Lists participants waiting for approval, approve/reject per user or bulk
-/// 1:1 clone of apps/meet/src/components/waiting-room/index.tsx
 class WaitingRoomBottomSheet extends ConsumerWidget {
   const WaitingRoomBottomSheet({super.key});
 

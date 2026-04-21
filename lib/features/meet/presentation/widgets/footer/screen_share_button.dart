@@ -6,7 +6,6 @@ import 'control_button.dart';
 
 /// Screen Share Button Widget
 /// Toggles screen sharing on/off
-/// 1:1 clone of apps/meet/src/components/footer/icons/screenShare.tsx
 class ScreenShareButton extends ConsumerWidget {
   const ScreenShareButton({super.key});
 

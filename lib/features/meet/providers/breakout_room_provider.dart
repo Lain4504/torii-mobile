@@ -1,5 +1,4 @@
 // Breakout Room Provider - Riverpod State Management
-// Simplified version of apps/meet/src/store/slices/breakoutRoomSlice.ts
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

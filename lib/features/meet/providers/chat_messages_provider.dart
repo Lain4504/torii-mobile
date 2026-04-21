@@ -1,5 +1,4 @@
 // Chat Messages Provider - Riverpod State Management
-// 1:1 clone of apps/meet/src/store/slices/chatMessagesSlice.ts
 //
 // Manages:
 // - Chat messages (public and private)
@@ -50,7 +49,6 @@ class ChatMessagesState {
 // ============================================================================
 
 /// Get chat key for a message
-/// Matches: getChatKey() in chatMessagesSlice.ts
 String _getChatKey(ChatMessage message, String currentUserId) {
   if (!message.isPrivate) {
     return 'public';
@@ -65,7 +63,6 @@ String _getChatKey(ChatMessage message, String currentUserId) {
 }
 
 /// Sort messages chronologically
-/// Matches: sortMessages() in chatMessagesSlice.ts
 int _sortMessages(ChatMessage a, ChatMessage b) {
   return a.createdAt.compareTo(b.createdAt);
 }
@@ -75,7 +72,6 @@ int _sortMessages(ChatMessage a, ChatMessage b) {
 // ============================================================================
 
 /// Chat messages state notifier
-/// Matches: chatMessagesSlice reducers in chatMessagesSlice.ts
 class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
   ChatMessagesNotifier() : super(const ChatMessagesState());
   

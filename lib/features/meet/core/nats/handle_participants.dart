@@ -1,5 +1,4 @@
 // HandleParticipants - Participant Events Handler
-// Simplified version of apps/meet/src/helpers/nats/HandleParticipants.ts
 //
 // Responsibilities:
 // - Handle user joined events
@@ -36,7 +35,7 @@ class HandleParticipants {
     this.ref,
   });
 
-  /// Add local user from initial data (matches addLocalParticipantInfo in HandleParticipants.ts).
+  /// Add local user from initial data.
   /// Updates session currentUser and participant list.
   void addLocalParticipantInfo(nats_msg.NatsKvUserInfo info) {
     final Map<String, dynamic> rawMetadata = info.hasMetadata() && info.metadata.isNotEmpty
@@ -76,7 +75,6 @@ class HandleParticipants {
   }
   
   /// Handle user joined event
-  /// Matches: addRemoteParticipant() in HandleParticipants.ts
   Future<void> handleUserJoined(nats_msg.NatsKvUserInfo userInfo) async {
     if (userInfo.userId == connectNats.userId) {
       return;
@@ -233,7 +231,6 @@ class HandleParticipants {
   }
   
   /// Handle user metadata update
-  /// Matches: handleParticipantMetadataUpdate() in HandleParticipants.ts
   void handleUserMetadataUpdate(nats_msg.NatsKvUserInfo userInfo) {
     // Parse metadata
     final Map<String, dynamic> rawMetadata = userInfo.hasMetadata() && userInfo.metadata.isNotEmpty

@@ -1,5 +1,4 @@
 // Insights AI Text Chat Provider - Riverpod State Management
-// 1:1 clone of apps/meet/src/store/slices/insightsAiTextChatSlice.ts
 //
 // Manages:
 // - Final and interim AI chat messages

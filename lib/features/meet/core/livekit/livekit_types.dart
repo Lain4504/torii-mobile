@@ -1,5 +1,4 @@
 // LiveKit Types - Type Definitions
-// 1:1 clone of apps/meet/src/helpers/livekit/types.ts
 //
 // Defines interfaces and enums for LiveKit integration
 
@@ -41,7 +40,6 @@ class LivekitInfo {
 }
 
 /// Interface for ConnectLivekit
-/// Matches: IConnectLivekit in types.ts
 abstract class IConnectLivekit {
   String get localUserId;
 

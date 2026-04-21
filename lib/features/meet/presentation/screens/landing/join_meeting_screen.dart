@@ -12,7 +12,6 @@ import '../../widgets/landing/device_preview.dart';
 import '../../navigation/meet_exit_navigation.dart';
 
 /// Join Meeting Screen
-/// 1:1 clone of apps/meet/src/components/landing/index.tsx
 /// Token from: [initialToken] param, or [ModalRoute.settings.arguments] (e.g. deep link).
 class JoinMeetingScreen extends ConsumerStatefulWidget {
   /// Token from MeetLoginScreen or route extra

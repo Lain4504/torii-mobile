@@ -11,7 +11,6 @@ import 'polls_button.dart';
 
 /// Control Bar Widget
 /// Shows mic, camera, screen share, leave, and more options buttons
-/// 1:1 clone of apps/meet/src/components/footer/index.tsx
 class ControlBar extends ConsumerWidget {
   const ControlBar({super.key});
 

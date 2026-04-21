@@ -1,5 +1,4 @@
 // ConnectLivekit - LiveKit Connection Manager
-// 1:1 clone of apps/meet/src/helpers/livekit/ConnectLivekit.ts
 //
 // Core responsibilities:
 // - Manage LiveKit room connection
@@ -38,7 +37,6 @@ const Duration kNatsConnectionQualityDebounce = Duration(milliseconds: 400);
 
 /// LiveKit connection manager
 ///
-/// This class is a 1:1 clone of the web ConnectLivekit.ts class.
 /// It manages the LiveKit room connection, track subscriptions, and events.
 class ConnectLivekit implements IConnectLivekit {
   // Subscriber maps
@@ -93,7 +91,6 @@ class ConnectLivekit implements IConnectLivekit {
   final bool initialVideoEnabled;
 
   /// Constructor
-  /// Matches: constructor() in ConnectLivekit.ts
   ConnectLivekit({
     required this.ref,
     required this.localUserId,
@@ -144,7 +141,6 @@ class ConnectLivekit implements IConnectLivekit {
       _screenShareTracksController.stream;
 
   /// Initialize connection to LiveKit server
-  /// Matches: initializeConnection() in ConnectLivekit.ts
   @override
   Future<void> initializeConnection(String url, String token) async {
     if (_room.connectionState == ConnectionState.connected &&
@@ -227,7 +223,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Configure room with options
-  /// Matches: configureRoom() in ConnectLivekit.ts
   Room _configureRoom() {
     // Determine video codec
     String videoCodec = kVideoCodec;
@@ -264,7 +259,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Register room event listeners
-  /// Matches: room.on() calls in ConnectLivekit.ts
   void _registerRoomEventListeners(Room room) {
     // Connection state events
     room.addListener(_onRoomStateChanged);
@@ -532,7 +526,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Initialize participants after connection
-  /// Matches: initiateParticipants() in ConnectLivekit.ts
   Future<void> _initiateParticipants() async {
     _rebuildTrackSubscribersFromRoom();
 
@@ -553,7 +546,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Disconnect from room
-  /// Matches: disconnectRoom() in ConnectLivekit.ts
   @override
   Future<void> disconnectRoom(bool normalDisconnect) async {
     if (_room.connectionState == ConnectionState.disconnected) {
@@ -578,7 +570,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Handle disconnection
-  /// Matches: onDisconnected() in ConnectLivekit.ts
   void _onDisconnected() {
     if (_wasNormalDisconnected) {
       // Normal disconnect, no error message
@@ -679,7 +670,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Add screen share track
-  /// Matches: addScreenShareTrack() in ConnectLivekit.ts
   @override
   void addScreenShareTrack(String userId, TrackPublication track) {
     final tracks = <TrackPublication>[];
@@ -693,7 +683,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Remove screen share track
-  /// Matches: removeScreenShareTrack() in ConnectLivekit.ts
   @override
   void removeScreenShareTrack(String userId, {String? publicationSid}) {
     final existing = _screenShareTracksMap[userId];
@@ -716,7 +705,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Sync screen share tracks
-  /// Matches: syncScreenShareTracks() in ConnectLivekit.ts
   void _syncScreenShareTracks() {
     _emitScreenShareSessionFromMap();
   }
@@ -752,7 +740,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Add audio subscriber
-  /// Matches: addAudioSubscriber() in ConnectLivekit.ts
   @override
   void addAudioSubscriber(Participant participant) {
     if (participant.audioTrackPublications.isEmpty) {
@@ -777,7 +764,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Remove audio subscriber
-  /// Matches: removeAudioSubscriber() in ConnectLivekit.ts
   @override
   void removeAudioSubscriber(String userId) {
     if (!_audioSubscribersMap.containsKey(userId)) {
@@ -789,7 +775,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Sync audio subscribers
-  /// Matches: syncAudioSubscribers() in ConnectLivekit.ts
   void _syncAudioSubscribers() {
     _audioSubscribersController.add(Map.from(_audioSubscribersMap));
 
@@ -800,7 +785,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Add video subscriber
-  /// Matches: addVideoSubscriber() in ConnectLivekit.ts
   @override
   void addVideoSubscriber(Participant participant) {
     if (participant.videoTrackPublications.isEmpty) {
@@ -820,7 +804,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Remove video subscriber
-  /// Matches: removeVideoSubscriber() in ConnectLivekit.ts
   @override
   void removeVideoSubscriber(String userId) {
     if (!_videoSubscribersMap.containsKey(userId)) {
@@ -832,7 +815,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Sync video subscribers
-  /// Matches: syncVideoSubscribers() in ConnectLivekit.ts
   void _syncVideoSubscribers() {
     // Update session provider
     ref
@@ -956,7 +938,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Toggle audio
-  /// Matches: toggleAudio() in ConnectLivekit.ts
   @override
   Future<void> toggleAudio(bool enable) async {
     if (_room.localParticipant == null) return;
@@ -988,7 +969,6 @@ class ConnectLivekit implements IConnectLivekit {
   }
 
   /// Toggle video
-  /// Matches: toggleVideo() in ConnectLivekit.ts
   @override
   Future<void> toggleVideo(bool enable) async {
     if (_room.localParticipant == null) return;

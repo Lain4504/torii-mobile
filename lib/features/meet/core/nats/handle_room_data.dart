@@ -1,5 +1,4 @@
 // HandleRoomData - Room Metadata Handler
-// Complete 1:1 clone of apps/meet/src/helpers/nats/HandleRoomData.ts
 //
 // Responsibilities:
 // - Parse room metadata updates
@@ -50,7 +49,6 @@ class HandleRoomData {
   }
   
   /// Set initial room info
-  /// Matches: setRoomInfo() in HandleRoomData.ts
   Future<Map<String, dynamic>> setRoomInfo(nats_msg.NatsKvRoomInfo info) async {
     // Parse metadata
     final Map<String, dynamic> rawMetadata = info.hasMetadata() && info.metadata.isNotEmpty
@@ -82,7 +80,6 @@ class HandleRoomData {
   }
   
   /// Handle room metadata update
-  /// Matches: updateRoomMetadata() in HandleRoomData.ts
   Future<void> handleRoomMetadataUpdate(nats_msg.NatsKvRoomInfo roomInfo) async {
     try {
       final Map<String, dynamic> rawMetadata = roomInfo.hasMetadata() && roomInfo.metadata.isNotEmpty
@@ -121,7 +118,7 @@ class HandleRoomData {
 
     onMeetRoomFeatures?.call(metadata.roomFeatures);
 
-    // Khớp web `whiteboard.tsx`: khi presenter bật/tắt bảng qua API, metadata.visible đổi.
+    // Khi presenter bật/tắt bảng qua API, metadata.visible đổi.
     _syncWhiteboardVisibilityFromRoom(metadata);
     
     // Check for preloaded whiteboard file

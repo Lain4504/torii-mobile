@@ -1,5 +1,4 @@
 // Session Provider - Riverpod State Management
-// 1:1 clone of apps/meet/src/store/slices/sessionSlice.ts
 //
 // Manages:
 // - Current user info (userId, name, metadata)
@@ -155,7 +154,6 @@ abstract class SessionState with _$SessionState {
 // ============================================================================
 
 /// Session state notifier
-/// Matches: sessionSlice reducers in sessionSlice.ts
 class SessionNotifier extends StateNotifier<SessionState> {
   final Ref ref;
   ConnectNats? _connectNats;

@@ -12,7 +12,6 @@ import '../../../providers/session_provider.dart';
 
 /// More Options Button Widget
 /// Shows menu with additional options (chat, participants, settings, etc.)
-/// 1:1 clone of apps/meet/src/components/footer/icons/more.tsx
 class MoreOptionsButton extends ConsumerWidget {
   const MoreOptionsButton({super.key});
 

@@ -1,5 +1,4 @@
 // MessageQueue - Outgoing Message Queue
-// Clone of apps/meet/src/helpers/nats/MessageQueue.ts
 //
 // Responsibilities:
 // - Queue outgoing messages

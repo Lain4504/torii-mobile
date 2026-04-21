@@ -12,7 +12,6 @@ import '../../widgets/breakout_rooms/breakout_room_invitation.dart';
 import '../../../core/breakout/breakout_room_switcher.dart';
 
 /// Meeting Room Screen
-/// 1:1 clone of apps/meet/src/components/app/index.tsx (main meeting view)
 class MeetingRoomScreen extends ConsumerStatefulWidget {
   const MeetingRoomScreen({super.key});
 

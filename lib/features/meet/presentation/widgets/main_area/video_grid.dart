@@ -12,7 +12,6 @@ import 'video_tile.dart';
 
 /// Video Grid Widget
 /// Displays all participant videos in a responsive grid
-/// 1:1 clone of apps/meet/src/components/main-area/index.tsx
 class VideoGrid extends ConsumerWidget {
   const VideoGrid({super.key});
 

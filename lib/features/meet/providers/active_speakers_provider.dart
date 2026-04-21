@@ -1,5 +1,4 @@
 // Active Speakers Provider - Riverpod State Management
-// 1:1 clone of apps/meet/src/store/slices/activeSpeakersSlice.ts
 //
 // Manages:
 // - Active speakers list (voice activity detection)
@@ -46,7 +45,6 @@ abstract class ActiveSpeakersState with _$ActiveSpeakersState {
 // ============================================================================
 
 /// Active speakers state notifier
-/// Matches: activeSpeakersSlice reducers in activeSpeakersSlice.ts
 class ActiveSpeakersNotifier extends StateNotifier<ActiveSpeakersState> {
   ActiveSpeakersNotifier() : super(ActiveSpeakersState.initial());
   

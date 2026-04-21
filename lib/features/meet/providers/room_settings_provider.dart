@@ -1,5 +1,4 @@
 // Room Settings Provider - Riverpod State Management
-// Simplified version of apps/meet/src/store/slices/roomSettingsSlice.ts
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

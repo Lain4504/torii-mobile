@@ -1,5 +1,4 @@
 // Participant Provider - Riverpod State Management
-// 1:1 clone of apps/meet/src/store/slices/participantSlice.ts
 //
 // Manages:
 // - Participant list (add/remove/update)
@@ -104,7 +103,6 @@ class ParticipantState {
 // ============================================================================
 
 /// Participant state notifier
-/// Matches: participantsSlice reducers in participantSlice.ts
 class ParticipantNotifier extends StateNotifier<ParticipantState> {
   ParticipantNotifier() : super(const ParticipantState());
   

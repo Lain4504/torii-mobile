@@ -8,7 +8,6 @@ import 'participant_item.dart';
 
 /// Participants Bottom Sheet
 /// Displays list of participants and search functionality
-/// 1:1 clone of apps/meet/src/components/participants/index.tsx
 class ParticipantsBottomSheet extends ConsumerStatefulWidget {
   const ParticipantsBottomSheet({super.key});
 

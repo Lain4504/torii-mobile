@@ -1,5 +1,4 @@
 // HandleChat - Chat Messages Handler
-// Complete 1:1 clone of apps/meet/src/helpers/nats/HandleChat.ts
 //
 // Responsibilities:
 // - Parse chat messages (public/private)
@@ -32,7 +31,6 @@ class HandleChat {
   });
   
   /// Handle incoming chat message
-  /// Matches: handleMsg() in HandleChat.ts
   Future<void> handleMsg(nats_msg.ChatMessage payload) async {
     // If this is a private message, only process if we are sender or receiver
     if (payload.isPrivate &&

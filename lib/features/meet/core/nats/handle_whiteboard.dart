@@ -1,5 +1,4 @@
 // HandleWhiteboard - Whiteboard Updates Handler
-// Complete 1:1 clone of apps/meet/src/helpers/nats/HandleWhiteboard.ts
 //
 // Responsibilities:
 // - Parse whiteboard updates (scene, pointer, page, file changes)
@@ -24,7 +23,6 @@ class HandleWhiteboard {
   HandleWhiteboard({this.ref, this.meetContext});
   
   /// Handle whiteboard message
-  /// Matches: handleWhiteboardMsg() in HandleWhiteboard.ts
   Future<void> handleWhiteboardMsg(DataChannelMessage payload) async {
     switch (payload.type) {
       case DataMsgBodyType.SCENE_UPDATE:

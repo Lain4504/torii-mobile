@@ -11,7 +11,6 @@ import 'poll_item.dart';
 
 /// Polls Bottom Sheet
 /// Displays active polls and create poll option
-/// 1:1 clone of apps/meet/src/components/polls/index.tsx
 class PollsBottomSheet extends ConsumerStatefulWidget {
   const PollsBottomSheet({super.key});
 

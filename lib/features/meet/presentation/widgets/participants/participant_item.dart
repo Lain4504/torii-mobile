@@ -10,7 +10,6 @@ import 'package:torii_app/features/meet/data/models/proto/wajlc_common_api.pb.da
 import 'package:torii_app/features/meet/data/models/proto/wajlc_nats_msg.pb.dart' as nats_msg;
 
 /// Participant Item Widget with menu and waiting-approval state
-/// 1:1 clone of apps/meet/src/components/participants/participantItem.tsx
 class ParticipantItem extends ConsumerWidget {
   final ParticipantInfo participant;
   final bool isMe;

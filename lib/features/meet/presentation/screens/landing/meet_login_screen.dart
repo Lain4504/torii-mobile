@@ -8,7 +8,6 @@ import '../../../data/datasources/meet_api_service.dart';
 
 const _meetRoomAlphabet = 'abcdefghijklmnopqrstuvwxyz';
 
-/// Giống [generateMeetStyleRoomId] trên web (`apps/meet/.../login.tsx`).
 String generateMeetStyleRoomId() {
   final r = Random.secure();
   String pick(int n) {
@@ -23,7 +22,6 @@ String generateMeetStyleRoomId() {
 }
 
 /// Meet Login Screen
-/// Khớp luồng `apps/meet/src/components/extra-pages/login.tsx`:
 /// nhập mã phòng hoặc tạo mã ngẫu nhiên → isRoomActive → createRoom → getJoinToken
 class MeetLoginScreen extends ConsumerStatefulWidget {
   final void Function(String token) onLoginSuccess;

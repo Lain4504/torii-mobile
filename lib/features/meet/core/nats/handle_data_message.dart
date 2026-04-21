@@ -1,5 +1,4 @@
 // HandleDataMessage - Data Channel Handler
-// Complete 1:1 clone of apps/meet/src/helpers/nats/HandleDataMessage.ts
 //
 // Responsibilities:
 // - Parse data channel messages (client-to-client communication)
@@ -38,7 +37,6 @@ class HandleDataMessage {
   });
   
   /// Handle data channel message
-  /// Matches: handleMessage() in HandleDataMessage.ts
   Future<void> handleMessage(data_msg.DataChannelMessage payload) async {
     switch (payload.type) {
       // Whiteboard data requests

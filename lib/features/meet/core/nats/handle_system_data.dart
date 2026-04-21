@@ -1,5 +1,4 @@
 // HandleSystemData - System Events Handler
-// Complete 1:1 clone of apps/meet/src/helpers/nats/HandleSystemData.tsx
 //
 // Responsibilities:
 // - Handle system notifications (info, warning, error)
@@ -33,7 +32,6 @@ class HandleSystemData {
   });
   
   /// Handle system notification
-  /// Matches: handleNotification() in HandleSystemData.tsx
   void handleNotification(String data) {
     try {
       final notification = jsonDecode(data) as Map<String, dynamic>;
@@ -82,7 +80,6 @@ class HandleSystemData {
   }
   
   /// Handle poll events
-  /// Matches: handlePoll() in HandleSystemData.tsx
   void handlePoll(nats_msg.NatsMsgServerToClient payload) {
     switch (payload.event) {
       case nats_msg.NatsMsgServerToClientEvents.POLL_CREATED:
@@ -115,7 +112,6 @@ class HandleSystemData {
   }
   
   /// Handle breakout room events
-  /// Matches: handleBreakoutRoom() in HandleSystemData.tsx
   void handleBreakoutRoom(nats_msg.NatsMsgServerToClient payload) {
     switch (payload.event) {
       case nats_msg.NatsMsgServerToClientEvents.JOIN_BREAKOUT_ROOM:
@@ -156,7 +152,6 @@ class HandleSystemData {
   }
   
   /// Handle system chat message
-  /// Matches: handleSysChatMsg() in HandleSystemData.tsx
   void handleSysChatMsg(String msg) {
     ref?.read(chatMessagesProvider.notifier).addChatMessage(
       message: ChatMessage(
@@ -182,7 +177,6 @@ class HandleSystemData {
   }
   
   /// Handle Insights AI text chat data
-  /// Matches: handleInsightsAITextData() in HandleSystemData.tsx
   void handleInsightsAITextData(String msg) {
     try {
       final data = jsonDecode(msg) as Map<String, dynamic>;

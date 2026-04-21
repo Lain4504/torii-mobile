@@ -6,7 +6,6 @@ import 'control_button.dart';
 
 /// Camera Button Widget
 /// Toggles camera on/off
-/// 1:1 clone of apps/meet/src/components/footer/icons/webcam.tsx
 class CameraButton extends ConsumerWidget {
   const CameraButton({super.key});
 

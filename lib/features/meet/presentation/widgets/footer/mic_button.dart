@@ -6,7 +6,6 @@ import 'control_button.dart';
 
 /// Microphone Button Widget
 /// Toggles microphone on/off
-/// 1:1 clone of apps/meet/src/components/footer/icons/mic.tsx
 class MicButton extends ConsumerWidget {
   const MicButton({super.key});
 

@@ -10,7 +10,6 @@ import '../../../providers/room_settings_provider.dart';
 
 /// Video Tile Widget
 /// Displays a single participant's video with name and status indicators
-/// 1:1 clone of apps/meet/src/components/media-elements/video/index.tsx
 class VideoTile extends ConsumerWidget {
   final Participant? participant;
   final String userId;
@@ -455,7 +454,7 @@ class VideoTile extends ConsumerWidget {
   }
 }
 
-/// Web `videoElm.tsx`: luôn bind publication **camera**, không lấy track VIDEO đầu tiên
+/// luôn bind publication **camera**, không lấy track VIDEO đầu tiên
 /// (có thể là screen share — cùng `TrackType.video`).
 TrackPublication? _findCameraPublication(Participant p) {
   for (final pub in p.videoTrackPublications) {

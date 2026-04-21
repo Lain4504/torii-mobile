@@ -3,7 +3,6 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 
 /// Join Form Widget
 /// Shows join button and loading states
-/// 1:1 clone of apps/meet/src/components/landing/index.tsx (right side)
 class JoinForm extends StatelessWidget {
   final String? loadingMessage;
   final bool waitForApproval;

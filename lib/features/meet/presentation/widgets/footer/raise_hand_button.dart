@@ -6,7 +6,6 @@ import 'control_button.dart';
 
 /// Raise Hand Button Widget
 /// Toggles raise hand state via NATS (REQ_RAISE_HAND / REQ_LOWER_HAND)
-/// 1:1 clone of apps/meet/src/components/footer/icons/raisehand.tsx
 class RaiseHandButton extends ConsumerWidget {
   const RaiseHandButton({super.key});
 

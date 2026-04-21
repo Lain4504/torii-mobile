@@ -1,5 +1,4 @@
 // Whiteboard Provider - Riverpod State Management
-// 1:1 clone of apps/meet/src/store/slices/whiteboard.ts
 
 import 'dart:convert';
 import 'dart:ui';

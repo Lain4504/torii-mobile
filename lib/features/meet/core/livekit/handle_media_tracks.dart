@@ -1,5 +1,4 @@
 // HandleMediaTracks - Track Subscription Handler
-// 1:1 clone of apps/meet/src/helpers/livekit/HandleMediaTracks.ts
 //
 // Responsibilities:
 // - Handle local track published/unpublished
@@ -23,7 +22,6 @@ import 'livekit_types.dart';
 
 /// Handle media track events
 ///
-/// This class is a 1:1 clone of the web HandleMediaTracks.ts class.
 /// It manages track subscription/publication events and updates providers.
 class HandleMediaTracks {
   final IConnectLivekit connectLivekit;
@@ -32,7 +30,6 @@ class HandleMediaTracks {
   HandleMediaTracks({required this.connectLivekit, required this.ref});
 
   /// Handle local track published
-  /// Matches: localTrackPublished() in HandleMediaTracks.ts
   void localTrackPublished(
     TrackPublication track,
     LocalParticipant participant,
@@ -46,7 +43,6 @@ class HandleMediaTracks {
   }
 
   /// Handle local track unpublished
-  /// Matches: localTrackUnpublished() in HandleMediaTracks.ts
   void localTrackUnpublished(
     TrackPublication track,
     LocalParticipant participant,
@@ -62,7 +58,6 @@ class HandleMediaTracks {
   }
 
   /// Handle remote track subscribed
-  /// Matches: trackSubscribed() in HandleMediaTracks.ts
   void trackSubscribed(
     Track track,
     TrackPublication publication,
@@ -87,7 +82,6 @@ class HandleMediaTracks {
   }
 
   /// Handle remote track unsubscribed / unpublished
-  /// Matches: trackUnsubscribed() in HandleMediaTracks.ts
   /// [track] có thể null khi [TrackUnpublishedEvent] (track đã gỡ).
   void trackUnsubscribed(
     Track? track,
@@ -105,7 +99,6 @@ class HandleMediaTracks {
   }
 
   /// Handle track subscription failed
-  /// Matches: trackSubscriptionFailed() in HandleMediaTracks.ts
   void trackSubscriptionFailed(
     RemoteParticipant participant, {
     String? trackSid,
@@ -129,7 +122,6 @@ class HandleMediaTracks {
   }
 
   /// Handle track muted
-  /// Matches: trackMuted() in HandleMediaTracks.ts
   void trackMuted(TrackPublication publication, Participant participant) {
     final localId = connectLivekit.localUserId;
 
@@ -152,7 +144,6 @@ class HandleMediaTracks {
   }
 
   /// Handle track unmuted
-  /// Matches: trackUnmuted() in HandleMediaTracks.ts
   void trackUnmuted(TrackPublication publication, Participant participant) {
     final localId = connectLivekit.localUserId;
 
@@ -175,7 +166,6 @@ class HandleMediaTracks {
   }
 
   /// Handle track stream state changed
-  /// Matches: trackStreamStateChanged() in HandleMediaTracks.ts
   void trackStreamStateChanged(
     TrackPublication publication,
     StreamState streamState,
@@ -241,7 +231,6 @@ class HandleMediaTracks {
   }
 
   /// Add subscriber for track
-  /// Matches: addSubscriber() in HandleMediaTracks.ts
   void _addSubscriber(TrackPublication track, Participant participant) {
     switch (track.source) {
       case TrackSource.camera:
@@ -290,7 +279,6 @@ class HandleMediaTracks {
   }
 
   /// Remove subscriber for track
-  /// Matches: removeSubscriber() in HandleMediaTracks.ts
   void _removeSubscriber(TrackPublication track, Participant participant) {
     switch (track.source) {
       case TrackSource.camera:
@@ -345,7 +333,6 @@ class HandleMediaTracks {
   }
 
   /// Add speaker for active speaker detection
-  /// Matches: addSpeaker() in HandleMediaTracks.ts
   void _addSpeaker(TrackPublication track, Participant participant) {
     if (track.source != TrackSource.microphone) {
       return;
@@ -387,7 +374,6 @@ class HandleMediaTracks {
   }
 
   /// Remove speaker from active speaker detection
-  /// Matches: removeSpeaker() in HandleMediaTracks.ts
   void _removeSpeaker(TrackPublication track, Participant participant) {
     if (track.source != TrackSource.microphone) {
       return;

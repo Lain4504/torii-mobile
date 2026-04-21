@@ -5,7 +5,6 @@ import 'package:torii_app/core/constants/app_design_system.dart';
 
 /// Device Preview Widget
 /// Shows camera preview and mic/camera controls
-/// 1:1 clone of apps/meet/src/components/landing/webcamPreview.tsx
 class DevicePreview extends ConsumerStatefulWidget {
   final bool lockMicrophone;
   final bool lockWebcam;
