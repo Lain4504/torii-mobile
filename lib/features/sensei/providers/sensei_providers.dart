@@ -379,3 +379,89 @@ final grammarCheckProvider = StateNotifierProvider<GrammarCheckNotifier, Grammar
 });
 
 
+
+// --- LESSON CHAT STATE ---
+
+class LessonSenseiChatNotifier extends StateNotifier<List<ChatMessage>> {
+  final SenseiRepository _repository;
+  final Ref _ref;
+  final String lessonId;
+  final String? courseId;
+
+  LessonSenseiChatNotifier(this._repository, this._ref, this.lessonId, this.courseId) : super([]);
+
+  Future<void> sendMessage(String message, {String? timestamp}) async {
+    // History sliding window: Only keep last 6 messages as per checklist
+    final history = state
+        .where((m) => !m.isError && !m.isLoading)
+        .toList();
+    
+    final lastMessages = history.length > 6 
+        ? history.sublist(history.length - 6) 
+        : history;
+
+    final historyMap = lastMessages.map((m) {
+      return {'role': m.role.name, 'content': m.content};
+    }).toList();
+
+    state = [
+      ...state,
+      ChatMessage(role: ChatMessageRole.user, content: message),
+      const ChatMessage(
+        role: ChatMessageRole.assistant,
+        content: '',
+        isLoading: true,
+      ),
+    ];
+
+    try {
+      final response = await _repository.sendLessonChat(
+        lessonId: lessonId,
+        courseId: courseId,
+        currentTimestamp: timestamp,
+        message: message,
+        history: historyMap.cast<Map<String, String>>(),
+      );
+
+      if (response.success && response.data != null) {
+        final aiMessage = ChatMessage(
+          role: ChatMessageRole.assistant,
+          content: response.data!.message,
+          suggestions: response.data!.suggestions,
+        );
+        state = [
+          ...state.sublist(0, state.length - 1),
+          aiMessage,
+        ];
+        _ref.invalidate(senseiQuotaStatusProvider);
+      } else {
+        throw Exception(response.message ?? 'Unknown error');
+      }
+    } catch (e) {
+      final isQuota = e is SenseiQuotaExceededException;
+      state = [
+        ...state.sublist(0, state.length - 1),
+        ChatMessage(
+          role: ChatMessageRole.assistant,
+          content: isQuota
+              ? (e as SenseiQuotaExceededException).message
+              : 'Đã có lỗi xảy ra. Vui lòng thử lại. ($e)',
+          isError: true,
+          errorCode: isQuota ? 'quota_exceeded' : null,
+        ),
+      ];
+    }
+  }
+
+  void addMessage(ChatMessage message) {
+    state = [...state, message];
+  }
+}
+
+final lessonSenseiChatProvider = StateNotifierProvider.autoDispose.family<
+    LessonSenseiChatNotifier,
+    List<ChatMessage>,
+    ({String lessonId, String? courseId})>((ref, arg) {
+  final repository = ref.watch(senseiRepositoryProvider);
+  return LessonSenseiChatNotifier(repository, ref, arg.lessonId, arg.courseId);
+});

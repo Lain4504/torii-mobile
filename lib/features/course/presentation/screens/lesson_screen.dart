@@ -1,5 +1,6 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,8 @@ import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/comment_model.dart';
 import 'package:torii_app/data/models/academy_product_detail_model.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
+import 'package:torii_app/features/sensei/providers/sensei_providers.dart';
+import 'package:torii_app/features/sensei/views/widgets/lesson_sensei_chat_sheet.dart';
 import 'package:video_player/video_player.dart';
 
 class LessonScreen extends ConsumerStatefulWidget {
@@ -364,6 +367,35 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     _videoController?.dispose();
     _chewieController = null;
     _videoController = null;
+  }
+
+  String _formatDuration(Duration d) {
+    final minutes = d.inMinutes;
+    final seconds = d.inSeconds % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void _openSenseiChat({String? initialMessage}) {
+    final lesson = widget.lesson ?? const <String, dynamic>{};
+    final lessonId = (lesson['id'] ?? '').toString();
+    final courseId = (lesson['courseId'] ?? lesson['productId'] ?? '').toString();
+    
+    String? timestamp;
+    if (_videoController != null && _videoController!.value.isInitialized) {
+      timestamp = _formatDuration(_videoController!.value.position);
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => LessonSenseiChatSheet(
+        lessonId: lessonId,
+        courseId: courseId.isNotEmpty ? courseId : null,
+        initialMessage: initialMessage,
+        currentTimestamp: timestamp,
+      ),
+    );
   }
 
   @override
@@ -736,6 +768,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final isVideo = typeUpper == 'VIDEO';
     final isReading = typeUpper == 'READING' || typeUpper == 'ARTICLE';
 
+    // Watch the provider here to keep it alive even when the chat sheet is closed.
+    // It will only be disposed when this LessonScreen is unmounted (e.g. switching lessons).
+    ref.watch(lessonSenseiChatProvider((
+      lessonId: (lesson['id'] ?? '').toString(),
+      courseId: (lesson['courseId'] ?? lesson['productId'] ?? '').toString(),
+    )));
+
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
@@ -919,6 +958,12 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
             },
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _openSenseiChat(),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.auto_awesome),
       ),
     );
   }
@@ -1317,10 +1362,31 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                 ),
                 const SizedBox(height: 14),
                 if (content.trim().isNotEmpty)
-                  MarkdownBody(
-                    data: content,
-                    selectable: true,
-                    extensionSet: md.ExtensionSet.gitHubWeb,
+                  SelectionArea(
+                    contextMenuBuilder: (context, selectableRegionState) {
+                      return AdaptiveTextSelectionToolbar.buttonItems(
+                        anchors: selectableRegionState.contextMenuAnchors,
+                        buttonItems: [
+                          ...selectableRegionState.contextMenuButtonItems,
+                          ContextMenuButtonItem(
+                            label: 'Hỏi Sensei',
+                            onPressed: () async {
+                              selectableRegionState.copySelection(SelectionChangedCause.toolbar);
+                              final data = await Clipboard.getData(Clipboard.kTextPlain);
+                              final text = data?.text;
+                              if (text != null && text.trim().isNotEmpty) {
+                                _openSenseiChat(initialMessage: text);
+                              }
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                    child: MarkdownBody(
+                      data: content,
+                      selectable: false,
+                      extensionSet: md.ExtensionSet.gitHubWeb,
+                    ),
                   )
                 else
                   Text(
