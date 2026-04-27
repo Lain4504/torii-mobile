@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import '../../../core/models/api_response.dart';
+import '../models/lesson_chat_dto.dart';
 import '../models/sensei_model.dart';
 import '../models/sensei_subscription_models.dart';
 
@@ -137,6 +139,40 @@ class SenseiRepository {
         );
       }
       throw Exception('AI Sensei chat failed: $msg');
+    }
+  }
+
+  Future<ApiResponse<LessonChatDataDTO>> sendLessonChat({
+    required String lessonId,
+    String? courseId,
+    String? currentTimestamp,
+    required String message,
+    List<Map<String, String>> history = const [],
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/agents/lesson/chat',
+        data: {
+          'lessonId': lessonId,
+          'courseId': courseId,
+          'currentTimestamp': currentTimestamp,
+          'message': message,
+          'history': history,
+        },
+      );
+
+      return ApiResponse.fromJson(
+        response.data,
+        (dataJson) => LessonChatDataDTO.fromJson(dataJson as Map<String, dynamic>),
+      );
+    } catch (e) {
+      final msg = _extractErrorMessage(e);
+      if (_looksLikeQuotaExceeded(msg)) {
+        throw SenseiQuotaExceededException(
+          msg.isNotEmpty ? msg : 'Bạn đã hết lượt sử dụng.',
+        );
+      }
+      return ApiResponse(success: false, message: 'Lỗi kết nối: $msg');
     }
   }
 
