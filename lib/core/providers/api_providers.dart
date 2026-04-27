@@ -216,9 +216,12 @@ final gamificationProfileProvider = FutureProvider<GamificationProfileModel?>((
   return repo.getProfile();
 });
 
+final leaderboardTypeProvider = StateProvider<String>((ref) => 'global');
+
 final leaderboardProvider = FutureProvider<LeaderboardData?>((ref) async {
+  final type = ref.watch(leaderboardTypeProvider);
   final repo = ref.watch(gamificationRepositoryProvider);
-  return repo.getLeaderboard(type: 'global');
+  return repo.getLeaderboard(type: type);
 });
 
 final gamificationAchievementsProvider = FutureProvider<List<AchievementModel>>(

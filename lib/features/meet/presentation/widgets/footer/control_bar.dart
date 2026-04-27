@@ -8,6 +8,7 @@ import 'leave_button.dart';
 import 'more_options_button.dart';
 import 'chat_button.dart';
 import 'polls_button.dart';
+import 'sensei_chat_button.dart';
 
 /// Control Bar Widget
 /// Shows mic, camera, screen share, leave, and more options buttons
@@ -37,6 +38,8 @@ class ControlBar extends ConsumerWidget {
             const RaiseHandButton(),
             SizedBox(width: gap),
             const ChatButton(),
+            SizedBox(width: gap),
+            const SenseiChatButton(),
             SizedBox(width: gap),
             const PollsButton(),
             SizedBox(width: gap),
