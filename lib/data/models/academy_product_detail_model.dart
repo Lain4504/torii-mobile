@@ -151,6 +151,11 @@ class CurriculumLessonModel {
   });
 
   factory CurriculumLessonModel.fromJson(Map<String, dynamic> json) {
+    final article = json['article'];
+    final articleMap = article is Map<String, dynamic>
+        ? article
+        : (article is Map ? article.cast<String, dynamic>() : null);
+
     return CurriculumLessonModel(
       id: (json['id'] ?? '').toString(),
       moduleId: (json['moduleId'] ?? '').toString(),
@@ -161,7 +166,12 @@ class CurriculumLessonModel {
           : int.tryParse((json['orderIndex'] ?? '').toString()) ?? 0,
       videoUrl: _extractLessonVideoUrl(json),
       videoFileId: _extractLessonVideoFileId(json),
-      content: json['content'] as String?,
+      content: _firstNonEmptyString([
+        json['content'],
+        json['description'],
+        articleMap?['content'],
+        articleMap?['description'],
+      ]),
     );
   }
 }

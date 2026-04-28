@@ -9,7 +9,7 @@ import 'package:torii_app/data/models/academy_product_detail_model.dart';
 import 'package:torii_app/features/academy/presentation/widgets/resource_item.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Khóa LIVE đã ghi danh: lịch tuần + tabs syllabus / tài liệu / bài tập / quiz.
+/// Khóa LIVE đã ghi danh: lịch tuần + tabs syllabus / tài liệu / bài tập / trắc nghiệm.
 class EnrolledLiveCourseScreen extends ConsumerStatefulWidget {
   const EnrolledLiveCourseScreen({
     super.key,
@@ -22,7 +22,8 @@ class EnrolledLiveCourseScreen extends ConsumerStatefulWidget {
   final String liveClassId;
   final String? productId;
   final String? courseTitle;
-  /// UUID ghi danh — bắt buộc để quiz/API attempt theo đúng khóa.
+
+  /// UUID ghi danh — bắt buộc để làm trắc nghiệm/API attempt theo đúng khóa.
   final String? enrollmentId;
 
   @override
@@ -42,7 +43,7 @@ class _EnrolledLiveCourseScreenState
     final now = DateTime.now();
     _currentWeekStart = _getStartOfWeek(now);
     _selectedDate = now;
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.invalidate(liveSchedulesProvider);
@@ -50,7 +51,7 @@ class _EnrolledLiveCourseScreenState
   }
 
   DateTime _getStartOfWeek(DateTime date) {
-    // weekday is 1 (Mon) to 7 (Sun). 
+    // weekday is 1 (Mon) to 7 (Sun).
     // We want Monday as start.
     return date.subtract(Duration(days: date.weekday - 1));
   }
@@ -68,7 +69,6 @@ class _EnrolledLiveCourseScreenState
       _selectedDate = _selectedDate.subtract(const Duration(days: 7));
     });
   }
-
 
   Future<void> _onJoin(LiveScheduleModel session) async {
     if (_joiningSessionId != null) return;
@@ -92,9 +92,7 @@ class _EnrolledLiveCourseScreenState
     } catch (e) {
       if (!mounted) return;
       final msg = _friendlyJoinErrorMessage(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg)),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     } finally {
       if (mounted) setState(() => _joiningSessionId = null);
     }
@@ -105,7 +103,8 @@ class _EnrolledLiveCourseScreenState
     if (lower.contains('phòng học chưa được giảng viên khởi tạo')) {
       return 'Lớp học chưa mở phòng. Vui lòng đợi giảng viên bắt đầu buổi học rồi thử lại.';
     }
-    if (lower.contains('chưa tới giờ') || lower.contains('không trong thời gian')) {
+    if (lower.contains('chưa tới giờ') ||
+        lower.contains('không trong thời gian')) {
       return 'Chưa đến thời gian vào lớp. Bạn thử lại gần giờ học nhé.';
     }
     return 'Hiện chưa thể vào lớp. Vui lòng thử lại sau ít phút.';
@@ -190,7 +189,7 @@ class _EnrolledLiveCourseScreenState
                             Tab(text: 'Lộ trình'),
                             Tab(text: 'Tài liệu'),
                             Tab(text: 'Bài tập'),
-                            Tab(text: 'Quiz'),
+                            Tab(text: 'Trắc nghiệm'),
                           ],
                         ),
                       ),
@@ -239,10 +238,14 @@ class _EnrolledLiveCourseScreenState
 
   Widget _buildWeeklyScheduleStrip(List<LiveScheduleModel> allSessions) {
     final theme = Theme.of(context);
-    final weekDays = List.generate(7, (i) => _currentWeekStart.add(Duration(days: i)));
+    final weekDays = List.generate(
+      7,
+      (i) => _currentWeekStart.add(Duration(days: i)),
+    );
     final endOfWeek = weekDays.last;
-    
-    final rangeStr = "${DateFormat('dd/MM').format(_currentWeekStart)} — ${DateFormat('dd/MM').format(endOfWeek)}";
+
+    final rangeStr =
+        "${DateFormat('dd/MM').format(_currentWeekStart)} — ${DateFormat('dd/MM').format(endOfWeek)}";
     final now = DateTime.now();
     final todayStr = DateFormat('yyyy-MM-dd').format(now);
     final selStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
@@ -251,10 +254,11 @@ class _EnrolledLiveCourseScreenState
     final daysInWeekWithSessions = <String>{};
     for (final day in weekDays) {
       final dStr = DateFormat('yyyy-MM-dd').format(day);
-      final hasSession = allSessions.any((s) => 
-        s.liveClassId == widget.liveClassId && 
-        s.startAt != null && 
-        DateFormat('yyyy-MM-dd').format(s.startAt!.toLocal()) == dStr
+      final hasSession = allSessions.any(
+        (s) =>
+            s.liveClassId == widget.liveClassId &&
+            s.startAt != null &&
+            DateFormat('yyyy-MM-dd').format(s.startAt!.toLocal()) == dStr,
       );
       if (hasSession) daysInWeekWithSessions.add(dStr);
     }
@@ -273,8 +277,11 @@ class _EnrolledLiveCourseScreenState
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.calendar_month_outlined,
-                            color: theme.colorScheme.primary, size: 20),
+                        Icon(
+                          Icons.calendar_month_outlined,
+                          color: theme.colorScheme.primary,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -294,7 +301,9 @@ class _EnrolledLiveCourseScreenState
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
-                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                        color: theme.colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.7,
+                        ),
                         letterSpacing: 0.3,
                       ),
                       maxLines: 1,
@@ -310,8 +319,10 @@ class _EnrolledLiveCourseScreenState
                   _buildNavButton(Icons.chevron_left, _previousWeek),
                   const SizedBox(width: 4),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceContainerHighest
                           .withValues(alpha: 0.5),
@@ -320,7 +331,9 @@ class _EnrolledLiveCourseScreenState
                     child: Text(
                       rangeStr,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 11),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -364,15 +377,25 @@ class _EnrolledLiveCourseScreenState
                         weekday,
                         style: TextStyle(
                           fontSize: 9,
-                          fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                          color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                          fontWeight: isSelected
+                              ? FontWeight.w900
+                              : FontWeight.w700,
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: isSelected ? theme.colorScheme.primary : (isToday ? theme.colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent),
+                          color: isSelected
+                              ? theme.colorScheme.primary
+                              : (isToday
+                                    ? theme.colorScheme.primary.withValues(
+                                        alpha: 0.1,
+                                      )
+                                    : Colors.transparent),
                           shape: BoxShape.circle,
                         ),
                         child: Text(
@@ -380,7 +403,9 @@ class _EnrolledLiveCourseScreenState
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w900,
-                            color: isSelected ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface,
+                            color: isSelected
+                                ? theme.colorScheme.onPrimary
+                                : theme.colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -390,7 +415,9 @@ class _EnrolledLiveCourseScreenState
                           width: 4,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.primary,
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.primary,
                             shape: BoxShape.circle,
                           ),
                         )
@@ -411,12 +438,16 @@ class _EnrolledLiveCourseScreenState
     final theme = Theme.of(context);
     final selStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
     final sessions = allSessions.where((s) {
-      if (s.liveClassId != widget.liveClassId || s.startAt == null) return false;
+      if (s.liveClassId != widget.liveClassId || s.startAt == null)
+        return false;
       return DateFormat('yyyy-MM-dd').format(s.startAt!.toLocal()) == selStr;
     }).toList();
 
     // Sort by start time
-    sessions.sort((a, b) => (a.startAt ?? DateTime.now()).compareTo(b.startAt ?? DateTime.now()));
+    sessions.sort(
+      (a, b) =>
+          (a.startAt ?? DateTime.now()).compareTo(b.startAt ?? DateTime.now()),
+    );
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -436,7 +467,10 @@ class _EnrolledLiveCourseScreenState
               if (sessions.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
@@ -455,40 +489,52 @@ class _EnrolledLiveCourseScreenState
           ),
           const SizedBox(height: 12),
           if (sessions.isEmpty)
-             Container(
-               width: double.infinity,
-               padding: const EdgeInsets.symmetric(vertical: 32),
-               decoration: BoxDecoration(
-                 color: theme.colorScheme.surface.withValues(alpha: 0.5),
-                 borderRadius: BorderRadius.circular(20),
-                 border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
-               ),
-               child: Column(
-                 children: [
-                   Icon(
-                     Icons.auto_awesome_outlined,
-                     size: 32,
-                     color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.15),
-                   ),
-                   const SizedBox(height: 8),
-                   Text(
-                     'Không có lịch học cho ngày này',
-                     style: TextStyle(
-                       color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                       fontSize: 12,
-                       fontWeight: FontWeight.w600,
-                     ),
-                   ),
-                 ],
-               ),
-             )
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.5,
+                  ),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.auto_awesome_outlined,
+                    size: 32,
+                    color: theme.colorScheme.onSurfaceVariant.withValues(
+                      alpha: 0.15,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Không có lịch học cho ngày này',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
+                      ),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            )
           else
             Column(
-              children: sessions.map((s) => _LiveSessionRowCard(
-                session: s,
-                joining: _joiningSessionId == s.id,
-                onJoin: () => _onJoin(s),
-              )).toList(),
+              children: sessions
+                  .map(
+                    (s) => _LiveSessionRowCard(
+                      session: s,
+                      joining: _joiningSessionId == s.id,
+                      onJoin: () => _onJoin(s),
+                    ),
+                  )
+                  .toList(),
             ),
         ],
       ),
@@ -513,14 +559,22 @@ class _EnrolledLiveCourseScreenState
 
   String _getViWeekday(int weekday) {
     switch (weekday) {
-      case 1: return 'THỨ 2';
-      case 2: return 'THỨ 3';
-      case 3: return 'THỨ 4';
-      case 4: return 'THỨ 5';
-      case 5: return 'THỨ 6';
-      case 6: return 'THỨ 7';
-      case 7: return 'CN';
-      default: return '';
+      case 1:
+        return 'THỨ 2';
+      case 2:
+        return 'THỨ 3';
+      case 3:
+        return 'THỨ 4';
+      case 4:
+        return 'THỨ 5';
+      case 5:
+        return 'THỨ 6';
+      case 6:
+        return 'THỨ 7';
+      case 7:
+        return 'CN';
+      default:
+        return '';
     }
   }
 }
@@ -565,19 +619,25 @@ class _LiveSessionRowCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isLive ? theme.colorScheme.primary.withValues(alpha: 0.08) : theme.colorScheme.surface,
+        color: isLive
+            ? theme.colorScheme.primary.withValues(alpha: 0.08)
+            : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isLive ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
+          color: isLive
+              ? theme.colorScheme.primary
+              : theme.colorScheme.outlineVariant,
           width: isLive ? 1.5 : 1,
         ),
-        boxShadow: isLive ? [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ] : null,
+        boxShadow: isLive
+            ? [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
       ),
       child: InkWell(
         onTap: (!canJoin || joining) ? null : onJoin,
@@ -586,15 +646,19 @@ class _LiveSessionRowCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-               Container(
+              Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: isLive ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
+                  color: isLive
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.surfaceContainerHighest,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.videocam_rounded,
-                  color: isLive ? theme.colorScheme.onPrimary : theme.colorScheme.primary,
+                  color: isLive
+                      ? theme.colorScheme.onPrimary
+                      : theme.colorScheme.primary,
                   size: 20,
                 ),
               ),
@@ -613,7 +677,11 @@ class _LiveSessionRowCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.access_time_filled, size: 12, color: theme.colorScheme.onSurfaceVariant),
+                        Icon(
+                          Icons.access_time_filled,
+                          size: 12,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           timeStr,
@@ -625,7 +693,10 @@ class _LiveSessionRowCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
@@ -703,14 +774,30 @@ class _SyllabusTabPane extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final effectiveProductId = (productId != null && productId!.trim().isNotEmpty)
+    final effectiveProductId =
+        (productId != null && productId!.trim().isNotEmpty)
         ? productId!.trim()
         : liveClassId;
-    final detailAsync = ref.watch(classCatalogLiveDetailProvider(effectiveProductId));
-    final effectiveCompletedProductId = (productId?.isEmpty ?? true) ? null : productId;
-    final completedIds = ref.watch(classCompletedLessonIdsProvider((deliveryTargetId: liveClassId, mode: 'LIVE', productId: effectiveCompletedProductId))).value ?? const [];
+    final detailAsync = ref.watch(
+      classCatalogLiveDetailProvider(effectiveProductId),
+    );
+    final effectiveCompletedProductId = (productId?.isEmpty ?? true)
+        ? null
+        : productId;
+    final completedIds =
+        ref
+            .watch(
+              classCompletedLessonIdsProvider((
+                deliveryTargetId: liveClassId,
+                mode: 'LIVE',
+                productId: effectiveCompletedProductId,
+              )),
+            )
+            .value ??
+        const [];
     final completed = completedIds.toSet();
-    final assessments = ref
+    final assessments =
+        ref
             .watch(
               assessmentStatusProvider(
                 assessmentStatusCacheKey(liveClassId, enrollmentId),
@@ -732,7 +819,11 @@ class _SyllabusTabPane extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
+              Icon(
+                Icons.error_outline,
+                size: 48,
+                color: theme.colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Không thể tải lộ trình: $e',
@@ -741,7 +832,9 @@ class _SyllabusTabPane extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.invalidate(classCatalogLiveDetailProvider(effectiveProductId)),
+                onPressed: () => ref.invalidate(
+                  classCatalogLiveDetailProvider(effectiveProductId),
+                ),
                 child: const Text('Thử lại'),
               ),
             ],
@@ -765,31 +858,27 @@ class _SyllabusTabPane extends ConsumerWidget {
         final moduleOrderMap = <String, int>{
           for (int i = 0; i < modules.length; i++) modules[i].id: i,
         };
-        final lessonOrderMeta = <String, ({int moduleOrder, int lessonOrder, String moduleId})>{
-          for (int mi = 0; mi < modules.length; mi++)
-            for (int li = 0; li < modules[mi].lessons.length; li++)
-              modules[mi].lessons[li].id: (
-                moduleOrder: mi,
-                lessonOrder: li,
-                moduleId: modules[mi].id,
-              ),
-        };
+        final lessonOrderMeta =
+            <String, ({int moduleOrder, int lessonOrder, String moduleId})>{
+              for (int mi = 0; mi < modules.length; mi++)
+                for (int li = 0; li < modules[mi].lessons.length; li++)
+                  modules[mi].lessons[li].id: (
+                    moduleOrder: mi,
+                    lessonOrder: li,
+                    moduleId: modules[mi].id,
+                  ),
+            };
         final lessonIndexById = <String, int>{
           for (int i = 0; i < lessonOrder.length; i++) lessonOrder[i].id: i,
         };
         final trackableOrdered = lessonOrder.where(_isTrackableKind).toList();
-        final completedTrackable =
-            trackableOrdered
-                .where(
-                  (l) => _isTrackableDone(
-                    l,
-                    completed,
-                    assessmentsByExamId,
-                  ),
-                )
-                .length;
-        final lessonMilestonesByLessonId = <String, List<AssessmentMilestoneModel>>{};
-        final moduleMilestonesByModuleId = <String, List<AssessmentMilestoneModel>>{};
+        final completedTrackable = trackableOrdered
+            .where((l) => _isTrackableDone(l, completed, assessmentsByExamId))
+            .length;
+        final lessonMilestonesByLessonId =
+            <String, List<AssessmentMilestoneModel>>{};
+        final moduleMilestonesByModuleId =
+            <String, List<AssessmentMilestoneModel>>{};
         final finalMilestones = <AssessmentMilestoneModel>[];
         for (final m in assessments) {
           final kind = _normalizeItemKind(m.kind);
@@ -809,7 +898,10 @@ class _SyllabusTabPane extends ConsumerWidget {
           if ((kind == 'LESSON_CHECKPOINT' || kind == 'LESSON_TEST') &&
               (m.triggerLessonId ?? '').isNotEmpty) {
             lessonMilestonesByLessonId
-                .putIfAbsent(m.triggerLessonId!, () => <AssessmentMilestoneModel>[])
+                .putIfAbsent(
+                  m.triggerLessonId!,
+                  () => <AssessmentMilestoneModel>[],
+                )
                 .add(m);
           }
         }
@@ -853,14 +945,16 @@ class _SyllabusTabPane extends ConsumerWidget {
                     final statusColor = !unlocked
                         ? theme.colorScheme.onSurfaceVariant
                         : (done
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant);
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurfaceVariant);
 
                     return _buildLessonItem(
                       context,
                       title: lesson.title.isNotEmpty ? lesson.title : 'Bài học',
                       duration: _labelByType(lesson.type),
-                      icon: unlocked ? _iconByType(lesson.type) : Icons.lock_outline_rounded,
+                      icon: unlocked
+                          ? _iconByType(lesson.type)
+                          : Icons.lock_outline_rounded,
                       status: status,
                       statusColor: statusColor,
                       locked: !unlocked,
@@ -879,33 +973,33 @@ class _SyllabusTabPane extends ConsumerWidget {
                           .map(
                             (m) => _buildMilestoneItem(
                               context,
-                               milestone: m,
-                               forceLocked: false,
-                             ),
-                           )
-                           .toList(),
-                     );
-                   }).toList()
-                     ..addAll(
-                       (moduleMilestonesByModuleId[module.id] ?? const [])
-                           .map((m) {
-                         return _buildMilestoneItem(
-                           context,
-                           milestone: m,
-                           forceLocked: false,
-                         );
-                       }),
-                     ),
-                 ),
-               ),
-               if (finalMilestones.isNotEmpty) ...[
-                 const SizedBox(height: 6),
-                 _buildFinalExamBlock(
-                   context,
-                   finalMilestones: finalMilestones,
-                   forceLocked: false,
-                 ),
-               ],
+                              milestone: m,
+                              forceLocked: false,
+                            ),
+                          )
+                          .toList(),
+                    );
+                  }).toList()..addAll(
+                    (moduleMilestonesByModuleId[module.id] ?? const []).map((
+                      m,
+                    ) {
+                      return _buildMilestoneItem(
+                        context,
+                        milestone: m,
+                        forceLocked: false,
+                      );
+                    }),
+                  ),
+                ),
+              ),
+              if (finalMilestones.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                _buildFinalExamBlock(
+                  context,
+                  finalMilestones: finalMilestones,
+                  forceLocked: false,
+                ),
+              ],
               const SizedBox(height: 20),
             ],
           ),
@@ -914,7 +1008,10 @@ class _SyllabusTabPane extends ConsumerWidget {
     );
   }
 
-  Widget _buildCurriculumHeader(BuildContext context, AcademyProductDetailModel detail) {
+  Widget _buildCurriculumHeader(
+    BuildContext context,
+    AcademyProductDetailModel detail,
+  ) {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(18),
@@ -958,9 +1055,9 @@ class _SyllabusTabPane extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  (detail.description ?? '').isNotEmpty 
-                    ? _stripHtml(detail.description!)
-                    : 'Tài liệu video tham khảo thêm bên cạnh các buổi học trực tiếp.',
+                  (detail.description ?? '').isNotEmpty
+                      ? _stripHtml(detail.description!)
+                      : 'Tài liệu video tham khảo thêm bên cạnh các buổi học trực tiếp.',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -984,7 +1081,11 @@ class _SyllabusTabPane extends ConsumerWidget {
         .trim();
   }
 
-  Widget _buildModuleItem(BuildContext context, String title, List<Widget> lessons) {
+  Widget _buildModuleItem(
+    BuildContext context,
+    String title,
+    List<Widget> lessons,
+  ) {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -1013,11 +1114,11 @@ class _SyllabusTabPane extends ConsumerWidget {
             ),
             initiallyExpanded: true,
             childrenPadding: EdgeInsets.zero,
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            children: [
-              const Divider(height: 1),
-              ...lessons,
-            ],
+            tilePadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
+            children: [const Divider(height: 1), ...lessons],
           ),
         ),
       ),
@@ -1042,115 +1143,127 @@ class _SyllabusTabPane extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 10.0),
           child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: locked
-            ? () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Hoàn thành bài trước để mở khóa bài này.'),
-                  ),
-                );
-              }
-            : () {
-                if (lesson['type'] == 'quiz') {
-                  final assId = lesson['assessmentId'] ?? '';
-                  final eid = (enrollmentId ?? lesson['enrollmentId'] ?? '')
-                      .toString();
-                  if (eid.isEmpty) {
+            borderRadius: BorderRadius.circular(12),
+            onTap: locked
+                ? () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                          'Thiếu mã ghi danh. Hãy vào khóa từ "Khóa học của tôi".',
+                          'Hoàn thành bài trước để mở khóa bài này.',
                         ),
                       ),
                     );
-                    return;
                   }
-                  context.push(
-                    '/quiz/${lesson['id']}?deliveryTargetId=${lesson['deliveryTargetId']}&enrollmentId=$eid${assId.toString().isNotEmpty ? '&assessmentId=$assId' : ''}',
-                  );
-                  return;
-                }
-                context.push('/lesson', extra: lesson);
-              },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Left Icon
-              Container(
-                width: 32,
-                alignment: Alignment.centerLeft,
-                child: Icon(
-                  icon,
-                  color: locked 
-                    ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
-                    : theme.colorScheme.onSurfaceVariant,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 4),
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: locked 
-                          ? theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
-                          : theme.colorScheme.onSurface,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                : () {
+                    if (lesson['type'] == 'quiz') {
+                      final assId = lesson['assessmentId'] ?? '';
+                      final eid = (enrollmentId ?? lesson['enrollmentId'] ?? '')
+                          .toString();
+                      if (eid.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Thiếu mã ghi danh. Hãy vào khóa từ "Khóa học của tôi".',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      context.push(
+                        '/quiz/${lesson['id']}?deliveryTargetId=${lesson['deliveryTargetId']}&enrollmentId=$eid${assId.toString().isNotEmpty ? '&assessmentId=$assId' : ''}',
+                      );
+                      return;
+                    }
+                    context.push('/lesson', extra: lesson);
+                  },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Left Icon
+                  Container(
+                    width: 32,
+                    alignment: Alignment.centerLeft,
+                    child: Icon(
+                      icon,
+                      color: locked
+                          ? theme.colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.5,
+                            )
+                          : theme.colorScheme.onSurfaceVariant,
+                      size: 20,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      duration,
+                  ),
+                  const SizedBox(width: 4),
+                  // Content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          title,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: locked
+                                ? theme.colorScheme.onSurfaceVariant.withValues(
+                                    alpha: 0.7,
+                                  )
+                                : theme.colorScheme.onSurface,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          duration,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.6),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Status Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      status,
                       style: TextStyle(
-                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                        fontSize: 11,
+                        color: statusColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
                       ),
+                    ),
+                  ),
+                  // Right side: only show chevron if not locked
+                  if (!locked) ...[
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.4,
+                      ),
+                      size: 20,
                     ),
                   ],
-                ),
+                ],
               ),
-              const SizedBox(width: 12),
-              // Status Badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              // Right side: only show chevron if not locked
-              if (!locked) ...[
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  size: 20,
-                ),
-              ],
-            ],
+            ),
           ),
         ),
-      ),
-    ),
         ...children,
       ],
     );
@@ -1180,7 +1293,7 @@ class _SyllabusTabPane extends ConsumerWidget {
     required Map<String, AssessmentMilestoneModel> assessmentsByExamId,
     required List<AssessmentMilestoneModel> milestones,
     required Map<String, ({int moduleOrder, int lessonOrder, String moduleId})>
-        lessonOrderMeta,
+    lessonOrderMeta,
     required Map<String, int> moduleOrderMap,
   }) {
     return true; // Live class is always unlocked
@@ -1213,7 +1326,8 @@ class _SyllabusTabPane extends ConsumerWidget {
         : null;
     return <String, dynamic>{
       if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
-      if (enrollmentId != null && enrollmentId.isNotEmpty) 'enrollmentId': enrollmentId,
+      if (enrollmentId != null && enrollmentId.isNotEmpty)
+        'enrollmentId': enrollmentId,
       'productId': effectiveProductId,
       if (mode.isNotEmpty) 'mode': mode,
       if (assessmentId != null) 'assessmentId': assessmentId,
@@ -1230,18 +1344,21 @@ class _SyllabusTabPane extends ConsumerWidget {
       if (nextLesson != null)
         'nextLesson': <String, dynamic>{
           if (deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
-          if (enrollmentId != null && enrollmentId.isNotEmpty) 'enrollmentId': enrollmentId,
+          if (enrollmentId != null && enrollmentId.isNotEmpty)
+            'enrollmentId': enrollmentId,
           'productId': effectiveProductId,
           if (mode.isNotEmpty) 'mode': mode,
           'id': nextLesson.id,
           'title': nextLesson.title,
           'type': nextLesson.type.toLowerCase(),
           'videoUrl': nextLesson.videoUrl,
-          if (nextLesson.videoFileId != null && nextLesson.videoFileId!.isNotEmpty)
+          if (nextLesson.videoFileId != null &&
+              nextLesson.videoFileId!.isNotEmpty)
             'videoFileId': nextLesson.videoFileId,
           'article': <String, dynamic>{
             'title': nextLesson.title,
-            'content': nextLesson.content ?? 'Nội dung bài học đang được cập nhật.',
+            'content':
+                nextLesson.content ?? 'Nội dung bài học đang được cập nhật.',
           },
         },
     };
@@ -1257,16 +1374,18 @@ class _SyllabusTabPane extends ConsumerWidget {
     final isPassed = milestone.isPassed;
     final statusText = isPassed
         ? (milestone.percentage != null
-            ? '${milestone.percentage!.round()}% đạt'
-            : 'Đã đạt')
+              ? '${milestone.percentage!.round()}% đạt'
+              : 'Đã đạt')
         : (milestone.status == 'FAILED'
-            ? 'Cần làm lại'
-            : (isLocked ? 'Đã khóa' : 'Sẵn sàng'));
+              ? 'Cần làm lại'
+              : (isLocked ? 'Đã khóa' : 'Sẵn sàng'));
     return Padding(
       padding: const EdgeInsets.only(left: 24, right: 4, bottom: 8),
       child: Container(
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.35,
+          ),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isPassed
@@ -1305,7 +1424,9 @@ class _SyllabusTabPane extends ConsumerWidget {
               fontWeight: FontWeight.w700,
               color: isPassed
                   ? Colors.green
-                  : (isLocked ? theme.colorScheme.outline : theme.colorScheme.primary),
+                  : (isLocked
+                        ? theme.colorScheme.outline
+                        : theme.colorScheme.primary),
             ),
           ),
         ),
@@ -1323,7 +1444,9 @@ class _SyllabusTabPane extends ConsumerWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.28,
+        ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
@@ -1350,14 +1473,19 @@ class _SyllabusTabPane extends ConsumerWidget {
     );
   }
 
-  void _openMilestoneQuiz(BuildContext context, AssessmentMilestoneModel milestone) {
+  void _openMilestoneQuiz(
+    BuildContext context,
+    AssessmentMilestoneModel milestone,
+  ) {
     final examPath = milestone.examId.isNotEmpty && milestone.examId != 'null'
         ? milestone.examId
         : 'unknown';
     if (enrollmentId == null || enrollmentId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Thiếu mã ghi danh. Hãy vào khóa từ "Khóa học của tôi".'),
+          content: Text(
+            'Thiếu mã ghi danh. Hãy vào khóa từ "Khóa học của tôi".',
+          ),
         ),
       );
       return;
@@ -1386,7 +1514,7 @@ class _SyllabusTabPane extends ConsumerWidget {
       case 'ARTICLE':
         return 'Bài đọc';
       case 'QUIZ':
-        return 'Quiz';
+        return 'Trắc nghiệm';
       case 'VIDEO':
       default:
         return 'Video';
@@ -1398,7 +1526,7 @@ bool _hasBlockingRequiredMilestoneBeforeLesson({
   required CurriculumLessonModel lesson,
   required List<AssessmentMilestoneModel> milestones,
   required Map<String, ({int moduleOrder, int lessonOrder, String moduleId})>
-      lessonOrderMeta,
+  lessonOrderMeta,
   required Map<String, int> moduleOrderMap,
 }) {
   final lessonMeta = lessonOrderMeta[lesson.id];
@@ -1433,7 +1561,9 @@ class _ResourcesTabPane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final resourcesAsync = ref.watch(folderResourcesByClassProvider(liveClassId));
+    final resourcesAsync = ref.watch(
+      folderResourcesByClassProvider(liveClassId),
+    );
 
     return resourcesAsync.when(
       data: (resources) {
@@ -1459,9 +1589,7 @@ class _ResourcesTabPane extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Text('Lỗi: $error'),
-      ),
+      error: (error, stack) => Center(child: Text('Lỗi: $error')),
     );
   }
 
@@ -1492,9 +1620,9 @@ class _ResourcesTabPane extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi mở tài nguyên: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi mở tài nguyên: $e')));
       }
     }
   }
@@ -1533,10 +1661,15 @@ class _AssignmentsTabPane extends ConsumerWidget {
     );
   }
 
-  Widget _buildAssignmentCard(BuildContext context, WidgetRef ref, AssignmentModel assignment) {
+  Widget _buildAssignmentCard(
+    BuildContext context,
+    WidgetRef ref,
+    AssignmentModel assignment,
+  ) {
     final theme = Theme.of(context);
-    final isSubmitted = assignment.status == 'SUBMITTED' || assignment.status == 'GRADED';
-    
+    final isSubmitted =
+        assignment.status == 'SUBMITTED' || assignment.status == 'GRADED';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -1546,18 +1679,27 @@ class _AssignmentsTabPane extends ConsumerWidget {
       ),
       child: ListTile(
         onTap: () => _showSubmitDialog(context, ref, assignment),
-        title: Text(assignment.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: assignment.deadline != null 
-          ? Text('Hạn nộp: ${DateFormat('dd/MM/yyyy').format(assignment.deadline!)}')
-          : null,
+        title: Text(
+          assignment.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: assignment.deadline != null
+            ? Text(
+                'Hạn nộp: ${DateFormat('dd/MM/yyyy').format(assignment.deadline!)}',
+              )
+            : null,
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: isSubmitted ? Colors.green.withValues(alpha: 0.1) : theme.colorScheme.primary.withValues(alpha: 0.1),
+            color: isSubmitted
+                ? Colors.green.withValues(alpha: 0.1)
+                : theme.colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            isSubmitted ? (assignment.status == 'GRADED' ? 'Đã chấm' : 'Đã nộp') : 'Chưa nộp',
+            isSubmitted
+                ? (assignment.status == 'GRADED' ? 'Đã chấm' : 'Đã nộp')
+                : 'Chưa nộp',
             style: TextStyle(
               color: isSubmitted ? Colors.green : theme.colorScheme.primary,
               fontSize: 11,
@@ -1569,7 +1711,11 @@ class _AssignmentsTabPane extends ConsumerWidget {
     );
   }
 
-  void _showSubmitDialog(BuildContext context, WidgetRef ref, AssignmentModel assignment) {
+  void _showSubmitDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AssignmentModel assignment,
+  ) {
     if (assignment.status == 'GRADED') {
       showDialog(
         context: context,
@@ -1579,7 +1725,14 @@ class _AssignmentsTabPane extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Điểm: ${assignment.grade}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
+              Text(
+                'Điểm: ${assignment.grade}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.green,
+                ),
+              ),
               if (assignment.submittedAt != null) ...[
                 const SizedBox(height: 10),
                 Text(
@@ -1587,9 +1740,13 @@ class _AssignmentsTabPane extends ConsumerWidget {
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ],
-              if ((assignment.submittedUrl ?? '').isNotEmpty || (assignment.submittedText ?? '').isNotEmpty) ...[
+              if ((assignment.submittedUrl ?? '').isNotEmpty ||
+                  (assignment.submittedText ?? '').isNotEmpty) ...[
                 const SizedBox(height: 10),
-                const Text('Nội dung đã nộp:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Nội dung đã nộp:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 6),
                 if ((assignment.submittedUrl ?? '').isNotEmpty)
                   InkWell(
@@ -1607,13 +1764,21 @@ class _AssignmentsTabPane extends ConsumerWidget {
               ],
               if (assignment.feedback != null) ...[
                 const SizedBox(height: 12),
-                const Text('Nhận xét:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Nhận xét:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 4),
                 Text(assignment.feedback!),
               ],
             ],
           ),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Đóng'))],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Đóng'),
+            ),
+          ],
         ),
       );
       return;
@@ -1639,9 +1804,13 @@ class _AssignmentsTabPane extends ConsumerWidget {
                   'Đã nộp lúc: ${DateFormat('dd/MM/yyyy HH:mm').format(assignment.submittedAt!.toLocal())}',
                 ),
               ],
-              if ((assignment.submittedUrl ?? '').isNotEmpty || (assignment.submittedText ?? '').isNotEmpty) ...[
+              if ((assignment.submittedUrl ?? '').isNotEmpty ||
+                  (assignment.submittedText ?? '').isNotEmpty) ...[
                 const SizedBox(height: 10),
-                const Text('Nội dung đã nộp:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Nội dung đã nộp:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 6),
                 if ((assignment.submittedUrl ?? '').isNotEmpty)
                   InkWell(
@@ -1658,9 +1827,7 @@ class _AssignmentsTabPane extends ConsumerWidget {
                   Text(assignment.submittedText ?? ''),
               ],
               const SizedBox(height: 10),
-              const Text(
-                'Hiện tại mobile chưa hỗ trợ chỉnh sửa/nộp lại.',
-              ),
+              const Text('Hiện tại mobile chưa hỗ trợ chỉnh sửa/nộp lại.'),
             ],
           ),
           actions: [
@@ -1685,15 +1852,37 @@ class _AssignmentsTabPane extends ConsumerWidget {
           color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          MediaQuery.of(context).viewInsets.bottom + 20,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)))),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
-            Text('Nộp bài tập', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              'Nộp bài tập',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
-            Text(assignment.title, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              assignment.title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 20),
             Expanded(
               child: TextField(
@@ -1703,7 +1892,9 @@ class _AssignmentsTabPane extends ConsumerWidget {
                 textAlignVertical: TextAlignVertical.top,
                 decoration: InputDecoration(
                   hintText: 'Nhập nội dung bài làm của bạn...',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   alignLabelWithHint: true,
                 ),
               ),
@@ -1726,12 +1917,17 @@ class _AssignmentsTabPane extends ConsumerWidget {
                   if (success) {
                     if (context.mounted) {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nộp bài thành công!')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Nộp bài thành công!')),
+                      );
                       ref.invalidate(assignmentsProvider(liveClassId));
                     }
                   }
                 },
-                child: const Text('Gửi bài làm', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Gửi bài làm',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
@@ -1754,36 +1950,35 @@ class _AssignmentsTabPane extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khi mở liên kết: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi mở liên kết: $e')));
       }
     }
   }
 }
 
 class _QuizzesTabPane extends ConsumerWidget {
-  const _QuizzesTabPane({
-    required this.liveClassId,
-    this.enrollmentId,
-  });
+  const _QuizzesTabPane({required this.liveClassId, this.enrollmentId});
 
   final String liveClassId;
   final String? enrollmentId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statusAsync = ref.watch(assessmentStatusProvider(
-      assessmentStatusCacheKey(liveClassId, enrollmentId),
-    ));
+    final statusAsync = ref.watch(
+      assessmentStatusProvider(
+        assessmentStatusCacheKey(liveClassId, enrollmentId),
+      ),
+    );
 
     return statusAsync.when(
       data: (list) {
         if (list.isEmpty) {
           return const _PlaceholderTabPane(
             icon: Icons.quiz_outlined,
-            title: 'Quiz',
-            message: 'Bài quiz sẽ được cập nhật theo tiến độ khóa học.',
+            title: 'Trắc nghiệm',
+            message: 'Bài trắc nghiệm sẽ được cập nhật theo tiến độ khóa học.',
           );
         }
 
@@ -1801,10 +1996,13 @@ class _QuizzesTabPane extends ConsumerWidget {
     );
   }
 
-  Widget _buildMilestoneCard(BuildContext context, AssessmentMilestoneModel milestone) {
+  Widget _buildMilestoneCard(
+    BuildContext context,
+    AssessmentMilestoneModel milestone,
+  ) {
     final theme = Theme.of(context);
     final isLocked = milestone.isLocked;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -1813,29 +2011,43 @@ class _QuizzesTabPane extends ConsumerWidget {
         border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: ListTile(
-        onTap: isLocked ? null : () {
-          final examPath = milestone.examId.isNotEmpty && milestone.examId != 'null' ? milestone.examId : 'unknown';
-          final eid = enrollmentId ?? '';
-          if (eid.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Thiếu mã ghi danh. Hãy vào khóa từ "Khóa học của tôi".'),
-              ),
-            );
-            return;
-          }
-          context.push(
-            '/quiz/$examPath?deliveryTargetId=$liveClassId&enrollmentId=$eid&assessmentId=${milestone.id}',
-          );
-        },
+        onTap: isLocked
+            ? null
+            : () {
+                final examPath =
+                    milestone.examId.isNotEmpty && milestone.examId != 'null'
+                    ? milestone.examId
+                    : 'unknown';
+                final eid = enrollmentId ?? '';
+                if (eid.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Thiếu mã ghi danh. Hãy vào khóa từ "Khóa học của tôi".',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                context.push(
+                  '/quiz/$examPath?deliveryTargetId=$liveClassId&enrollmentId=$eid&assessmentId=${milestone.id}',
+                );
+              },
         leading: Icon(
           isLocked ? Icons.lock_outline : Icons.quiz_outlined,
-          color: isLocked ? theme.colorScheme.outline : theme.colorScheme.primary,
+          color: isLocked
+              ? theme.colorScheme.outline
+              : theme.colorScheme.primary,
         ),
-        title: Text(milestone.title, style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: isLocked ? theme.colorScheme.outline : theme.colorScheme.onSurface,
-        )),
+        title: Text(
+          milestone.title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isLocked
+                ? theme.colorScheme.outline
+                : theme.colorScheme.onSurface,
+          ),
+        ),
         trailing: _buildStatusBadge(milestone),
       ),
     );
@@ -1844,7 +2056,7 @@ class _QuizzesTabPane extends ConsumerWidget {
   Widget _buildStatusBadge(AssessmentMilestoneModel milestone) {
     Color color;
     String text;
-    
+
     switch (milestone.status) {
       case 'PASSED':
         color = Colors.green;
@@ -1866,14 +2078,21 @@ class _QuizzesTabPane extends ConsumerWidget {
         color = Colors.orange;
         text = 'Bắt đầu';
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(text, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }

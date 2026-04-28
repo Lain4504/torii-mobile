@@ -1050,6 +1050,8 @@ class AcademyRepository {
         ? '/api/academy/live-classes/$deliveryTargetId/lessons/$lessonId/complete'
         : '/api/academy/vod-packages/$deliveryTargetId/lessons/$lessonId/complete';
 
+    debugPrint('completeClassLesson: path=$path, mode=$mode, productId=$productId');
+
     try {
       final response = await _dio.post<dynamic>(
         path,
@@ -1059,17 +1061,28 @@ class AcademyRepository {
       );
       
       if (response.statusCode == 204 || response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('completeClassLesson success: ${response.statusCode}');
         return true;
       }
       
       final data = response.data;
       if (data is Map<String, dynamic>) {
         final api = ApiResponse<Map<String, dynamic>>.fromJson(data);
+        if (!api.success) {
+          debugPrint('completeClassLesson error message from server: ${api.message}');
+        }
         return api.success == true;
       }
       
+      debugPrint('completeClassLesson fallback: false (data type ${data?.runtimeType})');
       return false;
-    } catch (_) {
+    } on DioException catch (e) {
+      debugPrint('completeClassLesson DioException: ${e.message}');
+      debugPrint('completeClassLesson response status: ${e.response?.statusCode}');
+      debugPrint('completeClassLesson response data: ${e.response?.data}');
+      return false;
+    } catch (e) {
+      debugPrint('completeClassLesson unexpected error: $e');
       return false;
     }
   }
@@ -1288,6 +1301,26 @@ class AcademyRepository {
     final signedUrl = api.data!['signedUrl']?.toString();
     if (signedUrl == null || signedUrl.isEmpty) return null;
     return signedUrl;
+  }
+
+  /// GET /api/academy/lessons/:lessonId
+  /// Web learner luôn dùng endpoint này để render lesson detail; mobile fallback để đồng bộ dữ liệu video/content.
+  Future<Map<String, dynamic>?> getLessonById(String lessonId) async {
+    if (lessonId.trim().isEmpty) return null;
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/academy/lessons/$lessonId',
+      );
+      final api = ApiResponse<Map<String, dynamic>>.fromJson(response.data ?? {});
+      if (!api.success || api.data == null) return null;
+      final data = api.data!;
+      final item = data['item'];
+      if (item is Map<String, dynamic>) return item;
+      if (item is Map) return item.cast<String, dynamic>();
+      return data;
+    } catch (_) {
+      return null;
+    }
   }
 
   // ---------- Assessment Plans (Quiz/Midterm/Final) ----------

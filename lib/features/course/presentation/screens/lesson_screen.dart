@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:torii_app/core/constants/app_design_system.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
+import 'package:torii_app/data/models/academy_models.dart';
 import 'package:torii_app/data/models/comment_model.dart';
 import 'package:torii_app/data/models/academy_product_detail_model.dart';
 import 'package:torii_app/features/auth/providers/auth_providers.dart';
@@ -43,6 +44,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   bool _isCreateTopicSheetOpen = false;
   Future<AcademyProductDetailModel?>? _syllabusDetailFuture;
   String _syllabusCacheKey = '';
+  Future<Map<String, dynamic>?>? _lessonDetailFuture;
+  String _lessonDetailCacheKey = '';
 
   @override
   void initState() {
@@ -50,6 +53,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
     _prepareSyllabusDetail();
+    _prepareLessonDetail();
     _initVideo();
     _resolveReadingContent();
     // Load discussions after first render to make sure `widget.lesson` and providers are ready.
@@ -77,6 +81,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final newMode = (widget.lesson?['mode'] ?? 'VOD').toString().toUpperCase();
     if (oldDeliveryTargetId != newDeliveryTargetId || oldMode != newMode) {
       _prepareSyllabusDetail();
+    }
+    if (oldWidget.lesson?['id'] != widget.lesson?['id']) {
+      _prepareLessonDetail();
     }
     if (oldWidget.lesson?['videoUrl'] != widget.lesson?['videoUrl'] ||
         oldWidget.lesson?['videoFileId'] != widget.lesson?['videoFileId'] ||
@@ -109,6 +116,15 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       detailId,
       mode: mode,
     );
+  }
+
+  void _prepareLessonDetail() {
+    final lessonId = _asNonEmptyString(widget.lesson?['id']);
+    if (lessonId == null || lessonId == _lessonDetailCacheKey) return;
+    _lessonDetailCacheKey = lessonId;
+    _lessonDetailFuture = ref
+        .read(academyRepositoryProvider)
+        .getLessonById(lessonId);
   }
 
   void _onVideoProgress() {
@@ -204,58 +220,22 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   }
 
   Future<String?> _resolveVideoPlaybackUrl(Map<String, dynamic> lesson) async {
-    final directUrl = _extractImmediateVideoUrl(lesson);
-    if (directUrl != null) return directUrl;
-
-    final fileId = _extractVideoFileId(lesson);
-    if (fileId != null) {
-      try {
-        final signed = await ref
-            .read(academyRepositoryProvider)
-            .getStorageSignedUrl(fileId: fileId);
-        if (signed != null && signed.isNotEmpty) return signed;
-      } catch (_) {
-        // Continue with syllabus fallback.
-      }
-    }
-
     final lessonId = _asNonEmptyString(lesson['id']);
     if (lessonId == null) return null;
-    final syllabusLesson = await _loadLessonFromSyllabus(lessonId);
-    if (syllabusLesson == null) return null;
+    _prepareLessonDetail();
+    final lessonDetail = await _lessonDetailFuture;
+    if (lessonDetail == null) return null;
 
-    final syllabusUrl = _asNonEmptyString(syllabusLesson.videoUrl);
-    if (syllabusUrl != null) return syllabusUrl;
+    final detailUrl = _extractImmediateVideoUrl(lessonDetail);
+    if (detailUrl != null) return detailUrl;
 
-    final syllabusFileId = _asNonEmptyString(syllabusLesson.videoFileId);
-    if (syllabusFileId == null) return null;
-
-    try {
-      return await ref
-          .read(academyRepositoryProvider)
-          .getStorageSignedUrl(fileId: syllabusFileId);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<CurriculumLessonModel?> _loadLessonFromSyllabus(String lessonId) async {
-    _prepareSyllabusDetail();
-    final future = _syllabusDetailFuture;
-    if (future == null) return null;
-
-    try {
-      final detail = await future;
-      if (detail == null) return null;
-      for (final module in detail.modules) {
-        for (final lesson in module.lessons) {
-          if (lesson.id == lessonId) return lesson;
-        }
-      }
-      return null;
-    } catch (_) {
-      return null;
-    }
+    final detailFileId = _extractVideoFileId(lessonDetail);
+    if (detailFileId == null) return null;
+    final signed = await ref
+        .read(academyRepositoryProvider)
+        .getStorageSignedUrl(fileId: detailFileId);
+    if (signed == null || signed.isEmpty) return null;
+    return signed;
   }
 
   bool _isReadingType(String type) {
@@ -275,23 +255,20 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final type = (lesson['type'] ?? '').toString();
     if (!_isReadingType(type)) return;
 
-    final article = lesson['article'];
-    final currentContent = article is Map
-        ? _asNonEmptyString(article['content'])
-        : null;
-    if (!_isMissingArticleContent(currentContent)) {
-      _resolvedArticleContent = currentContent;
-      return;
-    }
-
     final lessonId = _asNonEmptyString(lesson['id']);
     if (lessonId == null) return;
-    final syllabusLesson = await _loadLessonFromSyllabus(lessonId);
-    final contentFromSyllabus = _asNonEmptyString(syllabusLesson?.content);
-    if (_isMissingArticleContent(contentFromSyllabus)) return;
-    if (!mounted) return;
+    _prepareLessonDetail();
+    final lessonDetail = await _lessonDetailFuture;
+    final detailContent = _asNonEmptyString(
+      lessonDetail?['content'] ??
+          lessonDetail?['description'] ??
+          (lessonDetail?['article'] is Map
+              ? (lessonDetail?['article'] as Map)['content']
+              : null),
+    );
+    if (_isMissingArticleContent(detailContent) || !mounted) return;
     setState(() {
-      _resolvedArticleContent = contentFromSyllabus;
+      _resolvedArticleContent = detailContent;
     });
   }
 
@@ -490,6 +467,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final lesson = widget.lesson ?? const <String, dynamic>{};
     final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
     if (deliveryTargetId.isEmpty) return;
+    final enrollmentId = (lesson['enrollmentId'] ?? '').toString();
     final progressDisabled = lesson['progressDisabled'] == true;
     final currentLessonId = (lesson['id'] ?? '').toString();
 
@@ -505,8 +483,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
           maxChildSize: 0.96,
           expand: false,
           builder: (ctx, scrollController) {
+            final colorScheme = Theme.of(ctx).colorScheme;
             return Material(
-              color: AppColors.surface,
+              color: colorScheme.surface,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -518,7 +497,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.grey300,
+                      color: colorScheme.outlineVariant,
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
@@ -529,8 +508,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                         Expanded(
                           child: Text(
                             'Chương trình học',
-                            style: Theme.of(ctx).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w900),
+                            style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: colorScheme.onSurface,
+                                ),
                           ),
                         ),
                         IconButton(
@@ -553,7 +534,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                           return Center(
                             child: Text(
                               'Lỗi: ${snapshot.error}',
-                              style: const TextStyle(color: AppColors.error),
+                              style: TextStyle(color: colorScheme.error),
                             ),
                           );
                         }
@@ -566,6 +547,62 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
 
                         final useProgress =
                             !progressDisabled && deliveryTargetId.isNotEmpty;
+                        final assessments = useProgress
+                            ? (ref
+                                      .watch(
+                                        assessmentStatusProvider(
+                                          assessmentStatusCacheKey(
+                                            deliveryTargetId,
+                                            enrollmentId.isNotEmpty
+                                                ? enrollmentId
+                                                : null,
+                                          ),
+                                        ),
+                                      )
+                                      .value ??
+                                  const <AssessmentMilestoneModel>[])
+                            : const <AssessmentMilestoneModel>[];
+                        final assessmentsByExamId =
+                            <String, AssessmentMilestoneModel>{};
+                        for (final a in assessments) {
+                          assessmentsByExamId[a.examId] = a;
+                          assessmentsByExamId[a.id] = a;
+                        }
+
+                        final lessonMilestonesByLessonId =
+                            <String, List<AssessmentMilestoneModel>>{};
+                        final moduleMilestonesByModuleId =
+                            <String, List<AssessmentMilestoneModel>>{};
+                        final finalMilestones = <AssessmentMilestoneModel>[];
+                        for (final m in assessments) {
+                          final kind = _normalizeMilestoneKind(m.kind);
+                          if (kind == 'FINAL_EXAM') {
+                            finalMilestones.add(m);
+                            continue;
+                          }
+                          if ((kind == 'MODULE_CHECKPOINT' ||
+                                  kind == 'MODULE_TEST' ||
+                                  kind == 'MODULE_EXAM') &&
+                              (m.moduleId ?? '').isNotEmpty) {
+                            moduleMilestonesByModuleId
+                                .putIfAbsent(
+                                  m.moduleId!,
+                                  () => <AssessmentMilestoneModel>[],
+                                )
+                                .add(m);
+                            continue;
+                          }
+                          if ((kind == 'LESSON_CHECKPOINT' ||
+                                  kind == 'LESSON_TEST') &&
+                              (m.triggerLessonId ?? '').isNotEmpty) {
+                            lessonMilestonesByLessonId
+                                .putIfAbsent(
+                                  m.triggerLessonId!,
+                                  () => <AssessmentMilestoneModel>[],
+                                )
+                                .add(m);
+                          }
+                        }
                         final modules = detail.modules;
                         final completedIds = useProgress
                             ? (ref
@@ -597,6 +634,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                         final trackableOrdered = lessonOrder
                             .where(_syllabusIsTrackable)
                             .toList();
+                        final completedTrackable = trackableOrdered
+                            .where((l) => _syllabusIsTrackableDone(
+                                  l,
+                                  completed,
+                                  assessmentsByExamId,
+                                ))
+                            .length;
 
                         return ListView(
                           controller: scrollController,
@@ -619,23 +663,32 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                         fontSize: 15,
                                       ),
                                     ),
-                                    children: module.lessons.map((cl) {
-                                      final idx = lessonIndexById[cl.id] ?? -1;
-                                      final hasNext = idx >= 0 &&
-                                          idx + 1 < lessonOrder.length;
-                                      final nextL =
-                                          hasNext ? lessonOrder[idx + 1] : null;
-                                      final unlocked = _syllabusEffectiveUnlocked(
-                                        lesson: cl,
-                                        trackableOrdered: trackableOrdered,
-                                        completed: completed,
-                                        useProgress: useProgress,
-                                      );
-                                      final done = useProgress &&
-                                          _syllabusIsTrackable(cl) &&
-                                          completed.contains(cl.id);
-                                      final isCurrent = cl.id == currentLessonId;
-                                      return ListTile(
+                                    children: () {
+                                      final moduleChildren = <Widget>[];
+                                      for (final cl in module.lessons) {
+                                        final idx = lessonIndexById[cl.id] ?? -1;
+                                        final hasNext = idx >= 0 &&
+                                            idx + 1 < lessonOrder.length;
+                                        final nextL =
+                                            hasNext ? lessonOrder[idx + 1] : null;
+                                        final unlocked = _syllabusEffectiveUnlocked(
+                                          lesson: cl,
+                                          trackableOrdered: trackableOrdered,
+                                          completed: completed,
+                                          assessmentsByExamId: assessmentsByExamId,
+                                          useProgress: useProgress,
+                                        );
+                                        final done = useProgress &&
+                                            _syllabusIsTrackableDone(
+                                              cl,
+                                              completed,
+                                              assessmentsByExamId,
+                                            );
+                                        final isCurrent = cl.id == currentLessonId;
+                                        final lessonMilestones =
+                                            lessonMilestonesByLessonId[cl.id] ??
+                                                const <AssessmentMilestoneModel>[];
+                                        moduleChildren.add(ListTile(
                                         contentPadding:
                                             const EdgeInsets.symmetric(
                                           horizontal: 4,
@@ -693,10 +746,41 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                             );
                                             return;
                                           }
+                                          if (cl.type.toUpperCase() == 'QUIZ') {
+                                            final assId = assessmentsByExamId[cl.id]?.id;
+                                            if (enrollmentId.isEmpty) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Thiếu mã ghi danh. Mở lộ trình từ "Khóa học của tôi".',
+                                                  ),
+                                                ),
+                                              );
+                                              return;
+                                            }
+                                            Navigator.of(
+                                              ctx,
+                                              rootNavigator: true,
+                                            ).pop();
+                                            final examPath =
+                                                cl.id.isNotEmpty ? cl.id : 'unknown';
+                                            final assQuery =
+                                                (assId != null && assId.isNotEmpty)
+                                                    ? '&assessmentId=$assId'
+                                                    : '';
+                                            context.push(
+                                              '/quiz/$examPath?deliveryTargetId=$deliveryTargetId&enrollmentId=$enrollmentId$assQuery',
+                                            );
+                                            return;
+                                          }
                                           final payload = _syllabusLessonPayload(
                                             deliveryTargetId:
                                                 deliveryTargetId.isNotEmpty
                                                 ? deliveryTargetId
+                                                : null,
+                                            enrollmentId:
+                                                enrollmentId.isNotEmpty
+                                                ? enrollmentId
                                                 : null,
                                             productId: (lesson['productId'] ??
                                                         '')
@@ -708,6 +792,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                                 (lesson['mode'] ?? 'VOD')
                                                     .toString(),
                                             progressDisabled: progressDisabled,
+                                            assessmentId:
+                                                cl.type.toUpperCase() == 'QUIZ'
+                                                ? assessmentsByExamId[cl.id]?.id
+                                                : null,
                                             lesson: cl,
                                             nextLesson: nextL,
                                           );
@@ -720,8 +808,141 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                             extra: payload,
                                           );
                                         },
+                                      ));
+                                        moduleChildren.addAll(
+                                          lessonMilestones.map(
+                                            (m) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 26,
+                                            right: 4,
+                                            bottom: 8,
+                                          ),
+                                          child: _buildSyllabusMilestoneTile(
+                                            context,
+                                            milestone: m,
+                                            forceLocked: !done,
+                                            onTap: () {
+                                              Navigator.of(
+                                                ctx,
+                                                rootNavigator: true,
+                                              ).pop();
+                                              _openMilestoneQuizFromSyllabus(
+                                                m,
+                                                deliveryTargetId: deliveryTargetId,
+                                                enrollmentId: enrollmentId,
+                                              );
+                                            },
+                                          ),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      moduleChildren.addAll(
+                                        (moduleMilestonesByModuleId[module.id] ??
+                                              const <AssessmentMilestoneModel>[])
+                                          .map((m) {
+                                        final moduleTrackable = module.lessons
+                                            .where(_syllabusIsTrackable)
+                                            .toList();
+                                        final canOpen = moduleTrackable.isNotEmpty &&
+                                            moduleTrackable.every(
+                                              (l) => _syllabusIsTrackableDone(
+                                                l,
+                                                completed,
+                                                assessmentsByExamId,
+                                              ),
+                                            );
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 18,
+                                            right: 4,
+                                            bottom: 8,
+                                          ),
+                                          child: _buildSyllabusMilestoneTile(
+                                            context,
+                                            milestone: m,
+                                            forceLocked: !canOpen,
+                                            onTap: () {
+                                              Navigator.of(
+                                                ctx,
+                                                rootNavigator: true,
+                                              ).pop();
+                                              _openMilestoneQuizFromSyllabus(
+                                                m,
+                                                deliveryTargetId: deliveryTargetId,
+                                                enrollmentId: enrollmentId,
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      }),
                                       );
-                                    }).toList(),
+                                      return moduleChildren;
+                                    }(),
+                                  ),
+                                ),
+                              ),
+                            if (finalMilestones.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest
+                                        .withValues(alpha: 0.28),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outlineVariant,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Thử thách cuối khóa',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w900,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      ...finalMilestones.map(
+                                        (m) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            left: 6,
+                                            right: 6,
+                                            bottom: 8,
+                                          ),
+                                          child: _buildSyllabusMilestoneTile(
+                                            context,
+                                            milestone: m,
+                                            forceLocked: completedTrackable <
+                                                trackableOrdered.length,
+                                            onTap: () {
+                                              Navigator.of(
+                                                ctx,
+                                                rootNavigator: true,
+                                              ).pop();
+                                              _openMilestoneQuizFromSyllabus(
+                                                m,
+                                                deliveryTargetId: deliveryTargetId,
+                                                enrollmentId: enrollmentId,
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -739,9 +960,97 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     );
   }
 
+  Widget _buildSyllabusMilestoneTile(
+    BuildContext context, {
+    required AssessmentMilestoneModel milestone,
+    required bool forceLocked,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final isLocked = forceLocked || milestone.isLocked;
+    final isPassed = milestone.isPassed;
+    final statusText = isPassed
+        ? (milestone.percentage != null
+            ? '${milestone.percentage!.round()}% đạt'
+            : 'Đã đạt')
+        : (milestone.status == 'FAILED'
+            ? 'Cần làm lại'
+            : (isLocked ? 'Đã khóa' : 'Sẵn sàng'));
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isPassed
+              ? Colors.green.withValues(alpha: 0.35)
+              : theme.colorScheme.outlineVariant,
+        ),
+      ),
+      child: ListTile(
+        dense: true,
+        enabled: !isLocked,
+        onTap: isLocked ? null : onTap,
+        leading: Icon(
+          isPassed ? Icons.emoji_events_outlined : Icons.quiz_outlined,
+          color: isPassed ? Colors.green : theme.colorScheme.primary,
+          size: 18,
+        ),
+        title: Text(
+          milestone.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(
+          _normalizeMilestoneKind(milestone.kind) == 'FINAL_EXAM'
+              ? 'Thử thách cuối khóa'
+              : 'Bài kiểm tra',
+          style: TextStyle(
+            fontSize: 10,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        trailing: Text(
+          statusText,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: isPassed
+                ? Colors.green
+                : (isLocked
+                    ? theme.colorScheme.outline
+                    : theme.colorScheme.primary),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openMilestoneQuizFromSyllabus(
+    AssessmentMilestoneModel milestone, {
+    required String deliveryTargetId,
+    required String enrollmentId,
+  }) {
+    if (enrollmentId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Thiếu mã ghi danh. Mở lộ trình từ "Khóa học của tôi".'),
+        ),
+      );
+      return;
+    }
+    final examPath = milestone.examId.isNotEmpty && milestone.examId != 'null'
+        ? milestone.examId
+        : 'unknown';
+    context.push(
+      '/quiz/$examPath?deliveryTargetId=$deliveryTargetId&enrollmentId=$enrollmentId&assessmentId=${milestone.id}',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final lesson = widget.lesson ?? const <String, dynamic>{};
     final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
     final mode = (lesson['mode'] ?? 'VOD').toString().toUpperCase();
@@ -776,27 +1085,27 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     )));
 
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: Text(
           title,
           style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimary,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(
             tooltip: 'Mục lục — chương trình học',
-            icon: const Icon(
+            icon: Icon(
               Icons.list_alt_outlined,
-              color: AppColors.textPrimary,
+              color: colorScheme.onSurface,
             ),
             onPressed: deliveryTargetId.isEmpty ? null : _openSyllabusSheet,
           ),
@@ -826,7 +1135,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
           TabBar(
             controller: _tabController,
             labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textTertiary,
+            unselectedLabelColor: colorScheme.onSurfaceVariant,
             indicatorColor: AppColors.primary,
             tabs: const [
               Tab(text: 'Nội dung'),
@@ -861,8 +1170,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
               return Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  border: Border(top: BorderSide(color: AppColors.grey200)),
+                  color: colorScheme.surface,
+                  border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
                 ),
                 child: progressDisabled
                     ? SizedBox(
@@ -901,26 +1210,49 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                                         ? null
                                         : () => _markComplete(),
                                 style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                    horizontal: 14,
+                                  ),
+                                  backgroundColor: currentDone
+                                      ? AppColors.success.withValues(alpha: 0.10)
+                                      : colorScheme.surfaceContainerHighest.withValues(
+                                          alpha: 0.26,
+                                        ),
+                                  foregroundColor: currentDone
+                                      ? AppColors.success
+                                      : colorScheme.onSurface,
+                                  disabledForegroundColor:
+                                      colorScheme.onSurfaceVariant,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(14),
                                   ),
                                   side: BorderSide(
-                                    color: currentDone ? AppColors.success : AppColors.grey300,
+                                    color: currentDone
+                                        ? AppColors.success.withValues(alpha: 0.55)
+                                        : colorScheme.outlineVariant,
                                   ),
+                                  elevation: 0,
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     if (currentDone) ...[
-                                      const Icon(Icons.check_circle, color: AppColors.success, size: 18),
+                                      const Icon(
+                                        Icons.check_circle_rounded,
+                                        color: AppColors.success,
+                                        size: 18,
+                                      ),
                                       const SizedBox(width: 8),
                                     ],
                                     Text(
                                       currentDone ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành',
                                       style: TextStyle(
-                                        color: currentDone ? AppColors.success : AppColors.textPrimary,
-                                        fontWeight: FontWeight.bold,
+                                        color: currentDone
+                                            ? AppColors.success
+                                            : colorScheme.onSurface,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.1,
                                       ),
                                     ),
                                   ],
@@ -962,7 +1294,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openSenseiChat(),
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: colorScheme.onPrimary,
         child: const Icon(Icons.auto_awesome),
       ),
     );
@@ -975,8 +1307,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     required String duration,
     required String? thumbnailUrl,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Material(
-      color: AppColors.surface,
+      color: colorScheme.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -990,7 +1323,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                     thumbnailUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) =>
-                        ColoredBox(color: AppColors.grey200),
+                        ColoredBox(color: colorScheme.surfaceContainerHighest),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -1050,7 +1383,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                   end: Alignment.bottomRight,
                   colors: [
                     AppColors.primary.withValues(alpha: 0.14),
-                    AppColors.surface,
+                    colorScheme.surface,
                   ],
                 ),
               ),
@@ -1098,7 +1431,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                           style: TextStyle(
                             fontSize: 12,
                             height: 1.35,
-                            color: AppColors.textTertiary,
+                            color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1115,11 +1448,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     height: 1.25,
-                    color: AppColors.textPrimary,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 if (subtitle.isNotEmpty) ...[
@@ -1129,7 +1462,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                     style: TextStyle(
                       fontSize: 14,
                       height: 1.4,
-                      color: AppColors.textSecondary,
+                      color: colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1141,14 +1474,14 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                       Icon(
                         Icons.schedule_rounded,
                         size: 16,
-                        color: AppColors.textTertiary,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         duration,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textTertiary,
+                          color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1164,10 +1497,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   }
 
   Widget _buildVideoArea() {
+    final colorScheme = Theme.of(context).colorScheme;
     final chewie = _chewieController;
     return Container(
       width: double.infinity,
-      color: Colors.black,
+      color: colorScheme.surfaceContainerHighest,
       child: AspectRatio(
         aspectRatio:
             (_videoController != null && _videoController!.value.isInitialized)
@@ -1185,7 +1519,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                       Text(
                         _videoInitError!,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white70),
+                        style: TextStyle(color: colorScheme.onSurfaceVariant),
                       ),
                       const SizedBox(height: 8),
                       TextButton(
@@ -1199,8 +1533,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                   ),
                 ),
               )
-            : const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+            : Center(
+                child: CircularProgressIndicator(color: colorScheme.onSurface),
               ),
       ),
     );
@@ -1214,6 +1548,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     required String duration,
     required String? videoUrl,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     final heroTitle = subtitle.isNotEmpty
         ? subtitle
         : (type == 'article' ? 'Bài đọc' : 'Video bài học');
@@ -1227,7 +1562,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          color: AppColors.textPrimary,
+          color: colorScheme.surfaceContainerHighest,
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: Stack(
@@ -1238,11 +1573,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                     thumbnailUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) =>
-                        Container(color: AppColors.grey200),
+                        Container(color: colorScheme.surfaceContainerHighest),
                   )
                 else
-                  Container(color: AppColors.grey200),
-                Container(color: Colors.black.withOpacity(0.35)),
+                  Container(color: colorScheme.surfaceContainerHighest),
+                Container(color: Colors.black.withValues(alpha: 0.35)),
                 Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
@@ -1254,10 +1589,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.16),
+                          color: Colors.white.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.18),
+                            color: Colors.white.withValues(alpha: 0.18),
                           ),
                         ),
                         child: Text(
@@ -1286,7 +1621,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                         Text(
                           meta,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
+                            color: Colors.white.withValues(alpha: 0.85),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1325,6 +1660,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     required String? videoUrl,
     required String? resolvedArticleContent,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final typeUpper = type.toUpperCase();
     if (typeUpper == 'ARTICLE' || typeUpper == 'READING') {
       final articleTitle = (article?['title'] ?? 'Bài đọc').toString();
@@ -1338,12 +1675,12 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.grey200),
+              border: Border.all(color: colorScheme.outlineVariant),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.textPrimary.withValues(alpha: 0.04),
+                  color: colorScheme.onSurface.withValues(alpha: 0.04),
                   blurRadius: 14,
                   offset: const Offset(0, 6),
                 ),
@@ -1354,10 +1691,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
               children: [
                 Text(
                   articleTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
                     height: 1.3,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -1386,6 +1724,22 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                       data: content,
                       selectable: false,
                       extensionSet: md.ExtensionSet.gitHubWeb,
+                      styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+                        p: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          height: 1.65,
+                        ),
+                        blockquote: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        blockquoteDecoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border(
+                            left: BorderSide(color: colorScheme.primary, width: 3),
+                          ),
+                        ),
+                      ),
                     ),
                   )
                 else
@@ -1393,7 +1747,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                     'Nội dung bài đọc đang được cập nhật.',
                     style: TextStyle(
                       height: 1.75,
-                      color: AppColors.textPrimary,
+                      color: colorScheme.onSurface,
                       fontSize: 15,
                     ),
                   ),
@@ -1404,10 +1758,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.06),
+              color: colorScheme.primaryContainer.withValues(alpha: 0.38),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.15),
+                color: colorScheme.primary.withValues(alpha: 0.22),
               ),
             ),
             child: Row(
@@ -1416,7 +1770,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                 Icon(
                   Icons.touch_app_rounded,
                   size: 20,
-                  color: AppColors.primary.withValues(alpha: 0.9),
+                  color: colorScheme.primary,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -1425,7 +1779,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.45,
-                      color: AppColors.textSecondary,
+                      color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1438,8 +1792,26 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     }
 
     if (typeUpper == 'QUIZ') {
+      final lesson = widget.lesson ?? const <String, dynamic>{};
+      final examId = (lesson['id'] ?? '').toString();
+      final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
+      final enrollmentId = (lesson['enrollmentId'] ?? '').toString();
+      final assessmentId = (lesson['assessmentId'] ?? '').toString();
       return _buildPlaceholderTab(
-        'Bài quiz chưa được tích hợp trong bản demo này.',
+        'Mo bai quiz de lam bai va cap nhat tien do.',
+        actionLabel: 'Vao quiz',
+        onAction: (examId.isNotEmpty &&
+                deliveryTargetId.isNotEmpty &&
+                enrollmentId.isNotEmpty)
+            ? () {
+                final assQuery = assessmentId.isNotEmpty
+                    ? '&assessmentId=$assessmentId'
+                    : '';
+                context.push(
+                  '/quiz/$examId?deliveryTargetId=$deliveryTargetId&enrollmentId=$enrollmentId$assQuery',
+                );
+              }
+            : null,
       );
     }
 
@@ -1455,7 +1827,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
           videoUrl != null && videoUrl.isNotEmpty
               ? 'Dùng thanh điều khiển video để tua, phóng to toàn màn hình. Xem hết video sẽ tự lưu tiến độ (nếu đã ghi danh lớp).'
               : 'Video chưa có đường dẫn. Kiểm tra cấu hình bài học trên hệ thống.',
-          style: TextStyle(height: 1.7, color: AppColors.textPrimary),
+          style: TextStyle(height: 1.7, color: colorScheme.onSurface),
         ),
         const SizedBox(height: 20),
         _buildSectionCard(
@@ -1474,15 +1846,16 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   }
 
   Widget _buildSectionCard({required String title, required Widget child}) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.04),
+            color: colorScheme.onSurface.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -1500,20 +1873,21 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   }
 
   Widget _bullet(String text) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 6),
-            child: Icon(Icons.circle, size: 6, color: AppColors.primary),
+            child: Icon(Icons.circle, size: 6, color: colorScheme.primary),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(height: 1.6, color: AppColors.textPrimary),
+              style: TextStyle(height: 1.6, color: colorScheme.onSurface),
             ),
           ),
         ],
@@ -1521,9 +1895,33 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     );
   }
 
-  Widget _buildPlaceholderTab(String text) {
+  Widget _buildPlaceholderTab(
+    String text, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
-      child: Text(text, style: TextStyle(color: AppColors.textTertiary)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: onAction,
+                child: Text(actionLabel),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
@@ -1681,6 +2079,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   }
 
   Widget _buildDiscussionTab() {
+    final colorScheme = Theme.of(context).colorScheme;
     final lessonId = (widget.lesson?['id'] ?? '').toString();
     final authState = ref.watch(authStateProvider).valueOrNull;
     final isAuthed =
@@ -1698,7 +2097,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       return Center(
         child: Text(
           'Thiếu lessonId để tải thảo luận.',
-          style: TextStyle(color: AppColors.textTertiary),
+          style: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
       );
     }
@@ -1707,7 +2106,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
       return Center(
         child: Text(
           'Đăng nhập để xem và trả lời thảo luận.',
-          style: TextStyle(color: AppColors.textTertiary),
+          style: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
       );
     }
@@ -1722,7 +2121,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
           padding: const EdgeInsets.all(16),
           child: Text(
             'Không thể tải thảo luận: $_discussionError',
-            style: TextStyle(color: AppColors.error),
+            style: TextStyle(color: colorScheme.error),
           ),
         ),
       );
@@ -1735,10 +2134,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.message_outlined,
                 size: 52,
-                color: AppColors.textTertiary,
+                color: colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: 12),
               const Text(
@@ -1762,7 +2161,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                 Text(
                   readOnlyReason,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textTertiary),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
                 ),
               ],
             ],
@@ -1812,7 +2211,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.success.withOpacity(0.12),
+                              color: AppColors.success.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: const Text(
@@ -1830,7 +2229,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                   Text(
                     topic.content,
                     style: TextStyle(
-                      color: AppColors.textPrimary.withOpacity(0.85),
+                      color: colorScheme.onSurface.withValues(alpha: 0.85),
                     ),
                   ),
 
@@ -1839,7 +2238,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                     if ((topic.replies.isEmpty))
                       Text(
                         'Chưa có phản hồi nào.',
-                        style: TextStyle(color: AppColors.textTertiary),
+                        style: TextStyle(color: colorScheme.onSurfaceVariant),
                       ),
                     if (topic.replies.isNotEmpty) ...[
                       const Text(
@@ -1860,7 +2259,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                       Text(
                         readOnlyReason ??
                             'Tài khoản này chỉ có quyền xem thảo luận.',
-                        style: TextStyle(color: AppColors.textTertiary),
+                        style: TextStyle(color: colorScheme.onSurfaceVariant),
                       )
                     else ...[
                       const Text(
@@ -1911,6 +2310,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
   }
 
   Widget _renderComment(CommentModel comment, {required int depth}) {
+    final colorScheme = Theme.of(context).colorScheme;
     final indent = depth * 12.0;
     final children = comment.replies;
     return Padding(
@@ -1920,9 +2320,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
         children: [
           Container(
             decoration: BoxDecoration(
-              color: AppColors.grey200.withOpacity(0.18),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.grey200),
+              border: Border.all(color: colorScheme.outlineVariant),
             ),
             padding: const EdgeInsets.all(10),
             child: Column(
@@ -1936,7 +2336,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
                 Text(
                   comment.content,
                   style: TextStyle(
-                    color: AppColors.textPrimary.withOpacity(0.85),
+                    color: colorScheme.onSurface.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -2002,6 +2402,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
     final lesson = widget.lesson ?? const <String, dynamic>{};
     final currentId = (lesson['id'] ?? '').toString();
     final deliveryTargetId = (lesson['deliveryTargetId'] ?? '').toString();
+    final enrollmentId = (lesson['enrollmentId'] ?? '').toString();
     final productId = (lesson['productId'] ?? '').toString();
     final mode = (lesson['mode'] ?? 'VOD').toString().toUpperCase();
     final progressDisabled = lesson['progressDisabled'] == true;
@@ -2018,6 +2419,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
         lesson: nextL,
         nextLesson: nextNextL,
         deliveryTargetId: deliveryTargetId.isNotEmpty ? deliveryTargetId : null,
+        enrollmentId: enrollmentId.isNotEmpty ? enrollmentId : null,
         productId: productId.isNotEmpty ? productId : null,
         mode: mode,
         progressDisabled: progressDisabled,
@@ -2029,38 +2431,63 @@ class _LessonScreenState extends ConsumerState<LessonScreen>
 
 bool _syllabusIsTrackable(CurriculumLessonModel l) {
   final t = l.type.toUpperCase();
-  return t == 'VIDEO' || t == 'READING' || t == 'ARTICLE';
+  return t == 'VIDEO' || t == 'READING' || t == 'ARTICLE' || t == 'QUIZ';
+}
+
+bool _syllabusIsTrackableDone(
+  CurriculumLessonModel lesson,
+  Set<String> completed,
+  Map<String, AssessmentMilestoneModel> assessmentsByExamId,
+) {
+  if (lesson.type.toUpperCase() == 'QUIZ') {
+    final quizStatus = assessmentsByExamId[lesson.id];
+    return quizStatus?.isPassed ?? false;
+  }
+  return completed.contains(lesson.id);
 }
 
 bool _syllabusEffectiveUnlocked({
   required CurriculumLessonModel lesson,
   required List<CurriculumLessonModel> trackableOrdered,
   required Set<String> completed,
+  required Map<String, AssessmentMilestoneModel> assessmentsByExamId,
   required bool useProgress,
 }) {
   if (!_syllabusIsTrackable(lesson)) return true;
   if (!useProgress) return true;
   final idx = trackableOrdered.indexWhere((l) => l.id == lesson.id);
   if (idx <= 0) return true;
-  return completed.contains(trackableOrdered[idx - 1].id);
+  return _syllabusIsTrackableDone(
+    trackableOrdered[idx - 1],
+    completed,
+    assessmentsByExamId,
+  );
+}
+
+String _normalizeMilestoneKind(String? kind) {
+  return (kind ?? '').toUpperCase();
 }
 
 Map<String, dynamic> _syllabusLessonPayload({
   required CurriculumLessonModel lesson,
   CurriculumLessonModel? nextLesson,
   String? deliveryTargetId,
+  String? enrollmentId,
   String? productId,
   String? mode,
   bool progressDisabled = false,
+  String? assessmentId,
 }) {
   final effectiveProductId = (productId != null && productId.isNotEmpty)
       ? productId
       : null;
   return <String, dynamic>{
     if (deliveryTargetId != null && deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+    if (enrollmentId != null && enrollmentId.isNotEmpty) 'enrollmentId': enrollmentId,
     if (effectiveProductId != null && effectiveProductId.isNotEmpty) 'productId': effectiveProductId,
     if (mode != null && mode.isNotEmpty) 'mode': mode,
     if (progressDisabled) 'progressDisabled': true,
+    if (assessmentId != null && assessmentId.isNotEmpty) 'assessmentId': assessmentId,
     'id': lesson.id,
     'title': lesson.title,
     'type': lesson.type.toLowerCase(),
@@ -2074,6 +2501,7 @@ Map<String, dynamic> _syllabusLessonPayload({
     if (nextLesson != null)
       'nextLesson': <String, dynamic>{
         if (deliveryTargetId != null && deliveryTargetId.isNotEmpty) 'deliveryTargetId': deliveryTargetId,
+        if (enrollmentId != null && enrollmentId.isNotEmpty) 'enrollmentId': enrollmentId,
         if (effectiveProductId != null && effectiveProductId.isNotEmpty) 'productId': effectiveProductId,
         if (mode != null && mode.isNotEmpty) 'mode': mode,
         if (progressDisabled) 'progressDisabled': true,
@@ -2133,6 +2561,7 @@ class _PrimaryPillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Opacity(
       opacity: enabled ? 1 : 0.6,
       child: InkWell(
@@ -2141,11 +2570,11 @@ class _PrimaryPillButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: AppColors.primary,
+            color: colorScheme.primary,
             borderRadius: BorderRadius.circular(999),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withValues(alpha: 0.25),
                 blurRadius: 10,
                 offset: const Offset(0, 6),
               ),
@@ -2154,12 +2583,12 @@ class _PrimaryPillButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: AppColors.textOnPrimary, size: 18),
+              Icon(icon, color: colorScheme.onPrimary, size: 18),
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppColors.textOnPrimary,
+                style: TextStyle(
+                  color: colorScheme.onPrimary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -2235,6 +2664,7 @@ class _CreateTopicSheetState extends State<_CreateTopicSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final canSubmit =
         _titleCtrl.text.trim().isNotEmpty &&
@@ -2242,9 +2672,9 @@ class _CreateTopicSheetState extends State<_CreateTopicSheet> {
         !_isSubmitting;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
         top: false,
@@ -2267,7 +2697,7 @@ class _CreateTopicSheetState extends State<_CreateTopicSheet> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.grey300,
+                        color: colorScheme.outlineVariant,
                         borderRadius: BorderRadius.circular(999),
                       ),
                     ),

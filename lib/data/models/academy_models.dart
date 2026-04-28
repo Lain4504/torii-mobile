@@ -153,13 +153,13 @@ class EnrollmentModel {
       status: json['status'] as String?,
       enrolledAt: json['enrolledAt'] != null ? DateTime.parse(json['enrolledAt'].toString()) : null,
       expiresAt: json['expiresAt'] != null ? DateTime.parse(json['expiresAt'].toString()) : null,
-      vodPackageId: json['vodPackageId'] as String?,
-      liveClassId: json['liveClassId'] as String?,
-      cohortId: json['cohortId'] as String?,
+      vodPackageId: json['vodPackageId'] as String? ?? json['vod_package_id'] as String?,
+      liveClassId: json['liveClassId'] as String? ?? json['live_class_id'] as String?,
+      cohortId: json['cohortId'] as String? ?? json['cohort_id'] as String?,
       type: (json['type'] ?? 'vod').toString().toLowerCase(),
-      courseTitle: json['courseTitle'].toString(),
-      courseCode: json['courseCode'] as String?,
-      thumbnailUrl: json['thumbnailUrl'] as String?,
+      courseTitle: (json['courseTitle'] ?? json['course_title'] ?? '').toString(),
+      courseCode: json['courseCode'] as String? ?? json['course_code'] as String?,
+      thumbnailUrl: json['thumbnailUrl'] as String? ?? json['thumbnail_url'] as String?,
       instructor: json['instructor'] as Map<String, dynamic>?,
       progress: (progressVal / 100.0).clamp(0.0, 1.0),
       completedLessons: toInt(json['completedLessons']),
@@ -566,21 +566,38 @@ class AssessmentQuestionModel {
   String get submitId => examQuestionId ?? id;
 
   factory AssessmentQuestionModel.fromJson(Map<String, dynamic> json) {
-    final rawOptions = json['options'] as List? ?? [];
+    final dynamic optionsData = json['options'];
+    List<AssessmentOptionModel> options = [];
+    
+    if (optionsData is List) {
+      options = optionsData.map((e) => AssessmentOptionModel.fromJson(e as Map<String, dynamic>)).toList();
+    } else if (optionsData is Map) {
+      // Handle Map format: { "A": "content", "B": "content", ... }
+      options = optionsData.entries.map((entry) {
+        return AssessmentOptionModel(
+          id: entry.key, // Fallback ID as key
+          contentText: entry.value.toString(),
+          optionKey: entry.key,
+        );
+      }).toList();
+      // Sort by key (A, B, C...)
+      options.sort((a, b) => a.optionKey.compareTo(b.optionKey));
+    }
+
     return AssessmentQuestionModel(
       id: json['id'].toString(),
       examQuestionId: json['examQuestionId']?.toString(),
-        stemText: (json['stemText'] ?? json['stem'] ?? '').toString(),
-        stemHtml: json['stemHtml']?.toString(),
-        categoryType: (json['categoryType'] ?? json['category'])?.toString(),
-        mediaUrl: json['mediaUrl']?.toString(),
-        readingPassage: json['readingPassage']?.toString(),
-        options: rawOptions.map((e) => AssessmentOptionModel.fromJson(e as Map<String, dynamic>)).toList(),
-      );
-    }
+      stemText: (json['stemText'] ?? json['stem'] ?? '').toString(),
+      stemHtml: json['stemHtml']?.toString(),
+      categoryType: (json['categoryType'] ?? json['category'])?.toString(),
+      mediaUrl: json['mediaUrl']?.toString(),
+      readingPassage: json['readingPassage']?.toString(),
+      options: options,
+    );
   }
+}
 
-  class AssessmentOptionModel {
+class AssessmentOptionModel {
     final String id;
     final String contentText;
     final String optionKey;

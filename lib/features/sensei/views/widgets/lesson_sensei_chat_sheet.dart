@@ -75,9 +75,9 @@ class _LessonSenseiChatSheetState extends ConsumerState<LessonSenseiChatSheet> {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
@@ -85,30 +85,30 @@ class _LessonSenseiChatSheetState extends ConsumerState<LessonSenseiChatSheet> {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.grey200)),
+              border: Border(bottom: BorderSide(color: theme.colorScheme.outlineVariant)),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.auto_awesome, size: 20, color: AppColors.primary),
+                  child: Icon(Icons.auto_awesome, size: 20, color: theme.colorScheme.primary),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'AI Sensei Assistant',
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
                         'Hỏi về bài học này',
-                        style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                        style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -168,6 +168,7 @@ class _LessonChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAssistant = message.role == ChatMessageRole.assistant;
+    final theme = Theme.of(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
@@ -179,10 +180,10 @@ class _LessonChatBubble extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: theme.colorScheme.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.auto_awesome, size: 16, color: AppColors.primary),
+              child: Icon(Icons.auto_awesome, size: 16, color: theme.colorScheme.primary),
             ),
             const SizedBox(width: 8),
           ],
@@ -193,17 +194,17 @@ class _LessonChatBubble extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isAssistant ? AppColors.secondary : AppColors.primary,
+                    color: isAssistant ? theme.colorScheme.surfaceContainerHighest : theme.colorScheme.primary,
                     borderRadius: BorderRadius.circular(16).copyWith(
                       topLeft: isAssistant ? const Radius.circular(0) : null,
                       bottomRight: !isAssistant ? const Radius.circular(0) : null,
                     ),
                   ),
                   child: message.isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.primary),
                         )
                       : isAssistant
                           ? _TypingMarkdown(data: message.content, animate: isLast)
@@ -217,10 +218,10 @@ class _LessonChatBubble extends StatelessWidget {
           ),
           if (!isAssistant) ...[
             const SizedBox(width: 8),
-            const CircleAvatar(
+            CircleAvatar(
               radius: 14,
-              backgroundColor: AppColors.grey200,
-              child: Icon(Icons.person, size: 16, color: AppColors.textTertiary),
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+              child: Icon(Icons.person, size: 16, color: theme.colorScheme.onSurfaceVariant),
             ),
           ],
         ],
@@ -283,10 +284,11 @@ class _TypingMarkdownState extends State<_TypingMarkdown> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return MarkdownBody(
       data: _displayData,
       styleSheet: MarkdownStyleSheet(
-        p: const TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
+        p: TextStyle(fontSize: 14, height: 1.5, color: theme.colorScheme.onSurface),
       ),
     );
   }
@@ -305,11 +307,12 @@ class _ChatInputArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.grey200)),
+        color: theme.colorScheme.surface,
+        border: Border(top: BorderSide(color: theme.colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
@@ -319,16 +322,16 @@ class _ChatInputArea extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: theme.colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.schedule, size: 14, color: AppColors.primary),
+                    Icon(Icons.schedule, size: 14, color: theme.colorScheme.primary),
                     const SizedBox(width: 4),
                     Text(
                       timestamp!,
-                      style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 12, color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -337,16 +340,21 @@ class _ChatInputArea extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
+              style: TextStyle(color: theme.colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: 'Hỏi Sensei về bài học...',
-                hintStyle: const TextStyle(fontSize: 14, color: AppColors.textTertiary),
+                hintStyle: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.grey300),
+                  borderSide: BorderSide(color: theme.colorScheme.outline),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 filled: true,
-                fillColor: AppColors.secondary,
+                fillColor: theme.colorScheme.surfaceContainerHighest,
               ),
               onSubmitted: (_) => onSend(),
             ),
@@ -356,8 +364,8 @@ class _ChatInputArea extends StatelessWidget {
             onPressed: onSend,
             icon: const Icon(Icons.send_rounded),
             style: IconButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
             ),
           ),
         ],
@@ -371,23 +379,24 @@ class _EmptyLessonChat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const SizedBox(height: 40),
-        const Icon(Icons.auto_awesome, size: 64, color: AppColors.grey200),
+        Icon(Icons.auto_awesome, size: 64, color: theme.colorScheme.outlineVariant),
         const SizedBox(height: 20),
-        const Text(
+        Text(
           'Bạn có thắc mắc về bài học?',
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 10),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 40),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Text(
             'Hãy đặt câu hỏi cho AI Sensei để được giải đáp ngay lập tức về nội dung bài học này.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textTertiary, fontSize: 14),
+            style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 14),
           ),
         ),
       ],

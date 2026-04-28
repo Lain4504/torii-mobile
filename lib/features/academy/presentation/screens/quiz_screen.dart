@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:torii_app/core/providers/api_providers.dart';
 import 'package:torii_app/data/models/academy_models.dart';
 import 'exam_result_screen.dart';
@@ -207,15 +208,20 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           ),
         ));
 
-        Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(
-    builder: (context) => ExamResultScreen(
-      attemptId: _attemptId!,
-      examId: widget.examId,
-    ),
-  ),
-);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ExamResultScreen(
+              attemptId: _attemptId!,
+              examId: widget.examId,
+            ),
+          ),
+        ).then((_) {
+          if (mounted) {
+            // Once result screen is popped, we leave the Quiz screen entirely
+            context.pop();
+          }
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Lỗi khi nộp bài. Vui lòng thử lại.')),

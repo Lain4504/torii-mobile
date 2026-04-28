@@ -49,21 +49,22 @@ class CurriculumScreen extends ConsumerWidget {
     }
     
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Lộ trình khóa học',
           style: theme.textTheme.titleMedium?.copyWith(
-            color: AppColors.textPrimary,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: AppColors.surface,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -72,7 +73,7 @@ class CurriculumScreen extends ConsumerWidget {
         error: (e, _) => Center(
           child: Text(
             'Lỗi tải chương trình học: $e',
-            style: const TextStyle(color: AppColors.error),
+            style: TextStyle(color: colorScheme.error),
           ),
         ),
         data: (detail) {
@@ -159,11 +160,12 @@ class CurriculumScreen extends ConsumerWidget {
                 if (modules.isEmpty)
                   Text(
                     'Chương trình học đang được cập nhật.',
-                    style: TextStyle(color: AppColors.grey700),
+                    style: TextStyle(color: colorScheme.onSurfaceVariant),
                   )
                 else
                   ...modules.map(
                     (module) => _buildModuleItem(
+                      theme,
                       module.title,
                       module.lessons.map((lesson) {
                         final idx = lessonIndexById[lesson.id] ?? -1;
@@ -191,6 +193,7 @@ class CurriculumScreen extends ConsumerWidget {
                             lessonMilestonesByLessonId[lesson.id] ?? const [];
                         return _buildLessonItem(
                           context,
+                          theme: theme,
                           enrollmentId: enrollmentId,
                           title: lesson.title.isNotEmpty
                               ? lesson.title
@@ -206,6 +209,7 @@ class CurriculumScreen extends ConsumerWidget {
                             unlocked,
                           ),
                           statusColor: _lessonStatusColor(
+                            theme,
                             lesson,
                             completed,
                             assessmentsByExamId,
@@ -283,11 +287,11 @@ class CurriculumScreen extends ConsumerWidget {
     final desc = _stripHtml(descriptionHtml ?? '');
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.04),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -309,7 +313,7 @@ class CurriculumScreen extends ConsumerWidget {
             Text(
               'Mã lớp: $code',
               style: TextStyle(
-                color: AppColors.grey700,
+                color: theme.colorScheme.onSurfaceVariant,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
@@ -319,7 +323,7 @@ class CurriculumScreen extends ConsumerWidget {
           Text(
             desc.isNotEmpty ? desc : 'Lộ trình học đang được cập nhật.',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: AppColors.grey700,
+              color: theme.colorScheme.onSurfaceVariant,
               height: 1.5,
             ),
           ),
@@ -329,12 +333,12 @@ class CurriculumScreen extends ConsumerWidget {
               Icon(
                 Icons.menu_book_outlined,
                 size: 16,
-                color: AppColors.grey700,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: 4),
               Text(
                 '$totalLessons bài học • $totalModules module',
-                style: TextStyle(color: AppColors.grey700, fontSize: 12),
+                style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 12),
               ),
             ],
           ),
@@ -343,15 +347,15 @@ class CurriculumScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildModuleItem(String title, List<Widget> lessons) {
+  Widget _buildModuleItem(ThemeData theme, String title, List<Widget> lessons) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.grey200),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textPrimary.withOpacity(0.04),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 5),
           ),
@@ -361,7 +365,7 @@ class CurriculumScreen extends ConsumerWidget {
       child: ExpansionTile(
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         initiallyExpanded: true,
         childrenPadding: const EdgeInsets.symmetric(
@@ -375,6 +379,7 @@ class CurriculumScreen extends ConsumerWidget {
 
   Widget _buildLessonItem(
     BuildContext context, {
+    required ThemeData theme,
     String? enrollmentId,
     required String title,
     required String duration,
@@ -388,83 +393,83 @@ class CurriculumScreen extends ConsumerWidget {
     return Column(
       children: [
         Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: locked
-            ? () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Hãy hoàn thành nội dung trước đó để mở khóa.'),
-                  ),
-                );
-              }
-            : () {
-                if (lesson['type'] == 'quiz') {
-                  final assId = lesson['assessmentId'] ?? '';
-                  final eid = (enrollmentId ?? lesson['enrollmentId'] ?? '')
-                      .toString();
-                  if (eid.isEmpty) {
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: locked
+                ? () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text(
-                          'Thiếu mã ghi danh. Mở lộ trình từ "Khóa học của tôi".',
-                        ),
+                        content: Text('Hãy hoàn thành nội dung trước đó để mở khóa.'),
                       ),
                     );
-                    return;
                   }
-                  context.push(
-                    '/quiz/${lesson['id']}?deliveryTargetId=${lesson['deliveryTargetId']}&enrollmentId=$eid${assId.toString().isNotEmpty ? '&assessmentId=$assId' : ''}',
-                  );
-                } else {
-                  context.push('/lesson', extra: lesson);
-                }
-              },
-        child: Row(
-          children: [
-            Icon(icon, color: AppColors.textTertiary, size: 24),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                : () {
+                    if (lesson['type'] == 'quiz') {
+                      final assId = lesson['assessmentId'] ?? '';
+                      final eid = (enrollmentId ?? lesson['enrollmentId'] ?? '')
+                          .toString();
+                      if (eid.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Thiếu mã ghi danh. Mở lộ trình từ "Khóa học của tôi".',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      context.push(
+                        '/quiz/${lesson['id']}?deliveryTargetId=${lesson['deliveryTargetId']}&enrollmentId=$eid${assId.toString().isNotEmpty ? '&assessmentId=$assId' : ''}',
+                      );
+                    } else {
+                      context.push('/lesson', extra: lesson);
+                    }
+                  },
+            child: Row(
+              children: [
+                Icon(icon, color: theme.colorScheme.onSurfaceVariant, size: 24),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        duration,
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 13),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    duration,
-                    style: TextStyle(color: AppColors.grey700, fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                status,
-                style: TextStyle(
-                  color: statusColor,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
                 ),
-              ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  locked ? Icons.lock_outline : Icons.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
             ),
-            const SizedBox(width: 6),
-            Icon(
-              locked ? Icons.lock_outline : Icons.chevron_right,
-              color: AppColors.textTertiary,
-            ),
-          ],
+          ),
         ),
-      ),
-    ),
         ...children,
       ],
     );
@@ -494,7 +499,7 @@ class CurriculumScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isPassed
-                ? Colors.green.withValues(alpha: 0.35)
+                ? AppColors.success.withValues(alpha: 0.35)
                 : theme.colorScheme.outlineVariant,
           ),
         ),
@@ -504,7 +509,7 @@ class CurriculumScreen extends ConsumerWidget {
           onTap: isLocked ? null : () => _openMilestoneQuiz(context, milestone),
           leading: Icon(
             isPassed ? Icons.emoji_events_outlined : Icons.quiz_outlined,
-            color: isPassed ? Colors.green : theme.colorScheme.primary,
+            color: isPassed ? AppColors.success : theme.colorScheme.primary,
             size: 18,
           ),
           title: Text(
@@ -528,7 +533,7 @@ class CurriculumScreen extends ConsumerWidget {
               fontSize: 10,
               fontWeight: FontWeight.w700,
               color: isPassed
-                  ? Colors.green
+                  ? AppColors.success
                   : (isLocked ? theme.colorScheme.outline : theme.colorScheme.primary),
             ),
           ),
@@ -699,23 +704,24 @@ String _lessonStatus(
 }
 
 Color _lessonStatusColor(
+  ThemeData theme,
   CurriculumLessonModel lesson,
   Set<String> completed,
   Map<String, AssessmentMilestoneModel> assessmentsByExamId,
   bool unlocked,
 ) {
-  if (!unlocked) return AppColors.textTertiary;
+  if (!unlocked) return theme.colorScheme.onSurfaceVariant;
   if (lesson.type.toUpperCase() == 'QUIZ') {
     final assessment = assessmentsByExamId[lesson.id];
-    if (assessment == null) return AppColors.textTertiary;
+    if (assessment == null) return theme.colorScheme.onSurfaceVariant;
     switch (assessment.status) {
       case 'PASSED': return AppColors.success;
-      case 'FAILED': return AppColors.error;
-      case 'IN_PROGRESS': return AppColors.primary;
-      default: return AppColors.textTertiary;
+      case 'FAILED': return theme.colorScheme.error;
+      case 'IN_PROGRESS': return theme.colorScheme.primary;
+      default: return theme.colorScheme.onSurfaceVariant;
     }
   }
-  return completed.contains(lesson.id) ? AppColors.success : AppColors.textTertiary;
+  return completed.contains(lesson.id) ? AppColors.success : theme.colorScheme.onSurfaceVariant;
 }
 
 Map<String, dynamic> _lessonPayload({

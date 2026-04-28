@@ -144,16 +144,29 @@ class JlptMockQuestionModel {
   final String? explanation;
 
   factory JlptMockQuestionModel.fromJson(Map<String, dynamic> json) {
-    final rawOptions = json['options'] as List<dynamic>? ?? const [];
-    final options =
-        rawOptions
-            .map(
-              (e) => JlptMockQuestionOptionModel.fromJson(
-                (e as Map).cast<String, dynamic>(),
-              ),
-            )
-            .toList()
-          ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+    final dynamic optionsData = json['options'];
+    List<JlptMockQuestionOptionModel> options = [];
+
+    if (optionsData is List) {
+      options = optionsData
+          .map(
+            (e) => JlptMockQuestionOptionModel.fromJson(
+              (e as Map).cast<String, dynamic>(),
+            ),
+          )
+          .toList()
+        ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+    } else if (optionsData is Map) {
+      options = optionsData.entries.map((entry) {
+        return JlptMockQuestionOptionModel(
+          id: entry.key,
+          key: entry.key,
+          contentText: entry.value.toString(),
+          orderIndex: entry.key.codeUnitAt(0), // Basic sort by A, B, C...
+        );
+      }).toList();
+      options.sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+    }
 
     return JlptMockQuestionModel(
       id: (json['id'] ?? '').toString(),
